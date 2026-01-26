@@ -28,7 +28,10 @@ import { ShopProtocolsPage } from './pages/ShopProtocolsPage'
 import { BookSessionPage } from './pages/BookSessionPage'
 import { ExpertsPage } from './pages/ExpertsPage'
 import { ExpertSessionsPage } from './pages/ExpertSessionsPage'
+import { ExpertProfilePage } from './pages/ExpertProfilePage'
 import { ProgramsPage } from './pages/ProgramsPage'
+import { ProgramsSprintsPage } from './pages/ProgramsSprintsPage'
+import { ProgramsReviewsPage } from './pages/ProgramsReviewsPage'
 
 // Pages - Coaching
 import { CoachingSessionsPage } from './pages/CoachingSessionsPage'
@@ -169,10 +172,34 @@ function App() {
               }
             />
             <Route
+              path="/experts/:id"
+              element={
+                <ProtectedRoute>
+                  <ExpertProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/programs"
               element={
                 <ProtectedRoute>
                   <ProgramsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programs/sprints"
+              element={
+                <ProtectedRoute>
+                  <ProgramsSprintsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programs/reviews"
+              element={
+                <ProtectedRoute>
+                  <ProgramsReviewsPage />
                 </ProtectedRoute>
               }
             />
