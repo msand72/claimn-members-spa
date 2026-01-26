@@ -55,7 +55,12 @@ export function useMyInterestGroups(userId: string | undefined) {
         .order('name')
 
       if (groupError) throw groupError
-      return (groups || []) as InterestGroup[]
+      // Transform the data - Supabase returns interest as array, we need single object
+      const transformed = (groups || []).map((g) => ({
+        ...g,
+        interest: Array.isArray(g.interest) ? g.interest[0] : g.interest,
+      }))
+      return transformed as InterestGroup[]
     },
     enabled: !!userId,
   })
@@ -85,7 +90,12 @@ export function useAllInterestGroups() {
         .order('name')
 
       if (error) throw error
-      return (data || []) as InterestGroup[]
+      // Transform the data - Supabase returns interest as array, we need single object
+      const transformed = (data || []).map((g) => ({
+        ...g,
+        interest: Array.isArray(g.interest) ? g.interest[0] : g.interest,
+      }))
+      return transformed as InterestGroup[]
     },
   })
 }

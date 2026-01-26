@@ -42,6 +42,14 @@ import { CoachingSessionsPage } from './pages/CoachingSessionsPage'
 import { CoachingResourcesPage } from './pages/CoachingResourcesPage'
 import { SessionNotesPage } from './pages/SessionNotesPage'
 
+// Pages - Transformation Tracking
+import { AssessmentPage } from './pages/AssessmentPage'
+import { AssessmentTakePage } from './pages/AssessmentTakePage'
+import { AssessmentResultsPage } from './pages/AssessmentResultsPage'
+import { GoalsPage } from './pages/GoalsPage'
+import { ActionItemsPage } from './pages/ActionItemsPage'
+import { ProtocolsPage } from './pages/ProtocolsPage'
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -237,6 +245,56 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ExpertSessionsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected routes - Transformation Tracking */}
+            <Route
+              path="/assessment"
+              element={
+                <ProtectedRoute>
+                  <AssessmentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessment/take"
+              element={
+                <ProtectedRoute>
+                  <AssessmentTakePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessment/results"
+              element={
+                <ProtectedRoute>
+                  <AssessmentResultsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/goals"
+              element={
+                <ProtectedRoute>
+                  <GoalsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/action-items"
+              element={
+                <ProtectedRoute>
+                  <ActionItemsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/protocols"
+              element={
+                <ProtectedRoute>
+                  <ProtocolsPage />
                 </ProtectedRoute>
               }
             />

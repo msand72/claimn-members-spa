@@ -56,7 +56,7 @@ export function DashboardPage() {
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 mt-2">
                   {profile?.archetype && (
-                    <GlassBadge variant="accent">{profile.archetype}</GlassBadge>
+                    <GlassBadge variant="koppar">{profile.archetype}</GlassBadge>
                   )}
                   <span className="text-kalkvit/60 text-sm">Brotherhood Member</span>
                   <span className="text-kalkvit/40">•</span>

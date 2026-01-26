@@ -194,10 +194,10 @@ export function FeedPage() {
 
   // Create tab options
   const tabs = [
-    { id: 'all', label: 'All Posts' },
-    { id: 'my-groups', label: 'My Groups' },
+    { value: 'all', label: 'All Posts' },
+    { value: 'my-groups', label: 'My Groups' },
     ...myGroups.slice(0, 4).map((g) => ({
-      id: g.id,
+      value: g.id,
       label: g.name,
     })),
   ]
@@ -223,7 +223,7 @@ export function FeedPage() {
         <div className="mb-6 overflow-x-auto">
           <GlassTabs
             tabs={tabs}
-            activeTab={activeTab}
+            value={activeTab}
             onChange={setActiveTab}
             className="min-w-max"
           />
