@@ -1,0 +1,85 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+/* Custom scrollbar for dark theme */
+:root {
+  --scrollbar-bg: rgba(255, 255, 255, 0.05);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Base styles */
+body {
+  margin: 0;
+  font-family: 'Lato', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Glass utilities */
+@layer utilities {
+  .glass-base {
+    @apply bg-white/[0.08] backdrop-blur-[16px] border border-white/[0.15];
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .glass-elevated {
+    @apply bg-white/[0.12] backdrop-blur-[24px] border border-white/[0.2];
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  .glass-accent {
+    @apply backdrop-blur-[24px];
+    background: linear-gradient(135deg, rgba(184, 115, 51, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border: 1px solid rgba(184, 115, 51, 0.25);
+    box-shadow: 0 0 80px rgba(184, 115, 51, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  /* Light theme glass variants */
+  .light .glass-base {
+    @apply bg-white/40 backdrop-blur-[16px] border border-white/60;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .light .glass-elevated {
+    @apply bg-white/60 backdrop-blur-[24px] border border-white/80;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+  }
+
+  .light .glass-accent {
+    @apply backdrop-blur-[24px];
+    background: linear-gradient(135deg, rgba(184, 115, 51, 0.12) 0%, rgba(255, 255, 255, 0.3) 100%);
+    border: 1px solid rgba(184, 115, 51, 0.35);
+    box-shadow: 0 0 80px rgba(184, 115, 51, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+}
