@@ -9,6 +9,11 @@ import { DashboardPage } from './pages/DashboardPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { BillingPage } from './pages/BillingPage'
 import { ResourcesPage } from './pages/ResourcesPage'
+import { FeedPage } from './pages/FeedPage'
+import { MessagesPage } from './pages/MessagesPage'
+import { ConnectionsPage } from './pages/ConnectionsPage'
+import { CirclesPage } from './pages/CirclesPage'
+import { ShopPage } from './pages/ShopPage'
 
 // Layout and UI
 import { MainLayout } from './components/layout/MainLayout'
@@ -32,7 +37,7 @@ function App() {
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Protected routes */}
+            {/* Protected routes - Core Pages */}
             <Route
               path="/"
               element={
@@ -66,12 +71,12 @@ function App() {
               }
             />
 
-            {/* Placeholder routes for sidebar navigation */}
+            {/* Protected routes - Community Pages */}
             <Route
               path="/feed"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Feed" />
+                  <FeedPage />
                 </ProtectedRoute>
               }
             />
@@ -79,7 +84,7 @@ function App() {
               path="/messages"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Messages" />
+                  <MessagesPage />
                 </ProtectedRoute>
               }
             />
@@ -87,7 +92,7 @@ function App() {
               path="/connections"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Connections" />
+                  <ConnectionsPage />
                 </ProtectedRoute>
               }
             />
@@ -95,10 +100,20 @@ function App() {
               path="/circles"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Circles" />
+                  <CirclesPage />
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/shop"
+              element={
+                <ProtectedRoute>
+                  <ShopPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Placeholder routes for remaining pages */}
             <Route
               path="/book-session"
               element={
@@ -108,10 +123,18 @@ function App() {
               }
             />
             <Route
-              path="/shop"
+              path="/shop/upgrade"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Shop" />
+                  <PlaceholderPage title="Upgrade Membership" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/experts"
+              element={
+                <ProtectedRoute>
+                  <PlaceholderPage title="Experts Directory" />
                 </ProtectedRoute>
               }
             />
