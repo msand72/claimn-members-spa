@@ -47,8 +47,11 @@ import { AssessmentPage } from './pages/AssessmentPage'
 import { AssessmentTakePage } from './pages/AssessmentTakePage'
 import { AssessmentResultsPage } from './pages/AssessmentResultsPage'
 import { GoalsPage } from './pages/GoalsPage'
+import { GoalDetailPage } from './pages/GoalDetailPage'
 import { ActionItemsPage } from './pages/ActionItemsPage'
 import { ProtocolsPage } from './pages/ProtocolsPage'
+import { ProtocolDetailPage } from './pages/ProtocolDetailPage'
+import { InterestGroupsPage } from './pages/InterestGroupsPage'
 
 
 const queryClient = new QueryClient({
@@ -283,6 +286,14 @@ function App() {
               }
             />
             <Route
+              path="/goals/:id"
+              element={
+                <ProtectedRoute>
+                  <GoalDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/action-items"
               element={
                 <ProtectedRoute>
@@ -295,6 +306,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ProtocolsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/protocols/:slug"
+              element={
+                <ProtectedRoute>
+                  <ProtocolDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/interest-groups"
+              element={
+                <ProtectedRoute>
+                  <InterestGroupsPage />
                 </ProtectedRoute>
               }
             />
