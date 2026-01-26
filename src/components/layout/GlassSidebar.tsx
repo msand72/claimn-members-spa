@@ -15,6 +15,8 @@ import {
   LogOut,
   Award,
   GraduationCap,
+  Globe,
+  Sparkles,
 } from 'lucide-react'
 
 interface NavItem {
@@ -28,8 +30,10 @@ const mainNav: NavItem[] = [
   { to: '/feed', icon: Newspaper, label: 'Feed' },
   { to: '/messages', icon: MessageCircle, label: 'Messages' },
   { to: '/connections', icon: Users, label: 'Connections' },
+  { to: '/network', icon: Globe, label: 'Network' },
   { to: '/circles', icon: Award, label: 'Circles' },
   { to: '/programs', icon: GraduationCap, label: 'Programs' },
+  { to: '/experts', icon: Sparkles, label: 'Experts' },
   { to: '/book-session', icon: Calendar, label: 'Book Session' },
 ]
 

@@ -19,6 +19,8 @@ import { FeedPage } from './pages/FeedPage'
 import { MessagesPage } from './pages/MessagesPage'
 import { ConnectionsPage } from './pages/ConnectionsPage'
 import { CirclesPage } from './pages/CirclesPage'
+import { CircleDetailPage } from './pages/CircleDetailPage'
+import { NetworkPage } from './pages/NetworkPage'
 
 // Pages - Shop & Experts
 import { ShopPage } from './pages/ShopPage'
@@ -114,6 +116,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CirclesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/circles/:id"
+              element={
+                <ProtectedRoute>
+                  <CircleDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/network"
+              element={
+                <ProtectedRoute>
+                  <NetworkPage />
                 </ProtectedRoute>
               }
             />
