@@ -14,6 +14,7 @@ import {
   FolderOpen,
   LogOut,
   Award,
+  GraduationCap,
 } from 'lucide-react'
 
 interface NavItem {
@@ -28,6 +29,7 @@ const mainNav: NavItem[] = [
   { to: '/messages', icon: MessageCircle, label: 'Messages' },
   { to: '/connections', icon: Users, label: 'Connections' },
   { to: '/circles', icon: Award, label: 'Circles' },
+  { to: '/programs', icon: GraduationCap, label: 'Programs' },
   { to: '/book-session', icon: Calendar, label: 'Book Session' },
 ]
 

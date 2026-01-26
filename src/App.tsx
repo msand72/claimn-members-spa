@@ -24,6 +24,7 @@ import { CirclesPage } from './pages/CirclesPage'
 import { ShopPage } from './pages/ShopPage'
 import { BookSessionPage } from './pages/BookSessionPage'
 import { ExpertsPage } from './pages/ExpertsPage'
+import { ProgramsPage } from './pages/ProgramsPage'
 
 // Layout and UI
 import { MainLayout } from './components/layout/MainLayout'
@@ -139,6 +140,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ExpertsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programs"
+              element={
+                <ProtectedRoute>
+                  <ProgramsPage />
                 </ProtectedRoute>
               }
             />

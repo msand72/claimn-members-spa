@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { GlassCard, GlassButton, BackgroundPattern } from '../components/ui'
 import { LogIn, AlertCircle } from 'lucide-react'
@@ -99,12 +99,12 @@ export function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <a
-              href="#"
+            <Link
+              to="/forgot-password"
               className="text-sm text-koppar hover:text-koppar/80 transition-colors"
             >
               Forgot your password?
-            </a>
+            </Link>
           </div>
         </GlassCard>
       </div>
