@@ -25,6 +25,10 @@ import { NetworkPage } from './pages/NetworkPage'
 // Pages - Shop & Experts
 import { ShopPage } from './pages/ShopPage'
 import { ShopProtocolsPage } from './pages/ShopProtocolsPage'
+import { ShopProtocolDetailPage } from './pages/ShopProtocolDetailPage'
+import { ShopCirclesPage } from './pages/ShopCirclesPage'
+import { ShopUpgradePage } from './pages/ShopUpgradePage'
+import { ShopSuccessPage } from './pages/ShopSuccessPage'
 import { BookSessionPage } from './pages/BookSessionPage'
 import { ExpertsPage } from './pages/ExpertsPage'
 import { ExpertSessionsPage } from './pages/ExpertSessionsPage'
@@ -38,9 +42,6 @@ import { CoachingSessionsPage } from './pages/CoachingSessionsPage'
 import { CoachingResourcesPage } from './pages/CoachingResourcesPage'
 import { SessionNotesPage } from './pages/SessionNotesPage'
 
-// Layout and UI
-import { MainLayout } from './components/layout/MainLayout'
-import { GlassCard } from './components/ui'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -250,10 +251,34 @@ function App() {
               }
             />
             <Route
+              path="/shop/protocols/:slug"
+              element={
+                <ProtectedRoute>
+                  <ShopProtocolDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/shop/circles"
+              element={
+                <ProtectedRoute>
+                  <ShopCirclesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/shop/upgrade"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Upgrade Membership" />
+                  <ShopUpgradePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/shop/success"
+              element={
+                <ProtectedRoute>
+                  <ShopSuccessPage />
                 </ProtectedRoute>
               }
             />
@@ -264,22 +289,6 @@ function App() {
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>
-  )
-}
-
-// Temporary placeholder component for routes not yet implemented
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <MainLayout>
-      <div className="max-w-4xl mx-auto">
-        <GlassCard variant="base">
-          <h1 className="font-display text-3xl font-bold text-kalkvit mb-4">{title}</h1>
-          <p className="text-kalkvit/60">
-            This page is coming soon. The Glass UI foundation is ready for implementation.
-          </p>
-        </GlassCard>
-      </div>
-    </MainLayout>
   )
 }
 
