@@ -24,9 +24,16 @@ import { NetworkPage } from './pages/NetworkPage'
 
 // Pages - Shop & Experts
 import { ShopPage } from './pages/ShopPage'
+import { ShopProtocolsPage } from './pages/ShopProtocolsPage'
 import { BookSessionPage } from './pages/BookSessionPage'
 import { ExpertsPage } from './pages/ExpertsPage'
+import { ExpertSessionsPage } from './pages/ExpertSessionsPage'
 import { ProgramsPage } from './pages/ProgramsPage'
+
+// Pages - Coaching
+import { CoachingSessionsPage } from './pages/CoachingSessionsPage'
+import { CoachingResourcesPage } from './pages/CoachingResourcesPage'
+import { SessionNotesPage } from './pages/SessionNotesPage'
 
 // Layout and UI
 import { MainLayout } from './components/layout/MainLayout'
@@ -170,7 +177,51 @@ function App() {
               }
             />
 
-            {/* Placeholder routes for remaining pages */}
+            {/* Protected routes - Coaching */}
+            <Route
+              path="/coaching/sessions"
+              element={
+                <ProtectedRoute>
+                  <CoachingSessionsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coaching/resources"
+              element={
+                <ProtectedRoute>
+                  <CoachingResourcesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/coaching/session-notes"
+              element={
+                <ProtectedRoute>
+                  <SessionNotesPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected routes - Expert Sessions */}
+            <Route
+              path="/expert-sessions"
+              element={
+                <ProtectedRoute>
+                  <ExpertSessionsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected routes - Shop */}
+            <Route
+              path="/shop/protocols"
+              element={
+                <ProtectedRoute>
+                  <ShopProtocolsPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/shop/upgrade"
               element={
