@@ -3,17 +3,27 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
-// Pages
+// Pages - Auth
 import { LoginPage } from './pages/LoginPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
+
+// Pages - Core
 import { DashboardPage } from './pages/DashboardPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { BillingPage } from './pages/BillingPage'
 import { ResourcesPage } from './pages/ResourcesPage'
+
+// Pages - Community
 import { FeedPage } from './pages/FeedPage'
 import { MessagesPage } from './pages/MessagesPage'
 import { ConnectionsPage } from './pages/ConnectionsPage'
 import { CirclesPage } from './pages/CirclesPage'
+
+// Pages - Shop & Experts
 import { ShopPage } from './pages/ShopPage'
+import { BookSessionPage } from './pages/BookSessionPage'
+import { ExpertsPage } from './pages/ExpertsPage'
 
 // Layout and UI
 import { MainLayout } from './components/layout/MainLayout'
@@ -34,8 +44,10 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
+            {/* Public routes - Auth */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* Protected routes - Core Pages */}
             <Route
@@ -104,6 +116,8 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Protected routes - Shop & Experts */}
             <Route
               path="/shop"
               element={
@@ -112,21 +126,11 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            {/* Placeholder routes for remaining pages */}
             <Route
               path="/book-session"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Book Session" />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/shop/upgrade"
-              element={
-                <ProtectedRoute>
-                  <PlaceholderPage title="Upgrade Membership" />
+                  <BookSessionPage />
                 </ProtectedRoute>
               }
             />
@@ -134,7 +138,17 @@ function App() {
               path="/experts"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Experts Directory" />
+                  <ExpertsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Placeholder routes for remaining pages */}
+            <Route
+              path="/shop/upgrade"
+              element={
+                <ProtectedRoute>
+                  <PlaceholderPage title="Upgrade Membership" />
                 </ProtectedRoute>
               }
             />
