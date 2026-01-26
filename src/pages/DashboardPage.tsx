@@ -1,48 +1,26 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import {
-  GlassCard,
-  GlassButton,
-  GlassStatsCard,
-  BackgroundPattern,
-} from '../components/ui'
-import { Heart, MessageCircle, Users, LogOut, Settings, User } from 'lucide-react'
+import { MainLayout } from '../components/layout/MainLayout'
+import { GlassCard, GlassButton, GlassStatsCard, GlassAvatar } from '../components/ui'
+import { Heart, MessageCircle, Users, User, Newspaper, Calendar, ArrowRight } from 'lucide-react'
 
 export function DashboardPage() {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
 
-  const firstName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Member'
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member'
+  const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
 
   return (
-    <div className="min-h-screen bg-glass-dark text-kalkvit">
-      <BackgroundPattern />
-
-      {/* Header */}
-      <header className="sticky top-0 z-50 glass-base border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="font-display text-2xl font-bold">CLAIM'N</div>
-          <div className="flex items-center gap-4">
-            <GlassButton variant="ghost" icon={Settings}>
-              Settings
-            </GlassButton>
-            <GlassButton variant="secondary" icon={LogOut} onClick={signOut}>
-              Sign Out
-            </GlassButton>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+    <MainLayout>
+      <div className="max-w-6xl mx-auto">
         {/* Welcome Card */}
         <GlassCard variant="elevated" className="mb-8">
           <div className="bg-gradient-to-br from-charcoal to-jordbrun rounded-2xl p-8">
             <div className="flex items-center gap-6">
-              <div className="w-24 h-24 rounded-full bg-koppar flex items-center justify-center text-4xl font-bold text-kalkvit">
-                {firstName.charAt(0).toUpperCase()}
-              </div>
+              <GlassAvatar initials={initials} size="xl" className="w-24 h-24 text-4xl" />
               <div>
-                <h1 className="font-display text-3xl font-bold mb-1">
-                  Welcome back, {firstName}
+                <h1 className="font-display text-3xl font-bold text-kalkvit mb-1">
+                  Welcome back, {displayName}
                 </h1>
                 <p className="font-serif text-lg italic text-kalkvit/80">
                   Brotherhood Member • Glass UI Dashboard
@@ -77,43 +55,71 @@ export function DashboardPage() {
           />
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions & Recent Activity */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <GlassCard>
-            <h3 className="font-display text-xl font-semibold mb-4">
+            <h3 className="font-display text-xl font-semibold text-kalkvit mb-4">
               Quick Actions
             </h3>
             <div className="flex flex-wrap gap-3">
-              <GlassButton variant="primary">Create Post</GlassButton>
-              <GlassButton variant="secondary" icon={User}>
-                View Profile
-              </GlassButton>
-              <GlassButton variant="secondary" icon={MessageCircle}>
-                Messages
-              </GlassButton>
+              <Link to="/feed">
+                <GlassButton variant="primary">
+                  <Newspaper className="w-4 h-4" />
+                  Create Post
+                </GlassButton>
+              </Link>
+              <Link to="/profile">
+                <GlassButton variant="secondary">
+                  <User className="w-4 h-4" />
+                  View Profile
+                </GlassButton>
+              </Link>
+              <Link to="/messages">
+                <GlassButton variant="secondary">
+                  <MessageCircle className="w-4 h-4" />
+                  Messages
+                </GlassButton>
+              </Link>
+              <Link to="/book-session">
+                <GlassButton variant="secondary">
+                  <Calendar className="w-4 h-4" />
+                  Book Session
+                </GlassButton>
+              </Link>
             </div>
           </GlassCard>
 
           <GlassCard>
-            <h3 className="font-display text-xl font-semibold mb-4">
-              Recent Activity
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display text-xl font-semibold text-kalkvit">
+                Recent Activity
+              </h3>
+              <Link to="/feed" className="text-koppar text-sm hover:underline flex items-center gap-1">
+                View all <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
             <div className="space-y-3">
-              {['John liked your post', 'New connection request', 'Protocol completed'].map(
-                (activity, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 p-3 bg-white/[0.03] rounded-xl"
-                  >
+              {[
+                { text: 'John liked your post', time: '2m ago' },
+                { text: 'New connection request from Sarah', time: '1h ago' },
+                { text: '30-Day Protocol completed', time: '2h ago' },
+                { text: 'Expert session reminder tomorrow', time: '5h ago' },
+              ].map((activity, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 bg-white/[0.03] rounded-xl"
+                >
+                  <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-koppar rounded-full" />
-                    <span className="text-kalkvit/80">{activity}</span>
+                    <span className="text-kalkvit/80 text-sm">{activity.text}</span>
                   </div>
-                )
-              )}
+                  <span className="text-kalkvit/40 text-xs">{activity.time}</span>
+                </div>
+              ))}
             </div>
           </GlassCard>
         </div>
-      </main>
-    </div>
+      </div>
+    </MainLayout>
   )
 }
