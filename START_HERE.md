@@ -160,9 +160,11 @@ interest_id UUID REFERENCES interests(id)
 
 ## Fonts
 
-Neutraface 2 font is loaded from: `https://claimn.co/fonts/Neutraface_2.ttf`
+Neutraface 2 font is loaded **locally** from: `public/fonts/Neutraface_2.ttf`
 
-**Note:** In Next.js, `public/` folder files are served at root, so `/public/fonts/` becomes `/fonts/`
+In the CSS, use: `url('/fonts/Neutraface_2.ttf')`
+
+**DO NOT use external URLs** - they don't work due to CORS. Always use local files in `public/fonts/`.
 
 ---
 
