@@ -160,11 +160,20 @@ interest_id UUID REFERENCES interests(id)
 
 ## Fonts
 
-Neutraface 2 font is loaded **locally** from: `public/fonts/Neutraface_2.ttf`
+**CRITICAL: The font-family name MUST be exactly `'Neutraface 2 Display Bold'`**
 
-In the CSS, use: `url('/fonts/Neutraface_2.ttf')`
+This is the name embedded in the TTF file. Using any other name (like 'Neutraface 2' or 'Neutraface 2 Display') will NOT work.
 
-**DO NOT use external URLs** - they don't work due to CORS. Always use local files in `public/fonts/`.
+### How it works:
+1. Font file is in `src/assets/fonts/Neutraface_2.ttf`
+2. Imported in `main.tsx` using Vite's asset import
+3. @font-face is dynamically injected with the Vite-resolved URL
+4. Tailwind config uses `font-display: ['Neutraface 2 Display Bold', ...]`
+
+### DO NOT:
+- Use external URLs (CORS issues)
+- Use the public folder (Vite doesn't process it correctly for fonts)
+- Use any font-family name other than the exact embedded name
 
 ---
 
