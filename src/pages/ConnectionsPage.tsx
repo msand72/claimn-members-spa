@@ -37,7 +37,7 @@ function ConnectionCard({ connection }: { connection: Connection }) {
   }
 
   return (
-    <GlassCard variant="base" className="p-4">
+    <GlassCard variant="base" className="p-4 overflow-hidden">
       <div className="flex items-start gap-4">
         <GlassAvatar initials={connection.initials} size="lg" />
         <div className="flex-1 min-w-0">
@@ -56,14 +56,14 @@ function ConnectionCard({ connection }: { connection: Connection }) {
             {connection.mutualConnections} mutual connections
           </p>
 
-          <div className="flex items-center gap-2 mt-4">
+          <div className="flex items-center gap-2 mt-4 overflow-hidden">
             {isConnected ? (
               <>
-                <GlassButton variant="secondary" className="flex-1">
-                  <MessageCircle className="w-4 h-4" />
-                  Message
+                <GlassButton variant="secondary" className="flex-1 min-w-0">
+                  <MessageCircle className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Message</span>
                 </GlassButton>
-                <GlassBadge variant="success">
+                <GlassBadge variant="success" className="shrink-0">
                   <UserCheck className="w-3 h-3 mr-1" />
                   Connected
                 </GlassBadge>
@@ -74,8 +74,8 @@ function ConnectionCard({ connection }: { connection: Connection }) {
               </GlassBadge>
             ) : (
               <GlassButton variant="primary" className="w-full" onClick={handleConnect}>
-                <UserPlus className="w-4 h-4" />
-                Connect
+                <UserPlus className="w-4 h-4 shrink-0" />
+                <span className="truncate">Connect</span>
               </GlassButton>
             )}
           </div>
