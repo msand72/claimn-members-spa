@@ -160,15 +160,15 @@ interest_id UUID REFERENCES interests(id)
 
 ## Fonts
 
-**CRITICAL: The font-family name MUST be exactly `'Neutraface 2 Display Bold'`**
+**CRITICAL: The font-family name MUST be exactly `'Neutraface 2 Display'`**
 
-This is the name embedded in the TTF file. Using any other name (like 'Neutraface 2' or 'Neutraface 2 Display') will NOT work.
+This matches claimn-web's globals.css. See `/claimn-web/src/app/globals.css` for reference.
 
 ### How it works:
 1. Font file is in `src/assets/fonts/Neutraface_2.ttf`
 2. Imported in `main.tsx` using Vite's asset import
 3. @font-face is dynamically injected with the Vite-resolved URL
-4. Tailwind config uses `font-display: ['Neutraface 2 Display Bold', ...]`
+4. Tailwind config uses `font-display: ['Neutraface 2 Display', ...]`
 
 ### DO NOT:
 - Use external URLs (CORS issues)
