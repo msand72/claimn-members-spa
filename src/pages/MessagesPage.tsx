@@ -10,7 +10,6 @@ import {
   useSendMessage,
   useMarkConversationRead,
   type Conversation,
-  type Message,
 } from '../lib/api'
 
 // Helper to format time ago

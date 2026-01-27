@@ -8,14 +8,83 @@ import {
   usePendingConnections,
   useAcceptConnection,
   useRejectConnection,
-  useRemoveConnection,
   useNetworkSuggestions,
   useSendConnectionRequest,
   type Connection,
+  type NetworkMember,
 } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 
 const tabs = ['All', 'Connected', 'Pending', 'Suggestions']
+
+// Suggestion card for network suggestions (not yet connected)
+interface SuggestionCardProps {
+  member: NetworkMember
+  onConnect: () => void
+  isSending: boolean
+}
+
+function SuggestionCard({ member, onConnect, isSending }: SuggestionCardProps) {
+  const displayName = member.display_name || 'Unknown'
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
+  const location = [member.city, member.country].filter(Boolean).join(', ')
+
+  return (
+    <GlassCard variant="base" className="p-4 overflow-hidden">
+      <div className="flex items-start gap-4">
+        <GlassAvatar initials={initials} size="lg" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="font-semibold text-kalkvit">{displayName}</h3>
+              {member.archetype && (
+                <p className="text-sm text-kalkvit/60">{member.archetype}</p>
+              )}
+              {location && (
+                <p className="text-xs text-kalkvit/40 mt-1">{location}</p>
+              )}
+            </div>
+            <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit">
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+          </div>
+
+          {member.bio && (
+            <p className="text-xs text-kalkvit/50 mt-2 line-clamp-2">{member.bio}</p>
+          )}
+
+          {member.shared_interests && member.shared_interests > 0 && (
+            <p className="text-xs text-koppar mt-2">
+              {member.shared_interests} shared interests
+            </p>
+          )}
+
+          <div className="flex items-center gap-2 mt-4 overflow-hidden">
+            <GlassButton
+              variant="primary"
+              className="w-full"
+              onClick={onConnect}
+              disabled={isSending}
+            >
+              {isSending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <UserPlus className="w-4 h-4 shrink-0" />
+              )}
+              <span className="truncate">{isSending ? 'Sending...' : 'Connect'}</span>
+            </GlassButton>
+          </div>
+        </div>
+      </div>
+    </GlassCard>
+  )
+}
 
 interface ConnectionCardProps {
   connection: Connection
@@ -165,9 +234,6 @@ export function ConnectionsPage() {
     return matchesSearch
   })
 
-  // Show suggestions when on that tab
-  const displayItems = activeTab === 'Suggestions' ? suggestions : filteredConnections
-
   const stats = {
     total: connections.filter(c => c.status === 'accepted').length,
     pending: pendingConnections.length,
@@ -229,17 +295,77 @@ export function ConnectionsPage() {
           </div>
         </div>
 
-        {/* Connections Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredConnections.map((connection) => (
-            <ConnectionCard key={connection.id} connection={connection} />
-          ))}
-        </div>
-
-        {filteredConnections.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-kalkvit/60">No connections found matching your criteria.</p>
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
           </div>
+        )}
+
+        {/* Error state */}
+        {connectionsError && (
+          <GlassCard variant="base" className="text-center py-12">
+            <p className="text-tegelrod mb-2">Failed to load connections</p>
+            <p className="text-kalkvit/50 text-sm">Please try again later</p>
+          </GlassCard>
+        )}
+
+        {/* Suggestions Grid - for NetworkMember type */}
+        {!isLoading && !connectionsError && activeTab === 'Suggestions' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {suggestions.map((member) => (
+              <SuggestionCard
+                key={member.user_id}
+                member={member}
+                onConnect={() => {
+                  console.log('[ConnectionsPage] Sending connection request to:', member.user_id)
+                  sendConnection.mutate({ recipient_id: member.user_id })
+                }}
+                isSending={sendConnection.isPending}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Connections Grid - for Connection type */}
+        {!isLoading && !connectionsError && activeTab !== 'Suggestions' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredConnections.map((connection) => (
+              <ConnectionCard
+                key={connection.id}
+                connection={connection}
+                currentUserId={user?.id}
+                onAccept={() => {
+                  console.log('[ConnectionsPage] Accepting connection:', connection.id)
+                  acceptConnection.mutate(connection.id)
+                }}
+                onReject={() => {
+                  console.log('[ConnectionsPage] Rejecting connection:', connection.id)
+                  rejectConnection.mutate(connection.id)
+                }}
+                isAccepting={acceptConnection.isPending}
+                isRejecting={rejectConnection.isPending}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && !connectionsError && (
+          (activeTab === 'Suggestions' && suggestions.length === 0) ||
+          (activeTab !== 'Suggestions' && filteredConnections.length === 0)
+        ) && (
+          <GlassCard variant="base" className="text-center py-12">
+            <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">
+              {activeTab === 'Suggestions' ? 'No suggestions available' : 'No connections found'}
+            </h3>
+            <p className="text-kalkvit/50 text-sm">
+              {searchQuery ? 'Try a different search term' :
+               activeTab === 'Suggestions' ? 'Check back later for new suggestions' :
+               'Start connecting with other members'}
+            </p>
+          </GlassCard>
         )}
       </div>
     </MainLayout>
