@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 // Pages - Auth
@@ -52,6 +53,9 @@ import { ActionItemsPage } from './pages/ActionItemsPage'
 import { ProtocolsPage } from './pages/ProtocolsPage'
 import { ProtocolDetailPage } from './pages/ProtocolDetailPage'
 import { InterestGroupsPage } from './pages/InterestGroupsPage'
+import { KPIsPage } from './pages/KPIsPage'
+import { MilestonesPage } from './pages/MilestonesPage'
+import { AccountabilityPage } from './pages/AccountabilityPage'
 
 
 const queryClient = new QueryClient({
@@ -66,8 +70,9 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
           <Routes>
             {/* Public routes - Auth */}
             <Route path="/login" element={<LoginPage />} />
@@ -325,6 +330,30 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/kpis"
+              element={
+                <ProtectedRoute>
+                  <KPIsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/milestones"
+              element={
+                <ProtectedRoute>
+                  <MilestonesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/accountability"
+              element={
+                <ProtectedRoute>
+                  <AccountabilityPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Protected routes - Shop */}
             <Route
@@ -371,8 +400,9 @@ function App() {
             {/* 404 fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   )
 }

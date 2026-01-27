@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../contexts/AuthContext'
 import { GlassAvatar } from '../ui/GlassAvatar'
+import { ThemeToggle } from '../ui/ThemeToggle'
 import {
   Home,
   Newspaper,
@@ -17,6 +18,13 @@ import {
   GraduationCap,
   Globe,
   Sparkles,
+  Target,
+  BarChart3,
+  CheckSquare,
+  BookOpen,
+  Flag,
+  UsersRound,
+  ClipboardCheck,
 } from 'lucide-react'
 
 interface NavItem {
@@ -35,6 +43,16 @@ const mainNav: NavItem[] = [
   { to: '/programs', icon: GraduationCap, label: 'Programs' },
   { to: '/experts', icon: Sparkles, label: 'Experts' },
   { to: '/book-session', icon: Calendar, label: 'Book Session' },
+]
+
+const transformationNav: NavItem[] = [
+  { to: '/goals', icon: Target, label: 'Goals' },
+  { to: '/kpis', icon: BarChart3, label: 'KPIs' },
+  { to: '/action-items', icon: CheckSquare, label: 'Action Items' },
+  { to: '/protocols', icon: BookOpen, label: 'Protocols' },
+  { to: '/milestones', icon: Flag, label: 'Milestones' },
+  { to: '/accountability', icon: UsersRound, label: 'Accountability' },
+  { to: '/assessment', icon: ClipboardCheck, label: 'Assessment' },
 ]
 
 const secondaryNav: NavItem[] = [
@@ -107,6 +125,18 @@ export function GlassSidebar() {
           ))}
         </div>
 
+        {/* Transformation Tracking */}
+        <div className="pt-4 mt-4 border-t border-white/10">
+          <p className="px-4 py-2 text-xs font-semibold text-kalkvit/40 uppercase tracking-wider">
+            Transformation
+          </p>
+          <div className="space-y-1">
+            {transformationNav.map(item => (
+              <NavLinkItem key={item.to} {...item} />
+            ))}
+          </div>
+        </div>
+
         <div className="pt-4 mt-4 border-t border-white/10 space-y-1">
           {secondaryNav.map(item => (
             <NavLinkItem key={item.to} {...item} />
@@ -114,8 +144,9 @@ export function GlassSidebar() {
         </div>
       </nav>
 
-      {/* Sign Out */}
-      <div className="p-4 border-t border-white/10">
+      {/* Theme Toggle & Sign Out */}
+      <div className="p-4 border-t border-white/10 space-y-1">
+        <ThemeToggle />
         <button
           onClick={handleSignOut}
           className={cn(
