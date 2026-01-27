@@ -1,95 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
-import { Search, Users, Calendar, Lock, Globe, ArrowRight } from 'lucide-react'
+import { Search, Users, Lock, Globe, ArrowRight, Loader2 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useCircles, useMyCircles, useJoinCircle, type Circle } from '../lib/api'
 
-interface Circle {
-  id: number
-  name: string
-  description: string
-  members: number
-  category: string
-  isPrivate: boolean
-  isMember: boolean
-  nextMeeting?: string
-  image?: string
+const categories = ['All', 'My Circles']
+
+interface CircleCardProps {
+  circle: Circle
+  onJoin: () => void
+  isJoining: boolean
 }
 
-const mockCircles: Circle[] = [
-  {
-    id: 1,
-    name: 'Morning Warriors',
-    description: 'Early risers committed to winning the morning. 5AM club members pushing each other to start strong.',
-    members: 48,
-    category: 'Habits',
-    isPrivate: false,
-    isMember: true,
-    nextMeeting: 'Tomorrow, 5:00 AM',
-  },
-  {
-    id: 2,
-    name: 'Entrepreneur Network',
-    description: 'Founders and business owners sharing strategies, challenges, and wins in their entrepreneurial journey.',
-    members: 124,
-    category: 'Business',
-    isPrivate: false,
-    isMember: true,
-    nextMeeting: 'Friday, 7:00 PM',
-  },
-  {
-    id: 3,
-    name: 'Fitness Protocol',
-    description: 'Members following the 12-week transformation protocol. Weekly check-ins and accountability partners.',
-    members: 67,
-    category: 'Fitness',
-    isPrivate: false,
-    isMember: false,
-  },
-  {
-    id: 4,
-    name: 'Leadership Mastermind',
-    description: 'Advanced leadership discussions and peer coaching for experienced leaders and executives.',
-    members: 24,
-    category: 'Leadership',
-    isPrivate: true,
-    isMember: false,
-  },
-  {
-    id: 5,
-    name: 'Mindset Mastery',
-    description: 'Deep work on mental frameworks, stoic philosophy, and developing an unshakeable mindset.',
-    members: 89,
-    category: 'Mindset',
-    isPrivate: false,
-    isMember: true,
-    nextMeeting: 'Sunday, 10:00 AM',
-  },
-  {
-    id: 6,
-    name: 'Wealth Building',
-    description: 'Financial education, investment strategies, and building long-term wealth together.',
-    members: 156,
-    category: 'Finance',
-    isPrivate: false,
-    isMember: false,
-  },
-]
-
-const categories = ['All', 'My Circles', 'Habits', 'Business', 'Fitness', 'Mindset', 'Finance']
-
-function CircleCard({ circle }: { circle: Circle }) {
+function CircleCard({ circle, onJoin, isJoining }: CircleCardProps) {
   return (
     <GlassCard variant="base" className="group cursor-pointer hover:border-koppar/30 transition-all">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
-          <GlassBadge variant={circle.isPrivate ? 'warning' : 'default'}>
-            {circle.isPrivate ? <Lock className="w-3 h-3 mr-1" /> : <Globe className="w-3 h-3 mr-1" />}
-            {circle.isPrivate ? 'Private' : 'Open'}
+          <GlassBadge variant="default">
+            <Globe className="w-3 h-3 mr-1" />
+            Open
           </GlassBadge>
-          <GlassBadge variant="koppar">{circle.category}</GlassBadge>
         </div>
-        {circle.isMember && (
+        {circle.is_member && (
           <GlassBadge variant="success">Member</GlassBadge>
         )}
       </div>
@@ -97,27 +31,25 @@ function CircleCard({ circle }: { circle: Circle }) {
       <h3 className="font-display text-xl font-semibold text-kalkvit mb-2 group-hover:text-koppar transition-colors">
         {circle.name}
       </h3>
-      <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{circle.description}</p>
+      <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{circle.description || 'No description'}</p>
 
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
           <Users className="w-4 h-4" />
-          {circle.members} members
+          {circle.member_count} members
         </span>
-        {circle.nextMeeting && (
-          <span className="flex items-center gap-1">
-            <Calendar className="w-4 h-4" />
-            {circle.nextMeeting}
-          </span>
-        )}
       </div>
 
       <GlassButton
-        variant={circle.isMember ? 'secondary' : 'primary'}
+        variant={circle.is_member ? 'secondary' : 'primary'}
         className="w-full"
+        onClick={() => !circle.is_member && onJoin()}
+        disabled={isJoining}
       >
-        {circle.isMember ? (
+        {circle.is_member ? (
           <>Enter Circle <ArrowRight className="w-4 h-4" /></>
+        ) : isJoining ? (
+          <><Loader2 className="w-4 h-4 animate-spin" /> Joining...</>
         ) : (
           <>Join Circle</>
         )}
@@ -130,16 +62,42 @@ export function CirclesPage() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredCircles = mockCircles.filter((circle) => {
-    const matchesSearch = circle.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      circle.description.toLowerCase().includes(searchQuery.toLowerCase())
+  // Fetch circles from API
+  const {
+    data: circlesData,
+    isLoading: circlesLoading,
+    error: circlesError,
+  } = useCircles({ limit: 50 })
 
-    if (activeCategory === 'All') return matchesSearch
-    if (activeCategory === 'My Circles') return matchesSearch && circle.isMember
-    return matchesSearch && circle.category === activeCategory
+  const {
+    data: myCirclesData,
+    isLoading: myCirclesLoading,
+  } = useMyCircles()
+
+  const joinCircle = useJoinCircle()
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[CirclesPage] Circles state:', {
+      loading: circlesLoading,
+      error: circlesError,
+      data: circlesData,
+      myCircles: myCirclesData,
+    })
+  }, [circlesData, circlesLoading, circlesError, myCirclesData])
+
+  const allCircles = circlesData?.data || []
+  const myCircles = myCirclesData || []
+
+  // Filter circles based on search and category
+  const filteredCircles = (activeCategory === 'My Circles' ? myCircles : allCircles).filter((circle) => {
+    const matchesSearch = circle.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (circle.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesSearch
   })
 
-  const myCirclesCount = mockCircles.filter(c => c.isMember).length
+  const myCirclesCount = myCircles.length
+  const isLoading = circlesLoading || (activeCategory === 'My Circles' && myCirclesLoading)
 
   return (
     <MainLayout>
@@ -185,17 +143,49 @@ export function CirclesPage() {
           ))}
         </div>
 
-        {/* Circles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCircles.map((circle) => (
-            <CircleCard key={circle.id} circle={circle} />
-          ))}
-        </div>
-
-        {filteredCircles.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-kalkvit/60">No circles found matching your criteria.</p>
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
           </div>
+        )}
+
+        {/* Error state */}
+        {circlesError && (
+          <GlassCard variant="base" className="text-center py-12">
+            <p className="text-tegelrod mb-2">Failed to load circles</p>
+            <p className="text-kalkvit/50 text-sm">Please try again later</p>
+          </GlassCard>
+        )}
+
+        {/* Circles Grid */}
+        {!isLoading && !circlesError && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCircles.map((circle) => (
+              <CircleCard
+                key={circle.id}
+                circle={circle}
+                onJoin={() => {
+                  console.log('[CirclesPage] Joining circle:', circle.id)
+                  joinCircle.mutate(circle.id)
+                }}
+                isJoining={joinCircle.isPending}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && !circlesError && filteredCircles.length === 0 && (
+          <GlassCard variant="base" className="text-center py-12">
+            <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">No circles found</h3>
+            <p className="text-kalkvit/50 text-sm">
+              {searchQuery ? 'Try a different search term' :
+               activeCategory === 'My Circles' ? 'Join a circle to get started' :
+               'No circles available yet'}
+            </p>
+          </GlassCard>
         )}
       </div>
     </MainLayout>
