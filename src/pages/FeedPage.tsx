@@ -113,14 +113,14 @@ function PostCard({ post }: { post: Post }) {
                 {post.badge && <GlassBadge variant="koppar">{post.badge}</GlassBadge>}
               </div>
               <div className="flex items-center gap-2 text-sm text-kalkvit/50 flex-wrap">
-                <span>{post.author.role}</span>
+                <span className="truncate max-w-[120px] sm:max-w-none">{post.author.role}</span>
                 <span>•</span>
                 <span>{post.timestamp}</span>
                 {post.interestGroup && (
                   <>
-                    <span>•</span>
-                    <span className="flex items-center gap-1 text-koppar">
-                      <Users className="w-3 h-3" />
+                    <span className="hidden sm:inline">•</span>
+                    <span className="hidden sm:flex items-center gap-1 text-koppar truncate max-w-[150px]">
+                      <Users className="w-3 h-3 flex-shrink-0" />
                       {post.interestGroup.name}
                     </span>
                   </>

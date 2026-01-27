@@ -304,3 +304,39 @@ body {
 .light .ring-white\/10 {
   --tw-ring-color: rgba(0, 0, 0, 0.1) !important;
 }
+
+/* Mobile menu drawer - keep dark styling even in light mode */
+.light .glass-elevated .text-kalkvit {
+  color: #F9F7F4 !important;
+}
+
+.light .glass-elevated .text-kalkvit\/70 {
+  color: rgba(249, 247, 244, 0.7) !important;
+}
+
+.light .glass-elevated .text-kalkvit\/60 {
+  color: rgba(249, 247, 244, 0.6) !important;
+}
+
+.light .glass-elevated .text-kalkvit\/50 {
+  color: rgba(249, 247, 244, 0.5) !important;
+}
+
+.light .glass-elevated .text-kalkvit\/40 {
+  color: rgba(249, 247, 244, 0.4) !important;
+}
+
+/* Scrollbar hide utility for horizontal scroll areas */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile safe area for bottom navigation */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

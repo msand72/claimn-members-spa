@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, Send, MoreVertical, Phone, Video } from 'lucide-react'
+import { Search, Send, MoreVertical, Phone, Video, ArrowLeft } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 interface Conversation {
@@ -66,7 +66,7 @@ const mockMessages: Message[] = [
 
 export function MessagesPage() {
   const { user } = useAuth()
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(mockConversations[0])
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -85,18 +85,29 @@ export function MessagesPage() {
     }
   }
 
+  const handleBack = () => {
+    setSelectedConversation(null)
+  }
+
   return (
     <MainLayout>
-      <div className="h-[calc(100vh-8rem)]">
-        <div className="mb-6">
-          <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Messages</h1>
-          <p className="text-kalkvit/60">Connect with community members</p>
+      <div className="h-[calc(100vh-8rem)] lg:h-[calc(100vh-6rem)]">
+        <div className="mb-4 lg:mb-6">
+          <h1 className="font-display text-2xl lg:text-3xl font-bold text-kalkvit mb-1 lg:mb-2">Messages</h1>
+          <p className="text-sm lg:text-base text-kalkvit/60">Connect with community members</p>
         </div>
 
-        <div className="flex gap-6 h-[calc(100%-5rem)]">
-          {/* Conversations List */}
-          <GlassCard variant="base" className="w-80 flex flex-col p-0 overflow-hidden">
-            <div className="p-4 border-b border-white/10">
+        <div className="flex gap-4 lg:gap-6 h-[calc(100%-4rem)] lg:h-[calc(100%-5rem)]">
+          {/* Conversations List - hidden on mobile when chat is selected */}
+          <GlassCard
+            variant="base"
+            className={cn(
+              'flex flex-col p-0 overflow-hidden',
+              'w-full lg:w-80',
+              selectedConversation ? 'hidden lg:flex' : 'flex'
+            )}
+          >
+            <div className="p-3 lg:p-4 border-b border-white/10">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kalkvit/40" />
                 <GlassInput
@@ -113,13 +124,13 @@ export function MessagesPage() {
                   key={conv.id}
                   onClick={() => setSelectedConversation(conv)}
                   className={cn(
-                    'w-full p-4 flex items-center gap-3 text-left transition-colors',
+                    'w-full p-3 lg:p-4 flex items-center gap-3 text-left transition-colors',
                     selectedConversation?.id === conv.id
                       ? 'bg-koppar/20 border-l-4 border-koppar'
                       : 'hover:bg-white/[0.04]'
                   )}
                 >
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">
                     <GlassAvatar initials={conv.user.initials} size="md" />
                     {conv.user.online && (
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-skogsgron rounded-full border-2 border-glass-dark" />
@@ -128,7 +139,7 @@ export function MessagesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-kalkvit truncate">{conv.user.name}</span>
-                      <span className="text-xs text-kalkvit/40">{conv.timestamp}</span>
+                      <span className="text-xs text-kalkvit/40 ml-2 flex-shrink-0">{conv.timestamp}</span>
                     </div>
                     <p className="text-sm text-kalkvit/60 truncate">{conv.lastMessage}</p>
                   </div>
@@ -140,31 +151,45 @@ export function MessagesPage() {
             </div>
           </GlassCard>
 
-          {/* Chat Area */}
-          <GlassCard variant="elevated" className="flex-1 flex flex-col p-0 overflow-hidden">
+          {/* Chat Area - full width on mobile, flex-1 on desktop */}
+          <GlassCard
+            variant="elevated"
+            className={cn(
+              'flex flex-col p-0 overflow-hidden',
+              'w-full lg:flex-1',
+              selectedConversation ? 'flex' : 'hidden lg:flex'
+            )}
+          >
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-white/10 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
+                <div className="p-3 lg:p-4 border-b border-white/10 flex items-center justify-between">
+                  <div className="flex items-center gap-2 lg:gap-3">
+                    {/* Back button - mobile only */}
+                    <button
+                      onClick={handleBack}
+                      className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <div className="relative flex-shrink-0">
                       <GlassAvatar initials={selectedConversation.user.initials} size="md" />
                       {selectedConversation.user.online && (
                         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-skogsgron rounded-full border-2 border-glass-dark" />
                       )}
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-kalkvit">{selectedConversation.user.name}</h3>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-kalkvit truncate">{selectedConversation.user.name}</h3>
                       <p className="text-xs text-kalkvit/50">
                         {selectedConversation.user.online ? 'Online' : 'Offline'}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 lg:gap-2">
                     <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit">
                       <Phone className="w-5 h-5" />
                     </button>
-                    <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit">
+                    <button className="hidden sm:block p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit">
                       <Video className="w-5 h-5" />
                     </button>
                     <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit">
@@ -174,7 +199,7 @@ export function MessagesPage() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3 lg:space-y-4">
                   {mockMessages.map((msg) => (
                     <div
                       key={msg.id}
@@ -182,7 +207,7 @@ export function MessagesPage() {
                     >
                       <div
                         className={cn(
-                          'max-w-[70%] rounded-2xl px-4 py-2',
+                          'max-w-[85%] sm:max-w-[70%] rounded-2xl px-3 lg:px-4 py-2',
                           msg.isOwn
                             ? 'bg-koppar text-kalkvit rounded-br-sm'
                             : 'bg-white/[0.08] text-kalkvit rounded-bl-sm'
@@ -201,8 +226,8 @@ export function MessagesPage() {
                 </div>
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-white/10">
-                  <div className="flex items-center gap-3">
+                <div className="p-3 lg:p-4 border-t border-white/10">
+                  <div className="flex items-center gap-2 lg:gap-3">
                     <GlassInput
                       placeholder="Type a message..."
                       className="flex-1"
@@ -214,7 +239,7 @@ export function MessagesPage() {
                       onClick={handleSendMessage}
                       disabled={!messageInput.trim()}
                       className={cn(
-                        'p-3 rounded-xl transition-all',
+                        'p-3 rounded-xl transition-all flex-shrink-0',
                         messageInput.trim()
                           ? 'bg-koppar text-kalkvit hover:bg-koppar/80'
                           : 'bg-white/[0.06] text-kalkvit/30 cursor-not-allowed'
@@ -226,7 +251,7 @@ export function MessagesPage() {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-kalkvit/40">
+              <div className="flex-1 flex items-center justify-center text-kalkvit/40 p-4 text-center">
                 Select a conversation to start messaging
               </div>
             )}

@@ -43,7 +43,7 @@ export function GlassTabs({
     <div
       role="tablist"
       className={cn(
-        'flex border-b border-white/10',
+        'flex border-b border-white/10 overflow-x-auto scrollbar-hide',
         fullWidth && 'w-full',
         className
       )}
@@ -57,7 +57,7 @@ export function GlassTabs({
           disabled={tab.disabled}
           onClick={() => !tab.disabled && onChange(tab.value)}
           className={cn(
-            'flex items-center gap-2 font-medium transition-colors relative',
+            'flex items-center gap-2 font-medium transition-colors relative whitespace-nowrap',
             paddingClasses[size],
             sizeClasses[size],
             fullWidth && 'flex-1 justify-center',
@@ -94,7 +94,7 @@ export function GlassTabs({
     <div
       role="tablist"
       className={cn(
-        'flex gap-1 p-1 rounded-xl bg-white/[0.05]',
+        'flex gap-1 p-1 rounded-xl bg-white/[0.05] overflow-x-auto scrollbar-hide',
         fullWidth && 'w-full',
         className
       )}
@@ -108,7 +108,7 @@ export function GlassTabs({
           disabled={tab.disabled}
           onClick={() => !tab.disabled && onChange(tab.value)}
           className={cn(
-            'flex items-center gap-2 rounded-lg font-medium transition-all',
+            'flex items-center gap-2 rounded-lg font-medium transition-all whitespace-nowrap',
             paddingClasses[size],
             sizeClasses[size],
             fullWidth && 'flex-1 justify-center',
