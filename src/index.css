@@ -11,6 +11,10 @@
   --scrollbar-thumb: rgba(255, 255, 255, 0.2);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
 
+  /* Kalkvit color (RGB values for Tailwind opacity support) */
+  /* Dark mode: cream white #F9F7F4 = 249, 247, 244 */
+  --color-kalkvit: 249 247 244;
+
   /* Text colors */
   --text-primary: #F9F7F4;
   --text-secondary: rgba(249, 247, 244, 0.7);
@@ -27,6 +31,10 @@
   --scrollbar-bg: rgba(0, 0, 0, 0.05);
   --scrollbar-thumb: rgba(0, 0, 0, 0.2);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+
+  /* Kalkvit color - switches to dark charcoal in light mode */
+  /* Light mode: charcoal #1C1C1E = 28, 28, 30 */
+  --color-kalkvit: 28 28 30;
 
   --text-primary: #1C1C1E;
   --text-secondary: rgba(28, 28, 30, 0.7);
@@ -109,13 +117,25 @@ body {
     box-shadow: 0 0 80px rgba(184, 115, 51, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 
-  /* Light theme text color utilities */
+  /* Light theme text color utilities - comprehensive overrides */
   .light .text-kalkvit {
     color: #1C1C1E;
   }
 
+  .light .text-kalkvit\/90 {
+    color: rgba(28, 28, 30, 0.9);
+  }
+
+  .light .text-kalkvit\/80 {
+    color: rgba(28, 28, 30, 0.8);
+  }
+
   .light .text-kalkvit\/70 {
     color: rgba(28, 28, 30, 0.7);
+  }
+
+  .light .text-kalkvit\/60 {
+    color: rgba(28, 28, 30, 0.6);
   }
 
   .light .text-kalkvit\/50 {
@@ -124,6 +144,19 @@ body {
 
   .light .text-kalkvit\/40 {
     color: rgba(28, 28, 30, 0.4);
+  }
+
+  .light .text-kalkvit\/30 {
+    color: rgba(28, 28, 30, 0.3);
+  }
+
+  .light .text-kalkvit\/20 {
+    color: rgba(28, 28, 30, 0.2);
+  }
+
+  /* Light theme hover text states */
+  .light .hover\:text-kalkvit:hover {
+    color: #1C1C1E;
   }
 
   /* Light theme border utilities */
@@ -135,7 +168,23 @@ body {
     border-color: rgba(0, 0, 0, 0.12);
   }
 
+  .light .border-white\/\[0\.08\] {
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+
+  .light .border-white\/\[0\.15\] {
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .light .border-white\/\[0\.2\] {
+    border-color: rgba(0, 0, 0, 0.12);
+  }
+
   /* Light theme background utilities */
+  .light .bg-white\/\[0\.03\] {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+
   .light .bg-white\/\[0\.04\] {
     background-color: rgba(0, 0, 0, 0.04);
   }
@@ -145,19 +194,50 @@ body {
   }
 
   .light .bg-white\/\[0\.08\] {
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+
+  .light .bg-white\/\[0\.12\] {
+    background-color: rgba(255, 255, 255, 0.9);
   }
 
   .light .bg-glass-dark {
     background-color: #F9F7F4;
   }
 
+  .light .bg-black\/50 {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+
   /* Light theme hover states */
+  .light .hover\:bg-white\/\[0\.04\]:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
   .light .hover\:bg-white\/\[0\.06\]:hover {
     background-color: rgba(0, 0, 0, 0.06);
   }
 
   .light .hover\:bg-white\/\[0\.12\]:hover {
     background-color: rgba(0, 0, 0, 0.08);
+  }
+
+  /* Light theme placeholder text */
+  .light ::placeholder {
+    color: rgba(28, 28, 30, 0.4);
+  }
+
+  /* Light theme input/textarea backgrounds */
+  .light input,
+  .light textarea,
+  .light select {
+    background-color: rgba(255, 255, 255, 0.6);
+    color: #1C1C1E;
+  }
+
+  .light input:focus,
+  .light textarea:focus,
+  .light select:focus {
+    background-color: rgba(255, 255, 255, 0.8);
   }
 }

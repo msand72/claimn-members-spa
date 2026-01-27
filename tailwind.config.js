@@ -15,7 +15,8 @@ export default {
         oliv: '#3A4A42',
         dimblag: '#A1B1C6',
         koppar: '#B87333',
-        kalkvit: '#F9F7F4',
+        // kalkvit uses CSS variable for theme switching
+        kalkvit: 'rgb(var(--color-kalkvit) / <alpha-value>)',
         tegelrod: '#B54A46',
         'brand-amber': '#CC8B3C',
         skogsgron: '#6B8E6F',
