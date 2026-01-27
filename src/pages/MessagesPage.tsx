@@ -97,14 +97,15 @@ export function MessagesPage() {
           <p className="text-sm lg:text-base text-kalkvit/60">Connect with community members</p>
         </div>
 
-        <div className="flex gap-4 lg:gap-6 h-[calc(100%-4rem)] lg:h-[calc(100%-5rem)]">
+        <div className="h-[calc(100%-4rem)] lg:h-[calc(100%-5rem)] lg:flex lg:gap-6">
           {/* Conversations List - hidden on mobile when chat is selected */}
           <GlassCard
             variant="base"
             className={cn(
-              'flex flex-col p-0 overflow-hidden',
-              'w-full lg:w-80',
-              selectedConversation ? 'hidden lg:flex' : 'flex'
+              'p-0 overflow-hidden w-full lg:w-80 lg:flex-shrink-0 h-full',
+              selectedConversation
+                ? 'hidden lg:flex lg:flex-col'
+                : 'flex flex-col'
             )}
           >
             <div className="p-3 lg:p-4 border-b border-white/10">
@@ -155,9 +156,10 @@ export function MessagesPage() {
           <GlassCard
             variant="elevated"
             className={cn(
-              'flex flex-col p-0 overflow-hidden',
-              'w-full lg:flex-1',
-              selectedConversation ? 'flex' : 'hidden lg:flex'
+              'p-0 overflow-hidden w-full lg:flex-1 h-full',
+              selectedConversation
+                ? 'flex flex-col'
+                : 'hidden lg:flex lg:flex-col'
             )}
           >
             {selectedConversation ? (
