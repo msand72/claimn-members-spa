@@ -54,8 +54,8 @@ export function ProfilePage() {
         city: profile.city || '',
         country: profile.country || '',
         bio: profile.bio || '',
-        archetype: profile.archetype || '',
-        pillar_focus: profile.pillar_focus || [],
+        archetype: (profile.archetype as Archetype) || '',
+        pillar_focus: (profile.pillar_focus as PillarId[]) || [],
       })
     } else if (user) {
       // Initialize from user metadata if no profile exists

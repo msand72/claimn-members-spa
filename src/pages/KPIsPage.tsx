@@ -17,8 +17,6 @@ import {
   Plus,
   Activity,
   Moon,
-  Heart,
-  Zap,
   Flame,
   Calendar,
   ChevronRight,

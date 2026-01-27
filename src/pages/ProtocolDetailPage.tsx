@@ -128,7 +128,6 @@ export function ProtocolDetailPage() {
   const {
     data: activeProtocol,
     isLoading: isLoadingActive,
-    error: activeError,
   } = useActiveProtocolBySlug(slug || '')
 
   const startMutation = useStartProtocol()

@@ -56,8 +56,8 @@ export function DashboardPage() {
   )
 
   // Get pillar focus info (use first pillar from array)
-  const primaryPillarId = profile?.pillar_focus?.[0]
-  const pillarFocus = primaryPillarId ? PILLARS[primaryPillarId] : null
+  const primaryPillarId = profile?.pillar_focus?.[0] as keyof typeof PILLARS | undefined
+  const pillarFocus = primaryPillarId && primaryPillarId in PILLARS ? PILLARS[primaryPillarId] : null
 
   return (
     <MainLayout>

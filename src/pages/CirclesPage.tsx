@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
-import { Search, Users, Lock, Globe, ArrowRight, Loader2 } from 'lucide-react'
+import { Search, Users, Globe, ArrowRight, Loader2 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { useCircles, useMyCircles, useJoinCircle, type Circle } from '../lib/api'
 
