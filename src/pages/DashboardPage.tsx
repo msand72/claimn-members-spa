@@ -25,7 +25,7 @@ export function DashboardPage() {
   const { data: profile } = useMemberProfile(user?.id)
 
   const displayName =
-    profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member'
+    profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member'
   const initials = displayName
     .split(' ')
     .map((n: string) => n[0])
@@ -39,8 +39,9 @@ export function DashboardPage() {
     (new Date().getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
   )
 
-  // Get pillar focus info
-  const pillarFocus = profile?.pillar_focus ? PILLARS[profile.pillar_focus] : null
+  // Get pillar focus info (use first pillar from array)
+  const primaryPillarId = profile?.pillar_focus?.[0]
+  const pillarFocus = primaryPillarId ? PILLARS[primaryPillarId] : null
 
   return (
     <MainLayout>

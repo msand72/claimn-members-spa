@@ -33,13 +33,13 @@ export function ProfilePage() {
 
   // Local form state
   const [formData, setFormData] = useState({
-    full_name: '',
-    phone: '',
+    display_name: '',
     whatsapp_number: '',
-    location: '',
+    city: '',
+    country: '',
     bio: '',
     archetype: '' as Archetype | '',
-    pillar_focus: '' as PillarId | '',
+    pillar_focus: [] as PillarId[],
   })
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
 
@@ -47,19 +47,19 @@ export function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setFormData({
-        full_name: profile.full_name || '',
-        phone: profile.phone || '',
+        display_name: profile.display_name || '',
         whatsapp_number: profile.whatsapp_number || '',
-        location: profile.location || '',
+        city: profile.city || '',
+        country: profile.country || '',
         bio: profile.bio || '',
         archetype: profile.archetype || '',
-        pillar_focus: profile.pillar_focus || '',
+        pillar_focus: profile.pillar_focus || [],
       })
     } else if (user) {
       // Initialize from user metadata if no profile exists
       setFormData((prev) => ({
         ...prev,
-        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+        display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
       }))
     }
   }, [profile, user])
@@ -68,7 +68,7 @@ export function ProfilePage() {
     setSelectedInterests(memberInterestIds)
   }, [memberInterestIds])
 
-  const displayName = formData.full_name || user?.email?.split('@')[0] || 'Member'
+  const displayName = formData.display_name || user?.email?.split('@')[0] || 'Member'
   const initials = displayName
     .split(' ')
     .map((n: string) => n[0])
@@ -84,13 +84,13 @@ export function ProfilePage() {
       await updateProfile.mutateAsync({
         userId: user.id,
         data: {
-          full_name: formData.full_name || null,
-          phone: formData.phone || null,
+          display_name: formData.display_name || null,
           whatsapp_number: formData.whatsapp_number || null,
-          location: formData.location || null,
+          city: formData.city || null,
+          country: formData.country || null,
           bio: formData.bio || null,
           archetype: (formData.archetype as Archetype) || null,
-          pillar_focus: (formData.pillar_focus as PillarId) || null,
+          pillar_focus: formData.pillar_focus.length > 0 ? formData.pillar_focus : null,
         },
       })
 
@@ -115,13 +115,10 @@ export function ProfilePage() {
     ...ARCHETYPES.map((arch) => ({ value: arch, label: arch })),
   ]
 
-  const pillarOptions = [
-    { value: '', label: 'Select your focus pillar' },
-    ...PILLAR_IDS.map((id) => ({
-      value: id,
-      label: PILLARS[id].name,
-    })),
-  ]
+  const pillarItems = PILLAR_IDS.map((id) => ({
+    value: id,
+    label: PILLARS[id].name,
+  }))
 
   const interestItems = interests.map((interest) => ({
     value: interest.id,
@@ -197,10 +194,10 @@ export function ProfilePage() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <GlassInput
-                  label="Full Name"
-                  placeholder="Your full name"
-                  value={formData.full_name}
-                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  label="Display Name"
+                  placeholder="Your display name"
+                  value={formData.display_name}
+                  onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
                   disabled={!isEditing}
                 />
                 <GlassInput
@@ -211,11 +208,17 @@ export function ProfilePage() {
                   disabled
                 />
                 <GlassInput
-                  label="Phone"
-                  type="tel"
-                  placeholder="+1 (555) 000-0000"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  label="City"
+                  placeholder="Your city"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  disabled={!isEditing}
+                />
+                <GlassInput
+                  label="Country"
+                  placeholder="Your country"
+                  value={formData.country}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                   disabled={!isEditing}
                 />
                 <GlassInput
@@ -224,13 +227,6 @@ export function ProfilePage() {
                   placeholder="+1 (555) 000-0000"
                   value={formData.whatsapp_number}
                   onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
-                  disabled={!isEditing}
-                />
-                <GlassInput
-                  label="Location"
-                  placeholder="City, Country"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   disabled={!isEditing}
                 />
               </div>
@@ -251,14 +247,16 @@ export function ProfilePage() {
                   }
                   disabled={!isEditing}
                 />
-                <GlassSelect
-                  label="Primary Focus Pillar"
-                  options={pillarOptions}
+                <GlassMultiSelect
+                  label="Focus Pillars"
+                  items={pillarItems}
                   value={formData.pillar_focus}
-                  onChange={(e) =>
-                    setFormData({ ...formData, pillar_focus: e.target.value as PillarId | '' })
+                  onChange={(values) =>
+                    setFormData({ ...formData, pillar_focus: values as PillarId[] })
                   }
+                  placeholder="Select your focus pillars"
                   disabled={!isEditing}
+                  maxDisplay={3}
                 />
                 <div className="md:col-span-2">
                   <GlassMultiSelect

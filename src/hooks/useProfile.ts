@@ -3,21 +3,22 @@ import { supabase } from '../lib/supabase'
 import type { Archetype, PillarId } from '../lib/constants'
 
 export interface MemberProfile {
-  id: string
-  email: string
-  full_name: string | null
-  phone: string | null
-  whatsapp_number: string | null
-  location: string | null
+  user_id: string
+  display_name: string | null
   bio: string | null
   archetype: Archetype | null
-  pillar_focus: PillarId | null
+  pillar_focus: PillarId[] | null
+  city: string | null
+  country: string | null
+  links: Record<string, string> | null
+  visibility: Record<string, string> | null
   avatar_url: string | null
+  whatsapp_number: string | null
   created_at: string
   updated_at: string
 }
 
-// Fetch member profile from members table
+// Fetch member profile from member_profiles table
 export function useMemberProfile(userId: string | undefined) {
   return useQuery({
     queryKey: ['member-profile', userId],
@@ -25,9 +26,9 @@ export function useMemberProfile(userId: string | undefined) {
       if (!userId) return null
 
       const { data, error } = await supabase
-        .from('members')
+        .from('member_profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single()
 
       if (error) {
@@ -43,13 +44,16 @@ export function useMemberProfile(userId: string | undefined) {
 }
 
 export interface UpdateProfileData {
-  full_name?: string | null
-  phone?: string | null
+  display_name?: string | null
   whatsapp_number?: string | null
-  location?: string | null
+  city?: string | null
+  country?: string | null
   bio?: string | null
   archetype?: Archetype | null
-  pillar_focus?: PillarId | null
+  pillar_focus?: PillarId[] | null
+  links?: Record<string, string> | null
+  visibility?: Record<string, string> | null
+  avatar_url?: string | null
 }
 
 // Update member profile
@@ -71,9 +75,9 @@ export function useUpdateMemberProfile() {
 
       // Try to update first
       const { data: existing, error: selectError } = await supabase
-        .from('members')
-        .select('id')
-        .eq('id', userId)
+        .from('member_profiles')
+        .select('user_id')
+        .eq('user_id', userId)
         .single()
 
       if (selectError && selectError.code !== 'PGRST116') {
@@ -83,15 +87,15 @@ export function useUpdateMemberProfile() {
       if (existing) {
         // Update existing record
         const { error } = await supabase
-          .from('members')
+          .from('member_profiles')
           .update(updateData)
-          .eq('id', userId)
+          .eq('user_id', userId)
 
         if (error) throw error
       } else {
         // Insert new record
-        const { error } = await supabase.from('members').insert({
-          id: userId,
+        const { error } = await supabase.from('member_profiles').insert({
+          user_id: userId,
           ...updateData,
           created_at: new Date().toISOString(),
         })

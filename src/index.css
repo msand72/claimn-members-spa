@@ -1,17 +1,17 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+/* Import Google Fonts - must come before other rules */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap');
+
 /* Neutraface 2 Font from claimn.co */
 @font-face {
   font-family: 'Neutraface 2';
-  src: url('https://claimn.co/public/fonts/Neutraface_2.ttf') format('truetype');
+  src: url('https://claimn.co/fonts/Neutraface_2.ttf') format('truetype');
   font-weight: 400 700;
   font-style: normal;
   font-display: swap;
 }
-
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap');
 
 /* Theme CSS Variables */
 :root {
