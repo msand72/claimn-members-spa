@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
   GlassCard,
@@ -11,117 +11,68 @@ import {
 } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import { useMyInterestGroups } from '../hooks/useInterestGroups'
-import { Heart, MessageCircle, Share2, MoreHorizontal, Image, Send, Users } from 'lucide-react'
+import { useFeed, useCreatePost, useLikePost, useUnlikePost, type FeedPost } from '../lib/api'
+import { Heart, MessageCircle, Share2, MoreHorizontal, Image, Send, Users, Loader2 } from 'lucide-react'
 
-interface Post {
-  id: number
-  author: {
-    name: string
-    initials: string
-    role: string
-  }
-  content: string
-  timestamp: string
-  likes: number
-  comments: number
-  isLiked: boolean
-  badge?: string
-  interestGroup?: {
-    id: string
-    name: string
-  }
+// Helper to format time ago
+function formatTimeAgo(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString()
 }
 
-const mockPosts: Post[] = [
-  {
-    id: 1,
-    author: { name: 'John Davidson', initials: 'JD', role: 'Brotherhood Member' },
-    content:
-      'Just completed my first 30-day protocol! The consistency has been transformative. Feeling stronger both mentally and physically. Thanks to everyone in this community for the support!',
-    timestamp: '2 hours ago',
-    likes: 24,
-    comments: 8,
-    isLiked: false,
-    badge: 'Achievement',
-    interestGroup: { id: '1', name: 'Biohacking & Performance' },
-  },
-  {
-    id: 2,
-    author: { name: 'Michael Chen', initials: 'MC', role: 'Expert Coach' },
-    content:
-      'Quick tip for the morning routine: Start with 5 minutes of breathwork before anything else. It sets the tone for the entire day and helps you stay grounded when challenges arise.',
-    timestamp: '5 hours ago',
-    likes: 42,
-    comments: 15,
-    isLiked: true,
-    badge: 'Expert Tip',
-  },
-  {
-    id: 3,
-    author: { name: 'Sarah Williams', initials: 'SW', role: 'Brotherhood Member' },
-    content:
-      "Had an amazing coaching session today. Sometimes you need an outside perspective to see what's holding you back. Grateful for this community and the experts who guide us.",
-    timestamp: '8 hours ago',
-    likes: 18,
-    comments: 4,
-    isLiked: false,
-    interestGroup: { id: '2', name: 'Leadership & Career' },
-  },
-  {
-    id: 4,
-    author: { name: 'David Miller', initials: 'DM', role: 'Brotherhood Member' },
-    content:
-      'Week 3 of the fitness protocol complete. Down 8 lbs and energy levels are through the roof. The accountability from the Circle has been game-changing.',
-    timestamp: '1 day ago',
-    likes: 56,
-    comments: 12,
-    isLiked: true,
-    badge: 'Progress Update',
-    interestGroup: { id: '3', name: 'Strength & Combat Sports' },
-  },
-  {
-    id: 5,
-    author: { name: 'Alex Thompson', initials: 'AT', role: 'Brotherhood Member' },
-    content:
-      'Just finished reading "The Obstacle Is the Way" - incredible insights on stoic philosophy and how to turn adversity into advantage. Anyone else into philosophy and self-development books?',
-    timestamp: '1 day ago',
-    likes: 32,
-    comments: 18,
-    isLiked: false,
-    interestGroup: { id: '4', name: 'Reading & Philosophy' },
-  },
-]
-
-function PostCard({ post }: { post: Post }) {
-  const [isLiked, setIsLiked] = useState(post.isLiked)
-  const [likes, setLikes] = useState(post.likes)
+function PostCard({ post }: { post: FeedPost }) {
+  const likePost = useLikePost()
+  const unlikePost = useUnlikePost()
 
   const handleLike = () => {
-    setIsLiked(!isLiked)
-    setLikes(isLiked ? likes - 1 : likes + 1)
+    if (post.is_liked) {
+      unlikePost.mutate(post.id)
+    } else {
+      likePost.mutate(post.id)
+    }
   }
+
+  const authorName = post.author?.display_name || 'Anonymous'
+  const initials = authorName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 
   return (
     <GlassCard variant="base" className="mb-4">
       <div className="flex gap-4">
-        <GlassAvatar initials={post.author.initials} size="lg" />
+        <GlassAvatar initials={initials} size="lg" />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between mb-2">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-kalkvit">{post.author.name}</span>
-                {post.badge && <GlassBadge variant="koppar">{post.badge}</GlassBadge>}
+                <span className="font-semibold text-kalkvit">{authorName}</span>
+                {post.author?.archetype && (
+                  <GlassBadge variant="koppar">{post.author.archetype}</GlassBadge>
+                )}
               </div>
               <div className="flex items-center gap-2 text-sm text-kalkvit/50 flex-wrap">
-                <span className="truncate max-w-[120px] sm:max-w-none">{post.author.role}</span>
+                <span className="truncate max-w-[120px] sm:max-w-none">Brotherhood Member</span>
                 <span>•</span>
-                <span>{post.timestamp}</span>
-                {post.interestGroup && (
+                <span>{formatTimeAgo(post.created_at)}</span>
+                {post.interest_group_id && (
                   <>
                     <span className="hidden sm:inline">•</span>
                     <span className="hidden sm:flex items-center gap-1 text-koppar truncate max-w-[150px]">
                       <Users className="w-3 h-3 flex-shrink-0" />
-                      {post.interestGroup.name}
+                      Interest Group
                     </span>
                   </>
                 )}
@@ -134,19 +85,28 @@ function PostCard({ post }: { post: Post }) {
 
           <p className="text-kalkvit/80 leading-relaxed mb-4">{post.content}</p>
 
+          {post.image_url && (
+            <img
+              src={post.image_url}
+              alt="Post attachment"
+              className="rounded-lg mb-4 max-h-96 object-cover w-full"
+            />
+          )}
+
           <div className="flex items-center gap-6 pt-4 border-t border-white/10">
             <button
               onClick={handleLike}
+              disabled={likePost.isPending || unlikePost.isPending}
               className={`flex items-center gap-2 text-sm font-medium transition-colors ${
-                isLiked ? 'text-tegelrod' : 'text-kalkvit/60 hover:text-kalkvit'
+                post.is_liked ? 'text-tegelrod' : 'text-kalkvit/60 hover:text-kalkvit'
               }`}
             >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-              {likes}
+              <Heart className={`w-5 h-5 ${post.is_liked ? 'fill-current' : ''}`} />
+              {post.likes_count}
             </button>
             <button className="flex items-center gap-2 text-sm font-medium text-kalkvit/60 hover:text-kalkvit transition-colors">
               <MessageCircle className="w-5 h-5" />
-              {post.comments}
+              {post.comments_count}
             </button>
             <button className="flex items-center gap-2 text-sm font-medium text-kalkvit/60 hover:text-kalkvit transition-colors">
               <Share2 className="w-5 h-5" />
@@ -167,6 +127,15 @@ export function FeedPage() {
 
   const { data: myGroups = [] } = useMyInterestGroups(user?.id)
 
+  // Fetch feed from API
+  const interestGroupFilter = activeTab !== 'all' && activeTab !== 'my-groups' ? activeTab : undefined
+  const { data: feedData, isLoading: feedLoading, error: feedError } = useFeed({
+    interest_group_id: interestGroupFilter,
+    limit: 20,
+  })
+
+  const createPost = useCreatePost()
+
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member'
   const initials = displayName
     .split(' ')
@@ -177,20 +146,20 @@ export function FeedPage() {
 
   const handlePost = () => {
     if (postContent.trim()) {
-      // TODO: Implement post creation via API
-      console.log('Creating post:', { content: postContent, groupId: selectedGroupId })
-      setPostContent('')
-      setSelectedGroupId('')
+      createPost.mutate({
+        content: postContent,
+        interest_group_id: selectedGroupId || undefined,
+      }, {
+        onSuccess: () => {
+          setPostContent('')
+          setSelectedGroupId('')
+        }
+      })
     }
   }
 
-  // Filter posts based on active tab
-  const filteredPosts =
-    activeTab === 'all'
-      ? mockPosts
-      : activeTab === 'my-groups'
-        ? mockPosts.filter((p) => p.interestGroup) // In real app, filter by user's groups
-        : mockPosts.filter((p) => p.interestGroup?.id === activeTab)
+  // Get posts from API response
+  const posts = feedData?.data || []
 
   // Create tab options
   const tabs = [
@@ -255,9 +224,17 @@ export function FeedPage() {
                     />
                   )}
                 </div>
-                <GlassButton variant="primary" onClick={handlePost} disabled={!postContent.trim()}>
-                  <Send className="w-4 h-4" />
-                  Post
+                <GlassButton
+                  variant="primary"
+                  onClick={handlePost}
+                  disabled={!postContent.trim() || createPost.isPending}
+                >
+                  {createPost.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  {createPost.isPending ? 'Posting...' : 'Post'}
                 </GlassButton>
               </div>
             </div>
@@ -291,26 +268,45 @@ export function FeedPage() {
           </GlassCard>
         )}
 
-        {/* Empty state for filtered view */}
-        {filteredPosts.length === 0 && (
+        {/* Loading state */}
+        {feedLoading && (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          </div>
+        )}
+
+        {/* Error state */}
+        {feedError && (
+          <GlassCard variant="base" className="text-center py-12">
+            <p className="text-tegelrod mb-2">Failed to load feed</p>
+            <p className="text-kalkvit/50 text-sm">Please try again later</p>
+          </GlassCard>
+        )}
+
+        {/* Empty state */}
+        {!feedLoading && !feedError && posts.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
             <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">No posts yet</h3>
             <p className="text-kalkvit/50 text-sm mb-4">
-              Be the first to share something in this group!
+              Be the first to share something with the community!
             </p>
-            <GlassButton variant="secondary" onClick={() => setActiveTab('all')}>
-              View All Posts
-            </GlassButton>
+            {activeTab !== 'all' && (
+              <GlassButton variant="secondary" onClick={() => setActiveTab('all')}>
+                View All Posts
+              </GlassButton>
+            )}
           </GlassCard>
         )}
 
         {/* Feed Posts */}
-        <div>
-          {filteredPosts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))}
-        </div>
+        {!feedLoading && !feedError && (
+          <div>
+            {posts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        )}
       </div>
     </MainLayout>
   )

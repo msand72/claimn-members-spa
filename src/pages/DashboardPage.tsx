@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassStatsCard, GlassAvatar, GlassBadge } from '../components/ui'
 import { useMemberProfile } from '../hooks/useProfile'
+import { useDashboardStats } from '../lib/api'
 import { PILLARS } from '../lib/constants'
 import {
   Heart,
@@ -22,7 +24,22 @@ import {
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const { data: profile } = useMemberProfile(user?.id)
+  const { data: profile, isLoading: profileLoading, error: profileError } = useMemberProfile(user?.id)
+  const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats()
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[DashboardPage] Component mounted')
+    console.log('[DashboardPage] User:', user?.id, user?.email)
+  }, [user])
+
+  useEffect(() => {
+    console.log('[DashboardPage] Profile state:', { loading: profileLoading, error: profileError, data: profile })
+  }, [profile, profileLoading, profileError])
+
+  useEffect(() => {
+    console.log('[DashboardPage] Stats state:', { loading: statsLoading, error: statsError, data: stats })
+  }, [stats, statsLoading, statsError])
 
   const displayName =
     profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member'
@@ -84,30 +101,30 @@ export function DashboardPage() {
           <GlassStatsCard
             icon={Target}
             label="Active Goals"
-            value="0"
-            trend="--"
-            trendLabel="on track"
+            value={statsLoading ? '...' : String(stats?.goals_active ?? 0)}
+            trend={stats?.goals_completed ? `+${stats.goals_completed}` : '--'}
+            trendLabel="completed"
           />
           <GlassStatsCard
             icon={Flame}
             label="Current Streak"
-            value="0"
+            value={statsLoading ? '...' : String(stats?.current_streak ?? 0)}
             trend="--"
             trendLabel="days"
           />
           <GlassStatsCard
             icon={CheckSquare}
             label="Action Items"
-            value="0"
+            value={statsLoading ? '...' : String(stats?.goals_active ?? 0)}
             trend="--"
-            trendLabel="due"
+            trendLabel="pending"
           />
           <GlassStatsCard
             icon={Trophy}
-            label="Achievements"
-            value="0"
+            label="Days Active"
+            value={statsLoading ? '...' : String(stats?.days_since_joined ?? daysSinceJoining)}
             trend="--"
-            trendLabel="earned"
+            trendLabel="journey"
           />
         </div>
 
@@ -116,21 +133,21 @@ export function DashboardPage() {
           <GlassStatsCard
             icon={Heart}
             label="Total Posts"
-            value="--"
+            value={statsLoading ? '...' : String(stats?.posts_count ?? 0)}
             trend="--"
-            trendLabel="this week"
+            trendLabel="shared"
           />
           <GlassStatsCard
             icon={MessageCircle}
             label="Messages"
-            value="--"
-            trend="--"
+            value={statsLoading ? '...' : String(stats?.unread_messages ?? 0)}
+            trend={stats?.unread_messages ? `${stats.unread_messages}` : '--'}
             trendLabel="unread"
           />
           <GlassStatsCard
             icon={Users}
             label="Connections"
-            value="--"
+            value={statsLoading ? '...' : String(stats?.connections_count ?? 0)}
             trend="--"
             trendLabel="network"
           />
