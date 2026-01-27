@@ -10,14 +10,14 @@ import neutrafaceFont from './assets/fonts/Neutraface_2.ttf'
 const fontStyle = document.createElement('style')
 fontStyle.textContent = `
   @font-face {
-    font-family: 'Neutraface 2';
+    font-family: 'Neutraface 2 Display';
     src: url('${neutrafaceFont}') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
   }
   @font-face {
-    font-family: 'Neutraface 2';
+    font-family: 'Neutraface 2 Display';
     src: url('${neutrafaceFont}') format('truetype');
     font-weight: bold;
     font-style: normal;
