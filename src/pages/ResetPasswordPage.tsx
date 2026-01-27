@@ -70,7 +70,7 @@ export function ResetPasswordPage() {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-skogsgron/20 mb-4">
                 <CheckCircle className="w-8 h-8 text-skogsgron" />
               </div>
-              <h2 className="font-display text-xl font-bold text-kalkvit mb-2">Password Updated</h2>
+              <h2 className="font-serif text-xl font-bold text-kalkvit mb-2">Password Updated</h2>
               <p className="text-kalkvit/60 mb-6">
                 Your password has been successfully reset. You can now log in with your new password.
               </p>
@@ -85,7 +85,7 @@ export function ResetPasswordPage() {
           ) : (
             <>
               <div className="text-center mb-6">
-                <h2 className="font-display text-xl font-bold text-kalkvit mb-2">Reset Password</h2>
+                <h2 className="font-serif text-xl font-bold text-kalkvit mb-2">Reset Password</h2>
                 <p className="text-kalkvit/60">
                   Enter your new password below.
                 </p>

@@ -173,7 +173,7 @@ export function ProfilePage() {
                   )}
                 </div>
                 <div>
-                  <h2 className="font-display text-2xl font-bold text-kalkvit">{displayName}</h2>
+                  <h2 className="font-serif text-2xl font-bold text-kalkvit">{displayName}</h2>
                   <p className="text-kalkvit/60">{user?.email}</p>
                   <div className="flex items-center gap-2 mt-2">
                     {formData.archetype && (

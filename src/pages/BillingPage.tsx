@@ -31,7 +31,7 @@ export function BillingPage() {
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h2 className="font-display text-2xl font-bold text-kalkvit">Brotherhood Membership</h2>
+                <h2 className="font-serif text-2xl font-bold text-kalkvit">Brotherhood Membership</h2>
                 <GlassBadge variant="koppar">Active</GlassBadge>
               </div>
               <p className="text-kalkvit/60 mb-4">Your next billing date is February 1, 2026</p>

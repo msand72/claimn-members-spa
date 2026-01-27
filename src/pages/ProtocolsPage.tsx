@@ -292,7 +292,7 @@ export function ProtocolsPage() {
               const pillar = PILLARS[pillarId as PillarId]
               return (
                 <div key={pillarId}>
-                  <h2 className="font-display text-xl font-semibold text-kalkvit mb-4">
+                  <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
                     {pillar.name}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

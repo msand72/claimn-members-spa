@@ -211,7 +211,7 @@ export function ShopPage() {
         {/* Featured Section */}
         {activeCategory === 'All' && (
           <div className="mb-8">
-            <h2 className="font-display text-xl font-semibold text-kalkvit mb-4">Featured</h2>
+            <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">Featured</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredProducts.filter(p => p.isFeatured).map((product) => (
                 <ProductCard key={product.id} product={product} />
@@ -222,7 +222,7 @@ export function ShopPage() {
 
         {/* All Products */}
         <div>
-          <h2 className="font-display text-xl font-semibold text-kalkvit mb-4">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
             {activeCategory === 'All' ? 'All Products' : activeCategory}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

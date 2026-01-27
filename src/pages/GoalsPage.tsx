@@ -267,7 +267,7 @@ export function GoalsPage() {
 
         {/* Achievements Section */}
         <div className="mt-12">
-          <h2 className="font-display text-xl font-bold text-kalkvit mb-4">Recent Achievements</h2>
+          <h2 className="font-serif text-xl font-bold text-kalkvit mb-4">Recent Achievements</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { name: '7-Day Streak', icon: Flame, earned: true },

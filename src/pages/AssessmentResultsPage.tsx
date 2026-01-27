@@ -121,7 +121,7 @@ export function AssessmentResultsPage() {
           <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-koppar/20 to-brandAmber/20 border-2 border-koppar mb-4">
             <span className="font-display text-4xl font-bold text-koppar">{overallScore}</span>
           </div>
-          <h2 className="font-display text-xl font-semibold text-kalkvit mb-2">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit mb-2">
             Overall Wellbeing Score
           </h2>
           <p className="text-kalkvit/60 text-sm max-w-md mx-auto">

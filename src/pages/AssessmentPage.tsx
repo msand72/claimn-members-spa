@@ -59,7 +59,7 @@ export function AssessmentPage() {
         </GlassCard>
 
         {/* What You'll Discover */}
-        <h2 className="font-display text-2xl font-bold text-kalkvit mb-6">What You'll Discover</h2>
+        <h2 className="font-serif text-2xl font-bold text-kalkvit mb-6">What You'll Discover</h2>
 
         {/* Archetypes Section */}
         <GlassCard variant="base" className="mb-6">
@@ -110,7 +110,7 @@ export function AssessmentPage() {
         </GlassCard>
 
         {/* How It Works */}
-        <h2 className="font-display text-2xl font-bold text-kalkvit mb-6">How It Works</h2>
+        <h2 className="font-serif text-2xl font-bold text-kalkvit mb-6">How It Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <GlassCard variant="base" className="text-center">
             <div className="w-12 h-12 rounded-full bg-koppar/20 flex items-center justify-center mx-auto mb-4">

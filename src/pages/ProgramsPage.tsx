@@ -255,7 +255,7 @@ export function ProgramsPage() {
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Trophy className="w-5 h-5 text-koppar" />
-              <h2 className="font-display text-xl font-semibold text-kalkvit">Continue Learning</h2>
+              <h2 className="font-serif text-xl font-semibold text-kalkvit">Continue Learning</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {myPrograms.map((program) => (
@@ -267,7 +267,7 @@ export function ProgramsPage() {
 
         {/* All Programs */}
         <div>
-          <h2 className="font-display text-xl font-semibold text-kalkvit mb-4">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
             {activeCategory === 'My Programs' ? 'My Programs' : activeCategory === 'All' ? 'Explore Programs' : activeCategory}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

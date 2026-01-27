@@ -233,7 +233,7 @@ export function ShopUpgradePage() {
 
         {/* Features Comparison */}
         <GlassCard variant="base" className="mb-12">
-          <h2 className="font-display text-2xl font-bold text-kalkvit text-center mb-8">
+          <h2 className="font-serif text-2xl font-bold text-kalkvit text-center mb-8">
             What's Included
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

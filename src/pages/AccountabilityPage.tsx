@@ -270,7 +270,7 @@ export function AccountabilityPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="font-display text-xl font-bold text-kalkvit">{group.name}</h2>
+                  <h2 className="font-serif text-xl font-bold text-kalkvit">{group.name}</h2>
                   <GlassBadge variant="koppar" className="text-xs capitalize">
                     {group.type}
                   </GlassBadge>

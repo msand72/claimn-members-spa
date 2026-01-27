@@ -98,7 +98,7 @@ export function AssessmentTakePage() {
 
         {/* Question Card */}
         <GlassCard variant="elevated" className="mb-8">
-          <h2 className="font-display text-xl font-semibold text-kalkvit mb-6">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit mb-6">
             {currentQuestion.question}
           </h2>
 

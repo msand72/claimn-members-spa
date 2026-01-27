@@ -233,7 +233,7 @@ export function ExpertsPage() {
         {/* Top Rated Section */}
         {activeFilter === 'All' && searchQuery === '' && (
           <div className="mb-8">
-            <h2 className="font-display text-xl font-semibold text-kalkvit mb-4">Top Rated</h2>
+            <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">Top Rated</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {topRatedExperts.map((expert) => (
                 <ExpertCard key={expert.id} expert={expert} />
@@ -244,7 +244,7 @@ export function ExpertsPage() {
 
         {/* All Experts */}
         <div>
-          <h2 className="font-display text-xl font-semibold text-kalkvit mb-4">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
             {activeFilter === 'All' && searchQuery === '' ? 'All Experts' : 'Results'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
