@@ -4,11 +4,19 @@
 /* Import Google Fonts - must come before other rules */
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap');
 
-/* Neutraface 2 Font from claimn.co */
+/* Neutraface 2 Font - local file in public/fonts */
 @font-face {
   font-family: 'Neutraface 2';
-  src: url('https://claimn.co/fonts/Neutraface_2.ttf') format('truetype');
-  font-weight: 400 700;
+  src: url('/fonts/Neutraface_2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neutraface 2';
+  src: url('/fonts/Neutraface_2.ttf') format('truetype');
+  font-weight: bold;
   font-style: normal;
   font-display: swap;
 }
