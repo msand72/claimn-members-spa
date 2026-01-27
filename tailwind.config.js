@@ -24,9 +24,9 @@ export default {
         'glass-dark': '#0A0A0B',
       },
       fontFamily: {
-        display: ['"Neutraface 2 Display"', 'Montserrat', 'sans-serif'],
-        serif: ['"Playfair Display"', 'serif'],
-        sans: ['Lato', 'sans-serif'],
+        display: ['var(--font-neutraface)', 'Montserrat', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
+        sans: ['var(--font-lato)', 'system-ui', 'sans-serif'],
       },
       backdropBlur: {
         xs: '2px',

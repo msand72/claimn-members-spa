@@ -1,7 +1,7 @@
-/* Neutraface 2 Display Font - processed by Vite at build time */
+/* Neutraface 2 Display Font - matching claimn-web approach exactly */
 @font-face {
   font-family: 'Neutraface 2 Display';
-  src: url('./assets/fonts/Neutraface_2.ttf') format('truetype');
+  src: url('/fonts/Neutraface_2.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -9,8 +9,15 @@
 
 @font-face {
   font-family: 'Neutraface 2 Display';
-  src: url('./assets/fonts/Neutraface_2.ttf') format('truetype');
+  src: url('/fonts/Neutraface_2.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
+}
+
+/* CSS Variables for fonts - matching claimn-web's next/font approach */
+:root {
+  --font-neutraface: 'Neutraface 2 Display';
+  --font-playfair: 'Playfair Display';
+  --font-lato: 'Lato';
 }
