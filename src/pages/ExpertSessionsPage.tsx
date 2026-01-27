@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
 import { useCoachingSessions } from '../lib/api/hooks'
 import type { CoachingSession } from '../lib/api/types'
-import { Calendar, Clock, Video, MessageCircle, Star, ChevronRight, Plus, Loader2, AlertTriangle } from 'lucide-react'
+import { Calendar, Clock, Video, MessageCircle, Star, ChevronRight, Plus, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 function formatSessionDate(scheduledAt: string): string {

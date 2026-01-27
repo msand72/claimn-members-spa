@@ -77,7 +77,7 @@ export function ShopPage() {
       icon: <Users className="w-7 h-7 text-koppar" />,
       link: '/circles',
       linkText: 'Explore Circles',
-      count: circlesData?.total,
+      count: circlesData?.pagination?.total,
       isLoading: circlesLoading,
     },
     {
@@ -87,7 +87,7 @@ export function ShopPage() {
       icon: <UserCheck className="w-7 h-7 text-koppar" />,
       link: '/coaching',
       linkText: 'Find a Coach',
-      count: expertsData?.total,
+      count: expertsData?.pagination?.total,
       isLoading: expertsLoading,
     },
     {
@@ -97,7 +97,7 @@ export function ShopPage() {
       icon: <GraduationCap className="w-7 h-7 text-koppar" />,
       link: '/programs',
       linkText: 'View Programs',
-      count: programsData?.total,
+      count: programsData?.pagination?.total,
       isLoading: programsLoading,
     },
   ]
