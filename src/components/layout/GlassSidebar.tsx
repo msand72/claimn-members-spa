@@ -94,7 +94,7 @@ export function GlassSidebar() {
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
 
   return (
-    <aside className="w-64 h-screen sticky top-0 flex flex-col glass-base border-r border-white/10">
+    <aside className="w-64 h-screen fixed top-0 left-0 flex flex-col glass-base border-r border-white/10 z-40">
       {/* Logo */}
       <div className="p-6 border-b border-white/10">
         <div className="flex items-center gap-3">

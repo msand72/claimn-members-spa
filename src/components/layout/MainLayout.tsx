@@ -25,19 +25,17 @@ export function MainLayout({ children }: MainLayoutProps) {
         <ThemeToggle compact />
       </div>
 
-      <div className="flex relative z-10 overflow-x-hidden">
-        {/* Desktop Sidebar - hidden on mobile/tablet */}
-        <div className="hidden lg:block">
-          <GlassSidebar />
-        </div>
-
-        {/* Main Content */}
-        <main className="flex-1 min-h-screen pt-14 pb-20 lg:pt-0 lg:pb-0 overflow-x-hidden">
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-full">
-            {children}
-          </div>
-        </main>
+      {/* Desktop Sidebar - hidden on mobile/tablet, fixed position */}
+      <div className="hidden lg:block">
+        <GlassSidebar />
       </div>
+
+      {/* Main Content - with left margin for fixed sidebar on desktop */}
+      <main className="relative z-10 min-h-screen pt-14 pb-20 lg:pt-0 lg:pb-0 lg:ml-64 overflow-x-hidden">
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-full">
+          {children}
+        </div>
+      </main>
     </div>
   )
 }
