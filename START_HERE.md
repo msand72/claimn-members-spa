@@ -2,111 +2,173 @@
 
 **IMPORTANT: Read this ENTIRE document before making any changes.**
 
+---
+
+## LEARNINGS FROM MEMBERS SPA BUILD
+
+### Critical Lessons Learned
+
+1. **NEVER GUESS** - Always check the actual source: database schema, claimn-web codebase, migration docs
+2. **Font loading took 10+ attempts** - The correct approach is documented below
+3. **Typography hierarchy matters** - Follow Glass Component Kit 2 exactly
+4. **Check claimn-web for reference** - It's the working production site
+
+---
+
 ## MANDATORY First Steps
 
 1. **Read the migration docs** in `/claimn-web/docs/migration 2.0/`
 2. **Get the full database schema** from Supabase (see instructions below)
 3. **Check the constants** in `src/lib/constants.ts`
-4. **NEVER guess** table names, column names, or data types
-
-## Migration Documentation Location
-
-All migration documentation is in the **claimn-web** repository:
-
-```
-/Users/maxsandberg/claimn-web/docs/migration 2.0/
-```
-
-### Key Documents (READ THESE FIRST)
-
-1. **MEMBERS_SPA_COMPLETE_PLAN.md** - Full implementation plan with:
-   - Interest system (database tables, how it works)
-   - Assessment system (30 questions, scoring algorithm)
-   - Goals & KPIs system
-   - Page list and routes
-
-2. **MEMBERS_SPA_GAP_ANALYSIS.md** - Data structure corrections:
-   - Correct archetypes (5): The Achiever, The Optimizer, The Networker, The Grinder, The Philosopher
-   - Correct pillars (5): identity, emotional, physical, connection, mission
-   - Missing pages and features
-   - Constants file structure
-
-3. **MEMBERS_SPA_STATUS_REPORT.md** - Current implementation status:
-   - 38 pages completed
-   - Which features use mock data
-   - API endpoints needed from backend
+4. **Read Glass Component Kit 2** at `/claimn-web/docs/migration 2.0/Glass Component Kit 2.tsx`
+5. **NEVER guess** table names, column names, or data types
 
 ---
 
-## Getting the FULL Database Schema
+## FONTS (CRITICAL - LEARNED THE HARD WAY)
 
-**BEFORE making any database-related changes, get the complete schema from Supabase.**
+### The CORRECT Approach (after many failed attempts)
 
-### Option 1: SQL Query in Supabase Dashboard (RECOMMENDED)
+**Font file location:** `public/fonts/Neutraface_2.ttf`
 
-Go to Supabase Dashboard → SQL Editor and run:
+**fonts.css** (in `src/fonts.css`):
+```css
+@font-face {
+  font-family: 'Neutraface 2 Display';
+  src: url('/fonts/Neutraface_2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
-```sql
--- Get all tables in public schema
-SELECT table_name, column_name, data_type, is_nullable, column_default
-FROM information_schema.columns
-WHERE table_schema = 'public'
-ORDER BY table_name, ordinal_position;
+@font-face {
+  font-family: 'Neutraface 2 Display';
+  src: url('/fonts/Neutraface_2.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-neutraface: 'Neutraface 2 Display';
+  --font-playfair: 'Playfair Display';
+  --font-lato: 'Lato';
+}
 ```
 
-Or for a specific table:
-```sql
--- Get columns for member_profiles table
-SELECT column_name, data_type, is_nullable, column_default
-FROM information_schema.columns
-WHERE table_schema = 'public' AND table_name = 'member_profiles'
-ORDER BY ordinal_position;
+**main.tsx** - Import order matters:
+```tsx
+import './fonts.css'  // MUST come first
+import './index.css'
 ```
 
-### Option 2: Supabase CLI
-
-```bash
-# Dump the entire schema
-supabase db dump --schema public > schema.sql
-
-# Or link to remote project first
-supabase link --project-ref onzzadpetfvpfbpfylmt
-supabase db pull
+**tailwind.config.js**:
+```js
+fontFamily: {
+  display: ['var(--font-neutraface)', 'Montserrat', 'sans-serif'],
+  serif: ['var(--font-playfair)', 'Georgia', 'serif'],
+  sans: ['var(--font-lato)', 'system-ui', 'sans-serif'],
+},
 ```
 
-### Option 3: Read the Migration Files
-
-All migrations are in:
-```
-/Users/maxsandberg/claimn-web/supabase/migrations/
-```
-
-Key migration files:
-- `101_member_profiles.sql` - member_profiles table
-- `117_interests.sql` - interests table
-- `132_interest_groups.sql` - interest_groups table
-- `131_program_assessments.sql` - assessment tables
-
-### Option 4: PostgREST OpenAPI Spec
-
-The Supabase REST API auto-generates OpenAPI documentation:
-```
-https://onzzadpetfvpfbpfylmt.supabase.co/rest/v1/
+**vercel.json** - Headers for font files:
+```json
+{
+  "headers": [
+    {
+      "source": "/fonts/(.*).ttf",
+      "headers": [
+        { "key": "Content-Type", "value": "font/ttf" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+}
 ```
 
-This shows all exposed tables and their columns.
+### What DOESN'T Work (we tried all of these):
+
+1. ❌ Font in `src/assets/fonts/` with Vite import - doesn't work in production
+2. ❌ Dynamic JavaScript injection of @font-face - unreliable
+3. ❌ External font URLs - CORS issues
+4. ❌ Wrong font-family names ('Neutraface 2', 'Neutraface 2 Display Bold') - must be exact
+5. ❌ Missing quotes around font names with spaces in Tailwind - breaks CSS
+
+### Key Insight
+
+The font-family name MUST be exactly `'Neutraface 2 Display'` - this is the name embedded in the TTF file itself. Check `/claimn-web/src/app/globals.css` for reference.
 
 ---
 
-## Database Schema (Key Tables)
+## TYPOGRAPHY SYSTEM (from Glass Component Kit 2)
 
-### `member_profiles` table (NOT `members`)
+| Font | Tailwind Class | Usage |
+|------|---------------|-------|
+| **Neutraface 2 Display** | `font-display` | Hero titles, h1, h3 card titles, large stat numbers |
+| **Playfair Display** | `font-serif` | h2 section headings, subtitles, taglines (often italic) |
+| **Lato** | `font-sans` | Body text, buttons, labels, small text |
+
+### Google Fonts Import (in index.css)
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap');
+```
+
+This MUST be the first line in index.css, before any Tailwind imports.
+
+---
+
+## THEME SYSTEM (Light/Dark Mode)
+
+### CSS Variables (in index.css)
+
+```css
+:root {
+  /* Dark theme (default) */
+  --color-kalkvit: 249 247 244;  /* Cream white RGB */
+  --text-primary: #F9F7F4;
+  --bg-primary: #0A0A0B;
+}
+
+.light {
+  --color-kalkvit: 28 28 30;  /* Charcoal RGB */
+  --text-primary: #1C1C1E;
+  --bg-primary: #F9F7F4;
+}
+```
+
+### Key Pattern
+
+The `kalkvit` color switches meaning based on theme:
+- Dark mode: Cream white text on dark background
+- Light mode: Charcoal text on light background
+
+Use `text-kalkvit` and it automatically adapts.
+
+---
+
+## DATABASE SCHEMA (Key Tables)
+
+### CRITICAL: Common Mistakes to Avoid
+
+| Wrong | Correct | Notes |
+|-------|---------|-------|
+| `members` table | `member_profiles` | Table name |
+| `id` column | `user_id` | Primary key for member lookup |
+| `full_name` | `display_name` | Name field |
+| `phone` | `whatsapp_number` | Phone field |
+| `location` | `city` + `country` | Location is split |
+| `pillar_focus: string` | `pillar_focus: string[]` | It's an ARRAY |
+
+### `member_profiles` table
+
 ```sql
-user_id UUID PRIMARY KEY
+user_id UUID PRIMARY KEY REFERENCES auth.users(id)
 display_name TEXT
 bio TEXT
 archetype TEXT -- one of 5 archetypes
-pillar_focus TEXT[] -- array of pillar IDs
+pillar_focus TEXT[] -- ARRAY of pillar IDs
 city TEXT
 country TEXT
 links JSONB
@@ -117,72 +179,188 @@ created_at TIMESTAMPTZ
 updated_at TIMESTAMPTZ
 ```
 
-### `interests` table
-```sql
-id UUID PRIMARY KEY
-name TEXT
-slug TEXT
-description TEXT
-icon TEXT
-sort_order INTEGER
+### The 5 Archetypes
+
+1. The Achiever
+2. The Optimizer
+3. The Networker
+4. The Grinder
+5. The Philosopher
+
+### The 5 Pillars
+
+1. identity
+2. emotional
+3. physical
+4. connection
+5. mission
+
+---
+
+## GLASS UI SYSTEM
+
+### Three Glass Variants (from Glass Component Kit 2)
+
+```css
+/* Base Glass */
+.glass-base {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Elevated Glass (modals, dropdowns) */
+.glass-elevated {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* Accent Glass (CTAs, featured) */
+.glass-accent {
+  background: linear-gradient(135deg, rgba(184, 115, 51, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(184, 115, 51, 0.25);
+}
 ```
 
-### `member_interests` table
-```sql
-id UUID PRIMARY KEY
-user_id UUID REFERENCES auth.users(id)
-interest_id UUID REFERENCES interests(id)
+### Brand Colors
+
+```js
+charcoal: '#1C1C1E',
+jordbrun: '#5E503F',
+sandbeige: '#E5D9C7',
+oliv: '#3A4A42',
+dimblag: '#A1B1C6',
+koppar: '#B87333',      // Primary accent
+kalkvit: '#F9F7F4',     // Cream white
+tegelrod: '#B54A46',
+skogsgron: '#6B8E6F',
 ```
 
 ---
 
-## Key Files in Members SPA
+## PROJECT STRUCTURE
+
+### Key Files
 
 | File | Purpose |
 |------|---------|
 | `src/lib/constants.ts` | Archetypes, Pillars, KPI types |
-| `src/hooks/useProfile.ts` | Queries `member_profiles` table |
-| `src/hooks/useInterests.ts` | Queries `interests` and `member_interests` |
-| `src/pages/ProfilePage.tsx` | Profile editing with archetype, pillars, interests |
-| `src/pages/DashboardPage.tsx` | Member dashboard |
+| `src/lib/supabase.ts` | Supabase client |
+| `src/contexts/AuthContext.tsx` | Authentication state |
+| `src/contexts/ThemeContext.tsx` | Light/dark theme |
+| `src/hooks/useProfile.ts` | Member profile queries |
+| `src/fonts.css` | @font-face declarations |
+| `src/index.css` | Tailwind + theme variables |
+| `public/fonts/` | Font files |
+| `vercel.json` | Deployment config |
 
 ---
 
-## Common Mistakes to Avoid
+## DEPLOYMENT (Vercel)
 
-1. **Wrong table name**: Use `member_profiles`, NOT `members`
-2. **Wrong column**: Use `user_id`, NOT `id` for member lookup
-3. **Wrong column**: Use `display_name`, NOT `full_name`
-4. **pillar_focus is an array**: `PillarId[]`, not a single value
-5. **No `phone` or `location` fields**: Use `city` and `country` separately
+### vercel.json Configuration
+
+```json
+{
+  "headers": [
+    {
+      "source": "/fonts/(.*).ttf",
+      "headers": [
+        { "key": "Content-Type", "value": "font/ttf" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/:path((?!.*\\.).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+The rewrite rule ensures SPA client-side routing works (all non-file routes serve index.html).
 
 ---
 
-## Fonts
+## REFERENCE LOCATIONS
 
-**CRITICAL: The font-family name MUST be exactly `'Neutraface 2 Display'`**
+### Migration Documentation
 
-This matches claimn-web's globals.css. See `/claimn-web/src/app/globals.css` for reference.
+```
+/Users/maxsandberg/claimn-web/docs/migration 2.0/
+├── Glass Component Kit 2.tsx        # Design reference (CRITICAL)
+├── MEMBERS_SPA_COMPLETE_PLAN.md     # Full implementation plan
+├── MEMBERS_SPA_GAP_ANALYSIS.md      # Data structure corrections
+├── MEMBERS_SPA_STATUS_REPORT.md     # Current status
+```
 
-### How it works:
-1. Font file is in `src/assets/fonts/Neutraface_2.ttf`
-2. Imported in `main.tsx` using Vite's asset import
-3. @font-face is dynamically injected with the Vite-resolved URL
-4. Tailwind config uses `font-display: ['Neutraface 2 Display', ...]`
+### Database Migrations
 
-### DO NOT:
-- Use external URLs (CORS issues)
-- Use the public folder (Vite doesn't process it correctly for fonts)
-- Use any font-family name other than the exact embedded name
+```
+/Users/maxsandberg/claimn-web/supabase/migrations/
+├── 101_member_profiles.sql
+├── 117_interests.sql
+├── 131_program_assessments.sql
+├── 132_interest_groups.sql
+```
+
+### Working Reference (claimn-web)
+
+```
+/Users/maxsandberg/claimn-web/
+├── src/app/globals.css              # Font declarations reference
+├── src/app/fonts.ts                 # Next.js font loading
+├── tailwind.config.ts               # Tailwind config reference
+├── public/fonts/Neutraface_2.ttf    # Font file source
+```
 
 ---
 
-## Deployment
+## DEBUGGING TIPS
 
-- Vercel hosting
-- `vercel.json` has rewrites for SPA client-side routing
-- Base URL is `/`
+### Font Not Loading?
+
+1. Check browser Network tab - is the font file being requested?
+2. Check browser Console for errors
+3. Verify font file exists in `public/fonts/`
+4. Check vercel.json headers configuration
+5. Clear browser cache completely
+6. Check computed font-family in DevTools Elements panel
+
+### Add Debug Logging (temporarily)
+
+```typescript
+// In main.tsx
+document.fonts.ready.then(() => {
+  console.log('Fonts loaded:')
+  document.fonts.forEach(font => {
+    console.log(`  ${font.family} - ${font.status}`)
+  })
+})
+```
+
+---
+
+## CHECKLIST FOR ADMIN PAGES
+
+Before starting admin pages development:
+
+- [ ] Copy font setup from members-spa (public/fonts/, fonts.css, vercel.json)
+- [ ] Use same Tailwind config for colors and fonts
+- [ ] Follow Glass Component Kit 2 for UI components
+- [ ] Use same typography hierarchy (Neutraface h1/h3, Playfair h2, Lato body)
+- [ ] Implement same theme system (light/dark with kalkvit switching)
+- [ ] Check database schema for admin-specific tables
+- [ ] Review RLS policies for admin access
 
 ---
 
 *Last updated: 2026-01-27*
+*Learnings compiled from members-spa development session*
