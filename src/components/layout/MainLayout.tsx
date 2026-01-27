@@ -3,6 +3,7 @@ import { GlassSidebar } from './GlassSidebar'
 import { MobileHeader } from './MobileHeader'
 import { MobileBottomNav } from './MobileBottomNav'
 import { BackgroundPattern } from '../ui/BackgroundPattern'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 interface MainLayoutProps {
   children: ReactNode
@@ -18,6 +19,11 @@ export function MainLayout({ children }: MainLayoutProps) {
 
       {/* Mobile Bottom Nav - visible on mobile/tablet */}
       <MobileBottomNav />
+
+      {/* Desktop Theme Toggle - top right corner */}
+      <div className="hidden lg:block fixed top-4 right-4 z-50">
+        <ThemeToggle compact />
+      </div>
 
       <div className="flex relative z-10">
         {/* Desktop Sidebar - hidden on mobile/tablet */}

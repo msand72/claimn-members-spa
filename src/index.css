@@ -249,3 +249,58 @@ body {
 .light select:focus {
   background-color: rgba(255, 255, 255, 0.8) !important;
 }
+
+/* Light theme gradient overrides - dark gradients become light */
+.light .from-charcoal {
+  --tw-gradient-from: #E5D9C7 !important; /* sandbeige */
+}
+
+.light .to-jordbrun {
+  --tw-gradient-to: #D4C4A8 !important; /* lighter warm tone */
+}
+
+.light .bg-jordbrun {
+  background-color: #B87333 !important; /* koppar - more visible in light mode */
+}
+
+.light .from-jordbrun {
+  --tw-gradient-from: #B87333 !important; /* koppar */
+}
+
+/* Light theme charcoal background */
+.light .bg-charcoal {
+  background-color: #E5D9C7 !important; /* sandbeige */
+}
+
+/* Ensure text in light gradient cards stays readable */
+.light .from-charcoal .text-kalkvit,
+.light .bg-gradient-to-br.from-charcoal .text-kalkvit {
+  color: #1C1C1E !important;
+}
+
+.light .from-charcoal .text-kalkvit\/60,
+.light .bg-gradient-to-br.from-charcoal .text-kalkvit\/60 {
+  color: rgba(28, 28, 30, 0.7) !important;
+}
+
+.light .from-charcoal .text-kalkvit\/70,
+.light .bg-gradient-to-br.from-charcoal .text-kalkvit\/70 {
+  color: rgba(28, 28, 30, 0.8) !important;
+}
+
+.light .from-charcoal .text-kalkvit\/40,
+.light .bg-gradient-to-br.from-charcoal .text-kalkvit\/40 {
+  color: rgba(28, 28, 30, 0.5) !important;
+}
+
+/* Keep text light on colored gradient backgrounds (avatars, logos, brand elements) */
+.light .from-koppar .text-kalkvit,
+.light .bg-gradient-to-br.from-koppar .text-kalkvit,
+.light .bg-jordbrun .text-kalkvit {
+  color: #F9F7F4 !important; /* Keep cream white text on colored backgrounds */
+}
+
+/* Ring colors for light mode */
+.light .ring-white\/10 {
+  --tw-ring-color: rgba(0, 0, 0, 0.1) !important;
+}

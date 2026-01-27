@@ -2,7 +2,6 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../contexts/AuthContext'
 import { GlassAvatar } from '../ui/GlassAvatar'
-import { ThemeToggle } from '../ui/ThemeToggle'
 import {
   Home,
   Newspaper,
@@ -144,9 +143,8 @@ export function GlassSidebar() {
         </div>
       </nav>
 
-      {/* Theme Toggle & Sign Out */}
-      <div className="p-4 border-t border-white/10 space-y-1">
-        <ThemeToggle />
+      {/* Sign Out */}
+      <div className="p-4 border-t border-white/10">
         <button
           onClick={handleSignOut}
           className={cn(

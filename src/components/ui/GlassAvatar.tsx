@@ -28,7 +28,7 @@ export function GlassAvatar({
     <div
       className={cn(
         'rounded-full flex items-center justify-center font-semibold',
-        'bg-jordbrun text-kalkvit',
+        'bg-gradient-to-br from-koppar to-jordbrun text-kalkvit',
         'ring-2 ring-white/10',
         sizeClasses[size],
         className
