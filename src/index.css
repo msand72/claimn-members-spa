@@ -4,22 +4,7 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
-/* Neutraface 2 Font - local file in public/fonts */
-@font-face {
-  font-family: 'Neutraface 2';
-  src: url('/fonts/Neutraface_2.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Neutraface 2';
-  src: url('/fonts/Neutraface_2.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
+/* Neutraface 2 Font - loaded dynamically in main.tsx via Vite asset import */
 
 /* Theme CSS Variables */
 :root {
