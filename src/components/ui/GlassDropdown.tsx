@@ -63,7 +63,7 @@ export function GlassDropdown({
   }
 
   return (
-    <div ref={dropdownRef} className={cn('relative', className)}>
+    <div ref={dropdownRef} className={cn('relative z-20', className)}>
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
@@ -102,7 +102,7 @@ export function GlassDropdown({
         <div
           role="listbox"
           className={cn(
-            'absolute z-50 w-full mt-2',
+            'absolute z-[100] w-full mt-2',
             'glass-elevated rounded-xl border border-white/[0.15]',
             'py-2 shadow-xl',
             'animate-in fade-in slide-in-from-top-2 duration-150',
@@ -189,7 +189,7 @@ export function GlassMenu({
         <div
           role="menu"
           className={cn(
-            'absolute z-50 mt-2 min-w-[160px]',
+            'absolute z-[100] mt-2 min-w-[160px]',
             align === 'right' ? 'right-0' : 'left-0',
             'glass-elevated rounded-xl border border-white/[0.15]',
             'py-1 shadow-xl',
