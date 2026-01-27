@@ -1,73 +1,11 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect } from '../components/ui'
-import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video } from 'lucide-react'
+import { useExperts, useExpertAvailability, useBookSession } from '../lib/api/hooks'
+import type { Expert, ExpertAvailabilitySlot } from '../lib/api/types'
+import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, CheckCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
-
-interface Expert {
-  id: number
-  name: string
-  initials: string
-  title: string
-  specialties: string[]
-  rating: number
-  reviews: number
-  hourlyRate: number
-  nextAvailable: string
-}
-
-interface TimeSlot {
-  time: string
-  available: boolean
-}
-
-const mockExperts: Expert[] = [
-  {
-    id: 1,
-    name: 'Michael Chen',
-    initials: 'MC',
-    title: 'Leadership Coach',
-    specialties: ['Executive Coaching', 'Team Building', 'Strategic Planning'],
-    rating: 4.9,
-    reviews: 127,
-    hourlyRate: 199,
-    nextAvailable: 'Tomorrow',
-  },
-  {
-    id: 2,
-    name: 'Sarah Thompson',
-    initials: 'ST',
-    title: 'Performance Coach',
-    specialties: ['Mindset', 'Productivity', 'Goal Setting'],
-    rating: 4.8,
-    reviews: 89,
-    hourlyRate: 149,
-    nextAvailable: 'Today',
-  },
-  {
-    id: 3,
-    name: 'David Wilson',
-    initials: 'DW',
-    title: 'Business Mentor',
-    specialties: ['Entrepreneurship', 'Scaling', 'Fundraising'],
-    rating: 5.0,
-    reviews: 64,
-    hourlyRate: 249,
-    nextAvailable: 'In 2 days',
-  },
-]
-
-const timeSlots: TimeSlot[] = [
-  { time: '9:00 AM', available: true },
-  { time: '10:00 AM', available: false },
-  { time: '11:00 AM', available: true },
-  { time: '12:00 PM', available: false },
-  { time: '1:00 PM', available: true },
-  { time: '2:00 PM', available: true },
-  { time: '3:00 PM', available: false },
-  { time: '4:00 PM', available: true },
-  { time: '5:00 PM', available: true },
-]
 
 const sessionTypes = [
   { value: '30', label: '30 minutes - Quick Check-in' },
@@ -75,7 +13,41 @@ const sessionTypes = [
   { value: '90', label: '90 minutes - Deep Dive' },
 ]
 
-function ExpertCard({ expert, isSelected, onSelect }: { expert: Expert; isSelected: boolean; onSelect: () => void }) {
+function ExpertCardSkeleton() {
+  return (
+    <GlassCard variant="base">
+      <div className="flex items-start gap-4 animate-pulse">
+        <div className="w-12 h-12 rounded-xl bg-white/[0.1]" />
+        <div className="flex-1 min-w-0">
+          <div className="h-5 w-32 bg-white/[0.1] rounded mb-2" />
+          <div className="h-4 w-24 bg-white/[0.1] rounded mb-2" />
+          <div className="h-4 w-20 bg-white/[0.1] rounded" />
+        </div>
+        <div className="text-right">
+          <div className="h-6 w-16 bg-white/[0.1] rounded mb-1" />
+          <div className="h-3 w-10 bg-white/[0.1] rounded" />
+        </div>
+      </div>
+    </GlassCard>
+  )
+}
+
+function ExpertCard({
+  expert,
+  isSelected,
+  onSelect,
+}: {
+  expert: Expert
+  isSelected: boolean
+  onSelect: () => void
+}) {
+  const initials = expert.name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
   return (
     <button onClick={onSelect} className="w-full text-left">
       <GlassCard
@@ -87,24 +59,38 @@ function ExpertCard({ expert, isSelected, onSelect }: { expert: Expert; isSelect
         )}
       >
         <div className="flex items-start gap-4">
-          <GlassAvatar initials={expert.initials} size="lg" />
+          {expert.avatar_url ? (
+            <img
+              src={expert.avatar_url}
+              alt={expert.name}
+              className="w-12 h-12 rounded-xl object-cover"
+            />
+          ) : (
+            <GlassAvatar initials={initials} size="lg" />
+          )}
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-kalkvit">{expert.name}</h3>
             <p className="text-sm text-koppar">{expert.title}</p>
             <div className="flex items-center gap-2 mt-1 text-sm text-kalkvit/50">
               <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
-              <span>{expert.rating} ({expert.reviews} reviews)</span>
+              <span>
+                {expert.rating} ({expert.reviews_count} reviews)
+              </span>
             </div>
             <div className="flex flex-wrap gap-1 mt-2">
               {expert.specialties.slice(0, 2).map((s) => (
-                <GlassBadge key={s} variant="default" className="text-xs">{s}</GlassBadge>
+                <GlassBadge key={s} variant="default" className="text-xs">
+                  {s}
+                </GlassBadge>
               ))}
             </div>
           </div>
           <div className="text-right">
-            <p className="font-display text-xl font-bold text-kalkvit">${expert.hourlyRate}</p>
+            <p className="font-display text-xl font-bold text-kalkvit">${expert.hourly_rate}</p>
             <p className="text-xs text-kalkvit/50">/hour</p>
-            <p className="text-xs text-skogsgron mt-2">Next: {expert.nextAvailable}</p>
+            {expert.availability && (
+              <p className="text-xs text-skogsgron mt-2">Next: {expert.availability}</p>
+            )}
           </div>
         </div>
       </GlassCard>
@@ -113,29 +99,132 @@ function ExpertCard({ expert, isSelected, onSelect }: { expert: Expert; isSelect
 }
 
 export function BookSessionPage() {
-  const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null)
-  const [selectedDate, setSelectedDate] = useState<number | null>(null)
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const preselectedExpertId = searchParams.get('expert')
+
+  const [selectedExpertId, setSelectedExpertId] = useState<string | null>(preselectedExpertId)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [sessionType, setSessionType] = useState('60')
+  const [bookingSuccess, setBookingSuccess] = useState(false)
+
+  // Fetch experts
+  const { data: expertsData, isLoading: isLoadingExperts, error: expertsError } = useExperts()
+  const experts = expertsData?.data || []
+
+  // Find selected expert
+  const selectedExpert = useMemo(
+    () => experts.find((e) => e.id === selectedExpertId) || null,
+    [experts, selectedExpertId]
+  )
+
+  // Fetch availability for selected expert
+  const { data: availabilityData, isLoading: isLoadingAvailability } = useExpertAvailability(
+    selectedExpertId || ''
+  )
+  const availability: ExpertAvailabilitySlot[] = availabilityData || []
+
+  // Book session mutation
+  const bookSessionMutation = useBookSession()
 
   // Generate calendar days (current week + next week)
   const today = new Date()
-  const days = Array.from({ length: 14 }, (_, i) => {
-    const date = new Date(today)
-    date.setDate(today.getDate() + i)
-    return {
-      date: date.getDate(),
-      day: date.toLocaleDateString('en-US', { weekday: 'short' }),
-      month: date.toLocaleDateString('en-US', { month: 'short' }),
-      isToday: i === 0,
-    }
-  })
+  const days = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => {
+        const date = new Date(today)
+        date.setDate(today.getDate() + i)
+        return {
+          dateStr: date.toISOString().split('T')[0],
+          date: date.getDate(),
+          day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          month: date.toLocaleDateString('en-US', { month: 'short' }),
+          isToday: i === 0,
+        }
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [today.toDateString()]
+  )
 
-  const handleBook = () => {
-    if (selectedExpert && selectedDate && selectedTime) {
-      // TODO: Implement booking via API
-      console.log('Booking:', { expert: selectedExpert, date: selectedDate, time: selectedTime, duration: sessionType })
+  // Get time slots for selected date from availability
+  const timeSlotsForDate = useMemo(() => {
+    if (!selectedDate || !availability.length) return []
+    const dayAvailability = availability.find((a) => a.date === selectedDate)
+    if (!dayAvailability) return []
+    return dayAvailability.times.map((time) => ({ time, available: true }))
+  }, [selectedDate, availability])
+
+  const handleBook = async () => {
+    if (!selectedExpert || !selectedDate || !selectedTime) return
+
+    try {
+      // Construct the scheduled_at datetime
+      const scheduledAt = `${selectedDate}T${convertTo24Hour(selectedTime)}:00`
+
+      await bookSessionMutation.mutateAsync({
+        expert_id: selectedExpert.id,
+        scheduled_at: scheduledAt,
+        duration: parseInt(sessionType),
+        session_type: 'video',
+      })
+
+      setBookingSuccess(true)
+
+      // Navigate to sessions page after a short delay
+      setTimeout(() => {
+        navigate('/sessions')
+      }, 2000)
+    } catch (error) {
+      console.error('Failed to book session:', error)
     }
+  }
+
+  // Helper to convert time string to 24-hour format
+  const convertTo24Hour = (time12h: string): string => {
+    const [time, modifier] = time12h.split(' ')
+    let [hours, minutes] = time.split(':')
+    if (hours === '12') {
+      hours = modifier === 'AM' ? '00' : '12'
+    } else if (modifier === 'PM') {
+      hours = String(parseInt(hours, 10) + 12)
+    }
+    return `${hours.padStart(2, '0')}:${minutes}`
+  }
+
+  if (expertsError) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Failed to load experts</h3>
+            <p className="text-kalkvit/50 text-sm">
+              Please try refreshing the page or check your connection.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
+
+  if (bookingSuccess) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <GlassCard variant="accent" leftBorder={false} className="text-center py-12">
+            <CheckCircle className="w-16 h-16 text-skogsgron mx-auto mb-4" />
+            <h2 className="font-display text-2xl font-bold text-kalkvit mb-2">
+              Session Booked Successfully!
+            </h2>
+            <p className="text-kalkvit/60 mb-4">
+              Your session with {selectedExpert?.name} has been confirmed.
+            </p>
+            <p className="text-sm text-kalkvit/50">Redirecting to your sessions...</p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
   }
 
   return (
@@ -150,14 +239,30 @@ export function BookSessionPage() {
           {/* Expert Selection */}
           <div className="lg:col-span-2 space-y-4">
             <h2 className="font-serif text-xl font-semibold text-kalkvit">Choose an Expert</h2>
-            {mockExperts.map((expert) => (
-              <ExpertCard
-                key={expert.id}
-                expert={expert}
-                isSelected={selectedExpert?.id === expert.id}
-                onSelect={() => setSelectedExpert(expert)}
-              />
-            ))}
+            {isLoadingExperts ? (
+              <>
+                <ExpertCardSkeleton />
+                <ExpertCardSkeleton />
+                <ExpertCardSkeleton />
+              </>
+            ) : experts.length === 0 ? (
+              <GlassCard variant="base" className="text-center py-8">
+                <p className="text-kalkvit/60">No experts available at the moment.</p>
+              </GlassCard>
+            ) : (
+              experts.map((expert) => (
+                <ExpertCard
+                  key={expert.id}
+                  expert={expert}
+                  isSelected={selectedExpertId === expert.id}
+                  onSelect={() => {
+                    setSelectedExpertId(expert.id)
+                    setSelectedDate(null)
+                    setSelectedTime(null)
+                  }}
+                />
+              ))
+            )}
           </div>
 
           {/* Booking Details */}
@@ -186,17 +291,23 @@ export function BookSessionPage() {
                 </div>
               </div>
               <div className="grid grid-cols-7 gap-2">
-                {days.slice(0, 7).map((day, i) => (
+                {days.slice(0, 7).map((day) => (
                   <button
-                    key={i}
-                    onClick={() => setSelectedDate(day.date)}
+                    key={day.dateStr}
+                    onClick={() => {
+                      setSelectedDate(day.dateStr)
+                      setSelectedTime(null)
+                    }}
+                    disabled={!selectedExpertId}
                     className={cn(
                       'p-2 rounded-xl text-center transition-all',
-                      selectedDate === day.date
-                        ? 'bg-koppar text-kalkvit'
-                        : day.isToday
-                        ? 'bg-white/[0.08] text-kalkvit'
-                        : 'hover:bg-white/[0.06] text-kalkvit/70'
+                      !selectedExpertId
+                        ? 'opacity-50 cursor-not-allowed'
+                        : selectedDate === day.dateStr
+                          ? 'bg-koppar text-kalkvit'
+                          : day.isToday
+                            ? 'bg-white/[0.08] text-kalkvit'
+                            : 'hover:bg-white/[0.06] text-kalkvit/70'
                     )}
                   >
                     <p className="text-xs">{day.day}</p>
@@ -204,30 +315,47 @@ export function BookSessionPage() {
                   </button>
                 ))}
               </div>
+              {!selectedExpertId && (
+                <p className="text-xs text-kalkvit/40 mt-3">Select an expert first</p>
+              )}
             </GlassCard>
 
             {/* Time Selection */}
             <GlassCard variant="base">
               <h3 className="font-semibold text-kalkvit mb-4">Select Time</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {timeSlots.map((slot) => (
-                  <button
-                    key={slot.time}
-                    disabled={!slot.available}
-                    onClick={() => setSelectedTime(slot.time)}
-                    className={cn(
-                      'p-2 rounded-xl text-sm font-medium transition-all',
-                      !slot.available
-                        ? 'bg-white/[0.03] text-kalkvit/30 cursor-not-allowed'
-                        : selectedTime === slot.time
-                        ? 'bg-koppar text-kalkvit'
-                        : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
-                    )}
-                  >
-                    {slot.time}
-                  </button>
-                ))}
-              </div>
+              {isLoadingAvailability && selectedExpertId ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+                </div>
+              ) : timeSlotsForDate.length > 0 ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {timeSlotsForDate.map((slot) => (
+                    <button
+                      key={slot.time}
+                      disabled={!slot.available}
+                      onClick={() => setSelectedTime(slot.time)}
+                      className={cn(
+                        'p-2 rounded-xl text-sm font-medium transition-all',
+                        !slot.available
+                          ? 'bg-white/[0.03] text-kalkvit/30 cursor-not-allowed'
+                          : selectedTime === slot.time
+                            ? 'bg-koppar text-kalkvit'
+                            : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
+                      )}
+                    >
+                      {slot.time}
+                    </button>
+                  ))}
+                </div>
+              ) : selectedDate ? (
+                <p className="text-sm text-kalkvit/50 text-center py-4">
+                  No available slots for this date
+                </p>
+              ) : (
+                <p className="text-sm text-kalkvit/40 text-center py-4">
+                  Select a date to see available times
+                </p>
+              )}
             </GlassCard>
 
             {/* Session Summary */}
@@ -236,16 +364,37 @@ export function BookSessionPage() {
                 <h3 className="font-semibold text-kalkvit mb-4">Session Summary</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center gap-3 text-kalkvit/80">
-                    <GlassAvatar initials={selectedExpert.initials} size="sm" />
+                    {selectedExpert.avatar_url ? (
+                      <img
+                        src={selectedExpert.avatar_url}
+                        alt={selectedExpert.name}
+                        className="w-8 h-8 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <GlassAvatar
+                        initials={selectedExpert.name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .toUpperCase()
+                          .slice(0, 2)}
+                        size="sm"
+                      />
+                    )}
                     <span>{selectedExpert.name}</span>
                   </div>
                   <div className="flex items-center gap-3 text-kalkvit/80">
                     <Calendar className="w-4 h-4 text-koppar" />
-                    <span>{days.find(d => d.date === selectedDate)?.month} {selectedDate}</span>
+                    <span>
+                      {days.find((d) => d.dateStr === selectedDate)?.month}{' '}
+                      {days.find((d) => d.dateStr === selectedDate)?.date}
+                    </span>
                   </div>
                   <div className="flex items-center gap-3 text-kalkvit/80">
                     <Clock className="w-4 h-4 text-koppar" />
-                    <span>{selectedTime} ({sessionType} min)</span>
+                    <span>
+                      {selectedTime} ({sessionType} min)
+                    </span>
                   </div>
                   <div className="flex items-center gap-3 text-kalkvit/80">
                     <Video className="w-4 h-4 text-koppar" />
@@ -256,12 +405,29 @@ export function BookSessionPage() {
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-kalkvit/60">Total</span>
                     <span className="font-display text-2xl font-bold text-kalkvit">
-                      ${Math.round(selectedExpert.hourlyRate * (parseInt(sessionType) / 60))}
+                      ${Math.round(selectedExpert.hourly_rate * (parseInt(sessionType) / 60))}
                     </span>
                   </div>
-                  <GlassButton variant="primary" className="w-full" onClick={handleBook}>
-                    Confirm Booking
+                  <GlassButton
+                    variant="primary"
+                    className="w-full"
+                    onClick={handleBook}
+                    disabled={bookSessionMutation.isPending}
+                  >
+                    {bookSessionMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Booking...
+                      </>
+                    ) : (
+                      'Confirm Booking'
+                    )}
                   </GlassButton>
+                  {bookSessionMutation.isError && (
+                    <p className="text-xs text-tegelrod mt-2 text-center">
+                      Failed to book session. Please try again.
+                    </p>
+                  )}
                 </div>
               </GlassCard>
             )}

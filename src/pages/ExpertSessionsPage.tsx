@@ -1,122 +1,148 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
-import { Calendar, Clock, Video, MessageCircle, Star, ChevronRight, Plus } from 'lucide-react'
+import { useCoachingSessions } from '../lib/api/hooks'
+import type { CoachingSession } from '../lib/api/types'
+import { Calendar, Clock, Video, MessageCircle, Star, ChevronRight, Plus, Loader2, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-interface Session {
-  id: number
-  expert: {
-    name: string
-    initials: string
-    title: string
+function formatSessionDate(scheduledAt: string): string {
+  const date = new Date(scheduledAt)
+  const now = new Date()
+  const tomorrow = new Date(now)
+  tomorrow.setDate(now.getDate() + 1)
+
+  // Check if today
+  if (date.toDateString() === now.toDateString()) {
+    return 'Today'
   }
-  date: string
-  time: string
-  duration: number
-  status: 'upcoming' | 'completed' | 'cancelled'
-  type: 'video' | 'audio'
-  notes?: string
-  rating?: number
+
+  // Check if tomorrow
+  if (date.toDateString() === tomorrow.toDateString()) {
+    return 'Tomorrow'
+  }
+
+  // Otherwise format the date
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+  })
 }
 
-const mockSessions: Session[] = [
-  {
-    id: 1,
-    expert: { name: 'Michael Chen', initials: 'MC', title: 'Leadership Coach' },
-    date: 'Tomorrow',
-    time: '10:00 AM',
-    duration: 60,
-    status: 'upcoming',
-    type: 'video',
-  },
-  {
-    id: 2,
-    expert: { name: 'Sarah Thompson', initials: 'ST', title: 'Performance Coach' },
-    date: 'Friday, Jan 31',
-    time: '2:00 PM',
-    duration: 30,
-    status: 'upcoming',
-    type: 'video',
-  },
-  {
-    id: 3,
-    expert: { name: 'David Wilson', initials: 'DW', title: 'Business Mentor' },
-    date: 'Jan 20, 2026',
-    time: '11:00 AM',
-    duration: 60,
-    status: 'completed',
-    type: 'video',
-    notes: 'Discussed Q1 strategy and team scaling plans.',
-    rating: 5,
-  },
-  {
-    id: 4,
-    expert: { name: 'Michael Chen', initials: 'MC', title: 'Leadership Coach' },
-    date: 'Jan 15, 2026',
-    time: '9:00 AM',
-    duration: 90,
-    status: 'completed',
-    type: 'video',
-    notes: 'Deep dive into leadership frameworks and delegation.',
-    rating: 5,
-  },
-  {
-    id: 5,
-    expert: { name: 'Sarah Thompson', initials: 'ST', title: 'Performance Coach' },
-    date: 'Jan 10, 2026',
-    time: '3:00 PM',
-    duration: 60,
-    status: 'cancelled',
-    type: 'video',
-  },
-]
+function formatSessionTime(scheduledAt: string): string {
+  const date = new Date(scheduledAt)
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
 
-function SessionCard({ session }: { session: Session }) {
+function SessionCardSkeleton() {
+  return (
+    <GlassCard variant="base" className="mb-4">
+      <div className="flex items-start justify-between animate-pulse">
+        <div className="flex gap-4">
+          <div className="w-12 h-12 rounded-xl bg-white/[0.1]" />
+          <div>
+            <div className="h-5 w-32 bg-white/[0.1] rounded mb-2" />
+            <div className="h-4 w-24 bg-white/[0.1] rounded mb-3" />
+            <div className="flex items-center gap-4">
+              <div className="h-4 w-20 bg-white/[0.1] rounded" />
+              <div className="h-4 w-24 bg-white/[0.1] rounded" />
+            </div>
+          </div>
+        </div>
+        <div className="h-6 w-20 bg-white/[0.1] rounded" />
+      </div>
+    </GlassCard>
+  )
+}
+
+function SessionCard({ session }: { session: CoachingSession }) {
+  // Map API status to UI status
+  const getUIStatus = (status: CoachingSession['status']): 'upcoming' | 'completed' | 'cancelled' => {
+    switch (status) {
+      case 'scheduled':
+      case 'in_progress':
+        return 'upcoming'
+      case 'completed':
+        return 'completed'
+      case 'cancelled':
+        return 'cancelled'
+      default:
+        return 'upcoming'
+    }
+  }
+
+  const uiStatus = getUIStatus(session.status)
+
   const statusConfig = {
     upcoming: { variant: 'success' as const, label: 'Upcoming' },
     completed: { variant: 'default' as const, label: 'Completed' },
     cancelled: { variant: 'warning' as const, label: 'Cancelled' },
   }
 
-  const status = statusConfig[session.status]
+  const status = statusConfig[uiStatus]
+
+  // Get expert info from session
+  const expert = session.expert
+  const expertName = expert?.name || 'Expert'
+  const expertTitle = expert?.title || 'Coach'
+  const expertInitials = expertName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 
   return (
     <GlassCard variant="base" className="mb-4">
       <div className="flex items-start justify-between">
         <div className="flex gap-4">
-          <GlassAvatar initials={session.expert.initials} size="lg" />
+          {expert?.avatar_url ? (
+            <img
+              src={expert.avatar_url}
+              alt={expertName}
+              className="w-12 h-12 rounded-xl object-cover"
+            />
+          ) : (
+            <GlassAvatar initials={expertInitials} size="lg" />
+          )}
           <div>
-            <h3 className="font-semibold text-kalkvit">{session.expert.name}</h3>
-            <p className="text-sm text-koppar">{session.expert.title}</p>
+            <h3 className="font-semibold text-kalkvit">{expertName}</h3>
+            <p className="text-sm text-koppar">{expertTitle}</p>
             <div className="flex items-center gap-4 mt-2 text-sm text-kalkvit/60">
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                {session.date}
+                {formatSessionDate(session.scheduled_at)}
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {session.time} ({session.duration} min)
+                {formatSessionTime(session.scheduled_at)} ({session.duration} min)
               </span>
               <span className="flex items-center gap-1">
                 <Video className="w-4 h-4" />
                 Video Call
               </span>
             </div>
-            {session.notes && (
+            {session.has_notes && uiStatus === 'completed' && (
               <p className="mt-3 text-sm text-kalkvit/70 bg-white/[0.03] rounded-lg p-3">
-                {session.notes}
+                Session notes available
               </p>
             )}
-            {session.rating && (
+            {uiStatus === 'completed' && session.progress > 0 && (
               <div className="flex items-center gap-1 mt-2">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
                     className={cn(
                       'w-4 h-4',
-                      i < session.rating! ? 'text-brand-amber fill-brand-amber' : 'text-kalkvit/20'
+                      i < Math.round(session.progress / 20)
+                        ? 'text-brand-amber fill-brand-amber'
+                        : 'text-kalkvit/20'
                     )}
                   />
                 ))}
@@ -126,7 +152,7 @@ function SessionCard({ session }: { session: Session }) {
         </div>
         <div className="flex flex-col items-end gap-2">
           <GlassBadge variant={status.variant}>{status.label}</GlassBadge>
-          {session.status === 'upcoming' && (
+          {uiStatus === 'upcoming' && (
             <div className="flex gap-2 mt-2">
               <GlassButton variant="ghost" className="p-2">
                 <MessageCircle className="w-4 h-4" />
@@ -137,10 +163,12 @@ function SessionCard({ session }: { session: Session }) {
               </GlassButton>
             </div>
           )}
-          {session.status === 'completed' && !session.rating && (
-            <GlassButton variant="secondary" className="text-sm mt-2">
-              Leave Review
-            </GlassButton>
+          {uiStatus === 'completed' && !session.has_notes && (
+            <Link to={`/sessions/${session.id}`}>
+              <GlassButton variant="secondary" className="text-sm mt-2">
+                Leave Review
+              </GlassButton>
+            </Link>
           )}
         </div>
       </div>
@@ -151,15 +179,79 @@ function SessionCard({ session }: { session: Session }) {
 export function ExpertSessionsPage() {
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('all')
 
-  const filteredSessions = mockSessions.filter((session) => {
-    if (filter === 'all') return true
-    if (filter === 'upcoming') return session.status === 'upcoming'
-    if (filter === 'completed') return session.status === 'completed' || session.status === 'cancelled'
-    return true
-  })
+  // Fetch sessions based on filter
+  const { data: sessionsData, isLoading, error } = useCoachingSessions(
+    filter === 'all'
+      ? undefined
+      : filter === 'upcoming'
+        ? { status: 'scheduled' }
+        : { status: 'completed' }
+  )
 
-  const upcomingCount = mockSessions.filter((s) => s.status === 'upcoming').length
-  const completedCount = mockSessions.filter((s) => s.status === 'completed').length
+  const sessions = sessionsData?.data || []
+
+  // Map API status to UI filter status
+  const getUIStatus = (status: CoachingSession['status']): 'upcoming' | 'completed' | 'cancelled' => {
+    switch (status) {
+      case 'scheduled':
+      case 'in_progress':
+        return 'upcoming'
+      case 'completed':
+        return 'completed'
+      case 'cancelled':
+        return 'cancelled'
+      default:
+        return 'upcoming'
+    }
+  }
+
+  // Filter sessions based on selected filter
+  const filteredSessions = useMemo(() => {
+    if (filter === 'all') return sessions
+    if (filter === 'upcoming') return sessions.filter((s) => getUIStatus(s.status) === 'upcoming')
+    if (filter === 'completed')
+      return sessions.filter(
+        (s) => getUIStatus(s.status) === 'completed' || getUIStatus(s.status) === 'cancelled'
+      )
+    return sessions
+  }, [sessions, filter])
+
+  // Calculate stats from real data
+  const upcomingCount = useMemo(
+    () => sessions.filter((s) => getUIStatus(s.status) === 'upcoming').length,
+    [sessions]
+  )
+
+  const completedCount = useMemo(
+    () => sessions.filter((s) => getUIStatus(s.status) === 'completed').length,
+    [sessions]
+  )
+
+  // Calculate average rating from completed sessions with progress
+  const avgRating = useMemo(() => {
+    const completedWithProgress = sessions.filter(
+      (s) => getUIStatus(s.status) === 'completed' && s.progress > 0
+    )
+    if (completedWithProgress.length === 0) return null
+    const total = completedWithProgress.reduce((acc, s) => acc + s.progress / 20, 0)
+    return (total / completedWithProgress.length).toFixed(1)
+  }, [sessions])
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="max-w-4xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Failed to load sessions</h3>
+            <p className="text-kalkvit/50 text-sm">
+              Please try refreshing the page or check your connection.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -180,15 +272,21 @@ export function ExpertSessionsPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-kalkvit">{upcomingCount}</p>
+            <p className="text-3xl font-display font-bold text-kalkvit">
+              {isLoading ? '-' : upcomingCount}
+            </p>
             <p className="text-sm text-kalkvit/60">Upcoming</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-kalkvit">{completedCount}</p>
+            <p className="text-3xl font-display font-bold text-kalkvit">
+              {isLoading ? '-' : completedCount}
+            </p>
             <p className="text-sm text-kalkvit/60">Completed</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-koppar">4.9</p>
+            <p className="text-3xl font-display font-bold text-koppar">
+              {isLoading ? '-' : avgRating || '-'}
+            </p>
             <p className="text-sm text-kalkvit/60">Avg Rating Given</p>
           </GlassCard>
         </div>
@@ -212,10 +310,14 @@ export function ExpertSessionsPage() {
         </div>
 
         {/* Sessions List */}
-        {filteredSessions.length > 0 ? (
-          filteredSessions.map((session) => (
-            <SessionCard key={session.id} session={session} />
-          ))
+        {isLoading ? (
+          <>
+            <SessionCardSkeleton />
+            <SessionCardSkeleton />
+            <SessionCardSkeleton />
+          </>
+        ) : filteredSessions.length > 0 ? (
+          filteredSessions.map((session) => <SessionCard key={session.id} session={session} />)
         ) : (
           <GlassCard variant="base" className="text-center py-12">
             <p className="text-kalkvit/60">No sessions found.</p>
