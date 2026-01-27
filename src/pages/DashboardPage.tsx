@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassStatsCard, GlassAvatar, GlassBadge } from '../components/ui'
-import { useMemberProfile } from '../hooks/useProfile'
-import { useDashboardStats } from '../lib/api'
+import { useCurrentProfile, useDashboardStats } from '../lib/api/hooks'
 import { PILLARS } from '../lib/constants'
 import {
   Heart,
@@ -24,7 +23,7 @@ import {
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const { data: profile, isLoading: profileLoading, error: profileError } = useMemberProfile(user?.id)
+  const { data: profile, isLoading: profileLoading, error: profileError } = useCurrentProfile()
   const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats()
 
   // Debug logging

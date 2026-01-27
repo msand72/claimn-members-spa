@@ -11,7 +11,13 @@ import {
   GlassTextarea,
 } from '../components/ui'
 import { PILLARS, PILLAR_IDS, ACTION_ITEM_PRIORITIES } from '../lib/constants'
-import type { PillarId, ActionItemPriority, ActionItemStatus } from '../lib/constants'
+import type { PillarId, ActionItemPriority } from '../lib/constants'
+import {
+  useActionItems,
+  useCreateActionItem,
+  useToggleActionItem,
+} from '../lib/api/hooks'
+import type { ActionItem, CreateActionItemRequest } from '../lib/api/types'
 import {
   CheckSquare,
   Plus,
@@ -21,114 +27,41 @@ import {
   AlertTriangle,
   User,
   Calendar,
-  MessageSquare,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
-
-interface ActionItem {
-  id: string
-  title: string
-  description: string
-  source: 'session' | 'call' | 'self' | 'sprint'
-  pillar: PillarId | null
-  dueDate: string | null
-  priority: ActionItemPriority
-  status: ActionItemStatus
-  createdBy: 'member' | 'expert'
-}
-
-// Mock action items
-const mockActionItems: ActionItem[] = [
-  {
-    id: '1',
-    title: 'Complete sleep tracking setup',
-    description: 'Set up Oura ring sync and configure sleep tracking dashboard',
-    source: 'session',
-    pillar: 'physical',
-    dueDate: '2026-01-28',
-    priority: 'high',
-    status: 'pending',
-    createdBy: 'expert',
-  },
-  {
-    id: '2',
-    title: 'Schedule accountability call',
-    description: 'Book 30-minute call with accountability partner',
-    source: 'call',
-    pillar: 'connection',
-    dueDate: '2026-01-30',
-    priority: 'medium',
-    status: 'in_progress',
-    createdBy: 'member',
-  },
-  {
-    id: '3',
-    title: 'Review values clarification worksheet',
-    description: 'Complete the reflection questions from coaching session',
-    source: 'session',
-    pillar: 'identity',
-    dueDate: '2026-02-01',
-    priority: 'high',
-    status: 'pending',
-    createdBy: 'expert',
-  },
-  {
-    id: '4',
-    title: 'Try morning breathwork routine',
-    description: '10 minutes of box breathing for 7 consecutive days',
-    source: 'self',
-    pillar: 'emotional',
-    dueDate: '2026-02-05',
-    priority: 'medium',
-    status: 'pending',
-    createdBy: 'member',
-  },
-  {
-    id: '5',
-    title: 'Update LinkedIn profile',
-    description: 'Refresh headline and about section based on new goals',
-    source: 'self',
-    pillar: 'mission',
-    dueDate: null,
-    priority: 'low',
-    status: 'completed',
-    createdBy: 'member',
-  },
-]
 
 function ActionItemCard({
   item,
   onToggle,
+  isToggling,
 }: {
   item: ActionItem
-  onToggle: (id: string) => void
+  onToggle: (id: string, completed: boolean) => void
+  isToggling: boolean
 }) {
-  const pillar = item.pillar ? PILLARS[item.pillar] : null
+  const pillarId = item.description?.match(/pillar:(\w+)/)?.[1] as PillarId | undefined
+  const pillar = pillarId ? PILLARS[pillarId] : null
   const priorityInfo = ACTION_ITEM_PRIORITIES.find((p) => p.id === item.priority)
 
-  const sourceLabels = {
-    session: 'From Session',
-    call: 'From Call',
-    self: 'Self-Created',
-    sprint: 'Sprint Goal',
-  }
-
-  const isOverdue = item.dueDate && new Date(item.dueDate) < new Date() && item.status !== 'completed'
+  const isOverdue =
+    item.due_date && new Date(item.due_date) < new Date() && item.status !== 'completed'
+  const isCompleted = item.status === 'completed'
 
   return (
     <GlassCard
       variant="base"
-      className={cn(
-        'transition-all',
-        item.status === 'completed' && 'opacity-60'
-      )}
+      className={cn('transition-all', isCompleted && 'opacity-60')}
     >
       <div className="flex items-start gap-4">
         <button
-          onClick={() => onToggle(item.id)}
+          onClick={() => onToggle(item.id, !isCompleted)}
           className="mt-1 flex-shrink-0"
+          disabled={isToggling}
         >
-          {item.status === 'completed' ? (
+          {isToggling ? (
+            <Loader2 className="w-6 h-6 text-kalkvit/30 animate-spin" />
+          ) : isCompleted ? (
             <CheckCircle2 className="w-6 h-6 text-skogsgron" />
           ) : (
             <Circle className="w-6 h-6 text-kalkvit/30 hover:text-koppar transition-colors" />
@@ -143,15 +76,21 @@ function ActionItemCard({
               </GlassBadge>
             )}
             <GlassBadge
-              variant={item.priority === 'high' ? 'error' : item.priority === 'medium' ? 'warning' : 'default'}
+              variant={
+                item.priority === 'high'
+                  ? 'error'
+                  : item.priority === 'medium'
+                    ? 'warning'
+                    : 'default'
+              }
               className="text-xs"
             >
               {priorityInfo?.name}
             </GlassBadge>
-            {item.createdBy === 'expert' && (
+            {item.goal_id && (
               <GlassBadge variant="koppar" className="text-xs">
                 <User className="w-3 h-3" />
-                Expert
+                Goal Linked
               </GlassBadge>
             )}
           </div>
@@ -159,28 +98,27 @@ function ActionItemCard({
           <h3
             className={cn(
               'font-medium text-kalkvit mb-1',
-              item.status === 'completed' && 'line-through text-kalkvit/50'
+              isCompleted && 'line-through text-kalkvit/50'
             )}
           >
             {item.title}
           </h3>
-          <p className="text-sm text-kalkvit/60 mb-3">{item.description}</p>
+          {item.description && (
+            <p className="text-sm text-kalkvit/60 mb-3">{item.description}</p>
+          )}
 
           <div className="flex items-center gap-4 text-xs text-kalkvit/50">
             <span className="flex items-center gap-1">
-              <MessageSquare className="w-3 h-3" />
-              {sourceLabels[item.source]}
+              <Calendar className="w-3 h-3" />
+              Created {new Date(item.created_at).toLocaleDateString()}
             </span>
-            {item.dueDate && (
+            {item.due_date && (
               <span
-                className={cn(
-                  'flex items-center gap-1',
-                  isOverdue && 'text-tegelrod'
-                )}
+                className={cn('flex items-center gap-1', isOverdue && 'text-tegelrod')}
               >
                 {isOverdue && <AlertTriangle className="w-3 h-3" />}
-                <Calendar className="w-3 h-3" />
-                {new Date(item.dueDate).toLocaleDateString()}
+                <Clock className="w-3 h-3" />
+                Due {new Date(item.due_date).toLocaleDateString()}
               </span>
             )}
           </div>
@@ -191,25 +129,64 @@ function ActionItemCard({
 }
 
 export function ActionItemsPage() {
-  const [items, setItems] = useState(mockActionItems)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all')
-  const [newItem, setNewItem] = useState({
+  const [newItem, setNewItem] = useState<{
+    title: string
+    description: string
+    pillar: string
+    dueDate: string
+    priority: ActionItemPriority
+  }>({
     title: '',
     description: '',
     pillar: '',
     dueDate: '',
     priority: 'medium',
   })
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
-  const handleToggle = (id: string) => {
-    setItems(
-      items.map((item) =>
-        item.id === id
-          ? { ...item, status: item.status === 'completed' ? 'pending' : 'completed' }
-          : item
-      ) as ActionItem[]
-    )
+  // API hooks
+  const { data: actionItemsData, isLoading, error } = useActionItems()
+  const createMutation = useCreateActionItem()
+  const toggleMutation = useToggleActionItem()
+
+  const items = actionItemsData?.data || []
+
+  const handleToggle = async (id: string, completed: boolean) => {
+    setTogglingId(id)
+    try {
+      await toggleMutation.mutateAsync({ id, completed })
+    } finally {
+      setTogglingId(null)
+    }
+  }
+
+  const handleCreate = async () => {
+    if (!newItem.title.trim()) return
+
+    const request: CreateActionItemRequest = {
+      title: newItem.title,
+      description: newItem.pillar
+        ? `${newItem.description}\npillar:${newItem.pillar}`
+        : newItem.description,
+      priority: newItem.priority,
+      due_date: newItem.dueDate || undefined,
+    }
+
+    try {
+      await createMutation.mutateAsync(request)
+      setShowCreateModal(false)
+      setNewItem({
+        title: '',
+        description: '',
+        pillar: '',
+        dueDate: '',
+        priority: 'medium',
+      })
+    } catch {
+      // Error handled by mutation
+    }
   }
 
   const filteredItems =
@@ -219,13 +196,11 @@ export function ActionItemsPage() {
         ? items.filter((i) => i.status !== 'completed')
         : items.filter((i) => i.status === 'completed')
 
-  // Sort: overdue first, then by priority, then by due date
+  // Sort: completed items last, then by priority
   const sortedItems = [...filteredItems].sort((a, b) => {
-    // Completed items last
     if (a.status === 'completed' && b.status !== 'completed') return 1
     if (a.status !== 'completed' && b.status === 'completed') return -1
 
-    // Priority order
     const priorityOrder = { high: 0, medium: 1, low: 2 }
     return priorityOrder[a.priority] - priorityOrder[b.priority]
   })
@@ -233,7 +208,7 @@ export function ActionItemsPage() {
   const pendingCount = items.filter((i) => i.status !== 'completed').length
   const completedCount = items.filter((i) => i.status === 'completed').length
   const overdueCount = items.filter(
-    (i) => i.dueDate && new Date(i.dueDate) < new Date() && i.status !== 'completed'
+    (i) => i.due_date && new Date(i.due_date) < new Date() && i.status !== 'completed'
   ).length
 
   const pillarOptions = [
@@ -246,13 +221,33 @@ export function ActionItemsPage() {
     label: p.name,
   }))
 
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="max-w-4xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Failed to load action items</h3>
+            <p className="text-kalkvit/50 text-sm">
+              Please try refreshing the page or check your connection.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
+
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Action Items</h1>
-            <p className="text-kalkvit/60">Track your commitments and to-dos from sessions and self</p>
+            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">
+              Action Items
+            </h1>
+            <p className="text-kalkvit/60">
+              Track your commitments and to-dos from sessions and self
+            </p>
           </div>
           <GlassButton variant="primary" onClick={() => setShowCreateModal(true)}>
             <Plus className="w-4 h-4" />
@@ -264,17 +259,23 @@ export function ActionItemsPage() {
         <div className="grid grid-cols-3 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
             <Clock className="w-6 h-6 text-koppar mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{pendingCount}</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">
+              {isLoading ? '-' : pendingCount}
+            </p>
             <p className="text-xs text-kalkvit/50">Pending</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
             <CheckCircle2 className="w-6 h-6 text-skogsgron mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{completedCount}</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">
+              {isLoading ? '-' : completedCount}
+            </p>
             <p className="text-xs text-kalkvit/50">Completed</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
             <AlertTriangle className="w-6 h-6 text-tegelrod mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{overdueCount}</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">
+              {isLoading ? '-' : overdueCount}
+            </p>
             <p className="text-xs text-kalkvit/50">Overdue</p>
           </GlassCard>
         </div>
@@ -298,10 +299,19 @@ export function ActionItemsPage() {
         </div>
 
         {/* Action Items List */}
-        {sortedItems.length > 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          </div>
+        ) : sortedItems.length > 0 ? (
           <div className="space-y-3">
             {sortedItems.map((item) => (
-              <ActionItemCard key={item.id} item={item} onToggle={handleToggle} />
+              <ActionItemCard
+                key={item.id}
+                item={item}
+                onToggle={handleToggle}
+                isToggling={togglingId === item.id}
+              />
             ))}
           </div>
         ) : (
@@ -342,7 +352,12 @@ export function ActionItemsPage() {
                 label="Priority"
                 options={priorityOptions}
                 value={newItem.priority}
-                onChange={(e) => setNewItem({ ...newItem, priority: e.target.value })}
+                onChange={(e) =>
+                  setNewItem({
+                    ...newItem,
+                    priority: e.target.value as ActionItemPriority,
+                  })
+                }
               />
               <GlassSelect
                 label="Pillar"
@@ -362,8 +377,16 @@ export function ActionItemsPage() {
             <GlassButton variant="ghost" onClick={() => setShowCreateModal(false)}>
               Cancel
             </GlassButton>
-            <GlassButton variant="primary" onClick={() => setShowCreateModal(false)}>
-              Add Item
+            <GlassButton
+              variant="primary"
+              onClick={handleCreate}
+              disabled={!newItem.title.trim() || createMutation.isPending}
+            >
+              {createMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Add Item'
+              )}
             </GlassButton>
           </GlassModalFooter>
         </GlassModal>

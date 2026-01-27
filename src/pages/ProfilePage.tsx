@@ -10,10 +10,11 @@ import {
   GlassMultiSelect,
 } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { useMemberProfile, useUpdateMemberProfile } from '../hooks/useProfile'
+import { useCurrentProfile, useUpdateProfile, useUploadAvatar } from '../lib/api/hooks'
 import { useInterests, useMemberInterests, useUpdateMemberInterests } from '../hooks/useInterests'
 import { ARCHETYPES, PILLARS, PILLAR_IDS } from '../lib/constants'
 import type { Archetype, PillarId } from '../lib/constants'
+import type { UpdateProfileRequest } from '../lib/api/types'
 import { Camera, Save, Loader2 } from 'lucide-react'
 
 export function ProfilePage() {
@@ -21,14 +22,15 @@ export function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
 
   // Fetch profile data
-  const { data: profile, isLoading: profileLoading } = useMemberProfile(user?.id)
+  const { data: profile, isLoading: profileLoading } = useCurrentProfile()
   const { data: interests = [], isLoading: interestsLoading } = useInterests()
   const { data: memberInterestIds = [], isLoading: memberInterestsLoading } = useMemberInterests(
     user?.id
   )
 
   // Mutations
-  const updateProfile = useUpdateMemberProfile()
+  const updateProfile = useUpdateProfile()
+  const uploadAvatar = useUploadAvatar()
   const updateMemberInterests = useUpdateMemberInterests()
 
   // Local form state
@@ -80,21 +82,19 @@ export function ProfilePage() {
     if (!user?.id) return
 
     try {
-      // Update profile
-      await updateProfile.mutateAsync({
-        userId: user.id,
-        data: {
-          display_name: formData.display_name || null,
-          whatsapp_number: formData.whatsapp_number || null,
-          city: formData.city || null,
-          country: formData.country || null,
-          bio: formData.bio || null,
-          archetype: (formData.archetype as Archetype) || null,
-          pillar_focus: formData.pillar_focus.length > 0 ? formData.pillar_focus : null,
-        },
-      })
+      // Update profile via API
+      const profileData: UpdateProfileRequest = {
+        display_name: formData.display_name || undefined,
+        whatsapp_number: formData.whatsapp_number || undefined,
+        city: formData.city || undefined,
+        country: formData.country || undefined,
+        bio: formData.bio || undefined,
+        archetype: formData.archetype || undefined,
+        pillar_focus: formData.pillar_focus.length > 0 ? formData.pillar_focus : undefined,
+      }
+      await updateProfile.mutateAsync(profileData)
 
-      // Update interests
+      // Update interests (still uses Supabase direct for now)
       await updateMemberInterests.mutateAsync({
         userId: user.id,
         interestIds: selectedInterests,
@@ -107,7 +107,7 @@ export function ProfilePage() {
   }
 
   const isLoading = profileLoading || interestsLoading || memberInterestsLoading
-  const isSaving = updateProfile.isPending || updateMemberInterests.isPending
+  const isSaving = updateProfile.isPending || updateMemberInterests.isPending || uploadAvatar.isPending
 
   // Options for dropdowns
   const archetypeOptions = [

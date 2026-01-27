@@ -371,3 +371,247 @@ export interface UpdateProtocolProgressRequest {
   task_id: string
   completed: boolean
 }
+
+// =====================================================
+// Experts & Coaching
+// =====================================================
+
+export interface Expert {
+  id: string
+  name: string
+  title: string
+  bio: string
+  avatar_url: string | null
+  location: string | null
+  experience: string | null
+  specialties: string[]
+  certifications: string[]
+  rating: number
+  reviews_count: number
+  total_sessions: number
+  hourly_rate: number
+  availability: string | null
+  languages: string[]
+  is_top_rated: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface ExpertTestimonial {
+  id: string
+  expert_id: string
+  author_name: string
+  author_avatar_url: string | null
+  rating: number
+  text: string
+  created_at: string
+}
+
+export interface ExpertAvailabilitySlot {
+  date: string
+  times: string[]
+}
+
+export interface CoachingSession {
+  id: string
+  user_id: string
+  expert_id: string
+  title: string
+  scheduled_at: string
+  duration: number
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+  goals: string[]
+  progress: number
+  has_notes: boolean
+  has_recording: boolean
+  recording_url: string | null
+  created_at: string
+  updated_at: string
+  expert?: Expert
+}
+
+export interface SessionNote {
+  id: string
+  session_id: string
+  key_takeaways: string[]
+  action_items: SessionActionItem[]
+  personal_notes: string
+  created_at: string
+  updated_at: string
+}
+
+export interface SessionActionItem {
+  id: string
+  text: string
+  completed: boolean
+}
+
+export interface BookSessionRequest {
+  expert_id: string
+  scheduled_at: string
+  duration: number
+  session_type: string
+  goals?: string[]
+}
+
+export interface UpdateSessionNoteRequest {
+  key_takeaways?: string[]
+  action_items?: SessionActionItem[]
+  personal_notes?: string
+}
+
+// =====================================================
+// Resources
+// =====================================================
+
+export interface Resource {
+  id: string
+  title: string
+  description: string
+  type: 'guide' | 'video' | 'podcast' | 'template' | 'pdf' | 'audio' | 'article'
+  category: string
+  url: string | null
+  duration: string | null
+  size: string | null
+  is_new: boolean
+  is_featured: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CoachingResource extends Resource {
+  coaching_specific: boolean
+}
+
+// =====================================================
+// Programs
+// =====================================================
+
+export interface Program {
+  id: string
+  name: string
+  description: string
+  duration: string
+  modules: number
+  enrolled_count: number
+  category: string
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced'
+  is_locked: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface UserProgram {
+  id: string
+  user_id: string
+  program_id: string
+  progress: number
+  status: 'enrolled' | 'completed' | 'paused'
+  enrolled_at: string
+  completed_at: string | null
+  program?: Program
+}
+
+export interface Sprint {
+  id: string
+  program_id: string
+  title: string
+  description: string
+  start_date: string
+  end_date: string
+  duration: string
+  status: 'upcoming' | 'active' | 'completed'
+  participants: number
+  max_participants: number
+  goals: string[]
+  progress: number
+  facilitator: {
+    id: string
+    name: string
+    avatar_url: string | null
+  }
+  created_at: string
+}
+
+export interface PeerReview {
+  id: string
+  user_id: string
+  peer_id: string
+  program_id: string
+  assignment: string
+  type: 'given' | 'received' | 'pending'
+  due_date: string | null
+  completed_date: string | null
+  rating: number | null
+  feedback: string | null
+  strengths: string[]
+  improvements: string[]
+  peer?: {
+    id: string
+    name: string
+    avatar_url: string | null
+  }
+  program?: Program
+}
+
+export interface SubmitReviewRequest {
+  rating: number
+  feedback: string
+  strengths?: string[]
+  improvements?: string[]
+}
+
+export interface JoinSprintRequest {
+  sprint_id: string
+}
+
+export interface EnrollProgramRequest {
+  program_id: string
+}
+
+// =====================================================
+// Assessments
+// =====================================================
+
+export interface Assessment {
+  id: string
+  name: string
+  description: string
+  question_count: number
+  estimated_duration: string
+  is_completed: boolean
+  completed_at: string | null
+  created_at: string
+}
+
+export interface AssessmentQuestion {
+  id: string
+  assessment_id: string
+  question: string
+  section: string
+  options: AssessmentOption[]
+  order: number
+}
+
+export interface AssessmentOption {
+  value: number
+  label: string
+}
+
+export interface AssessmentResult {
+  id: string
+  user_id: string
+  assessment_id: string
+  pillar_scores: Record<PillarId, number>
+  archetypes: string[]
+  overall_score: number
+  insights: {
+    micro: Record<PillarId, string>
+    integration: string[]
+  }
+  completed_at: string
+}
+
+export interface SubmitAssessmentRequest {
+  answers: Record<string, number>
+}

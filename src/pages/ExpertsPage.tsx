@@ -2,126 +2,44 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
-import { Search, Star, Calendar, MessageCircle, Filter } from 'lucide-react'
+import { useExperts } from '../lib/api/hooks'
+import type { Expert } from '../lib/api/types'
+import { Search, Star, Calendar, MessageCircle, Filter, Loader2, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
-
-interface Expert {
-  id: number
-  name: string
-  initials: string
-  title: string
-  bio: string
-  specialties: string[]
-  rating: number
-  reviews: number
-  sessions: number
-  hourlyRate: number
-  availability: string
-  isTopRated?: boolean
-}
-
-const mockExperts: Expert[] = [
-  {
-    id: 1,
-    name: 'Michael Chen',
-    initials: 'MC',
-    title: 'Executive Leadership Coach',
-    bio: 'Former Fortune 500 executive with 20+ years of leadership experience. Specializes in helping entrepreneurs scale their businesses.',
-    specialties: ['Executive Coaching', 'Team Building', 'Strategic Planning', 'C-Suite Development'],
-    rating: 4.9,
-    reviews: 127,
-    sessions: 450,
-    hourlyRate: 199,
-    availability: 'Available this week',
-    isTopRated: true,
-  },
-  {
-    id: 2,
-    name: 'Sarah Thompson',
-    initials: 'ST',
-    title: 'Performance & Mindset Coach',
-    bio: 'Certified performance coach helping high-achievers unlock their full potential through mindset training and habit optimization.',
-    specialties: ['Mindset', 'Productivity', 'Goal Setting', 'Habit Formation'],
-    rating: 4.8,
-    reviews: 89,
-    sessions: 320,
-    hourlyRate: 149,
-    availability: 'Available today',
-  },
-  {
-    id: 3,
-    name: 'David Wilson',
-    initials: 'DW',
-    title: 'Business Growth Mentor',
-    bio: 'Serial entrepreneur and angel investor. Built and exited 3 companies. Passionate about helping founders navigate growth challenges.',
-    specialties: ['Entrepreneurship', 'Scaling', 'Fundraising', 'Product Strategy'],
-    rating: 5.0,
-    reviews: 64,
-    sessions: 180,
-    hourlyRate: 249,
-    availability: 'Limited availability',
-    isTopRated: true,
-  },
-  {
-    id: 4,
-    name: 'Emily Rodriguez',
-    initials: 'ER',
-    title: 'Health & Wellness Coach',
-    bio: 'Holistic wellness expert combining fitness, nutrition, and mental health strategies for optimal performance.',
-    specialties: ['Fitness', 'Nutrition', 'Stress Management', 'Work-Life Balance'],
-    rating: 4.7,
-    reviews: 156,
-    sessions: 520,
-    hourlyRate: 129,
-    availability: 'Available this week',
-  },
-  {
-    id: 5,
-    name: 'James Parker',
-    initials: 'JP',
-    title: 'Financial Strategy Coach',
-    bio: 'Former hedge fund manager helping individuals and businesses optimize their financial strategies and build wealth.',
-    specialties: ['Wealth Building', 'Investment Strategy', 'Financial Planning', 'Business Finance'],
-    rating: 4.9,
-    reviews: 78,
-    sessions: 210,
-    hourlyRate: 229,
-    availability: 'Available next week',
-    isTopRated: true,
-  },
-  {
-    id: 6,
-    name: 'Lisa Anderson',
-    initials: 'LA',
-    title: 'Communication & Presence Coach',
-    bio: 'Executive presence expert helping leaders communicate with impact. Former TEDx speaker coach.',
-    specialties: ['Public Speaking', 'Executive Presence', 'Communication', 'Personal Branding'],
-    rating: 4.8,
-    reviews: 92,
-    sessions: 280,
-    hourlyRate: 179,
-    availability: 'Available this week',
-  },
-]
 
 const specialtyFilters = ['All', 'Leadership', 'Mindset', 'Business', 'Wellness', 'Finance', 'Communication']
 
 function ExpertCard({ expert }: { expert: Expert }) {
+  const initials = expert.name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
   return (
     <GlassCard variant="base" className="group">
       <div className="flex items-start gap-4 mb-4">
-        <GlassAvatar initials={expert.initials} size="xl" />
+        {expert.avatar_url ? (
+          <img
+            src={expert.avatar_url}
+            alt={expert.name}
+            className="w-16 h-16 rounded-xl object-cover"
+          />
+        ) : (
+          <GlassAvatar initials={initials} size="xl" />
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-kalkvit">{expert.name}</h3>
-                {expert.isTopRated && <GlassBadge variant="koppar">Top Rated</GlassBadge>}
+                {expert.is_top_rated && <GlassBadge variant="koppar">Top Rated</GlassBadge>}
               </div>
               <p className="text-sm text-koppar">{expert.title}</p>
             </div>
             <div className="text-right">
-              <p className="font-display text-xl font-bold text-kalkvit">${expert.hourlyRate}</p>
+              <p className="font-display text-xl font-bold text-kalkvit">${expert.hourly_rate}</p>
               <p className="text-xs text-kalkvit/50">/hour</p>
             </div>
           </div>
@@ -132,28 +50,34 @@ function ExpertCard({ expert }: { expert: Expert }) {
 
       <div className="flex flex-wrap gap-1 mb-4">
         {expert.specialties.slice(0, 3).map((s) => (
-          <GlassBadge key={s} variant="default" className="text-xs">{s}</GlassBadge>
+          <GlassBadge key={s} variant="default" className="text-xs">
+            {s}
+          </GlassBadge>
         ))}
         {expert.specialties.length > 3 && (
-          <GlassBadge variant="default" className="text-xs">+{expert.specialties.length - 3}</GlassBadge>
+          <GlassBadge variant="default" className="text-xs">
+            +{expert.specialties.length - 3}
+          </GlassBadge>
         )}
       </div>
 
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
           <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
-          {expert.rating} ({expert.reviews})
+          {expert.rating} ({expert.reviews_count})
         </span>
-        <span>{expert.sessions} sessions</span>
+        <span>{expert.total_sessions} sessions</span>
       </div>
 
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
-        <span className="text-xs text-skogsgron">{expert.availability}</span>
+        <span className="text-xs text-skogsgron">
+          {expert.availability || 'Contact for availability'}
+        </span>
         <div className="flex gap-2">
           <GlassButton variant="ghost" className="p-2">
             <MessageCircle className="w-4 h-4" />
           </GlassButton>
-          <Link to="/book-session">
+          <Link to={`/book-session?expert=${expert.id}`}>
             <GlassButton variant="primary">
               <Calendar className="w-4 h-4" />
               Book Session
@@ -169,18 +93,33 @@ export function ExpertsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
 
-  const filteredExperts = mockExperts.filter((expert) => {
-    const matchesSearch = expert.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      expert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      expert.specialties.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
-
-    if (activeFilter === 'All') return matchesSearch
-    return matchesSearch && expert.specialties.some(s =>
-      s.toLowerCase().includes(activeFilter.toLowerCase())
-    )
+  const {
+    data: expertsData,
+    isLoading,
+    error,
+  } = useExperts({
+    search: searchQuery || undefined,
+    specialty: activeFilter !== 'All' ? activeFilter : undefined,
   })
 
-  const topRatedExperts = mockExperts.filter(e => e.isTopRated)
+  const experts = expertsData?.data || []
+  const topRatedExperts = experts.filter((e) => e.is_top_rated)
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Failed to load experts</h3>
+            <p className="text-kalkvit/50 text-sm">
+              Please try refreshing the page or check your connection.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -192,7 +131,9 @@ export function ExpertsPage() {
           </div>
           <GlassCard variant="accent" leftBorder={false} className="px-6 py-3">
             <p className="text-sm text-kalkvit/60">Available Experts</p>
-            <p className="font-display text-2xl font-bold text-kalkvit">{mockExperts.length}</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">
+              {isLoading ? '-' : experts.length}
+            </p>
           </GlassCard>
         </div>
 
@@ -230,36 +171,44 @@ export function ExpertsPage() {
           ))}
         </div>
 
-        {/* Top Rated Section */}
-        {activeFilter === 'All' && searchQuery === '' && (
-          <div className="mb-8">
-            <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">Top Rated</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {topRatedExperts.map((expert) => (
-                <ExpertCard key={expert.id} expert={expert} />
-              ))}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          </div>
+        ) : (
+          <>
+            {/* Top Rated Section */}
+            {activeFilter === 'All' && searchQuery === '' && topRatedExperts.length > 0 && (
+              <div className="mb-8">
+                <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">Top Rated</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {topRatedExperts.map((expert) => (
+                    <ExpertCard key={expert.id} expert={expert} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* All Experts */}
+            <div>
+              <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
+                {activeFilter === 'All' && searchQuery === '' ? 'All Experts' : 'Results'}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {experts
+                  .filter((e) => activeFilter !== 'All' || searchQuery !== '' || !e.is_top_rated)
+                  .map((expert) => (
+                    <ExpertCard key={expert.id} expert={expert} />
+                  ))}
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* All Experts */}
-        <div>
-          <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
-            {activeFilter === 'All' && searchQuery === '' ? 'All Experts' : 'Results'}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredExperts
-              .filter(e => activeFilter !== 'All' || searchQuery !== '' || !e.isTopRated)
-              .map((expert) => (
-                <ExpertCard key={expert.id} expert={expert} />
-              ))}
-          </div>
-        </div>
-
-        {filteredExperts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-kalkvit/60">No experts found matching your criteria.</p>
-          </div>
+            {experts.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-kalkvit/60">No experts found matching your criteria.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </MainLayout>

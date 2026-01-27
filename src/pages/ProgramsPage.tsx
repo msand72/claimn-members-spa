@@ -1,94 +1,22 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
-import { Search, Clock, Users, CheckCircle, Play, Lock, Trophy, ArrowRight } from 'lucide-react'
+import { usePrograms, useEnrolledPrograms, useEnrollProgram } from '../lib/api/hooks'
+import type { Program, UserProgram } from '../lib/api/types'
+import {
+  Search,
+  Clock,
+  Users,
+  CheckCircle,
+  Play,
+  Lock,
+  Trophy,
+  ArrowRight,
+  Loader2,
+  AlertTriangle,
+} from 'lucide-react'
 import { cn } from '../lib/utils'
-
-interface Program {
-  id: number
-  name: string
-  description: string
-  duration: string
-  modules: number
-  enrolled: number
-  progress?: number
-  category: string
-  isEnrolled: boolean
-  isLocked?: boolean
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced'
-}
-
-const mockPrograms: Program[] = [
-  {
-    id: 1,
-    name: '30-Day Transformation Protocol',
-    description: 'A comprehensive program covering fitness, nutrition, and mindset to kickstart your transformation journey.',
-    duration: '30 days',
-    modules: 12,
-    enrolled: 1247,
-    progress: 65,
-    category: 'Foundation',
-    isEnrolled: true,
-    difficulty: 'Beginner',
-  },
-  {
-    id: 2,
-    name: 'Leadership Mastery',
-    description: 'Develop essential leadership skills through practical exercises and real-world applications.',
-    duration: '8 weeks',
-    modules: 16,
-    enrolled: 543,
-    progress: 30,
-    category: 'Leadership',
-    isEnrolled: true,
-    difficulty: 'Intermediate',
-  },
-  {
-    id: 3,
-    name: 'Mindset & Mental Resilience',
-    description: 'Build unshakeable mental fortitude through stoic philosophy and modern psychology techniques.',
-    duration: '6 weeks',
-    modules: 10,
-    enrolled: 892,
-    category: 'Mindset',
-    isEnrolled: false,
-    difficulty: 'Beginner',
-  },
-  {
-    id: 4,
-    name: 'Business Growth Accelerator',
-    description: 'Scale your business with proven strategies from successful entrepreneurs and mentors.',
-    duration: '12 weeks',
-    modules: 24,
-    enrolled: 324,
-    category: 'Business',
-    isEnrolled: false,
-    difficulty: 'Advanced',
-  },
-  {
-    id: 5,
-    name: 'Peak Performance Protocol',
-    description: 'Optimize every aspect of your life - sleep, nutrition, exercise, and productivity.',
-    duration: '8 weeks',
-    modules: 14,
-    enrolled: 678,
-    category: 'Performance',
-    isEnrolled: false,
-    isLocked: true,
-    difficulty: 'Intermediate',
-  },
-  {
-    id: 6,
-    name: 'Financial Freedom Blueprint',
-    description: 'Master personal finance, investing, and wealth-building strategies.',
-    duration: '10 weeks',
-    modules: 18,
-    enrolled: 456,
-    category: 'Finance',
-    isEnrolled: false,
-    difficulty: 'Intermediate',
-  },
-]
 
 const categories = ['All', 'My Programs', 'Foundation', 'Leadership', 'Mindset', 'Business', 'Finance']
 
@@ -98,27 +26,38 @@ const difficultyColors = {
   Advanced: 'error',
 } as const
 
-function ProgramCard({ program }: { program: Program }) {
+function ProgramCard({
+  program,
+  userProgram,
+  onEnroll,
+  isEnrolling,
+}: {
+  program: Program
+  userProgram?: UserProgram
+  onEnroll: (programId: string) => void
+  isEnrolling: boolean
+}) {
+  const isEnrolled = !!userProgram
+  const progress = userProgram?.progress || 0
+
   return (
     <GlassCard
-      variant={program.isEnrolled ? 'accent' : 'base'}
+      variant={isEnrolled ? 'accent' : 'base'}
       leftBorder={false}
       className={cn(
         'group transition-all',
-        program.isLocked ? 'opacity-75' : 'hover:border-koppar/30'
+        program.is_locked ? 'opacity-75' : 'hover:border-koppar/30'
       )}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex gap-2">
           <GlassBadge variant="koppar">{program.category}</GlassBadge>
-          <GlassBadge variant={difficultyColors[program.difficulty]}>{program.difficulty}</GlassBadge>
+          <GlassBadge variant={difficultyColors[program.difficulty]}>
+            {program.difficulty}
+          </GlassBadge>
         </div>
-        {program.isLocked && (
-          <Lock className="w-5 h-5 text-kalkvit/40" />
-        )}
-        {program.isEnrolled && !program.isLocked && (
-          <GlassBadge variant="success">Enrolled</GlassBadge>
-        )}
+        {program.is_locked && <Lock className="w-5 h-5 text-kalkvit/40" />}
+        {isEnrolled && !program.is_locked && <GlassBadge variant="success">Enrolled</GlassBadge>}
       </div>
 
       <h3 className="font-display text-lg font-semibold text-kalkvit mb-2 group-hover:text-koppar transition-colors">
@@ -137,47 +76,54 @@ function ProgramCard({ program }: { program: Program }) {
         </span>
         <span className="flex items-center gap-1">
           <Users className="w-4 h-4" />
-          {program.enrolled.toLocaleString()}
+          {program.enrolled_count.toLocaleString()}
         </span>
       </div>
 
-      {program.isEnrolled && program.progress !== undefined && (
+      {isEnrolled && progress > 0 && (
         <div className="mb-4">
           <div className="flex items-center justify-between text-sm mb-2">
             <span className="text-kalkvit/60">Progress</span>
-            <span className="text-koppar font-semibold">{program.progress}%</span>
+            <span className="text-koppar font-semibold">{progress}%</span>
           </div>
           <div className="h-2 bg-white/[0.1] rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-koppar to-brand-amber rounded-full transition-all"
-              style={{ width: `${program.progress}%` }}
+              style={{ width: `${progress}%` }}
             />
           </div>
         </div>
       )}
 
-      <GlassButton
-        variant={program.isEnrolled ? 'primary' : program.isLocked ? 'ghost' : 'secondary'}
-        className="w-full"
-        disabled={program.isLocked}
-      >
-        {program.isLocked ? (
-          <>
-            <Lock className="w-4 h-4" />
-            Unlock with Premium
-          </>
-        ) : program.isEnrolled ? (
-          <>
+      {program.is_locked ? (
+        <GlassButton variant="ghost" className="w-full" disabled>
+          <Lock className="w-4 h-4" />
+          Unlock with Premium
+        </GlassButton>
+      ) : isEnrolled ? (
+        <Link to={`/programs/${program.id}`}>
+          <GlassButton variant="primary" className="w-full">
             <Play className="w-4 h-4" />
             Continue Learning
-          </>
-        ) : (
-          <>
-            Start Program
-            <ArrowRight className="w-4 h-4" />
-          </>
-        )}
-      </GlassButton>
+          </GlassButton>
+        </Link>
+      ) : (
+        <GlassButton
+          variant="secondary"
+          className="w-full"
+          onClick={() => onEnroll(program.id)}
+          disabled={isEnrolling}
+        >
+          {isEnrolling ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <>
+              Start Program
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </GlassButton>
+      )}
     </GlassCard>
   )
 }
@@ -185,20 +131,70 @@ function ProgramCard({ program }: { program: Program }) {
 export function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+  const [enrollingProgramId, setEnrollingProgramId] = useState<string | null>(null)
 
-  const filteredPrograms = mockPrograms.filter((program) => {
-    const matchesSearch = program.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      program.description.toLowerCase().includes(searchQuery.toLowerCase())
-
-    if (activeCategory === 'All') return matchesSearch
-    if (activeCategory === 'My Programs') return matchesSearch && program.isEnrolled
-    return matchesSearch && program.category === activeCategory
+  const {
+    data: programsData,
+    isLoading: isLoadingPrograms,
+    error: programsError,
+  } = usePrograms({
+    category:
+      activeCategory !== 'All' && activeCategory !== 'My Programs' ? activeCategory : undefined,
+    search: searchQuery || undefined,
   })
 
-  const myPrograms = mockPrograms.filter(p => p.isEnrolled)
-  const totalProgress = myPrograms.length > 0
-    ? Math.round(myPrograms.reduce((acc, p) => acc + (p.progress || 0), 0) / myPrograms.length)
-    : 0
+  const { data: enrolledData, isLoading: isLoadingEnrolled } = useEnrolledPrograms()
+  const enrollMutation = useEnrollProgram()
+
+  const programs = programsData?.data || []
+  const enrolledPrograms = enrolledData?.data || []
+
+  const enrolledProgramIds = new Set(enrolledPrograms.map((ep) => ep.program_id))
+
+  const handleEnroll = async (programId: string) => {
+    setEnrollingProgramId(programId)
+    try {
+      await enrollMutation.mutateAsync({ program_id: programId })
+    } finally {
+      setEnrollingProgramId(null)
+    }
+  }
+
+  const filteredPrograms =
+    activeCategory === 'My Programs'
+      ? programs.filter((p) => enrolledProgramIds.has(p.id))
+      : programs.filter(
+          (p) =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.description.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+
+  const myPrograms = programs.filter((p) => enrolledProgramIds.has(p.id))
+  const totalProgress =
+    enrolledPrograms.length > 0
+      ? Math.round(
+          enrolledPrograms.reduce((acc, p) => acc + (p.progress || 0), 0) / enrolledPrograms.length
+        )
+      : 0
+
+  const isLoading = isLoadingPrograms || isLoadingEnrolled
+  const error = programsError
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Failed to load programs</h3>
+            <p className="text-kalkvit/50 text-sm">
+              Please try refreshing the page or check your connection.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -211,11 +207,15 @@ export function ProgramsPage() {
           <div className="flex gap-4">
             <GlassCard variant="base" leftBorder={false} className="px-6 py-3 text-center">
               <p className="text-sm text-kalkvit/60">Enrolled</p>
-              <p className="font-display text-2xl font-bold text-kalkvit">{myPrograms.length}</p>
+              <p className="font-display text-2xl font-bold text-kalkvit">
+                {isLoading ? '-' : myPrograms.length}
+              </p>
             </GlassCard>
             <GlassCard variant="accent" leftBorder={false} className="px-6 py-3 text-center">
               <p className="text-sm text-kalkvit/60">Avg Progress</p>
-              <p className="font-display text-2xl font-bold text-kalkvit">{totalProgress}%</p>
+              <p className="font-display text-2xl font-bold text-kalkvit">
+                {isLoading ? '-' : `${totalProgress}%`}
+              </p>
             </GlassCard>
           </div>
         </div>
@@ -250,39 +250,65 @@ export function ProgramsPage() {
           ))}
         </div>
 
-        {/* Continue Learning Section */}
-        {activeCategory === 'All' && myPrograms.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Trophy className="w-5 h-5 text-koppar" />
-              <h2 className="font-serif text-xl font-semibold text-kalkvit">Continue Learning</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {myPrograms.map((program) => (
-                <ProgramCard key={program.id} program={program} />
-              ))}
-            </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
           </div>
-        )}
+        ) : (
+          <>
+            {/* Continue Learning Section */}
+            {activeCategory === 'All' && myPrograms.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="w-5 h-5 text-koppar" />
+                  <h2 className="font-serif text-xl font-semibold text-kalkvit">
+                    Continue Learning
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {myPrograms.map((program) => (
+                    <ProgramCard
+                      key={program.id}
+                      program={program}
+                      userProgram={enrolledPrograms.find((ep) => ep.program_id === program.id)}
+                      onEnroll={handleEnroll}
+                      isEnrolling={enrollingProgramId === program.id}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* All Programs */}
-        <div>
-          <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
-            {activeCategory === 'My Programs' ? 'My Programs' : activeCategory === 'All' ? 'Explore Programs' : activeCategory}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPrograms
-              .filter(p => activeCategory !== 'All' || !p.isEnrolled)
-              .map((program) => (
-                <ProgramCard key={program.id} program={program} />
-              ))}
-          </div>
-        </div>
+            {/* All Programs */}
+            <div>
+              <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
+                {activeCategory === 'My Programs'
+                  ? 'My Programs'
+                  : activeCategory === 'All'
+                    ? 'Explore Programs'
+                    : activeCategory}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPrograms
+                  .filter((p) => activeCategory !== 'All' || !enrolledProgramIds.has(p.id))
+                  .map((program) => (
+                    <ProgramCard
+                      key={program.id}
+                      program={program}
+                      userProgram={enrolledPrograms.find((ep) => ep.program_id === program.id)}
+                      onEnroll={handleEnroll}
+                      isEnrolling={enrollingProgramId === program.id}
+                    />
+                  ))}
+              </div>
+            </div>
 
-        {filteredPrograms.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-kalkvit/60">No programs found matching your criteria.</p>
-          </div>
+            {filteredPrograms.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-kalkvit/60">No programs found matching your criteria.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </MainLayout>

@@ -4,8 +4,16 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassTextarea, GlassAvatar, GlassBadge } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import {
+  useCircle,
+  useCircleMembers,
+  useCirclePosts,
+  useCreateCirclePost,
+  useJoinCircle,
+  useLeaveCircle,
+} from '../lib/api/hooks'
+import type { CirclePost, CircleMember } from '../lib/api/types'
+import {
   Users,
-  Calendar,
   MessageCircle,
   Settings,
   ArrowLeft,
@@ -14,110 +22,62 @@ import {
   Bell,
   BellOff,
   UserPlus,
+  UserMinus,
   Clock,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react'
 
-interface CircleMember {
-  id: number
-  name: string
-  initials: string
-  role: string
-  isAdmin: boolean
+// Helper to format time ago
+function formatTimeAgo(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString()
 }
-
-interface CirclePost {
-  id: number
-  author: {
-    name: string
-    initials: string
-  }
-  content: string
-  timestamp: string
-  likes: number
-  comments: number
-  isLiked: boolean
-}
-
-interface CircleEvent {
-  id: number
-  title: string
-  date: string
-  time: string
-  attendees: number
-}
-
-// Mock data for a single circle
-const mockCircle = {
-  id: 1,
-  name: 'Morning Warriors',
-  description: 'Early risers committed to winning the morning. We believe that how you start your day determines how you live your life. Join us for daily accountability, weekly challenges, and monthly workshops on optimizing your morning routine.',
-  members: 48,
-  category: 'Habits',
-  isPrivate: false,
-  isMember: true,
-  nextMeeting: 'Tomorrow, 5:00 AM',
-  createdAt: 'January 2024',
-  rules: [
-    'Wake up by 5:30 AM every day',
-    'Post your morning routine completion',
-    'Support and encourage fellow members',
-    'No negativity or excuses',
-  ],
-}
-
-const mockMembers: CircleMember[] = [
-  { id: 1, name: 'Michael Chen', initials: 'MC', role: 'Founder', isAdmin: true },
-  { id: 2, name: 'Sarah Williams', initials: 'SW', role: 'Moderator', isAdmin: true },
-  { id: 3, name: 'John Davidson', initials: 'JD', role: 'Member', isAdmin: false },
-  { id: 4, name: 'Emily Davis', initials: 'ED', role: 'Member', isAdmin: false },
-  { id: 5, name: 'David Miller', initials: 'DM', role: 'Member', isAdmin: false },
-]
-
-const mockPosts: CirclePost[] = [
-  {
-    id: 1,
-    author: { name: 'John Davidson', initials: 'JD' },
-    content: '5:00 AM wake-up complete! Started with 10 minutes of meditation, then hit the gym. Energy levels are through the roof today.',
-    timestamp: '2 hours ago',
-    likes: 12,
-    comments: 4,
-    isLiked: false,
-  },
-  {
-    id: 2,
-    author: { name: 'Sarah Williams', initials: 'SW' },
-    content: 'Week 4 challenge: Add cold shower to your morning routine. Who\'s in? Drop a 🧊 in the comments if you\'re committing!',
-    timestamp: '5 hours ago',
-    likes: 24,
-    comments: 18,
-    isLiked: true,
-  },
-]
-
-const mockEvents: CircleEvent[] = [
-  { id: 1, title: 'Weekly Accountability Call', date: 'Tomorrow', time: '5:00 AM', attendees: 32 },
-  { id: 2, title: 'Morning Routine Workshop', date: 'Saturday', time: '9:00 AM', attendees: 45 },
-]
 
 function PostCard({ post }: { post: CirclePost }) {
-  const [isLiked, setIsLiked] = useState(post.isLiked)
-  const [likes, setLikes] = useState(post.likes)
+  const [isLiked, setIsLiked] = useState(post.is_liked)
+  const [likes, setLikes] = useState(post.likes_count)
 
   const handleLike = () => {
     setIsLiked(!isLiked)
     setLikes(isLiked ? likes - 1 : likes + 1)
   }
 
+  const authorName = post.author?.display_name || 'Anonymous'
+  const initials = authorName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
   return (
     <GlassCard variant="base" className="mb-4">
       <div className="flex gap-4">
-        <GlassAvatar initials={post.author.initials} size="md" />
+        <GlassAvatar initials={initials} size="md" />
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-kalkvit">{post.author.name}</span>
-            <span className="text-xs text-kalkvit/40">{post.timestamp}</span>
+            <span className="font-semibold text-kalkvit">{authorName}</span>
+            <span className="text-xs text-kalkvit/40">{formatTimeAgo(post.created_at)}</span>
           </div>
           <p className="text-kalkvit/80 mb-4">{post.content}</p>
+          {post.image_url && (
+            <img
+              src={post.image_url}
+              alt="Post attachment"
+              className="rounded-lg mb-4 max-h-64 object-cover"
+            />
+          )}
           <div className="flex items-center gap-4">
             <button
               onClick={handleLike}
@@ -128,7 +88,7 @@ function PostCard({ post }: { post: CirclePost }) {
             </button>
             <button className="flex items-center gap-1 text-sm text-kalkvit/50 hover:text-kalkvit">
               <MessageCircle className="w-4 h-4" />
-              {post.comments}
+              {post.comments_count}
             </button>
           </div>
         </div>
@@ -137,28 +97,118 @@ function PostCard({ post }: { post: CirclePost }) {
   )
 }
 
+function MemberCard({ member }: { member: CircleMember }) {
+  const initials = member.display_name
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
+  return (
+    <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03]">
+      <div className="flex items-center gap-3">
+        <GlassAvatar initials={initials} size="md" />
+        <div>
+          <p className="font-medium text-kalkvit">{member.display_name}</p>
+          <p className="text-xs text-kalkvit/50 capitalize">{member.role}</p>
+        </div>
+      </div>
+      {member.role === 'admin' && <GlassBadge variant="koppar">Admin</GlassBadge>}
+      {member.role === 'moderator' && <GlassBadge variant="default">Moderator</GlassBadge>}
+    </div>
+  )
+}
+
 export function CircleDetailPage() {
-  const { id: _circleId } = useParams() // Circle ID for future API calls
+  const { id: circleId } = useParams<{ id: string }>()
   const { user } = useAuth()
   const [postContent, setPostContent] = useState('')
   const [notifications, setNotifications] = useState(true)
-  const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'events'>('feed')
+  const [activeTab, setActiveTab] = useState<'feed' | 'members'>('feed')
+
+  // API hooks
+  const { data: circle, isLoading: circleLoading, error: circleError } = useCircle(circleId || '')
+  const { data: membersData, isLoading: membersLoading } = useCircleMembers(circleId || '')
+  const { data: postsData, isLoading: postsLoading } = useCirclePosts(circleId || '')
+  const createPost = useCreateCirclePost()
+  const joinCircle = useJoinCircle()
+  const leaveCircle = useLeaveCircle()
+
+  const members = membersData?.data || []
+  const posts = postsData?.data || []
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member'
-  const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 
   const handlePost = () => {
-    if (postContent.trim()) {
-      console.log('Creating post:', postContent)
-      setPostContent('')
+    if (postContent.trim() && circleId) {
+      createPost.mutate(
+        { circleId, content: postContent },
+        {
+          onSuccess: () => setPostContent(''),
+        }
+      )
     }
+  }
+
+  const handleJoinLeave = () => {
+    if (!circleId) return
+    if (circle?.is_member) {
+      leaveCircle.mutate(circleId)
+    } else {
+      joinCircle.mutate(circleId)
+    }
+  }
+
+  // Loading state
+  if (circleLoading) {
+    return (
+      <MainLayout>
+        <div className="max-w-4xl mx-auto flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // Error state
+  if (circleError || !circle) {
+    return (
+      <MainLayout>
+        <div className="max-w-4xl mx-auto">
+          <Link
+            to="/circles"
+            className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Circles
+          </Link>
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertCircle className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Circle not found</h3>
+            <p className="text-kalkvit/50 text-sm">
+              The circle you're looking for doesn't exist or you don't have access.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
   }
 
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
-        <Link to="/circles" className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors">
+        <Link
+          to="/circles"
+          className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
+        >
           <ArrowLeft className="w-4 h-4" />
           Back to Circles
         </Link>
@@ -168,23 +218,21 @@ export function CircleDetailPage() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="font-display text-2xl font-bold text-kalkvit">{mockCircle.name}</h1>
-                <GlassBadge variant="koppar">{mockCircle.category}</GlassBadge>
-                {mockCircle.isMember && <GlassBadge variant="success">Member</GlassBadge>}
+                <h1 className="font-display text-2xl font-bold text-kalkvit">{circle.name}</h1>
+                {circle.is_member && <GlassBadge variant="success">Member</GlassBadge>}
+                {circle.is_admin && <GlassBadge variant="koppar">Admin</GlassBadge>}
               </div>
-              <p className="text-kalkvit/60 mb-4">{mockCircle.description}</p>
+              {circle.description && (
+                <p className="text-kalkvit/60 mb-4">{circle.description}</p>
+              )}
               <div className="flex items-center gap-4 text-sm text-kalkvit/50">
                 <span className="flex items-center gap-1">
                   <Users className="w-4 h-4" />
-                  {mockCircle.members} members
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  Next: {mockCircle.nextMeeting}
+                  {circle.member_count} members
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  Since {mockCircle.createdAt}
+                  Since {new Date(circle.created_at).toLocaleDateString()}
                 </span>
               </div>
             </div>
@@ -196,21 +244,36 @@ export function CircleDetailPage() {
               >
                 {notifications ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
               </GlassButton>
-              <GlassButton variant="ghost" className="p-2">
-                <Settings className="w-5 h-5" />
-              </GlassButton>
-              {!mockCircle.isMember && (
-                <GlassButton variant="primary">
-                  <UserPlus className="w-4 h-4" />
-                  Join Circle
+              {circle.is_admin && (
+                <GlassButton variant="ghost" className="p-2">
+                  <Settings className="w-5 h-5" />
                 </GlassButton>
               )}
+              <GlassButton
+                variant={circle.is_member ? 'secondary' : 'primary'}
+                onClick={handleJoinLeave}
+                disabled={joinCircle.isPending || leaveCircle.isPending}
+              >
+                {joinCircle.isPending || leaveCircle.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : circle.is_member ? (
+                  <>
+                    <UserMinus className="w-4 h-4" />
+                    Leave
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4" />
+                    Join
+                  </>
+                )}
+              </GlassButton>
             </div>
           </div>
 
           {/* Tabs */}
           <div className="flex gap-4 border-t border-white/10 pt-4 -mb-6 -mx-6 px-6">
-            {(['feed', 'members', 'events'] as const).map((tab) => (
+            {(['feed', 'members'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -230,7 +293,7 @@ export function CircleDetailPage() {
         {activeTab === 'feed' && (
           <div>
             {/* Create Post */}
-            {mockCircle.isMember && (
+            {circle.is_member && (
               <GlassCard variant="base" className="mb-6">
                 <div className="flex gap-4">
                   <GlassAvatar initials={initials} size="md" />
@@ -242,9 +305,17 @@ export function CircleDetailPage() {
                       className="mb-3"
                     />
                     <div className="flex justify-end">
-                      <GlassButton variant="primary" onClick={handlePost} disabled={!postContent.trim()}>
-                        <Send className="w-4 h-4" />
-                        Post
+                      <GlassButton
+                        variant="primary"
+                        onClick={handlePost}
+                        disabled={!postContent.trim() || createPost.isPending}
+                      >
+                        {createPost.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        {createPost.isPending ? 'Posting...' : 'Post'}
                       </GlassButton>
                     </div>
                   </div>
@@ -252,74 +323,66 @@ export function CircleDetailPage() {
               </GlassCard>
             )}
 
+            {/* Loading posts */}
+            {postsLoading && (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+              </div>
+            )}
+
             {/* Posts */}
-            {mockPosts.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))}
+            {!postsLoading && posts.length > 0 && (
+              <div>
+                {posts.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            )}
+
+            {/* Empty posts */}
+            {!postsLoading && posts.length === 0 && (
+              <GlassCard variant="base" className="text-center py-8">
+                <MessageCircle className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
+                <p className="text-kalkvit/50 text-sm">No posts yet</p>
+                {circle.is_member && (
+                  <p className="text-kalkvit/30 text-xs mt-1">Be the first to share something!</p>
+                )}
+              </GlassCard>
+            )}
           </div>
         )}
 
         {activeTab === 'members' && (
           <GlassCard variant="base">
-            <h3 className="font-semibold text-kalkvit mb-4">Members ({mockMembers.length})</h3>
-            <div className="space-y-3">
-              {mockMembers.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03]">
-                  <div className="flex items-center gap-3">
-                    <GlassAvatar initials={member.initials} size="md" />
-                    <div>
-                      <p className="font-medium text-kalkvit">{member.name}</p>
-                      <p className="text-xs text-kalkvit/50">{member.role}</p>
-                    </div>
-                  </div>
-                  {member.isAdmin && <GlassBadge variant="koppar">Admin</GlassBadge>}
-                </div>
-              ))}
-            </div>
+            <h3 className="font-semibold text-kalkvit mb-4">
+              Members ({circle.member_count})
+            </h3>
+
+            {/* Loading members */}
+            {membersLoading && (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+              </div>
+            )}
+
+            {/* Members list */}
+            {!membersLoading && members.length > 0 && (
+              <div className="space-y-3">
+                {members.map((member) => (
+                  <MemberCard key={member.user_id} member={member} />
+                ))}
+              </div>
+            )}
+
+            {/* Empty members */}
+            {!membersLoading && members.length === 0 && (
+              <div className="text-center py-8">
+                <Users className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
+                <p className="text-kalkvit/50 text-sm">No members yet</p>
+              </div>
+            )}
           </GlassCard>
         )}
-
-        {activeTab === 'events' && (
-          <div className="space-y-4">
-            {mockEvents.map((event) => (
-              <GlassCard key={event.id} variant="base">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-kalkvit mb-1">{event.title}</h3>
-                    <div className="flex items-center gap-3 text-sm text-kalkvit/50">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {event.date}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {event.time}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {event.attendees} attending
-                      </span>
-                    </div>
-                  </div>
-                  <GlassButton variant="secondary">RSVP</GlassButton>
-                </div>
-              </GlassCard>
-            ))}
-          </div>
-        )}
-
-        {/* Circle Rules */}
-        <GlassCard variant="base" className="mt-6">
-          <h3 className="font-semibold text-kalkvit mb-4">Circle Rules</h3>
-          <ul className="space-y-2">
-            {mockCircle.rules.map((rule, i) => (
-              <li key={i} className="flex items-start gap-2 text-kalkvit/70">
-                <span className="text-koppar">•</span>
-                {rule}
-              </li>
-            ))}
-          </ul>
-        </GlassCard>
       </div>
     </MainLayout>
   )

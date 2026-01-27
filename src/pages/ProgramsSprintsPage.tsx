@@ -2,90 +2,31 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
-import { Calendar, Clock, Users, Target, CheckCircle, ArrowLeft, ChevronRight, Zap } from 'lucide-react'
+import { useSprints, useJoinSprint } from '../lib/api/hooks'
+import type { Sprint } from '../lib/api/types'
+import {
+  Calendar,
+  Clock,
+  Users,
+  Target,
+  CheckCircle,
+  ArrowLeft,
+  ChevronRight,
+  Zap,
+  Loader2,
+  AlertTriangle,
+} from 'lucide-react'
 import { cn } from '../lib/utils'
 
-interface Sprint {
-  id: number
-  title: string
-  description: string
-  program: string
-  startDate: string
-  endDate: string
-  duration: string
-  status: 'upcoming' | 'active' | 'completed'
-  participants: number
-  maxParticipants: number
-  goals: string[]
-  progress?: number
-  facilitator: {
-    name: string
-    initials: string
-  }
-}
-
-const mockSprints: Sprint[] = [
-  {
-    id: 1,
-    title: 'Morning Mastery Sprint',
-    description: 'Join 30 other members in building an unshakeable morning routine over 21 days.',
-    program: 'Morning Mastery Protocol',
-    startDate: 'Feb 1, 2026',
-    endDate: 'Feb 21, 2026',
-    duration: '21 days',
-    status: 'upcoming',
-    participants: 24,
-    maxParticipants: 30,
-    goals: ['Wake up by 5:30 AM', 'Complete morning stack', 'Daily check-in'],
-    facilitator: { name: 'Michael Chen', initials: 'MC' },
-  },
-  {
-    id: 2,
-    title: 'Deep Work Challenge',
-    description: 'Master focused work with daily accountability and peer support.',
-    program: 'Deep Work Protocol',
-    startDate: 'Jan 15, 2026',
-    endDate: 'Feb 5, 2026',
-    duration: '21 days',
-    status: 'active',
-    participants: 28,
-    maxParticipants: 30,
-    goals: ['4 hours deep work daily', 'Zero distractions', 'Weekly review'],
-    progress: 65,
-    facilitator: { name: 'Sarah Thompson', initials: 'ST' },
-  },
-  {
-    id: 3,
-    title: 'Leadership Intensive',
-    description: 'Accelerate your leadership growth with intensive daily challenges.',
-    program: 'Leadership Accelerator',
-    startDate: 'Dec 1, 2025',
-    endDate: 'Dec 31, 2025',
-    duration: '30 days',
-    status: 'completed',
-    participants: 25,
-    maxParticipants: 25,
-    goals: ['Daily leadership action', 'Peer feedback', 'Coach check-in'],
-    progress: 100,
-    facilitator: { name: 'David Wilson', initials: 'DW' },
-  },
-  {
-    id: 4,
-    title: 'Networking Sprint',
-    description: 'Build meaningful connections with structured outreach challenges.',
-    program: 'Social Mastery Framework',
-    startDate: 'Feb 10, 2026',
-    endDate: 'Mar 3, 2026',
-    duration: '21 days',
-    status: 'upcoming',
-    participants: 12,
-    maxParticipants: 20,
-    goals: ['5 new connections/week', 'Follow-up system', 'Value-first approach'],
-    facilitator: { name: 'Emily Davis', initials: 'ED' },
-  },
-]
-
-function SprintCard({ sprint }: { sprint: Sprint }) {
+function SprintCard({
+  sprint,
+  onJoin,
+  isJoining,
+}: {
+  sprint: Sprint
+  onJoin: (sprintId: string) => void
+  isJoining: boolean
+}) {
   const statusConfig = {
     upcoming: { variant: 'koppar' as const, label: 'Upcoming', color: 'text-koppar' },
     active: { variant: 'success' as const, label: 'Active', color: 'text-skogsgron' },
@@ -93,7 +34,14 @@ function SprintCard({ sprint }: { sprint: Sprint }) {
   }
 
   const status = statusConfig[sprint.status]
-  const spotsLeft = sprint.maxParticipants - sprint.participants
+  const spotsLeft = sprint.max_participants - sprint.participants
+
+  const facilitatorInitials = sprint.facilitator.name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 
   return (
     <GlassCard variant="base" className="group">
@@ -106,7 +54,7 @@ function SprintCard({ sprint }: { sprint: Sprint }) {
             <h3 className="font-semibold text-kalkvit group-hover:text-koppar transition-colors">
               {sprint.title}
             </h3>
-            <p className="text-xs text-kalkvit/50">{sprint.program}</p>
+            <p className="text-xs text-kalkvit/50">Program Sprint</p>
           </div>
         </div>
         <GlassBadge variant={status.variant}>{status.label}</GlassBadge>
@@ -118,7 +66,7 @@ function SprintCard({ sprint }: { sprint: Sprint }) {
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
           <Calendar className="w-4 h-4" />
-          {sprint.startDate}
+          {new Date(sprint.start_date).toLocaleDateString()}
         </span>
         <span className="flex items-center gap-1">
           <Clock className="w-4 h-4" />
@@ -126,27 +74,29 @@ function SprintCard({ sprint }: { sprint: Sprint }) {
         </span>
         <span className="flex items-center gap-1">
           <Users className="w-4 h-4" />
-          {sprint.participants}/{sprint.maxParticipants}
+          {sprint.participants}/{sprint.max_participants}
         </span>
       </div>
 
       {/* Goals */}
-      <div className="mb-4">
-        <p className="text-xs text-kalkvit/40 mb-2 flex items-center gap-1">
-          <Target className="w-3 h-3" />
-          Sprint Goals
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {sprint.goals.map((goal, i) => (
-            <span
-              key={i}
-              className="text-xs px-2 py-1 rounded-lg bg-white/[0.06] text-kalkvit/70"
-            >
-              {goal}
-            </span>
-          ))}
+      {sprint.goals && sprint.goals.length > 0 && (
+        <div className="mb-4">
+          <p className="text-xs text-kalkvit/40 mb-2 flex items-center gap-1">
+            <Target className="w-3 h-3" />
+            Sprint Goals
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {sprint.goals.map((goal, i) => (
+              <span
+                key={i}
+                className="text-xs px-2 py-1 rounded-lg bg-white/[0.06] text-kalkvit/70"
+              >
+                {goal}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Progress for active sprints */}
       {sprint.status === 'active' && sprint.progress !== undefined && (
@@ -167,13 +117,34 @@ function SprintCard({ sprint }: { sprint: Sprint }) {
       {/* Facilitator and CTA */}
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
         <div className="flex items-center gap-2">
-          <GlassAvatar initials={sprint.facilitator.initials} size="sm" />
+          {sprint.facilitator.avatar_url ? (
+            <img
+              src={sprint.facilitator.avatar_url}
+              alt={sprint.facilitator.name}
+              className="w-8 h-8 rounded-full"
+            />
+          ) : (
+            <GlassAvatar initials={facilitatorInitials} size="sm" />
+          )}
           <span className="text-sm text-kalkvit/60">{sprint.facilitator.name}</span>
         </div>
         {sprint.status === 'upcoming' && (
-          <GlassButton variant="primary" className="text-sm">
-            Join Sprint
-            {spotsLeft <= 5 && <span className="text-xs ml-1">({spotsLeft} spots left)</span>}
+          <GlassButton
+            variant="primary"
+            className="text-sm"
+            onClick={() => onJoin(sprint.id)}
+            disabled={isJoining || spotsLeft <= 0}
+          >
+            {isJoining ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                Join Sprint
+                {spotsLeft <= 5 && spotsLeft > 0 && (
+                  <span className="text-xs ml-1">({spotsLeft} spots left)</span>
+                )}
+              </>
+            )}
           </GlassButton>
         )}
         {sprint.status === 'active' && (
@@ -195,15 +166,48 @@ function SprintCard({ sprint }: { sprint: Sprint }) {
 
 export function ProgramsSprintsPage() {
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'active' | 'completed'>('all')
+  const [joiningSprintId, setJoiningSprintId] = useState<string | null>(null)
 
-  const filteredSprints = mockSprints.filter((sprint) => {
-    if (filter === 'all') return true
-    return sprint.status === filter
+  const {
+    data: sprintsData,
+    isLoading,
+    error,
+  } = useSprints(undefined, {
+    status: filter !== 'all' ? filter : undefined,
   })
 
-  const activeCount = mockSprints.filter((s) => s.status === 'active').length
-  const upcomingCount = mockSprints.filter((s) => s.status === 'upcoming').length
-  const completedCount = mockSprints.filter((s) => s.status === 'completed').length
+  const joinMutation = useJoinSprint()
+
+  const sprints = sprintsData?.data || []
+
+  const handleJoin = async (sprintId: string) => {
+    setJoiningSprintId(sprintId)
+    try {
+      await joinMutation.mutateAsync({ sprint_id: sprintId })
+    } finally {
+      setJoiningSprintId(null)
+    }
+  }
+
+  const activeCount = sprints.filter((s) => s.status === 'active').length
+  const upcomingCount = sprints.filter((s) => s.status === 'upcoming').length
+  const completedCount = sprints.filter((s) => s.status === 'completed').length
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="max-w-5xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Failed to load sprints</h3>
+            <p className="text-kalkvit/50 text-sm">
+              Please try refreshing the page or check your connection.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -229,15 +233,21 @@ export function ProgramsSprintsPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-skogsgron">{activeCount}</p>
+            <p className="text-3xl font-display font-bold text-skogsgron">
+              {isLoading ? '-' : activeCount}
+            </p>
             <p className="text-sm text-kalkvit/60">Active Sprints</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-koppar">{upcomingCount}</p>
+            <p className="text-3xl font-display font-bold text-koppar">
+              {isLoading ? '-' : upcomingCount}
+            </p>
             <p className="text-sm text-kalkvit/60">Upcoming</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-kalkvit">{completedCount}</p>
+            <p className="text-3xl font-display font-bold text-kalkvit">
+              {isLoading ? '-' : completedCount}
+            </p>
             <p className="text-sm text-kalkvit/60">Completed</p>
           </GlassCard>
         </div>
@@ -261,13 +271,22 @@ export function ProgramsSprintsPage() {
         </div>
 
         {/* Sprints Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredSprints.map((sprint) => (
-            <SprintCard key={sprint.id} sprint={sprint} />
-          ))}
-        </div>
-
-        {filteredSprints.length === 0 && (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          </div>
+        ) : sprints.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {sprints.map((sprint) => (
+              <SprintCard
+                key={sprint.id}
+                sprint={sprint}
+                onJoin={handleJoin}
+                isJoining={joiningSprintId === sprint.id}
+              />
+            ))}
+          </div>
+        ) : (
           <GlassCard variant="base" className="text-center py-12">
             <p className="text-kalkvit/60">No sprints found.</p>
           </GlassCard>

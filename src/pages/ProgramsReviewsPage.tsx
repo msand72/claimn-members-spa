@@ -2,97 +2,70 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassTextarea, GlassAvatar, GlassBadge } from '../components/ui'
-import { ArrowLeft, Star, MessageCircle, ThumbsUp, Clock, CheckCircle, Send } from 'lucide-react'
+import { usePeerReviews, useSubmitPeerReview } from '../lib/api/hooks'
+import type { PeerReview } from '../lib/api/types'
+import {
+  ArrowLeft,
+  Star,
+  MessageCircle,
+  ThumbsUp,
+  Clock,
+  CheckCircle,
+  Send,
+  Loader2,
+  AlertTriangle,
+} from 'lucide-react'
 import { cn } from '../lib/utils'
 
-interface PeerReview {
-  id: number
-  type: 'given' | 'received' | 'pending'
-  peer: {
-    name: string
-    initials: string
-  }
-  program: string
-  assignment: string
-  dueDate?: string
-  completedDate?: string
-  rating?: number
-  feedback?: string
-  strengths?: string[]
-  improvements?: string[]
-}
-
-const mockReviews: PeerReview[] = [
-  {
-    id: 1,
-    type: 'pending',
-    peer: { name: 'Alex Johnson', initials: 'AJ' },
-    program: 'Leadership Accelerator',
-    assignment: 'Week 3: Delegation Framework',
-    dueDate: 'Jan 28, 2026',
-  },
-  {
-    id: 2,
-    type: 'pending',
-    peer: { name: 'Maria Garcia', initials: 'MG' },
-    program: 'Deep Work Protocol',
-    assignment: 'Module 5: Focus Blocks',
-    dueDate: 'Jan 30, 2026',
-  },
-  {
-    id: 3,
-    type: 'received',
-    peer: { name: 'James Smith', initials: 'JS' },
-    program: 'Morning Mastery Protocol',
-    assignment: 'Week 2: Morning Stack',
-    completedDate: 'Jan 20, 2026',
-    rating: 5,
-    feedback: 'Excellent execution of the morning routine. Your consistency is impressive and your reflection showed deep understanding of why each habit matters.',
-    strengths: ['Consistency', 'Self-awareness', 'Detail-oriented'],
-    improvements: ['Consider adding a mindfulness component'],
-  },
-  {
-    id: 4,
-    type: 'given',
-    peer: { name: 'Emma Wilson', initials: 'EW' },
-    program: 'Leadership Accelerator',
-    assignment: 'Week 2: Communication Framework',
-    completedDate: 'Jan 18, 2026',
-    rating: 4,
-    feedback: 'Good progress on implementing active listening techniques. The examples you provided were practical and showed real application.',
-  },
-  {
-    id: 5,
-    type: 'received',
-    peer: { name: 'Daniel Brown', initials: 'DB' },
-    program: 'Peak Performance System',
-    assignment: 'Module 4: Energy Management',
-    completedDate: 'Jan 15, 2026',
-    rating: 4,
-    feedback: 'Solid understanding of energy cycles. Your tracking system is well-designed. Consider experimenting with different recovery techniques.',
-    strengths: ['Analytical approach', 'Good tracking habits'],
-    improvements: ['Try different recovery methods', 'Add more flexibility'],
-  },
-]
-
-function PendingReviewCard({ review }: { review: PeerReview }) {
+function PendingReviewCard({
+  review,
+  onSubmit,
+  isSubmitting,
+}: {
+  review: PeerReview
+  onSubmit: (reviewId: string, rating: number, feedback: string) => void
+  isSubmitting: boolean
+}) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [rating, setRating] = useState(0)
   const [feedback, setFeedback] = useState('')
+
+  const peerInitials = review.peer
+    ? review.peer.name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'PR'
+
+  const handleSubmit = () => {
+    if (rating && feedback.trim()) {
+      onSubmit(review.id, rating, feedback)
+    }
+  }
 
   return (
     <GlassCard variant="base" className="mb-4">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <GlassAvatar initials={review.peer.initials} size="md" />
+          {review.peer?.avatar_url ? (
+            <img
+              src={review.peer.avatar_url}
+              alt={review.peer.name}
+              className="w-10 h-10 rounded-full"
+            />
+          ) : (
+            <GlassAvatar initials={peerInitials} size="md" />
+          )}
           <div>
-            <h3 className="font-semibold text-kalkvit">{review.peer.name}</h3>
-            <p className="text-xs text-koppar">{review.program}</p>
+            <h3 className="font-semibold text-kalkvit">{review.peer?.name || 'Peer'}</h3>
+            <p className="text-xs text-koppar">{review.program?.name || 'Program'}</p>
           </div>
         </div>
         <GlassBadge variant="warning" className="flex items-center gap-1">
           <Clock className="w-3 h-3" />
-          Due {review.dueDate}
+          Due {review.due_date ? new Date(review.due_date).toLocaleDateString() : 'Soon'}
         </GlassBadge>
       </div>
 
@@ -109,11 +82,7 @@ function PendingReviewCard({ review }: { review: PeerReview }) {
             <label className="block text-sm text-kalkvit/60 mb-2">Rating</label>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => setRating(star)}
-                  className="p-1"
-                >
+                <button key={star} onClick={() => setRating(star)} className="p-1">
                   <Star
                     className={cn(
                       'w-6 h-6 transition-colors',
@@ -139,9 +108,19 @@ function PendingReviewCard({ review }: { review: PeerReview }) {
           </div>
 
           <div className="flex gap-2">
-            <GlassButton variant="primary" disabled={!rating || !feedback.trim()}>
-              <Send className="w-4 h-4" />
-              Submit Review
+            <GlassButton
+              variant="primary"
+              disabled={!rating || !feedback.trim() || isSubmitting}
+              onClick={handleSubmit}
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Submit Review
+                </>
+              )}
             </GlassButton>
             <GlassButton variant="ghost" onClick={() => setIsExpanded(false)}>
               Cancel
@@ -156,14 +135,31 @@ function PendingReviewCard({ review }: { review: PeerReview }) {
 function CompletedReviewCard({ review }: { review: PeerReview }) {
   const [showFull, setShowFull] = useState(false)
 
+  const peerInitials = review.peer
+    ? review.peer.name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'PR'
+
   return (
     <GlassCard variant="base" className="mb-4">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <GlassAvatar initials={review.peer.initials} size="md" />
+          {review.peer?.avatar_url ? (
+            <img
+              src={review.peer.avatar_url}
+              alt={review.peer.name}
+              className="w-10 h-10 rounded-full"
+            />
+          ) : (
+            <GlassAvatar initials={peerInitials} size="md" />
+          )}
           <div>
-            <h3 className="font-semibold text-kalkvit">{review.peer.name}</h3>
-            <p className="text-xs text-koppar">{review.program}</p>
+            <h3 className="font-semibold text-kalkvit">{review.peer?.name || 'Peer'}</h3>
+            <p className="text-xs text-koppar">{review.program?.name || 'Program'}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -187,7 +183,9 @@ function CompletedReviewCard({ review }: { review: PeerReview }) {
       </div>
 
       <p className="text-sm text-kalkvit/50 mb-2">{review.assignment}</p>
-      <p className="text-xs text-kalkvit/40 mb-3">{review.completedDate}</p>
+      <p className="text-xs text-kalkvit/40 mb-3">
+        {review.completed_date ? new Date(review.completed_date).toLocaleDateString() : ''}
+      </p>
 
       {review.feedback && (
         <p className={cn('text-sm text-kalkvit/70', !showFull && 'line-clamp-2')}>
@@ -239,18 +237,54 @@ function CompletedReviewCard({ review }: { review: PeerReview }) {
 
 export function ProgramsReviewsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'received' | 'given'>('all')
+  const [submittingReviewId, setSubmittingReviewId] = useState<string | null>(null)
 
-  const filteredReviews = mockReviews.filter((review) => {
-    if (filter === 'all') return true
-    return review.type === filter
+  const {
+    data: reviewsData,
+    isLoading,
+    error,
+  } = usePeerReviews({
+    type: filter !== 'all' ? filter : undefined,
   })
 
-  const pendingReviews = filteredReviews.filter((r) => r.type === 'pending')
-  const completedReviews = filteredReviews.filter((r) => r.type !== 'pending')
+  const submitMutation = useSubmitPeerReview()
 
-  const pendingCount = mockReviews.filter((r) => r.type === 'pending').length
-  const receivedCount = mockReviews.filter((r) => r.type === 'received').length
-  const givenCount = mockReviews.filter((r) => r.type === 'given').length
+  const reviews = reviewsData?.data || []
+
+  const handleSubmit = async (reviewId: string, rating: number, feedback: string) => {
+    setSubmittingReviewId(reviewId)
+    try {
+      await submitMutation.mutateAsync({
+        reviewId,
+        data: { rating, feedback },
+      })
+    } finally {
+      setSubmittingReviewId(null)
+    }
+  }
+
+  const pendingReviews = reviews.filter((r) => r.type === 'pending')
+  const completedReviews = reviews.filter((r) => r.type !== 'pending')
+
+  const pendingCount = reviews.filter((r) => r.type === 'pending').length
+  const receivedCount = reviews.filter((r) => r.type === 'received').length
+  const givenCount = reviews.filter((r) => r.type === 'given').length
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="max-w-4xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Failed to load reviews</h3>
+            <p className="text-kalkvit/50 text-sm">
+              Please try refreshing the page or check your connection.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -266,23 +300,27 @@ export function ProgramsReviewsPage() {
 
         <div className="mb-8">
           <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Peer Reviews</h1>
-          <p className="text-kalkvit/60">
-            Give and receive feedback from your program peers
-          </p>
+          <p className="text-kalkvit/60">Give and receive feedback from your program peers</p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-koppar">{pendingCount}</p>
+            <p className="text-3xl font-display font-bold text-koppar">
+              {isLoading ? '-' : pendingCount}
+            </p>
             <p className="text-sm text-kalkvit/60">Pending</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-skogsgron">{receivedCount}</p>
+            <p className="text-3xl font-display font-bold text-skogsgron">
+              {isLoading ? '-' : receivedCount}
+            </p>
             <p className="text-sm text-kalkvit/60">Received</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-kalkvit">{givenCount}</p>
+            <p className="text-3xl font-display font-bold text-kalkvit">
+              {isLoading ? '-' : givenCount}
+            </p>
             <p className="text-sm text-kalkvit/60">Given</p>
           </GlassCard>
         </div>
@@ -305,36 +343,49 @@ export function ProgramsReviewsPage() {
           ))}
         </div>
 
-        {/* Pending Reviews */}
-        {pendingReviews.length > 0 && (
-          <div className="mb-8">
-            <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-koppar" />
-              Pending Reviews ({pendingReviews.length})
-            </h2>
-            {pendingReviews.map((review) => (
-              <PendingReviewCard key={review.id} review={review} />
-            ))}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
           </div>
-        )}
+        ) : (
+          <>
+            {/* Pending Reviews */}
+            {pendingReviews.length > 0 && (
+              <div className="mb-8">
+                <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-koppar" />
+                  Pending Reviews ({pendingReviews.length})
+                </h2>
+                {pendingReviews.map((review) => (
+                  <PendingReviewCard
+                    key={review.id}
+                    review={review}
+                    onSubmit={handleSubmit}
+                    isSubmitting={submittingReviewId === review.id}
+                  />
+                ))}
+              </div>
+            )}
 
-        {/* Completed Reviews */}
-        {completedReviews.length > 0 && (
-          <div>
-            <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-skogsgron" />
-              Completed Reviews ({completedReviews.length})
-            </h2>
-            {completedReviews.map((review) => (
-              <CompletedReviewCard key={review.id} review={review} />
-            ))}
-          </div>
-        )}
+            {/* Completed Reviews */}
+            {completedReviews.length > 0 && (
+              <div>
+                <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-skogsgron" />
+                  Completed Reviews ({completedReviews.length})
+                </h2>
+                {completedReviews.map((review) => (
+                  <CompletedReviewCard key={review.id} review={review} />
+                ))}
+              </div>
+            )}
 
-        {filteredReviews.length === 0 && (
-          <GlassCard variant="base" className="text-center py-12">
-            <p className="text-kalkvit/60">No reviews found.</p>
-          </GlassCard>
+            {reviews.length === 0 && (
+              <GlassCard variant="base" className="text-center py-12">
+                <p className="text-kalkvit/60">No reviews found.</p>
+              </GlassCard>
+            )}
+          </>
         )}
       </div>
     </MainLayout>

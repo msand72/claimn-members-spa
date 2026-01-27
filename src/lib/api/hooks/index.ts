@@ -68,3 +68,109 @@ export {
   useDashboard,
   useDashboardStats,
 } from './useDashboard'
+
+// Goals & KPIs
+export {
+  goalKeys,
+  kpiKeys,
+  useGoals,
+  useGoal,
+  useCreateGoal,
+  useUpdateGoal,
+  useDeleteGoal,
+  useKPIs,
+  useGoalKPIs,
+  useKPI,
+  useKPILogs,
+  useCreateKPI,
+  useLogKPI,
+  useDeleteKPI,
+} from './useGoals'
+
+// Action Items
+export {
+  actionItemKeys,
+  useActionItems,
+  useActionItem,
+  useCreateActionItem,
+  useUpdateActionItem,
+  useDeleteActionItem,
+  useToggleActionItem,
+  type ActionItemsParams,
+} from './useActionItems'
+
+// Protocols
+export {
+  protocolKeys,
+  useActiveProtocols,
+  useProtocolLibrary,
+  useProtocolTemplate,
+  useActiveProtocol,
+  useActiveProtocolBySlug,
+  useStartProtocol,
+  useUpdateProtocolProgress,
+  usePauseProtocol,
+  useResumeProtocol,
+  useAbandonProtocol,
+  type ProtocolTemplate,
+  type ProtocolWeek,
+  type ProtocolTask,
+  type ActiveProtocolsParams,
+} from './useProtocols'
+
+// Experts & Coaching
+export {
+  expertKeys,
+  coachingKeys,
+  useExperts,
+  useExpert,
+  useExpertTestimonials,
+  useExpertAvailability,
+  useCoachingSessions,
+  useCoachingSession,
+  useBookSession,
+  useCancelSession,
+  useSessionNotes,
+  useUpdateSessionNotes,
+  type ExpertsParams,
+  type SessionsParams,
+} from './useExperts'
+
+// Resources
+export {
+  resourceKeys,
+  useResources,
+  useResource,
+  useCoachingResources,
+  type ResourcesParams,
+} from './useResources'
+
+// Programs
+export {
+  programKeys,
+  usePrograms,
+  useProgram,
+  useEnrolledPrograms,
+  useEnrollProgram,
+  useUpdateProgramProgress,
+  useSprints,
+  useSprint,
+  useJoinSprint,
+  usePeerReviews,
+  usePeerReview,
+  useSubmitPeerReview,
+  type ProgramsParams,
+  type SprintsParams,
+  type ReviewsParams,
+} from './usePrograms'
+
+// Assessments
+export {
+  assessmentKeys,
+  useAssessments,
+  useAssessment,
+  useAssessmentQuestions,
+  useAssessmentResults,
+  useLatestAssessmentResult,
+  useSubmitAssessment,
+} from './useAssessments'

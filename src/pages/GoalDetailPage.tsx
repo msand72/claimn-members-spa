@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
@@ -10,7 +10,8 @@ import {
   GlassModalFooter,
 } from '../components/ui'
 import { PILLARS, GOAL_STATUSES } from '../lib/constants'
-import type { PillarId, GoalStatus } from '../lib/constants'
+import { useGoal, useUpdateGoal, useDeleteGoal, useLogKPI } from '../lib/api/hooks'
+import type { KPI } from '../lib/api/types'
 import {
   ChevronLeft,
   Target,
@@ -20,143 +21,41 @@ import {
   Edit2,
   Trash2,
   CheckCircle2,
-  User,
   MoreHorizontal,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-interface KPILog {
-  date: string
-  value: number
-}
-
-interface KPI {
-  id: string
-  name: string
-  targetValue: number
-  currentValue: number
-  unit: string
-  logs: KPILog[]
-}
-
-interface Goal {
-  id: string
-  title: string
-  description: string
-  pillar: PillarId
-  targetDate: string
-  status: GoalStatus
-  createdBy: 'member' | 'expert'
-  createdAt: string
-  kpis: KPI[]
-}
-
-// Mock goal data
-const mockGoals: Record<string, Goal> = {
-  '1': {
-    id: '1',
-    title: 'Improve Sleep Quality',
-    description:
-      'Achieve consistent 7+ hours of quality sleep with improved HRV scores and morning energy levels.',
-    pillar: 'physical',
-    targetDate: '2026-03-15',
-    status: 'active',
-    createdBy: 'expert',
-    createdAt: '2026-01-10',
-    kpis: [
-      {
-        id: 'kpi-1',
-        name: 'Hours of Sleep',
-        targetValue: 7.5,
-        currentValue: 6.8,
-        unit: 'hours',
-        logs: [
-          { date: '2026-01-20', value: 6.5 },
-          { date: '2026-01-21', value: 7.0 },
-          { date: '2026-01-22', value: 6.2 },
-          { date: '2026-01-23', value: 7.2 },
-          { date: '2026-01-24', value: 6.8 },
-          { date: '2026-01-25', value: 7.1 },
-          { date: '2026-01-26', value: 6.8 },
-        ],
-      },
-      {
-        id: 'kpi-2',
-        name: 'HRV Score',
-        targetValue: 50,
-        currentValue: 42,
-        unit: 'ms',
-        logs: [
-          { date: '2026-01-20', value: 38 },
-          { date: '2026-01-21', value: 41 },
-          { date: '2026-01-22', value: 39 },
-          { date: '2026-01-23', value: 44 },
-          { date: '2026-01-24', value: 43 },
-          { date: '2026-01-25', value: 45 },
-          { date: '2026-01-26', value: 42 },
-        ],
-      },
-      {
-        id: 'kpi-3',
-        name: 'Energy Level',
-        targetValue: 8,
-        currentValue: 6.5,
-        unit: '/10',
-        logs: [
-          { date: '2026-01-20', value: 5 },
-          { date: '2026-01-21', value: 6 },
-          { date: '2026-01-22', value: 6 },
-          { date: '2026-01-23', value: 7 },
-          { date: '2026-01-24', value: 7 },
-          { date: '2026-01-25', value: 7 },
-          { date: '2026-01-26', value: 6.5 },
-        ],
-      },
-    ],
-  },
-  '2': {
-    id: '2',
-    title: 'Build Deep Work Habit',
-    description:
-      'Develop consistent deep work blocks of 90+ minutes with high focus and meaningful output.',
-    pillar: 'mission',
-    targetDate: '2026-02-28',
-    status: 'active',
-    createdBy: 'member',
-    createdAt: '2026-01-15',
-    kpis: [
-      {
-        id: 'kpi-4',
-        name: 'Deep Work Hours',
-        targetValue: 4,
-        currentValue: 2.5,
-        unit: 'hours/day',
-        logs: [
-          { date: '2026-01-20', value: 1.5 },
-          { date: '2026-01-21', value: 2.0 },
-          { date: '2026-01-22', value: 2.5 },
-          { date: '2026-01-23', value: 3.0 },
-          { date: '2026-01-24', value: 2.0 },
-          { date: '2026-01-25', value: 2.5 },
-          { date: '2026-01-26', value: 2.5 },
-        ],
-      },
-    ],
-  },
-}
-
 export function GoalDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const goal = id ? mockGoals[id] : null
+  const navigate = useNavigate()
+
+  // API hooks
+  const { data: goal, isLoading, error } = useGoal(id || '')
+  const updateGoal = useUpdateGoal()
+  const deleteGoal = useDeleteGoal()
+  const logKPI = useLogKPI()
 
   const [showLogModal, setShowLogModal] = useState(false)
   const [selectedKpi, setSelectedKpi] = useState<KPI | null>(null)
   const [logValue, setLogValue] = useState('')
 
-  if (!goal) {
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="max-w-4xl mx-auto flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  if (error || !goal) {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto text-center py-12">
+          <AlertCircle className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
           <h1 className="font-display text-2xl font-bold text-kalkvit mb-4">Goal not found</h1>
           <Link to="/goals">
             <GlassButton variant="secondary">
@@ -169,24 +68,21 @@ export function GoalDetailPage() {
     )
   }
 
-  const pillar = PILLARS[goal.pillar]
+  const pillar = goal.pillar_id ? PILLARS[goal.pillar_id] : null
   const statusInfo = GOAL_STATUSES.find((s) => s.id === goal.status)
 
   // Calculate days until target
-  const daysUntilTarget = Math.ceil(
-    (new Date(goal.targetDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-  )
+  const daysUntilTarget = goal.target_date
+    ? Math.ceil(
+        (new Date(goal.target_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+      )
+    : null
 
-  // Calculate overall progress (average of all KPIs)
-  const overallProgress =
-    goal.kpis.length > 0
-      ? Math.round(
-          goal.kpis.reduce((sum, kpi) => {
-            const progress = Math.min((kpi.currentValue / kpi.targetValue) * 100, 100)
-            return sum + progress
-          }, 0) / goal.kpis.length
-        )
-      : 0
+  // Get KPIs from goal
+  const kpis = goal.kpis || []
+
+  // Calculate overall progress (from goal or average of KPIs)
+  const overallProgress = goal.progress
 
   const handleLogKpi = (kpi: KPI) => {
     setSelectedKpi(kpi)
@@ -194,10 +90,42 @@ export function GoalDetailPage() {
     setShowLogModal(true)
   }
 
-  const handleSubmitLog = () => {
-    // In real app, this would call API
-    console.log('Logging KPI:', selectedKpi?.id, logValue)
-    setShowLogModal(false)
+  const handleSubmitLog = async () => {
+    if (!selectedKpi || !logValue) return
+
+    try {
+      await logKPI.mutateAsync({
+        kpiId: selectedKpi.id,
+        data: { value: parseFloat(logValue) },
+      })
+      setShowLogModal(false)
+      setSelectedKpi(null)
+      setLogValue('')
+    } catch (err) {
+      console.error('Failed to log KPI:', err)
+    }
+  }
+
+  const handleMarkComplete = async () => {
+    try {
+      await updateGoal.mutateAsync({
+        id: goal.id,
+        data: { status: 'completed' },
+      })
+    } catch (err) {
+      console.error('Failed to update goal:', err)
+    }
+  }
+
+  const handleDeleteGoal = async () => {
+    if (!confirm('Are you sure you want to delete this goal?')) return
+
+    try {
+      await deleteGoal.mutateAsync(goal.id)
+      navigate('/goals')
+    } catch (err) {
+      console.error('Failed to delete goal:', err)
+    }
   }
 
   return (
@@ -216,18 +144,12 @@ export function GoalDetailPage() {
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3 flex-wrap">
-              <GlassBadge variant="koppar">{pillar.name}</GlassBadge>
+              {pillar && <GlassBadge variant="koppar">{pillar.name}</GlassBadge>}
               <GlassBadge
-                variant={goal.status === 'completed' ? 'success' : goal.status === 'paused' ? 'warning' : 'default'}
+                variant={goal.status === 'completed' ? 'success' : goal.status === 'archived' ? 'warning' : 'default'}
               >
                 {statusInfo?.name || goal.status}
               </GlassBadge>
-              {goal.createdBy === 'expert' && (
-                <GlassBadge variant="koppar">
-                  <User className="w-3 h-3" />
-                  Expert Assigned
-                </GlassBadge>
-              )}
             </div>
             <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">{goal.title}</h1>
             <p className="text-kalkvit/60">{goal.description}</p>
@@ -251,13 +173,13 @@ export function GoalDetailPage() {
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
             <Target className="w-6 h-6 text-koppar mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{goal.kpis.length}</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">{kpis.length}</p>
             <p className="text-xs text-kalkvit/50">KPIs Tracked</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
             <Calendar className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
-              {daysUntilTarget > 0 ? daysUntilTarget : 0}
+              {daysUntilTarget !== null && daysUntilTarget > 0 ? daysUntilTarget : '--'}
             </p>
             <p className="text-xs text-kalkvit/50">Days Remaining</p>
           </GlassCard>
@@ -276,8 +198,8 @@ export function GoalDetailPage() {
             />
           </div>
           <div className="flex items-center justify-between mt-2 text-xs text-kalkvit/50">
-            <span>Started {new Date(goal.createdAt).toLocaleDateString()}</span>
-            <span>Target: {new Date(goal.targetDate).toLocaleDateString()}</span>
+            <span>Started {new Date(goal.created_at).toLocaleDateString()}</span>
+            {goal.target_date && <span>Target: {new Date(goal.target_date).toLocaleDateString()}</span>}
           </div>
         </GlassCard>
 
@@ -291,100 +213,87 @@ export function GoalDetailPage() {
             </GlassButton>
           </div>
 
-          <div className="space-y-4">
-            {goal.kpis.map((kpi) => {
-              const progress = Math.min((kpi.currentValue / kpi.targetValue) * 100, 100)
-              const trend =
-                kpi.logs.length >= 2
-                  ? kpi.logs[kpi.logs.length - 1].value - kpi.logs[kpi.logs.length - 2].value
-                  : 0
+          {kpis.length === 0 ? (
+            <GlassCard variant="base" className="text-center py-8">
+              <Target className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
+              <p className="text-kalkvit/50 text-sm">No KPIs added yet</p>
+              <p className="text-kalkvit/40 text-xs mt-1">Add KPIs to track your progress</p>
+            </GlassCard>
+          ) : (
+            <div className="space-y-4">
+              {kpis.map((kpi) => {
+                const progress = Math.min((kpi.current_value / kpi.target_value) * 100, 100)
 
-              return (
-                <GlassCard key={kpi.id} variant="base">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h4 className="font-medium text-kalkvit">{kpi.name}</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-2xl font-bold text-koppar">
-                          {kpi.currentValue}
-                          <span className="text-sm font-normal text-kalkvit/50">{kpi.unit}</span>
-                        </span>
-                        <span className="text-kalkvit/40">/</span>
-                        <span className="text-kalkvit/60">
-                          {kpi.targetValue}
-                          {kpi.unit}
-                        </span>
-                        {trend !== 0 && (
-                          <span
-                            className={cn(
-                              'text-xs px-2 py-0.5 rounded',
-                              trend > 0
-                                ? 'bg-skogsgron/20 text-skogsgron'
-                                : 'bg-tegelrod/20 text-tegelrod'
-                            )}
-                          >
-                            {trend > 0 ? '+' : ''}
-                            {trend.toFixed(1)}
+                return (
+                  <GlassCard key={kpi.id} variant="base">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h4 className="font-medium text-kalkvit">{kpi.name}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-2xl font-bold text-koppar">
+                            {kpi.current_value}
+                            <span className="text-sm font-normal text-kalkvit/50">{kpi.unit}</span>
                           </span>
-                        )}
+                          <span className="text-kalkvit/40">/</span>
+                          <span className="text-kalkvit/60">
+                            {kpi.target_value}
+                            {kpi.unit}
+                          </span>
+                        </div>
+                      </div>
+                      <GlassButton variant="primary" onClick={() => handleLogKpi(kpi)}>
+                        <Plus className="w-4 h-4" />
+                        Log
+                      </GlassButton>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-kalkvit/50">Progress</span>
+                        <span className="text-xs text-koppar font-medium">{Math.round(progress)}%</span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-all',
+                            progress >= 100 ? 'bg-skogsgron' : 'bg-gradient-to-r from-koppar to-brandAmber'
+                          )}
+                          style={{ width: `${progress}%` }}
+                        />
                       </div>
                     </div>
-                    <GlassButton variant="primary" onClick={() => handleLogKpi(kpi)}>
-                      <Plus className="w-4 h-4" />
-                      Log
-                    </GlassButton>
-                  </div>
 
-                  {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-kalkvit/50">Progress</span>
-                      <span className="text-xs text-koppar font-medium">{Math.round(progress)}%</span>
+                    <div className="flex justify-between text-xs text-kalkvit/40">
+                      <span>Type: {kpi.type}</span>
+                      <span>Frequency: {kpi.frequency}</span>
                     </div>
-                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className={cn(
-                          'h-full rounded-full transition-all',
-                          progress >= 100 ? 'bg-skogsgron' : 'bg-gradient-to-r from-koppar to-brandAmber'
-                        )}
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Mini Chart / Recent Logs */}
-                  <div className="flex items-end gap-1 h-12">
-                    {kpi.logs.slice(-7).map((log, index) => {
-                      const height = (log.value / kpi.targetValue) * 100
-                      return (
-                        <div
-                          key={index}
-                          className="flex-1 bg-koppar/30 rounded-t transition-all hover:bg-koppar/50"
-                          style={{ height: `${Math.min(height, 100)}%` }}
-                          title={`${log.date}: ${log.value}${kpi.unit}`}
-                        />
-                      )
-                    })}
-                  </div>
-                  <div className="flex justify-between mt-1 text-xs text-kalkvit/40">
-                    <span>7 days ago</span>
-                    <span>Today</span>
-                  </div>
-                </GlassCard>
-              )
-            })}
-          </div>
+                  </GlassCard>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}
         <div className="flex gap-3 flex-wrap">
-          <GlassButton variant="secondary">
-            <CheckCircle2 className="w-4 h-4" />
-            Mark Complete
-          </GlassButton>
-          <GlassButton variant="ghost">
+          {goal.status !== 'completed' && (
+            <GlassButton
+              variant="secondary"
+              onClick={handleMarkComplete}
+              disabled={updateGoal.isPending}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              {updateGoal.isPending ? 'Updating...' : 'Mark Complete'}
+            </GlassButton>
+          )}
+          <GlassButton
+            variant="ghost"
+            onClick={handleDeleteGoal}
+            disabled={deleteGoal.isPending}
+          >
             <Trash2 className="w-4 h-4" />
-            Delete Goal
+            {deleteGoal.isPending ? 'Deleting...' : 'Delete Goal'}
           </GlassButton>
         </div>
 
@@ -396,8 +305,8 @@ export function GoalDetailPage() {
         >
           <div className="space-y-4">
             <p className="text-sm text-kalkvit/60">
-              Current: {selectedKpi?.currentValue}
-              {selectedKpi?.unit} | Target: {selectedKpi?.targetValue}
+              Current: {selectedKpi?.current_value}
+              {selectedKpi?.unit} | Target: {selectedKpi?.target_value}
               {selectedKpi?.unit}
             </p>
             <GlassInput
@@ -413,8 +322,12 @@ export function GoalDetailPage() {
             <GlassButton variant="ghost" onClick={() => setShowLogModal(false)}>
               Cancel
             </GlassButton>
-            <GlassButton variant="primary" onClick={handleSubmitLog} disabled={!logValue}>
-              Log Value
+            <GlassButton
+              variant="primary"
+              onClick={handleSubmitLog}
+              disabled={!logValue || logKPI.isPending}
+            >
+              {logKPI.isPending ? 'Logging...' : 'Log Value'}
             </GlassButton>
           </GlassModalFooter>
         </GlassModal>
