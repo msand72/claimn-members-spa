@@ -24,7 +24,7 @@ export default {
         'glass-dark': '#0A0A0B',
       },
       fontFamily: {
-        display: ['Neutraface 2 Display', 'Montserrat', 'sans-serif'],
+        display: ['Neutraface 2', 'Montserrat', 'sans-serif'],
         serif: ['Playfair Display', 'serif'],
         sans: ['Lato', 'sans-serif'],
       },
