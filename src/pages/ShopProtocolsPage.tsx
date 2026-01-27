@@ -2,11 +2,15 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { Clock, Users, Star, CheckCircle, Lock, ChevronRight } from 'lucide-react'
+import { Clock, Users, Star, CheckCircle, Lock, ChevronRight, Loader2, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useProtocolLibrary, useActiveProtocols, type ProtocolTemplate } from '../lib/api/hooks'
+import { PILLARS } from '../lib/constants'
+import type { PillarId } from '../lib/constants'
 
+// Internal Protocol type for display - maps from API ProtocolTemplate
 interface Protocol {
-  id: number
+  id: string
   slug: string
   title: string
   description: string
@@ -24,107 +28,34 @@ interface Protocol {
   image?: string
 }
 
-const mockProtocols: Protocol[] = [
-  {
-    id: 1,
-    slug: 'morning-mastery',
-    title: 'Morning Mastery Protocol',
-    description: 'Transform your mornings with this science-backed protocol. Build unshakeable discipline and win the first hour of your day.',
-    category: 'Habits',
-    duration: '4 weeks',
-    enrolledCount: 1247,
-    rating: 4.9,
-    reviews: 312,
-    price: 0,
-    isPurchased: true,
-    isNew: false,
-    modules: 12,
-    difficulty: 'beginner',
-  },
-  {
-    id: 2,
-    slug: 'peak-performance',
-    title: 'Peak Performance System',
-    description: 'Optimize your energy, focus, and output. Learn the frameworks used by top performers to achieve more in less time.',
-    category: 'Performance',
-    duration: '6 weeks',
-    enrolledCount: 892,
-    rating: 4.8,
-    reviews: 156,
-    price: 197,
-    originalPrice: 297,
-    isPurchased: false,
-    isNew: true,
-    modules: 18,
-    difficulty: 'intermediate',
-  },
-  {
-    id: 3,
-    slug: 'leadership-accelerator',
-    title: 'Leadership Accelerator',
-    description: 'Develop the mindset and skills of exceptional leaders. Master communication, delegation, and team building.',
-    category: 'Leadership',
-    duration: '8 weeks',
-    enrolledCount: 543,
-    rating: 5.0,
-    reviews: 89,
-    price: 397,
-    isPurchased: false,
-    isNew: false,
-    modules: 24,
-    difficulty: 'advanced',
-  },
-  {
-    id: 4,
-    slug: 'wealth-mindset',
-    title: 'Wealth Mindset Blueprint',
-    description: 'Rewire your relationship with money. Build the mental frameworks of successful entrepreneurs and investors.',
-    category: 'Mindset',
-    duration: '4 weeks',
-    enrolledCount: 1089,
-    rating: 4.7,
-    reviews: 234,
-    price: 147,
-    isPurchased: false,
-    isNew: false,
-    modules: 10,
-    difficulty: 'beginner',
-  },
-  {
-    id: 5,
-    slug: 'deep-work',
-    title: 'Deep Work Protocol',
-    description: 'Eliminate distractions and master focused work. Produce high-quality output in half the time.',
-    category: 'Productivity',
-    duration: '3 weeks',
-    enrolledCount: 2156,
-    rating: 4.9,
-    reviews: 467,
-    price: 97,
-    isPurchased: true,
-    isNew: false,
-    modules: 8,
-    difficulty: 'beginner',
-  },
-  {
-    id: 6,
-    slug: 'social-mastery',
-    title: 'Social Mastery Framework',
-    description: 'Build authentic connections and expand your network. Master the art of meaningful relationships.',
-    category: 'Networking',
-    duration: '5 weeks',
-    enrolledCount: 678,
-    rating: 4.6,
-    reviews: 123,
-    price: 177,
-    isPurchased: false,
-    isNew: true,
-    modules: 15,
-    difficulty: 'intermediate',
-  },
-]
+// Map ProtocolTemplate from API to internal Protocol display type
+function mapProtocolTemplateToProtocol(
+  template: ProtocolTemplate,
+  isActive: boolean
+): Protocol {
+  const pillarId = template.pillar as PillarId
+  const pillarName = PILLARS[pillarId]?.name || template.pillar
 
-const categories = ['All', 'Habits', 'Performance', 'Leadership', 'Mindset', 'Productivity', 'Networking']
+  // Calculate modules from weeks
+  const moduleCount = template.weeks?.reduce((sum, week) => sum + (week.tasks?.length || 0), 0) || 0
+
+  return {
+    id: template.slug,
+    slug: template.slug,
+    title: template.name,
+    description: template.description,
+    category: pillarName,
+    duration: template.timeline,
+    enrolledCount: 0, // Not available from API
+    rating: 0, // Not available from API
+    reviews: 0, // Not available from API
+    price: 0, // Protocols are free in the current system
+    isPurchased: isActive,
+    isNew: false, // Not available from API
+    modules: moduleCount || template.weeks?.length || 0,
+    difficulty: 'beginner', // Not available from API - default to beginner
+  }
+}
 
 function ProtocolCard({ protocol }: { protocol: Protocol }) {
   const difficultyColors = {
@@ -220,13 +151,57 @@ export function ShopProtocolsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [showOwned, setShowOwned] = useState(false)
 
-  const filteredProtocols = mockProtocols.filter((protocol) => {
+  // API hooks
+  const {
+    data: libraryData,
+    isLoading: isLoadingLibrary,
+    error: libraryError,
+  } = useProtocolLibrary()
+
+  const {
+    data: activeProtocolsData,
+    isLoading: isLoadingActive,
+    error: activeError,
+  } = useActiveProtocols()
+
+  const protocolLibrary = libraryData || []
+  const activeProtocols = activeProtocolsData?.data || []
+  const activeProtocolSlugs = new Set(activeProtocols.map((ap) => ap.protocol_slug))
+
+  // Map API protocols to display format
+  const protocols: Protocol[] = protocolLibrary.map((template) =>
+    mapProtocolTemplateToProtocol(template, activeProtocolSlugs.has(template.slug))
+  )
+
+  // Get unique categories from protocols
+  const uniqueCategories = ['All', ...new Set(protocols.map((p) => p.category))]
+
+  const filteredProtocols = protocols.filter((protocol) => {
     const matchesCategory = selectedCategory === 'All' || protocol.category === selectedCategory
     const matchesOwned = !showOwned || protocol.isPurchased
     return matchesCategory && matchesOwned
   })
 
-  const ownedCount = mockProtocols.filter((p) => p.isPurchased).length
+  const ownedCount = protocols.filter((p) => p.isPurchased).length
+  const isLoading = isLoadingLibrary || isLoadingActive
+  const error = libraryError || activeError
+
+  // Error state
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Failed to load protocols</h3>
+            <p className="text-kalkvit/50 text-sm">
+              Please try refreshing the page or check your connection.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -240,14 +215,16 @@ export function ShopProtocolsPage() {
           </div>
           <GlassCard variant="accent" leftBorder={false} className="px-6 py-3 text-center">
             <p className="text-sm text-kalkvit/60">Your Protocols</p>
-            <p className="font-display text-2xl font-bold text-kalkvit">{ownedCount}</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">
+              {isLoading ? '-' : ownedCount}
+            </p>
           </GlassCard>
         </div>
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-4 mb-8">
           <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
+            {uniqueCategories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
@@ -276,14 +253,23 @@ export function ShopProtocolsPage() {
           </button>
         </div>
 
-        {/* Protocols Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProtocols.map((protocol) => (
-            <ProtocolCard key={protocol.id} protocol={protocol} />
-          ))}
-        </div>
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          </div>
+        )}
 
-        {filteredProtocols.length === 0 && (
+        {/* Protocols Grid */}
+        {!isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProtocols.map((protocol) => (
+              <ProtocolCard key={protocol.id} protocol={protocol} />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && filteredProtocols.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
             <p className="text-kalkvit/60">No protocols found matching your criteria.</p>
           </GlassCard>

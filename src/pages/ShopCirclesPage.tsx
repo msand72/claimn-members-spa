@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
-import { Users, Calendar, Lock, Star, ChevronRight, Award, Clock } from 'lucide-react'
+import { Users, Star, ChevronRight, Award, Loader2, AlertTriangle, Sparkles } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useCircles, useMyCircles } from '../lib/api/hooks'
+import type { Circle } from '../lib/api/types'
 
-interface PremiumCircle {
-  id: number
+// Display type for circles in the shop context
+interface DisplayCircle {
+  id: string
   name: string
   description: string
   category: string
@@ -27,97 +30,32 @@ interface PremiumCircle {
   benefits: string[]
 }
 
-const mockPremiumCircles: PremiumCircle[] = [
-  {
-    id: 1,
-    name: 'CEO Mastermind',
-    description: 'An exclusive circle for founders and CEOs scaling to 8-figures. Weekly calls, hot seats, and direct access to proven operators.',
-    category: 'Leadership',
-    members: 12,
-    maxMembers: 15,
-    price: 497,
+// Map Circle from API to display format
+function mapCircleToDisplayCircle(circle: Circle): DisplayCircle {
+  return {
+    id: circle.id,
+    name: circle.name,
+    description: circle.description || 'Join this circle to connect with like-minded members.',
+    category: 'General', // Not available in API
+    members: circle.member_count,
+    maxMembers: 100, // Default max, not available in API
+    price: 0, // Free circles - premium pricing not available in API
     priceFrequency: 'monthly',
-    rating: 5.0,
-    reviews: 23,
-    isPurchased: false,
-    isExclusive: true,
-    nextMeeting: 'Every Tuesday, 7 AM PST',
-    leader: { name: 'Michael Chen', initials: 'MC', title: 'Serial Entrepreneur' },
-    benefits: ['Weekly 90-min mastermind calls', 'Private Slack channel', 'Annual retreat invite', '1:1 hot seats monthly'],
-  },
-  {
-    id: 2,
-    name: 'High-Performance Athletes',
-    description: 'For serious athletes and fitness enthusiasts pursuing peak physical performance. Accountability, nutrition, and training optimization.',
-    category: 'Health',
-    members: 28,
-    maxMembers: 30,
-    price: 97,
-    priceFrequency: 'monthly',
-    rating: 4.9,
-    reviews: 67,
-    isPurchased: true,
-    isExclusive: false,
-    nextMeeting: 'Daily 6 AM check-in',
-    leader: { name: 'Sarah Thompson', initials: 'ST', title: 'Performance Coach' },
-    benefits: ['Daily accountability', 'Custom workout plans', 'Nutrition guidance', 'Monthly challenges'],
-  },
-  {
-    id: 3,
-    name: 'Investor Circle',
-    description: 'Connect with active investors to share deal flow, conduct due diligence together, and learn from each other\'s wins and losses.',
-    category: 'Finance',
-    members: 18,
-    maxMembers: 25,
-    price: 297,
-    priceFrequency: 'monthly',
-    rating: 4.8,
-    reviews: 34,
-    isPurchased: false,
-    isExclusive: true,
-    nextMeeting: 'Bi-weekly Thursdays',
-    leader: { name: 'David Wilson', initials: 'DW', title: 'Angel Investor' },
-    benefits: ['Deal flow sharing', 'Due diligence workshops', 'Expert guest speakers', 'Investment thesis reviews'],
-  },
-  {
-    id: 4,
-    name: 'Writers\' Room',
-    description: 'A circle for aspiring and published authors. Weekly writing sprints, feedback sessions, and publishing guidance.',
-    category: 'Creative',
-    members: 35,
-    maxMembers: 40,
-    price: 47,
-    priceFrequency: 'monthly',
-    rating: 4.9,
-    reviews: 89,
-    isPurchased: false,
-    isExclusive: false,
-    nextMeeting: 'Every Saturday, 9 AM',
-    leader: { name: 'Emily Davis', initials: 'ED', title: 'Bestselling Author' },
-    benefits: ['Weekly writing sprints', 'Peer feedback rounds', 'Publishing workshops', 'Author Q&As'],
-  },
-  {
-    id: 5,
-    name: 'Sales Accelerator',
-    description: 'For B2B sales professionals looking to level up. Role plays, pipeline reviews, and proven closing techniques.',
-    category: 'Business',
-    members: 22,
-    maxMembers: 25,
-    price: 147,
-    priceFrequency: 'monthly',
-    rating: 4.7,
-    reviews: 56,
-    isPurchased: false,
-    isExclusive: false,
-    nextMeeting: 'Mondays & Wednesdays',
-    leader: { name: 'James Miller', initials: 'JM', title: 'VP of Sales' },
-    benefits: ['Live role plays', 'Deal coaching', 'Script library access', 'Monthly competitions'],
-  },
-]
+    rating: 0, // Not available in API
+    reviews: 0, // Not available in API
+    isPurchased: circle.is_member,
+    isExclusive: false, // Not available in API
+    nextMeeting: 'Check circle for details',
+    leader: {
+      name: 'Circle Admin',
+      initials: 'CA',
+      title: 'Administrator',
+    },
+    benefits: [],
+  }
+}
 
-const categories = ['All', 'Leadership', 'Health', 'Finance', 'Creative', 'Business']
-
-function CircleCard({ circle }: { circle: PremiumCircle }) {
+function CircleCard({ circle }: { circle: DisplayCircle }) {
   const spotsLeft = circle.maxMembers - circle.members
 
   return (
@@ -142,47 +80,49 @@ function CircleCard({ circle }: { circle: PremiumCircle }) {
       </h3>
       <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{circle.description}</p>
 
-      {/* Leader */}
-      <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-white/[0.03]">
-        <GlassAvatar initials={circle.leader.initials} size="sm" />
-        <div>
-          <p className="text-sm font-medium text-kalkvit">{circle.leader.name}</p>
-          <p className="text-xs text-kalkvit/50">{circle.leader.title}</p>
+      {/* Leader - only show if not default */}
+      {circle.leader.name !== 'Circle Admin' && (
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-white/[0.03]">
+          <GlassAvatar initials={circle.leader.initials} size="sm" />
+          <div>
+            <p className="text-sm font-medium text-kalkvit">{circle.leader.name}</p>
+            <p className="text-xs text-kalkvit/50">{circle.leader.title}</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Stats */}
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
           <Users className="w-4 h-4" />
-          {circle.members}/{circle.maxMembers}
+          {circle.members} members
         </span>
-        <span className="flex items-center gap-1">
-          <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
-          {circle.rating}
-        </span>
-        <span className="flex items-center gap-1">
-          <Calendar className="w-4 h-4" />
-          {circle.nextMeeting.split(',')[0]}
-        </span>
+        {circle.rating > 0 && (
+          <span className="flex items-center gap-1">
+            <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
+            {circle.rating}
+          </span>
+        )}
       </div>
 
-      {/* Benefits preview */}
-      <div className="mb-4">
-        <p className="text-xs text-kalkvit/40 mb-2">Includes:</p>
-        <div className="flex flex-wrap gap-1">
-          {circle.benefits.slice(0, 2).map((benefit, i) => (
-            <span key={i} className="text-xs px-2 py-1 rounded-lg bg-white/[0.06] text-kalkvit/60">
-              {benefit}
-            </span>
-          ))}
-          {circle.benefits.length > 2 && (
-            <span className="text-xs px-2 py-1 text-kalkvit/40">
-              +{circle.benefits.length - 2} more
-            </span>
-          )}
+      {/* Benefits preview - only show if benefits exist */}
+      {circle.benefits.length > 0 && (
+        <div className="mb-4">
+          <p className="text-xs text-kalkvit/40 mb-2">Includes:</p>
+          <div className="flex flex-wrap gap-1">
+            {circle.benefits.slice(0, 2).map((benefit, i) => (
+              <span key={i} className="text-xs px-2 py-1 rounded-lg bg-white/[0.06] text-kalkvit/60">
+                {benefit}
+              </span>
+            ))}
+            {circle.benefits.length > 2 && (
+              <span className="text-xs px-2 py-1 text-kalkvit/40">
+                +{circle.benefits.length - 2} more
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Price and CTA */}
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
@@ -199,20 +139,28 @@ function CircleCard({ circle }: { circle: PremiumCircle }) {
         ) : (
           <>
             <div>
-              <span className="font-display text-2xl font-bold text-kalkvit">
-                ${circle.price}
-              </span>
-              <span className="text-sm text-kalkvit/50">
-                /{circle.priceFrequency === 'monthly' ? 'mo' : 'once'}
-              </span>
-              {spotsLeft <= 5 && (
+              {circle.price > 0 ? (
+                <>
+                  <span className="font-display text-2xl font-bold text-kalkvit">
+                    ${circle.price}
+                  </span>
+                  <span className="text-sm text-kalkvit/50">
+                    /{circle.priceFrequency === 'monthly' ? 'mo' : 'once'}
+                  </span>
+                </>
+              ) : (
+                <span className="font-display text-xl font-bold text-skogsgron">Free</span>
+              )}
+              {spotsLeft <= 5 && circle.maxMembers < 100 && (
                 <p className="text-xs text-tegelrod mt-1">{spotsLeft} spots left</p>
               )}
             </div>
-            <GlassButton variant="primary" className="text-sm">
-              <Lock className="w-4 h-4" />
-              Join Circle
-            </GlassButton>
+            <Link to={`/circles/${circle.id}`}>
+              <GlassButton variant="primary" className="text-sm">
+                View Circle
+                <ChevronRight className="w-4 h-4" />
+              </GlassButton>
+            </Link>
           </>
         )}
       </div>
@@ -223,11 +171,54 @@ function CircleCard({ circle }: { circle: PremiumCircle }) {
 export function ShopCirclesPage() {
   const [selectedCategory, setSelectedCategory] = useState('All')
 
-  const filteredCircles = mockPremiumCircles.filter((circle) => {
+  // API hooks
+  const {
+    data: circlesData,
+    isLoading: isLoadingCircles,
+    error: circlesError,
+  } = useCircles({ limit: 50 })
+
+  const {
+    data: myCirclesData,
+    isLoading: isLoadingMyCircles,
+  } = useMyCircles()
+
+  const allCircles = circlesData?.data || []
+  const myCircles = myCirclesData || []
+
+  // Map API circles to display format
+  const displayCircles: DisplayCircle[] = allCircles.map(mapCircleToDisplayCircle)
+
+  // Get unique categories (currently all 'General' from API, but structure supports future categories)
+  const categories = ['All', ...new Set(displayCircles.map((c) => c.category).filter((c) => c !== 'General'))]
+  if (displayCircles.some((c) => c.category === 'General') && !categories.includes('General')) {
+    categories.push('General')
+  }
+
+  const filteredCircles = displayCircles.filter((circle) => {
     return selectedCategory === 'All' || circle.category === selectedCategory
   })
 
-  const myCirclesCount = mockPremiumCircles.filter((c) => c.isPurchased).length
+  const myCirclesCount = myCircles.length
+  const isLoading = isLoadingCircles || isLoadingMyCircles
+  const error = circlesError
+
+  // Error state
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Failed to load circles</h3>
+            <p className="text-kalkvit/50 text-sm">
+              Please try refreshing the page or check your connection.
+            </p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -241,51 +232,76 @@ export function ShopCirclesPage() {
           </div>
           <GlassCard variant="accent" leftBorder={false} className="px-6 py-3 text-center">
             <p className="text-sm text-kalkvit/60">My Circles</p>
-            <p className="font-display text-2xl font-bold text-kalkvit">{myCirclesCount}</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">
+              {isLoading ? '-' : myCirclesCount}
+            </p>
           </GlassCard>
         </div>
 
-        {/* Info Banner */}
+        {/* Info Banner - Premium circles coming soon */}
         <GlassCard variant="base" className="mb-8 flex items-center gap-4">
           <div className="p-3 rounded-xl bg-koppar/20">
-            <Clock className="w-6 h-6 text-koppar" />
+            <Sparkles className="w-6 h-6 text-koppar" />
           </div>
           <div>
-            <p className="font-medium text-kalkvit">Premium Circles are different from free Circles</p>
+            <p className="font-medium text-kalkvit">Premium Circles Coming Soon</p>
             <p className="text-sm text-kalkvit/60">
-              These are paid, curated groups with limited spots, led by verified experts, and include exclusive benefits.
+              Paid, curated groups with limited spots, led by verified experts, are in development.
+              Browse available circles below or check back soon for premium options.
             </p>
           </div>
         </GlassCard>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={cn(
-                'px-4 py-2 rounded-xl text-sm font-medium transition-all',
-                selectedCategory === category
-                  ? 'bg-koppar text-kalkvit'
-                  : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1] hover:text-kalkvit'
-              )}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
+        {/* Filters - only show if multiple categories exist */}
+        {categories.length > 1 && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={cn(
+                  'px-4 py-2 rounded-xl text-sm font-medium transition-all',
+                  selectedCategory === category
+                    ? 'bg-koppar text-kalkvit'
+                    : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1] hover:text-kalkvit'
+                )}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          </div>
+        )}
 
         {/* Circles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCircles.map((circle) => (
-            <CircleCard key={circle.id} circle={circle} />
-          ))}
-        </div>
+        {!isLoading && filteredCircles.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCircles.map((circle) => (
+              <CircleCard key={circle.id} circle={circle} />
+            ))}
+          </div>
+        )}
 
-        {filteredCircles.length === 0 && (
+        {/* Empty state */}
+        {!isLoading && filteredCircles.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
-            <p className="text-kalkvit/60">No circles found in this category.</p>
+            <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">No circles available yet</h3>
+            <p className="text-kalkvit/50 text-sm mb-4">
+              Premium circles are coming soon. Check out our free circles in the meantime.
+            </p>
+            <Link to="/circles">
+              <GlassButton variant="primary">
+                Browse Free Circles
+                <ChevronRight className="w-4 h-4" />
+              </GlassButton>
+            </Link>
           </GlassCard>
         )}
       </div>
