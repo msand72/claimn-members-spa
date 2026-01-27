@@ -1,60 +1,73 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
-import { Search, UserPlus, UserCheck, MessageCircle, MoreHorizontal } from 'lucide-react'
+import { Search, UserPlus, UserCheck, MessageCircle, MoreHorizontal, Loader2, Users } from 'lucide-react'
 import { cn } from '../lib/utils'
-
-interface Connection {
-  id: number
-  name: string
-  initials: string
-  role: string
-  location: string
-  mutualConnections: number
-  isConnected: boolean
-  isPending: boolean
-}
-
-const mockConnections: Connection[] = [
-  { id: 1, name: 'John Davidson', initials: 'JD', role: 'Entrepreneur', location: 'New York, USA', mutualConnections: 12, isConnected: true, isPending: false },
-  { id: 2, name: 'Michael Chen', initials: 'MC', role: 'Expert Coach', location: 'Los Angeles, USA', mutualConnections: 8, isConnected: true, isPending: false },
-  { id: 3, name: 'Sarah Williams', initials: 'SW', role: 'Business Owner', location: 'Chicago, USA', mutualConnections: 5, isConnected: true, isPending: false },
-  { id: 4, name: 'David Miller', initials: 'DM', role: 'Investor', location: 'Miami, USA', mutualConnections: 15, isConnected: true, isPending: false },
-  { id: 5, name: 'Robert Johnson', initials: 'RJ', role: 'Startup Founder', location: 'Austin, USA', mutualConnections: 3, isConnected: false, isPending: true },
-  { id: 6, name: 'Emily Davis', initials: 'ED', role: 'Marketing Lead', location: 'Seattle, USA', mutualConnections: 7, isConnected: false, isPending: false },
-]
+import {
+  useConnections,
+  usePendingConnections,
+  useAcceptConnection,
+  useRejectConnection,
+  useRemoveConnection,
+  useNetworkSuggestions,
+  useSendConnectionRequest,
+  type Connection,
+} from '../lib/api'
+import { useAuth } from '../contexts/AuthContext'
 
 const tabs = ['All', 'Connected', 'Pending', 'Suggestions']
 
-function ConnectionCard({ connection }: { connection: Connection }) {
-  const [isConnected] = useState(connection.isConnected)
-  const [isPending, setIsPending] = useState(connection.isPending)
+interface ConnectionCardProps {
+  connection: Connection
+  currentUserId?: string
+  onAccept?: () => void
+  onReject?: () => void
+  isAccepting?: boolean
+  isRejecting?: boolean
+}
 
-  const handleConnect = () => {
-    if (!isConnected && !isPending) {
-      setIsPending(true)
-    }
-  }
+function ConnectionCard({ connection, currentUserId, onAccept, onReject, isAccepting, isRejecting }: ConnectionCardProps) {
+  // Determine which user is the "other" person
+  const otherUser = connection.requester_id === currentUserId
+    ? connection.recipient
+    : connection.requester
+
+  const displayName = otherUser?.display_name || 'Unknown'
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
+  const location = [otherUser?.city, otherUser?.country].filter(Boolean).join(', ')
+  const isConnected = connection.status === 'accepted'
+  const isPending = connection.status === 'pending'
+  const isIncoming = isPending && connection.recipient_id === currentUserId
 
   return (
     <GlassCard variant="base" className="p-4 overflow-hidden">
       <div className="flex items-start gap-4">
-        <GlassAvatar initials={connection.initials} size="lg" />
+        <GlassAvatar initials={initials} size="lg" />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="font-semibold text-kalkvit">{connection.name}</h3>
-              <p className="text-sm text-kalkvit/60">{connection.role}</p>
-              <p className="text-xs text-kalkvit/40 mt-1">{connection.location}</p>
+              <h3 className="font-semibold text-kalkvit">{displayName}</h3>
+              {otherUser?.archetype && (
+                <p className="text-sm text-kalkvit/60">{otherUser.archetype}</p>
+              )}
+              {location && (
+                <p className="text-xs text-kalkvit/40 mt-1">{location}</p>
+              )}
             </div>
             <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit">
               <MoreHorizontal className="w-4 h-4" />
             </button>
           </div>
 
-          <p className="text-xs text-kalkvit/50 mt-2">
-            {connection.mutualConnections} mutual connections
-          </p>
+          {otherUser?.bio && (
+            <p className="text-xs text-kalkvit/50 mt-2 line-clamp-2">{otherUser.bio}</p>
+          )}
 
           <div className="flex items-center gap-2 mt-4 overflow-hidden">
             {isConnected ? (
@@ -68,16 +81,30 @@ function ConnectionCard({ connection }: { connection: Connection }) {
                   Connected
                 </GlassBadge>
               </>
+            ) : isIncoming ? (
+              <div className="flex gap-2 w-full">
+                <GlassButton
+                  variant="primary"
+                  className="flex-1"
+                  onClick={onAccept}
+                  disabled={isAccepting}
+                >
+                  {isAccepting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Accept'}
+                </GlassButton>
+                <GlassButton
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={onReject}
+                  disabled={isRejecting}
+                >
+                  {isRejecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Decline'}
+                </GlassButton>
+              </div>
             ) : isPending ? (
               <GlassBadge variant="warning" className="w-full justify-center py-2">
-                Request Pending
+                Request Sent
               </GlassBadge>
-            ) : (
-              <GlassButton variant="primary" className="w-full" onClick={handleConnect}>
-                <UserPlus className="w-4 h-4 shrink-0" />
-                <span className="truncate">Connect</span>
-              </GlassButton>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -86,25 +113,68 @@ function ConnectionCard({ connection }: { connection: Connection }) {
 }
 
 export function ConnectionsPage() {
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredConnections = mockConnections.filter((conn) => {
-    const matchesSearch = conn.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conn.role.toLowerCase().includes(searchQuery.toLowerCase())
+  // Fetch connections from API
+  const {
+    data: connectionsData,
+    isLoading: connectionsLoading,
+    error: connectionsError,
+  } = useConnections({ status: activeTab === 'Connected' ? 'accepted' : undefined, limit: 50 })
+
+  const {
+    data: pendingData,
+    isLoading: pendingLoading,
+  } = usePendingConnections()
+
+  const {
+    data: suggestionsData,
+    isLoading: suggestionsLoading,
+  } = useNetworkSuggestions(10)
+
+  const acceptConnection = useAcceptConnection()
+  const rejectConnection = useRejectConnection()
+  const sendConnection = useSendConnectionRequest()
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[ConnectionsPage] Connections state:', {
+      loading: connectionsLoading,
+      error: connectionsError,
+      data: connectionsData,
+      pendingData,
+      suggestionsData,
+    })
+  }, [connectionsData, connectionsLoading, connectionsError, pendingData, suggestionsData])
+
+  const connections = connectionsData?.data || []
+  const pendingConnections = pendingData?.data || []
+  const suggestions = suggestionsData || []
+
+  // Filter based on search and tab
+  const filteredConnections = connections.filter((conn) => {
+    const otherUser = conn.requester_id === user?.id ? conn.recipient : conn.requester
+    const name = otherUser?.display_name || ''
+    const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase())
 
     if (activeTab === 'All') return matchesSearch
-    if (activeTab === 'Connected') return matchesSearch && conn.isConnected
-    if (activeTab === 'Pending') return matchesSearch && conn.isPending
-    if (activeTab === 'Suggestions') return matchesSearch && !conn.isConnected && !conn.isPending
+    if (activeTab === 'Connected') return matchesSearch && conn.status === 'accepted'
+    if (activeTab === 'Pending') return matchesSearch && conn.status === 'pending'
     return matchesSearch
   })
 
+  // Show suggestions when on that tab
+  const displayItems = activeTab === 'Suggestions' ? suggestions : filteredConnections
+
   const stats = {
-    total: mockConnections.filter(c => c.isConnected).length,
-    pending: mockConnections.filter(c => c.isPending).length,
-    suggestions: mockConnections.filter(c => !c.isConnected && !c.isPending).length,
+    total: connections.filter(c => c.status === 'accepted').length,
+    pending: pendingConnections.length,
+    suggestions: suggestions.length,
   }
+
+  const isLoading = connectionsLoading || (activeTab === 'Pending' && pendingLoading) || (activeTab === 'Suggestions' && suggestionsLoading)
 
   return (
     <MainLayout>

@@ -1,7 +1,26 @@
 import { supabase } from '../supabase'
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+// Auto-detect production based on hostname, fallback to env var or localhost
+function getApiBaseUrl(): string {
+  // If env var is explicitly set, use it
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+
+  // Auto-detect production based on hostname
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    if (hostname === 'members.claimn.co' || hostname === 'www.members.claimn.co') {
+      return 'https://api.claimn.co'
+    }
+  }
+
+  // Default to localhost for development
+  return 'http://localhost:3001'
+}
+
+const API_BASE_URL = getApiBaseUrl()
 const API_PREFIX = '/api/v2'
 
 export const API_URL = `${API_BASE_URL}${API_PREFIX}`
