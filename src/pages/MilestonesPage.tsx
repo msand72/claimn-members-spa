@@ -1,4 +1,20 @@
+/**
+ * TODO: Backend API Implementation Required
+ *
+ * This page displays milestones assigned by experts/facilitators to track user progress.
+ * Currently showing a "coming soon" placeholder as the milestones API endpoint does not exist yet.
+ *
+ * Required API endpoints:
+ * - GET /members/milestones - List user's milestones
+ * - GET /members/milestones/:id - Get single milestone
+ * - PUT /members/milestones/:id - Update milestone status/notes
+ *
+ * The milestone feature is different from Goals (self-set by users) as milestones are
+ * assigned collaboratively by experts during coaching sessions.
+ */
+
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
   GlassCard,
@@ -20,6 +36,7 @@ import {
   AlertTriangle,
   Trophy,
   MessageSquare,
+  Construction,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -40,7 +57,12 @@ interface Milestone {
   updatedAt: string
 }
 
-// Mock milestones data (assigned by expert/facilitator)
+// Feature flag to show placeholder or mock data
+// Set to true when milestones API is implemented
+const MILESTONES_API_AVAILABLE = false
+
+// Mock milestones data for development/preview purposes
+// This will be replaced with API data when MILESTONES_API_AVAILABLE is true
 const mockMilestones: Milestone[] = [
   {
     id: '1',
@@ -51,7 +73,7 @@ const mockMilestones: Milestone[] = [
     status: 'on_track',
     createdBy: {
       id: 'exp1',
-      name: 'Erik Lindström',
+      name: 'Erik Lindstrom',
       role: 'expert',
     },
     progressNotes: 'Week 3: Showing good progress with sleep schedule. Continue with current approach.',
@@ -67,7 +89,7 @@ const mockMilestones: Milestone[] = [
     status: 'pending',
     createdBy: {
       id: 'exp1',
-      name: 'Erik Lindström',
+      name: 'Erik Lindstrom',
       role: 'expert',
     },
     progressNotes: null,
@@ -83,7 +105,7 @@ const mockMilestones: Milestone[] = [
     status: 'on_track',
     createdBy: {
       id: 'exp1',
-      name: 'Erik Lindström',
+      name: 'Erik Lindstrom',
       role: 'expert',
     },
     progressNotes: 'Breathwork practice established. Working on mindfulness next.',
@@ -99,7 +121,7 @@ const mockMilestones: Milestone[] = [
     status: 'pending',
     createdBy: {
       id: 'exp1',
-      name: 'Erik Lindström',
+      name: 'Erik Lindstrom',
       role: 'expert',
     },
     progressNotes: null,
@@ -233,6 +255,10 @@ export function MilestonesPage() {
   const [updateNotes, setUpdateNotes] = useState('')
   const [filter, setFilter] = useState<'all' | MilestoneStatus>('all')
 
+  // When API is available, replace mockMilestones with API data
+  // const { data: milestones, isLoading, error } = useMilestones()
+  const milestones = MILESTONES_API_AVAILABLE ? [] : mockMilestones
+
   const handleUpdateStatus = (milestone: Milestone) => {
     setSelectedMilestone(milestone)
     setUpdateNotes(milestone.progressNotes || '')
@@ -247,18 +273,18 @@ export function MilestonesPage() {
 
   const filteredMilestones =
     filter === 'all'
-      ? mockMilestones
-      : mockMilestones.filter((m) => m.status === filter)
+      ? milestones
+      : milestones.filter((m) => m.status === filter)
 
   // Stats
-  const totalMilestones = mockMilestones.length
-  const onTrackCount = mockMilestones.filter((m) => m.status === 'on_track').length
-  const achievedCount = mockMilestones.filter((m) => m.status === 'achieved').length
-  const delayedCount = mockMilestones.filter((m) => m.status === 'delayed').length
+  const totalMilestones = milestones.length
+  const onTrackCount = milestones.filter((m) => m.status === 'on_track').length
+  const achievedCount = milestones.filter((m) => m.status === 'achieved').length
+  const delayedCount = milestones.filter((m) => m.status === 'delayed').length
 
   // Group by pillar for visualization
   const pillarProgress = Object.keys(PILLARS).map((pillarId) => {
-    const pillarMilestones = mockMilestones.filter((m) => m.pillar === pillarId)
+    const pillarMilestones = milestones.filter((m) => m.pillar === pillarId)
     const achieved = pillarMilestones.filter((m) => m.status === 'achieved').length
     const total = pillarMilestones.length
     return {
@@ -268,6 +294,67 @@ export function MilestonesPage() {
       progress: total > 0 ? Math.round((achieved / total) * 100) : 0,
     }
   })
+
+  // Show coming soon placeholder if API is not available
+  if (MILESTONES_API_AVAILABLE && milestones.length === 0) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
+            <div>
+              <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">6-Month Milestones</h1>
+              <p className="text-kalkvit/60">
+                Key milestones assigned by your expert to track your transformation journey
+              </p>
+            </div>
+          </div>
+
+          {/* Coming Soon Placeholder */}
+          <GlassCard variant="elevated" className="text-center py-16">
+            <Construction className="w-16 h-16 text-koppar mx-auto mb-6" />
+            <h2 className="font-display text-2xl font-bold text-kalkvit mb-3">
+              Milestones Feature Coming Soon
+            </h2>
+            <p className="text-kalkvit/60 max-w-md mx-auto mb-6">
+              Track your 6-month transformation journey with milestones set collaboratively
+              with your expert during coaching sessions. This feature is currently being developed.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/coaching">
+                <GlassButton variant="primary">
+                  <User className="w-4 h-4" />
+                  Book Expert Session
+                </GlassButton>
+              </Link>
+              <Link to="/goals">
+                <GlassButton variant="secondary">
+                  <Flag className="w-4 h-4" />
+                  View Your Goals
+                </GlassButton>
+              </Link>
+            </div>
+          </GlassCard>
+
+          {/* Info Card */}
+          <GlassCard variant="accent" className="mt-8">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center flex-shrink-0">
+                <Flag className="w-6 h-6 text-koppar" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-kalkvit mb-2">What are Milestones?</h3>
+                <p className="text-sm text-kalkvit/60">
+                  Unlike personal goals you set yourself, milestones are significant checkpoints
+                  established with your expert to track your transformation journey. They are
+                  designed to be achievable within 6 months and cover all five pillars of growth.
+                </p>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>

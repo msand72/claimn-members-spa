@@ -1,4 +1,21 @@
+/**
+ * TODO: Backend API Implementation Required
+ *
+ * This page displays accountability groups where members support each other.
+ * Currently showing a "coming soon" placeholder as the accountability API endpoint does not exist yet.
+ *
+ * Required API endpoints:
+ * - GET /members/accountability/groups - List user's accountability groups
+ * - GET /members/accountability/groups/:id - Get single group details
+ * - GET /members/accountability/groups/:id/check-ins - Get group check-ins
+ * - POST /members/accountability/groups/:id/check-ins - Create a check-in
+ *
+ * Accountability groups are typically trios or pairs formed within programs
+ * to provide peer support and motivation.
+ */
+
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
   GlassCard,
@@ -21,6 +38,8 @@ import {
   Clock,
   Send,
   Flame,
+  Construction,
+  ArrowRight,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -116,7 +135,7 @@ const mockCheckIns: CheckIn[] = [
     memberName: 'Johan Eriksson',
     content: 'Hit my sleep target for 7 days straight! The wind-down routine is really working. Feeling more energized during workouts.',
     createdAt: '2026-01-27T07:30:00',
-    reactions: [{ emoji: '🔥', count: 2 }, { emoji: '💪', count: 1 }],
+    reactions: [{ emoji: 'fire', count: 2 }, { emoji: 'muscle', count: 1 }],
   },
   {
     id: 'c2',
@@ -124,7 +143,7 @@ const mockCheckIns: CheckIn[] = [
     memberName: 'Marcus Lindqvist',
     content: 'Struggled with meditation this week - only 3 out of 7 days. Going to try shorter sessions (5 min) to build consistency.',
     createdAt: '2026-01-26T18:45:00',
-    reactions: [{ emoji: '🙏', count: 2 }],
+    reactions: [{ emoji: 'pray', count: 2 }],
   },
   {
     id: 'c3',
@@ -132,9 +151,13 @@ const mockCheckIns: CheckIn[] = [
     memberName: 'You',
     content: 'Completed my values mapping exercise! Feeling clearer about what matters. Will share insights at our next call.',
     createdAt: '2026-01-25T20:00:00',
-    reactions: [{ emoji: '⭐', count: 2 }, { emoji: '🎯', count: 1 }],
+    reactions: [{ emoji: 'star', count: 2 }, { emoji: 'target', count: 1 }],
   },
 ]
+
+// Feature flag to show placeholder or mock data
+// Set to true when accountability API is implemented
+const ACCOUNTABILITY_API_AVAILABLE = false
 
 function MemberCard({ member, isCurrentUser }: { member: AccountabilityMember; isCurrentUser: boolean }) {
   return (
@@ -231,13 +254,119 @@ export function AccountabilityPage() {
   const [showCheckInModal, setShowCheckInModal] = useState(false)
   const [checkInMessage, setCheckInMessage] = useState('')
 
-  const group = mockGroup
+  // When API is available, replace mock data with API data
+  // const { data: groups, isLoading, error } = useAccountabilityGroups()
+  const group = ACCOUNTABILITY_API_AVAILABLE ? null : mockGroup
+  const checkIns = ACCOUNTABILITY_API_AVAILABLE ? [] : mockCheckIns
   const currentUserId = 'me'
 
   const handleSubmitCheckIn = () => {
     console.log('Submitting check-in:', checkInMessage)
     setShowCheckInModal(false)
     setCheckInMessage('')
+  }
+
+  // Show coming soon placeholder if API is not available or no groups exist
+  if (ACCOUNTABILITY_API_AVAILABLE && !group) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
+            <div>
+              <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Accountability</h1>
+              <p className="text-kalkvit/60">Stay connected with your accountability partners</p>
+            </div>
+          </div>
+
+          {/* Coming Soon Placeholder */}
+          <GlassCard variant="elevated" className="text-center py-16">
+            <Construction className="w-16 h-16 text-koppar mx-auto mb-6" />
+            <h2 className="font-display text-2xl font-bold text-kalkvit mb-3">
+              Accountability Groups Coming Soon
+            </h2>
+            <p className="text-kalkvit/60 max-w-md mx-auto mb-6">
+              Connect with like-minded members in accountability trios or pairs. Support each other,
+              share progress, and stay motivated on your transformation journey.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/programs">
+                <GlassButton variant="primary">
+                  <Users className="w-4 h-4" />
+                  Join a Program
+                  <ArrowRight className="w-4 h-4" />
+                </GlassButton>
+              </Link>
+              <Link to="/circles">
+                <GlassButton variant="secondary">
+                  <MessageCircle className="w-4 h-4" />
+                  Explore Circles
+                </GlassButton>
+              </Link>
+            </div>
+          </GlassCard>
+
+          {/* Info Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <GlassCard variant="base">
+              <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-koppar" />
+              </div>
+              <h3 className="font-semibold text-kalkvit mb-2">Small Groups</h3>
+              <p className="text-sm text-kalkvit/60">
+                Trios and pairs provide intimate support where every member matters. Build deep connections with your partners.
+              </p>
+            </GlassCard>
+            <GlassCard variant="base">
+              <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center mb-4">
+                <CheckCircle2 className="w-6 h-6 text-koppar" />
+              </div>
+              <h3 className="font-semibold text-kalkvit mb-2">Regular Check-ins</h3>
+              <p className="text-sm text-kalkvit/60">
+                Share your wins, challenges, and progress with partners who understand your journey.
+              </p>
+            </GlassCard>
+            <GlassCard variant="base">
+              <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center mb-4">
+                <Calendar className="w-6 h-6 text-koppar" />
+              </div>
+              <h3 className="font-semibold text-kalkvit mb-2">Weekly Meetings</h3>
+              <p className="text-sm text-kalkvit/60">
+                Scheduled calls keep everyone aligned and accountable. Never lose momentum on your goals.
+              </p>
+            </GlassCard>
+          </div>
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // If we have no group (shouldn't happen with mock data, but safety check)
+  if (!group) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
+            <div>
+              <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Accountability</h1>
+              <p className="text-kalkvit/60">Stay connected with your accountability partners</p>
+            </div>
+          </div>
+          <GlassCard variant="base" className="text-center py-12">
+            <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">No accountability group yet</h3>
+            <p className="text-kalkvit/50 text-sm mb-4">
+              Join a program to be matched with accountability partners.
+            </p>
+            <Link to="/programs">
+              <GlassButton variant="primary">
+                Browse Programs
+                <ArrowRight className="w-4 h-4" />
+              </GlassButton>
+            </Link>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
   }
 
   // Calculate group stats
@@ -357,7 +486,7 @@ export function AccountabilityPage() {
               Recent Check-ins
             </h3>
             <div className="space-y-4">
-              {mockCheckIns.map((checkIn) => (
+              {checkIns.map((checkIn) => (
                 <CheckInCard
                   key={checkIn.id}
                   checkIn={checkIn}
