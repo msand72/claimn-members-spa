@@ -18,10 +18,107 @@
 ## MANDATORY First Steps
 
 1. **Read the migration docs** in `/claimn-web/docs/migration 2.0/`
-2. **Get the full database schema** from Supabase (see instructions below)
+2. **Get the full database schema** from Supabase (see Database Schema Discovery section below)
 3. **Check the constants** in `src/lib/constants.ts`
 4. **Read Glass Component Kit 2** at `/claimn-web/docs/migration 2.0/Glass Component Kit 2.tsx`
 5. **NEVER guess** table names, column names, or data types
+
+---
+
+## 🔍 DATABASE SCHEMA DISCOVERY
+
+### Supabase Connection Details
+
+```
+Project URL: https://onzzadpetfvpfbpfylmt.supabase.co
+Anon Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uenphZHBldGZ2cGZicGZ5bG10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4NzczNjIsImV4cCI6MjA2OTQ1MzM2Mn0.NSqBSkD-I881sM9yppxiTtK7O9qCS_QrZ3wx5YjVQZk
+Service Role Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uenphZHBldGZ2cGZicGZ5bG10Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mzg3NzM2MiwiZXhwIjoyMDY5NDUzMzYyfQ.A7AE43uGV2VPs9_ck8e-jn345nkshXWUyqYvWRAbum4
+```
+
+### Run These SQL Queries (in Supabase SQL Editor)
+
+**Query 1: List ALL tables in public schema**
+```sql
+SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'public'
+ORDER BY table_name;
+```
+
+**Query 2: Get ALL columns for ALL tables**
+```sql
+SELECT
+  table_name,
+  column_name,
+  data_type,
+  is_nullable,
+  column_default
+FROM information_schema.columns
+WHERE table_schema = 'public'
+ORDER BY table_name, ordinal_position;
+```
+
+**Query 3: Get foreign key relationships**
+```sql
+SELECT
+  tc.table_name,
+  kcu.column_name,
+  ccu.table_name AS foreign_table_name,
+  ccu.column_name AS foreign_column_name
+FROM information_schema.table_constraints AS tc
+JOIN information_schema.key_column_usage AS kcu
+  ON tc.constraint_name = kcu.constraint_name
+  AND tc.table_schema = kcu.table_schema
+JOIN information_schema.constraint_column_usage AS ccu
+  ON ccu.constraint_name = tc.constraint_name
+WHERE tc.constraint_type = 'FOREIGN KEY'
+  AND tc.table_schema = 'public'
+ORDER BY tc.table_name;
+```
+
+**Query 4: Get check constraints (enum values)**
+```sql
+SELECT
+  tc.table_name,
+  tc.constraint_name,
+  cc.check_clause
+FROM information_schema.table_constraints tc
+JOIN information_schema.check_constraints cc
+  ON tc.constraint_name = cc.constraint_name
+WHERE tc.table_schema = 'public'
+  AND tc.constraint_type = 'CHECK'
+ORDER BY tc.table_name;
+```
+
+**Query 5: Get RLS policies**
+```sql
+SELECT
+  tablename,
+  policyname,
+  permissive,
+  roles,
+  cmd as command,
+  qual as using_expression
+FROM pg_policies
+WHERE schemaname = 'public'
+ORDER BY tablename, policyname;
+```
+
+### Test User for API Testing
+
+```
+Email: apitest@claimn.com
+Password: TestPassword123!
+User ID: dc0581ab-9f27-41e8-b7f3-8486157ebfa8
+```
+
+**Get JWT token via curl:**
+```bash
+curl -X POST 'https://onzzadpetfvpfbpfylmt.supabase.co/auth/v1/token?grant_type=password' \
+  -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uenphZHBldGZ2cGZicGZ5bG10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4NzczNjIsImV4cCI6MjA2OTQ1MzM2Mn0.NSqBSkD-I881sM9yppxiTtK7O9qCS_QrZ3wx5YjVQZk' \
+  -H 'Content-Type: application/json' \
+  -d '{"email": "apitest@claimn.com", "password": "TestPassword123!"}'
+```
 
 ---
 
