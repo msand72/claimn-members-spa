@@ -111,8 +111,8 @@ function SessionCard({ session }: { session: CoachingSession }) {
 
           {/* Actions */}
           <div className="flex items-center gap-2 pt-3 border-t border-white/10">
-            {session.status === 'scheduled' && (
-              <GlassButton variant="primary" className="text-sm">
+            {session.status === 'scheduled' && session.meeting_url && (
+              <GlassButton variant="primary" className="text-sm" onClick={() => window.open(session.meeting_url, '_blank')}>
                 Join Session
                 <ChevronRight className="w-4 h-4" />
               </GlassButton>
@@ -126,7 +126,7 @@ function SessionCard({ session }: { session: CoachingSession }) {
               </Link>
             )}
             {session.has_recording && (
-              <GlassButton variant="ghost" className="text-sm">
+              <GlassButton variant="ghost" className="text-sm" onClick={() => window.open(session.recording_url, '_blank')}>
                 <Play className="w-4 h-4" />
                 Recording
               </GlassButton>

@@ -1,86 +1,168 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassTextarea, GlassAvatar, GlassBadge } from '../components/ui'
-import { ArrowLeft, Calendar, Clock, Target, CheckCircle, Edit3, Save, Plus, Trash2 } from 'lucide-react'
-
-interface SessionNote {
-  id: number
-  sessionId: number
-  sessionTitle: string
-  coach: {
-    name: string
-    initials: string
-  }
-  date: string
-  duration: number
-  goals: string[]
-  keyTakeaways: string[]
-  actionItems: { text: string; completed: boolean }[]
-  personalNotes: string
-}
-
-const mockSessionNote: SessionNote = {
-  id: 1,
-  sessionId: 2,
-  sessionTitle: 'Leadership Development Review',
-  coach: { name: 'Michael Chen', initials: 'MC' },
-  date: 'January 20, 2026',
-  duration: 60,
-  goals: ['Review delegation progress', 'Discuss team feedback', 'Plan next steps'],
-  keyTakeaways: [
-    'Delegation is about trust, not just task assignment',
-    'Team feedback shows improvement in communication clarity',
-    'Need to focus on strategic thinking vs. tactical execution',
-    'Weekly 1:1s are critical for team alignment',
-  ],
-  actionItems: [
-    { text: 'Schedule 1:1s with all direct reports by Friday', completed: true },
-    { text: 'Create delegation framework document', completed: false },
-    { text: 'Review Q1 strategic priorities', completed: false },
-    { text: 'Set up feedback loop with team leads', completed: true },
-  ],
-  personalNotes: 'Great session! Michael helped me realize that my tendency to micromanage comes from a fear of things going wrong. Need to trust my team more and focus on outcomes rather than processes. The delegation framework idea is really valuable - will make this a priority this week.',
-}
-
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Target,
+  CheckCircle,
+  Edit3,
+  Save,
+  Plus,
+  Trash2,
+  Loader2,
+  AlertTriangle,
+} from 'lucide-react'
+import { useCoachingSession, useSessionNotes, useUpdateSessionNotes } from '../lib/api/hooks'
+import type { SessionActionItem, UpdateSessionNoteRequest } from '../lib/api/types'
 export function SessionNotesPage() {
   const [searchParams] = useSearchParams()
-  const sessionId = searchParams.get('id')
+  const sessionId = searchParams.get('id') ?? ''
 
-  // In real app, would fetch based on sessionId
-  void sessionId // Mark as intentionally unused for now
+  // --- API hooks ---
+  const {
+    data: session,
+    isLoading: sessionLoading,
+    isError: sessionError,
+    refetch: refetchSession,
+  } = useCoachingSession(sessionId)
 
+  const {
+    data: notes,
+    isLoading: notesLoading,
+    isError: notesError,
+    refetch: refetchNotes,
+  } = useSessionNotes(sessionId)
+
+  const updateNotes = useUpdateSessionNotes()
+
+  // --- Local UI state ---
   const [isEditing, setIsEditing] = useState(false)
-  const [note, setNote] = useState(mockSessionNote)
+  const [editedPersonalNotes, setEditedPersonalNotes] = useState('')
   const [newActionItem, setNewActionItem] = useState('')
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
+  // Helper to persist note updates
+  const persistNotes = useCallback(
+    (data: UpdateSessionNoteRequest) => {
+      updateNotes.mutate(
+        { sessionId, data },
+        {
+          onSuccess: () => {
+            setSaveSuccess(true)
+            setTimeout(() => setSaveSuccess(false), 2000)
+          },
+        },
+      )
+    },
+    [sessionId, updateNotes],
+  )
+
+  // --- Action item handlers ---
   const handleToggleActionItem = (index: number) => {
-    const updated = [...note.actionItems]
-    updated[index].completed = !updated[index].completed
-    setNote({ ...note, actionItems: updated })
+    if (!notes) return
+    const updated: SessionActionItem[] = notes.action_items.map((item, i) =>
+      i === index ? { ...item, completed: !item.completed } : item,
+    )
+    persistNotes({ action_items: updated })
   }
 
   const handleAddActionItem = () => {
-    if (newActionItem.trim()) {
-      setNote({
-        ...note,
-        actionItems: [...note.actionItems, { text: newActionItem.trim(), completed: false }],
-      })
-      setNewActionItem('')
+    if (!notes || !newActionItem.trim()) return
+    const newItem: SessionActionItem = {
+      id: crypto.randomUUID(),
+      text: newActionItem.trim(),
+      completed: false,
     }
+    persistNotes({ action_items: [...notes.action_items, newItem] })
+    setNewActionItem('')
   }
 
   const handleDeleteActionItem = (index: number) => {
-    const updated = note.actionItems.filter((_, i) => i !== index)
-    setNote({ ...note, actionItems: updated })
+    if (!notes) return
+    const updated = notes.action_items.filter((_, i) => i !== index)
+    persistNotes({ action_items: updated })
   }
 
-  const completedCount = note.actionItems.filter((a) => a.completed).length
-  const progress = Math.round((completedCount / note.actionItems.length) * 100)
+  // --- Personal notes handlers ---
+  const handleStartEditing = () => {
+    if (!notes) return
+    setEditedPersonalNotes(notes.personal_notes)
+    setIsEditing(true)
+  }
+
+  const handleSavePersonalNotes = () => {
+    persistNotes({ personal_notes: editedPersonalNotes })
+    setIsEditing(false)
+  }
+
+  // --- Loading state ---
+  const isLoading = sessionLoading || notesLoading
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // --- Error state ---
+  const isError = sessionError || notesError
+  if (isError || !session || !notes) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <AlertTriangle className="w-8 h-8 text-tegelrod" />
+          <p className="text-kalkvit/70">Failed to load session notes.</p>
+          <GlassButton
+            variant="secondary"
+            onClick={() => {
+              refetchSession()
+              refetchNotes()
+            }}
+          >
+            Retry
+          </GlassButton>
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // --- Derived data ---
+  const completedCount = notes.action_items.filter((a) => a.completed).length
+  const progress =
+    notes.action_items.length > 0
+      ? Math.round((completedCount / notes.action_items.length) * 100)
+      : 0
+
+  const coachName = session.expert?.name ?? 'Coach'
+  const coachInitials = coachName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
+  const formattedDate = new Date(session.scheduled_at).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 
   return (
     <MainLayout>
       <div className="max-w-3xl mx-auto">
+        {/* Save confirmation */}
+        {saveSuccess && (
+          <div className="mb-4 text-center text-sm text-skogsgron font-medium">
+            Changes saved successfully
+          </div>
+        )}
+
         {/* Back Link */}
         <Link
           to="/coaching/sessions"
@@ -94,20 +176,20 @@ export function SessionNotesPage() {
         <GlassCard variant="elevated" className="mb-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex gap-4">
-              <GlassAvatar initials={note.coach.initials} size="lg" />
+              <GlassAvatar initials={coachInitials} size="lg" />
               <div>
                 <h1 className="font-display text-2xl font-bold text-kalkvit mb-1">
-                  {note.sessionTitle}
+                  {session.title}
                 </h1>
-                <p className="text-koppar">{note.coach.name}</p>
+                <p className="text-koppar">{coachName}</p>
                 <div className="flex items-center gap-4 mt-2 text-sm text-kalkvit/60">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    {note.date}
+                    {formattedDate}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {note.duration} min
+                    {session.duration} min
                   </span>
                 </div>
               </div>
@@ -122,7 +204,7 @@ export function SessionNotesPage() {
               Session Goals
             </p>
             <div className="flex flex-wrap gap-2">
-              {note.goals.map((goal, i) => (
+              {session.goals.map((goal, i) => (
                 <span
                   key={i}
                   className="text-sm px-3 py-1 rounded-lg bg-white/[0.06] text-kalkvit/70"
@@ -138,7 +220,7 @@ export function SessionNotesPage() {
         <GlassCard variant="base" className="mb-6">
           <h2 className="font-semibold text-kalkvit mb-4">Key Takeaways</h2>
           <ul className="space-y-3">
-            {note.keyTakeaways.map((takeaway, i) => (
+            {notes.key_takeaways.map((takeaway, i) => (
               <li key={i} className="flex items-start gap-3 text-kalkvit/80">
                 <span className="text-koppar mt-1">•</span>
                 {takeaway}
@@ -153,7 +235,7 @@ export function SessionNotesPage() {
             <h2 className="font-semibold text-kalkvit">Action Items</h2>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-kalkvit/50">
-                {completedCount}/{note.actionItems.length} completed
+                {completedCount}/{notes.action_items.length} completed
               </span>
               <div className="w-24 h-2 bg-white/[0.06] rounded-full overflow-hidden">
                 <div
@@ -165,14 +247,15 @@ export function SessionNotesPage() {
           </div>
 
           <div className="space-y-2 mb-4">
-            {note.actionItems.map((item, i) => (
+            {notes.action_items.map((item, i) => (
               <div
-                key={i}
+                key={item.id}
                 className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] group"
               >
                 <button
                   onClick={() => handleToggleActionItem(i)}
                   className="flex items-center gap-3 flex-1 text-left"
+                  disabled={updateNotes.isPending}
                 >
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
@@ -194,6 +277,7 @@ export function SessionNotesPage() {
                 <button
                   onClick={() => handleDeleteActionItem(i)}
                   className="opacity-0 group-hover:opacity-100 p-1 text-kalkvit/40 hover:text-tegelrod transition-all"
+                  disabled={updateNotes.isPending}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -210,8 +294,13 @@ export function SessionNotesPage() {
               onKeyDown={(e) => e.key === 'Enter' && handleAddActionItem()}
               placeholder="Add new action item..."
               className="flex-1 px-4 py-2 bg-white/[0.05] border border-white/[0.1] rounded-xl text-kalkvit placeholder-kalkvit/40 focus:outline-none focus:border-koppar/50"
+              disabled={updateNotes.isPending}
             />
-            <GlassButton variant="secondary" onClick={handleAddActionItem}>
+            <GlassButton
+              variant="secondary"
+              onClick={handleAddActionItem}
+              disabled={updateNotes.isPending}
+            >
               <Plus className="w-4 h-4" />
             </GlassButton>
           </div>
@@ -224,7 +313,8 @@ export function SessionNotesPage() {
             <GlassButton
               variant="ghost"
               className="text-sm"
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={isEditing ? handleSavePersonalNotes : handleStartEditing}
+              disabled={updateNotes.isPending}
             >
               {isEditing ? (
                 <>
@@ -242,13 +332,13 @@ export function SessionNotesPage() {
 
           {isEditing ? (
             <GlassTextarea
-              value={note.personalNotes}
-              onChange={(e) => setNote({ ...note, personalNotes: e.target.value })}
+              value={editedPersonalNotes}
+              onChange={(e) => setEditedPersonalNotes(e.target.value)}
               rows={6}
               placeholder="Add your personal notes..."
             />
           ) : (
-            <p className="text-kalkvit/70 whitespace-pre-wrap">{note.personalNotes}</p>
+            <p className="text-kalkvit/70 whitespace-pre-wrap">{notes.personal_notes}</p>
           )}
         </GlassCard>
       </div>

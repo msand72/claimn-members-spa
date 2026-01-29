@@ -157,10 +157,12 @@ function SessionCard({ session }: { session: CoachingSession }) {
               <GlassButton variant="ghost" className="p-2">
                 <MessageCircle className="w-4 h-4" />
               </GlassButton>
-              <GlassButton variant="primary" className="text-sm">
-                Join Call
-                <ChevronRight className="w-4 h-4" />
-              </GlassButton>
+              {session.meeting_url && (
+                <GlassButton variant="primary" className="text-sm" onClick={() => window.open(session.meeting_url, '_blank')}>
+                  Join Call
+                  <ChevronRight className="w-4 h-4" />
+                </GlassButton>
+              )}
             </div>
           )}
           {uiStatus === 'completed' && !session.has_notes && (
