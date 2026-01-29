@@ -200,7 +200,16 @@ export async function fetchCurrentUser(token: string): Promise<AuthUserResponse>
 
   const data = await res.json()
   log('info', '/auth/me response:', data)
-  return data.user
+  // /auth/me returns user at top level (not nested under .user)
+  // profile fields (display_name, avatar_url) are nested under .profile
+  const user = data.user || data
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    display_name: user.profile?.display_name || user.display_name || user.email?.split('@')[0] || '',
+    avatar_url: user.profile?.avatar_url || user.avatar_url || '',
+  }
 }
 
 export function getStoredExpiresAt(): number | null {
