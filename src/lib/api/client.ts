@@ -1,25 +1,9 @@
-import { getAccessToken } from '../auth'
-import { getApiBaseUrl } from '../auth'
+import { getAccessToken, getApiBaseUrl } from '../auth'
 
 const API_BASE_URL = getApiBaseUrl()
 const API_PREFIX = '/api/v2'
 
 export const API_URL = `${API_BASE_URL}${API_PREFIX}`
-
-// Debug logging - set to true to enable
-const DEBUG = true
-
-function log(level: 'info' | 'warn' | 'error', message: string, data?: unknown) {
-  if (!DEBUG) return
-  const prefix = `[API ${level.toUpperCase()}]`
-  if (data !== undefined) {
-    console[level](prefix, message, data)
-  } else {
-    console[level](prefix, message)
-  }
-}
-
-log('info', `API Client initialized - Base URL: ${API_URL}`)
 
 // Error type from backend
 export interface ApiError {
@@ -52,47 +36,23 @@ export interface PaginationParams {
   sort?: string
 }
 
-// Get auth token from local storage (auto-refreshes if near expiry)
 async function getAuthToken(): Promise<string | null> {
-  log('info', 'Getting auth token...')
-  const token = await getAccessToken()
-
-  if (!token) {
-    log('warn', 'No auth token available')
-    return null
-  }
-
-  log('info', 'Auth token retrieved')
-  return token
+  return getAccessToken()
 }
 
 // API client with automatic auth
 class ApiClient {
-  private requestId = 0
-
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const reqId = ++this.requestId
-    const method = options.method || 'GET'
-    const startTime = performance.now()
-
-    log('info', `[${reqId}] ${method} ${endpoint} - Starting request...`)
-
     const token = await getAuthToken()
 
     if (!token) {
-      log('error', `[${reqId}] ${method} ${endpoint} - No auth token available`)
       throw new Error('Not authenticated')
     }
 
     const url = `${API_URL}${endpoint}`
-    log('info', `[${reqId}] Full URL: ${url}`)
-
-    if (options.body) {
-      log('info', `[${reqId}] Request body:`, JSON.parse(options.body as string))
-    }
 
     try {
       const response = await fetch(url, {
@@ -104,30 +64,20 @@ class ApiClient {
         },
       })
 
-      const duration = Math.round(performance.now() - startTime)
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({
           error: { code: 'UNKNOWN', message: 'An unknown error occurred' }
         }))
-        log('error', `[${reqId}] ${method} ${endpoint} - Failed (${response.status}) in ${duration}ms`, errorData)
         throw errorData
       }
 
       // Handle 204 No Content
       if (response.status === 204) {
-        log('info', `[${reqId}] ${method} ${endpoint} - Success (204 No Content) in ${duration}ms`)
         return {} as T
       }
 
-      const data = await response.json()
-      log('info', `[${reqId}] ${method} ${endpoint} - Success (${response.status}) in ${duration}ms`, data)
-      return data
+      return await response.json()
     } catch (error) {
-      const duration = Math.round(performance.now() - startTime)
-      if (error instanceof Error && error.message !== 'Not authenticated') {
-        log('error', `[${reqId}] ${method} ${endpoint} - Network error in ${duration}ms`, error.message)
-      }
       throw error
     }
   }
@@ -167,7 +117,6 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'DELETE' })
   }
 
-  // Special method for file uploads
   async uploadFile(endpoint: string, file: File, fieldName = 'file'): Promise<{ url: string }> {
     const token = await getAuthToken()
 

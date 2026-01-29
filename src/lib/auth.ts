@@ -4,33 +4,19 @@ const TOKEN_KEY = 'claimn_access_token'
 const REFRESH_TOKEN_KEY = 'claimn_refresh_token'
 const EXPIRES_AT_KEY = 'claimn_expires_at'
 
-function log(level: 'info' | 'warn' | 'error', message: string, data?: unknown) {
-  const prefix = `[Auth ${level.toUpperCase()}]`
-  if (data !== undefined) {
-    console[level](prefix, message, data)
-  } else {
-    console[level](prefix, message)
-  }
-}
-
 // Auto-detect production based on hostname, fallback to env var or localhost
 export function getApiBaseUrl(): string {
-  // If env var is explicitly set, use it
   if (import.meta.env.VITE_API_URL) {
-    log('info', `Using VITE_API_URL: ${import.meta.env.VITE_API_URL}`)
     return import.meta.env.VITE_API_URL
   }
 
-  // Auto-detect production based on hostname
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname
-    log('info', `Detecting API URL from hostname: ${hostname}`)
     if (hostname === 'members.claimn.co' || hostname === 'www.members.claimn.co') {
       return 'https://api.claimn.co'
     }
   }
 
-  // Default to localhost for development
   return 'http://localhost:3001'
 }
 
@@ -77,7 +63,6 @@ function getStoredTokens(): AuthTokens | null {
 export function isAuthenticated(): boolean {
   const tokens = getStoredTokens()
   if (!tokens) return false
-  // Check if token is expired
   return tokens.expires_at * 1000 > Date.now()
 }
 
@@ -141,7 +126,6 @@ export async function getAccessToken(): Promise<string | null> {
 
 export async function login(email: string, password: string): Promise<AuthTokens> {
   const url = `${AUTH_BASE()}/login`
-  log('info', `Login attempt for ${email} → ${url}`)
 
   const res = await fetch(url, {
     method: 'POST',
@@ -149,25 +133,18 @@ export async function login(email: string, password: string): Promise<AuthTokens
     body: JSON.stringify({ email, password }),
   })
 
-  log('info', `Login response status: ${res.status}`)
-
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ error: 'Login failed' }))
-    log('error', 'Login failed', errorData)
     throw new Error(errorData.error?.message || errorData.error || 'Login failed')
   }
 
   const data = await res.json()
-  log('info', 'Login response data keys:', Object.keys(data))
-  log('info', 'Login user:', data.user)
-
   const tokens: AuthTokens = {
     access_token: data.access_token,
     refresh_token: data.refresh_token,
     expires_at: data.expires_at,
   }
   storeTokens(tokens)
-  log('info', 'Tokens stored successfully')
   return tokens
 }
 
@@ -184,22 +161,16 @@ export async function logout(): Promise<void> {
 
 export async function fetchCurrentUser(token: string): Promise<AuthUserResponse> {
   const url = `${AUTH_BASE()}/me`
-  log('info', `Fetching current user → ${url}`)
 
   const res = await fetch(url, {
     headers: { 'Authorization': `Bearer ${token}` },
   })
 
-  log('info', `/auth/me response status: ${res.status}`)
-
   if (!res.ok) {
-    const errorText = await res.text().catch(() => 'unknown')
-    log('error', `/auth/me failed: ${res.status}`, errorText)
     throw new Error('Failed to fetch user')
   }
 
   const data = await res.json()
-  log('info', '/auth/me response:', data)
   // /auth/me returns user at top level (not nested under .user)
   // profile fields (display_name, avatar_url) are nested under .profile
   const user = data.user || data
@@ -209,6 +180,32 @@ export async function fetchCurrentUser(token: string): Promise<AuthUserResponse>
     role: user.role,
     display_name: user.profile?.display_name || user.display_name || user.email?.split('@')[0] || '',
     avatar_url: user.profile?.avatar_url || user.avatar_url || '',
+  }
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  const res = await fetch(`${AUTH_BASE()}/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: 'Request failed' }))
+    throw new Error(errorData.error?.message || errorData.error || 'Failed to send reset email')
+  }
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  const res = await fetch(`${AUTH_BASE()}/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  })
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: 'Request failed' }))
+    throw new Error(errorData.error?.message || errorData.error || 'Failed to reset password')
   }
 }
 

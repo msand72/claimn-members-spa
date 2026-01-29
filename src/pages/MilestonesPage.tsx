@@ -1,18 +1,3 @@
-/**
- * TODO: Backend API Implementation Required
- *
- * This page displays milestones assigned by experts/facilitators to track user progress.
- * Currently showing a "coming soon" placeholder as the milestones API endpoint does not exist yet.
- *
- * Required API endpoints:
- * - GET /members/milestones - List user's milestones
- * - GET /members/milestones/:id - Get single milestone
- * - PUT /members/milestones/:id - Update milestone status/notes
- *
- * The milestone feature is different from Goals (self-set by users) as milestones are
- * assigned collaboratively by experts during coaching sessions.
- */
-
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
@@ -26,6 +11,8 @@ import {
 } from '../components/ui'
 import { PILLARS, MILESTONE_STATUSES } from '../lib/constants'
 import type { PillarId, MilestoneStatus } from '../lib/constants'
+import { useMilestones, useUpdateMilestoneStatus } from '../lib/api/hooks'
+import type { Milestone } from '../lib/api/hooks'
 import {
   Flag,
   Calendar,
@@ -36,115 +23,9 @@ import {
   AlertTriangle,
   Trophy,
   MessageSquare,
-  Construction,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
-
-interface Milestone {
-  id: string
-  title: string
-  description: string
-  pillar: PillarId
-  targetDate: string
-  status: MilestoneStatus
-  createdBy: {
-    id: string
-    name: string
-    role: 'expert' | 'facilitator'
-  }
-  progressNotes: string | null
-  createdAt: string
-  updatedAt: string
-}
-
-// Feature flag to show placeholder or mock data
-// Set to true when milestones API is implemented
-const MILESTONES_API_AVAILABLE = false
-
-// Mock milestones data for development/preview purposes
-// This will be replaced with API data when MILESTONES_API_AVAILABLE is true
-const mockMilestones: Milestone[] = [
-  {
-    id: '1',
-    title: 'Establish consistent sleep routine',
-    description: 'Achieve 7+ hours of quality sleep for 30 consecutive days. Create optimal sleep environment and pre-sleep routine.',
-    pillar: 'physical',
-    targetDate: '2026-04-15',
-    status: 'on_track',
-    createdBy: {
-      id: 'exp1',
-      name: 'Erik Lindstrom',
-      role: 'expert',
-    },
-    progressNotes: 'Week 3: Showing good progress with sleep schedule. Continue with current approach.',
-    createdAt: '2026-01-15',
-    updatedAt: '2026-01-25',
-  },
-  {
-    id: '2',
-    title: 'Define core values and purpose statement',
-    description: 'Complete identity mapping exercise and articulate a clear personal purpose statement aligned with life goals.',
-    pillar: 'identity',
-    targetDate: '2026-03-01',
-    status: 'pending',
-    createdBy: {
-      id: 'exp1',
-      name: 'Erik Lindstrom',
-      role: 'expert',
-    },
-    progressNotes: null,
-    createdAt: '2026-01-15',
-    updatedAt: '2026-01-15',
-  },
-  {
-    id: '3',
-    title: 'Build stress management toolkit',
-    description: 'Develop and practice 3 stress management techniques. Reduce average daily stress level from 6 to 4.',
-    pillar: 'emotional',
-    targetDate: '2026-05-01',
-    status: 'on_track',
-    createdBy: {
-      id: 'exp1',
-      name: 'Erik Lindstrom',
-      role: 'expert',
-    },
-    progressNotes: 'Breathwork practice established. Working on mindfulness next.',
-    createdAt: '2026-01-15',
-    updatedAt: '2026-01-22',
-  },
-  {
-    id: '4',
-    title: 'Strengthen key relationships',
-    description: 'Establish regular check-in cadence with 5 close relationships. Host at least 2 meaningful gatherings.',
-    pillar: 'connection',
-    targetDate: '2026-06-15',
-    status: 'pending',
-    createdBy: {
-      id: 'exp1',
-      name: 'Erik Lindstrom',
-      role: 'expert',
-    },
-    progressNotes: null,
-    createdAt: '2026-01-15',
-    updatedAt: '2026-01-15',
-  },
-  {
-    id: '5',
-    title: 'Launch side project',
-    description: 'Complete MVP of passion project and get first 10 users/customers. Document learnings.',
-    pillar: 'mission',
-    targetDate: '2026-07-01',
-    status: 'delayed',
-    createdBy: {
-      id: 'fac1',
-      name: 'Anna Bergman',
-      role: 'facilitator',
-    },
-    progressNotes: 'Pushed back due to work commitments. Revisiting timeline in next session.',
-    createdAt: '2026-01-10',
-    updatedAt: '2026-01-24',
-  },
-]
 
 const getStatusIcon = (status: MilestoneStatus) => {
   switch (status) {
@@ -183,7 +64,7 @@ function MilestoneCard({
   const statusInfo = MILESTONE_STATUSES.find((s) => s.id === milestone.status)
   const StatusIcon = getStatusIcon(milestone.status)
   const daysUntil = Math.ceil(
-    (new Date(milestone.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    (new Date(milestone.target_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   )
 
   return (
@@ -207,7 +88,7 @@ function MilestoneCard({
       <div className="flex items-center gap-4 mb-4 text-sm">
         <div className="flex items-center gap-1 text-kalkvit/60">
           <Calendar className="w-4 h-4" />
-          <span>{new Date(milestone.targetDate).toLocaleDateString()}</span>
+          <span>{new Date(milestone.target_date).toLocaleDateString()}</span>
         </div>
         {daysUntil > 0 && (
           <span
@@ -222,13 +103,13 @@ function MilestoneCard({
       </div>
 
       {/* Progress Notes */}
-      {milestone.progressNotes && (
+      {milestone.progress_notes && (
         <div className="p-3 rounded-lg bg-white/[0.04] mb-4">
           <div className="flex items-center gap-2 text-xs text-kalkvit/50 mb-1">
             <MessageSquare className="w-3 h-3" />
             Latest notes
           </div>
-          <p className="text-sm text-kalkvit/80">{milestone.progressNotes}</p>
+          <p className="text-sm text-kalkvit/80">{milestone.progress_notes}</p>
         </div>
       )}
 
@@ -237,7 +118,7 @@ function MilestoneCard({
         <div className="flex items-center gap-2 text-xs text-kalkvit/50">
           <User className="w-3 h-3" />
           <span>
-            {milestone.createdBy.name} ({milestone.createdBy.role})
+            {milestone.created_by.name} ({milestone.created_by.role})
           </span>
         </div>
         <GlassButton variant="ghost" onClick={() => onUpdateStatus(milestone)}>
@@ -253,22 +134,30 @@ export function MilestonesPage() {
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null)
   const [updateNotes, setUpdateNotes] = useState('')
+  const [updateStatus, setUpdateStatus] = useState<MilestoneStatus>('pending')
   const [filter, setFilter] = useState<'all' | MilestoneStatus>('all')
 
-  // When API is available, replace mockMilestones with API data
-  // const { data: milestones, isLoading, error } = useMilestones()
-  const milestones = MILESTONES_API_AVAILABLE ? [] : mockMilestones
+  const { data: milestones = [], isLoading, error } = useMilestones()
+  const updateMilestone = useUpdateMilestoneStatus()
 
   const handleUpdateStatus = (milestone: Milestone) => {
     setSelectedMilestone(milestone)
-    setUpdateNotes(milestone.progressNotes || '')
+    setUpdateNotes(milestone.progress_notes || '')
+    setUpdateStatus(milestone.status)
     setShowUpdateModal(true)
   }
 
   const handleSubmitUpdate = () => {
-    console.log('Updating milestone:', selectedMilestone?.id, 'Notes:', updateNotes)
-    setShowUpdateModal(false)
-    setSelectedMilestone(null)
+    if (!selectedMilestone) return
+    updateMilestone.mutate(
+      { id: selectedMilestone.id, status: updateStatus, progress_notes: updateNotes },
+      {
+        onSuccess: () => {
+          setShowUpdateModal(false)
+          setSelectedMilestone(null)
+        },
+      }
+    )
   }
 
   const filteredMilestones =
@@ -295,8 +184,31 @@ export function MilestonesPage() {
     }
   })
 
-  // Show coming soon placeholder if API is not available
-  if (MILESTONES_API_AVAILABLE && milestones.length === 0) {
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto flex items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="max-w-6xl mx-auto">
+          <GlassCard variant="base" className="text-center py-12">
+            <Flag className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <h3 className="font-medium text-kalkvit mb-2">Unable to load milestones</h3>
+            <p className="text-kalkvit/50 text-sm">Please try again later.</p>
+          </GlassCard>
+        </div>
+      </MainLayout>
+    )
+  }
+
+  if (milestones.length === 0) {
     return (
       <MainLayout>
         <div className="max-w-6xl mx-auto">
@@ -309,18 +221,17 @@ export function MilestonesPage() {
             </div>
           </div>
 
-          {/* Coming Soon Placeholder */}
           <GlassCard variant="elevated" className="text-center py-16">
-            <Construction className="w-16 h-16 text-koppar mx-auto mb-6" />
+            <Flag className="w-16 h-16 text-koppar mx-auto mb-6" />
             <h2 className="font-display text-2xl font-bold text-kalkvit mb-3">
-              Milestones Feature Coming Soon
+              No Milestones Yet
             </h2>
             <p className="text-kalkvit/60 max-w-md mx-auto mb-6">
-              Track your 6-month transformation journey with milestones set collaboratively
-              with your expert during coaching sessions. This feature is currently being developed.
+              Your expert will set milestones during your coaching sessions to track your
+              transformation journey across all five pillars.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/coaching">
+              <Link to="/book-session">
                 <GlassButton variant="primary">
                   <User className="w-4 h-4" />
                   Book Expert Session
@@ -335,7 +246,6 @@ export function MilestonesPage() {
             </div>
           </GlassCard>
 
-          {/* Info Card */}
           <GlassCard variant="accent" className="mt-8">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center flex-shrink-0">
@@ -460,25 +370,6 @@ export function MilestonesPage() {
           </GlassCard>
         )}
 
-        {/* Expert Info Card */}
-        <GlassCard variant="accent" className="mt-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center">
-              <User className="w-6 h-6 text-koppar" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-kalkvit mb-1">Your Expert: Erik Lindström</h3>
-              <p className="text-sm text-kalkvit/60">
-                Milestones are set collaboratively during your bi-weekly sessions.
-                Next session: February 3, 2026
-              </p>
-            </div>
-            <GlassButton variant="primary">
-              Message Expert
-            </GlassButton>
-          </div>
-        </GlassCard>
-
         {/* Update Milestone Modal */}
         <GlassModal
           isOpen={showUpdateModal}
@@ -500,9 +391,10 @@ export function MilestonesPage() {
                       return (
                         <button
                           key={status.id}
+                          onClick={() => setUpdateStatus(status.id)}
                           className={cn(
                             'flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all',
-                            selectedMilestone.status === status.id
+                            updateStatus === status.id
                               ? 'bg-koppar text-kalkvit'
                               : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
                           )}
@@ -528,8 +420,12 @@ export function MilestonesPage() {
             <GlassButton variant="ghost" onClick={() => setShowUpdateModal(false)}>
               Cancel
             </GlassButton>
-            <GlassButton variant="primary" onClick={handleSubmitUpdate}>
-              Save Update
+            <GlassButton
+              variant="primary"
+              onClick={handleSubmitUpdate}
+              disabled={updateMilestone.isPending}
+            >
+              {updateMilestone.isPending ? 'Saving...' : 'Save Update'}
             </GlassButton>
           </GlassModalFooter>
         </GlassModal>

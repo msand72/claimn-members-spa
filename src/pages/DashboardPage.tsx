@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { MainLayout } from '../components/layout/MainLayout'
@@ -23,22 +22,8 @@ import {
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const { data: profile, isLoading: profileLoading, error: profileError } = useCurrentProfile()
-  const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats()
-
-  // Debug logging
-  useEffect(() => {
-    console.log('[DashboardPage] Component mounted')
-    console.log('[DashboardPage] User:', user?.id, user?.email)
-  }, [user])
-
-  useEffect(() => {
-    console.log('[DashboardPage] Profile state:', { loading: profileLoading, error: profileError, data: profile })
-  }, [profile, profileLoading, profileError])
-
-  useEffect(() => {
-    console.log('[DashboardPage] Stats state:', { loading: statsLoading, error: statsError, data: stats })
-  }, [stats, statsLoading, statsError])
+  const { data: profile } = useCurrentProfile()
+  const { data: stats, isLoading: statsLoading } = useDashboardStats()
 
   const displayName =
     profile?.display_name || user?.display_name || user?.email?.split('@')[0] || 'Member'

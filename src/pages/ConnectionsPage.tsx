@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import { Search, UserPlus, UserCheck, MessageCircle, MoreHorizontal, Loader2, Users } from 'lucide-react'
@@ -207,17 +207,6 @@ export function ConnectionsPage() {
   const rejectConnection = useRejectConnection()
   const sendConnection = useSendConnectionRequest()
 
-  // Debug logging
-  useEffect(() => {
-    console.log('[ConnectionsPage] Connections state:', {
-      loading: connectionsLoading,
-      error: connectionsError,
-      data: connectionsData,
-      pendingData,
-      suggestionsData,
-    })
-  }, [connectionsData, connectionsLoading, connectionsError, pendingData, suggestionsData])
-
   const connections = connectionsData?.data || []
   const pendingConnections = pendingData?.data || []
   const suggestions = suggestionsData || []
@@ -318,7 +307,6 @@ export function ConnectionsPage() {
                 key={member.user_id}
                 member={member}
                 onConnect={() => {
-                  console.log('[ConnectionsPage] Sending connection request to:', member.user_id)
                   sendConnection.mutate({ recipient_id: member.user_id })
                 }}
                 isSending={sendConnection.isPending}
@@ -336,11 +324,9 @@ export function ConnectionsPage() {
                 connection={connection}
                 currentUserId={user?.id}
                 onAccept={() => {
-                  console.log('[ConnectionsPage] Accepting connection:', connection.id)
                   acceptConnection.mutate(connection.id)
                 }}
                 onReject={() => {
-                  console.log('[ConnectionsPage] Rejecting connection:', connection.id)
                   rejectConnection.mutate(connection.id)
                 }}
                 isAccepting={acceptConnection.isPending}

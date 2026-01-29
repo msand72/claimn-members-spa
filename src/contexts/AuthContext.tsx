@@ -62,7 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    // Check for existing token on mount
     async function init() {
       try {
         const token = await getAccessToken()
@@ -96,13 +95,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    console.log('[AuthContext] signIn called for:', email)
     try {
-      console.log('[AuthContext] Calling authLogin...')
       const tokens = await authLogin(email, password)
-      console.log('[AuthContext] Login successful, fetching user...')
       const userData = await fetchCurrentUser(tokens.access_token)
-      console.log('[AuthContext] User fetched:', userData)
       setUser(userData as AuthUser)
       setSession({
         access_token: tokens.access_token,
@@ -110,10 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         expires_at: tokens.expires_at,
       })
       scheduleRefresh()
-      console.log('[AuthContext] signIn complete, user set')
       return { error: null }
     } catch (err) {
-      console.error('[AuthContext] signIn error:', err)
       return { error: err as Error }
     }
   }

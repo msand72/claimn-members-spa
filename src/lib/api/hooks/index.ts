@@ -174,3 +174,20 @@ export {
   useLatestAssessmentResult,
   useSubmitAssessment,
 } from './useAssessments'
+
+// Milestones
+export {
+  milestoneKeys,
+  useMilestones,
+  useUpdateMilestoneStatus,
+  type Milestone,
+} from './useMilestones'
+
+// Accountability
+export {
+  accountabilityKeys,
+  useAccountabilityGroup,
+  useAccountabilityMembers,
+  type AccountabilityGroup,
+  type AccountabilityMember,
+} from './useAccountability'

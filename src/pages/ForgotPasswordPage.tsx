@@ -3,23 +3,29 @@ import { Link } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassInput } from '../components/ui'
 import { BackgroundPattern } from '../components/ui/BackgroundPattern'
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react'
+import { forgotPassword } from '../lib/auth'
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
 
-    // TODO: Implement password reset via Go API
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    setIsLoading(false)
-    setIsSubmitted(true)
+    try {
+      await forgotPassword(email)
+      setIsSubmitted(true)
+    } catch (err) {
+      // Always show success to prevent email enumeration
+      setIsSubmitted(true)
+      void err
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -52,7 +58,10 @@ export function ForgotPasswordPage() {
                 <GlassButton
                   variant="secondary"
                   className="w-full"
-                  onClick={() => setIsSubmitted(false)}
+                  onClick={() => {
+                    setIsSubmitted(false)
+                    setError('')
+                  }}
                 >
                   Try Different Email
                 </GlassButton>
@@ -82,6 +91,10 @@ export function ForgotPasswordPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
+
+                {error && (
+                  <p className="text-sm text-tegelrod">{error}</p>
+                )}
 
                 <GlassButton
                   type="submit"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import {
@@ -25,7 +25,6 @@ function MemberCard({ member }: { member: NetworkMember }) {
 
   const handleConnect = () => {
     if (member.connection_status === 'none') {
-      console.log('[NetworkPage] Sending connection request to:', member.user_id)
       sendConnection.mutate({ recipient_id: member.user_id })
     }
   }
@@ -160,16 +159,6 @@ export function NetworkPage() {
     archetype: archetypeFilter,
     sort: 'display_name:asc',
   })
-
-  // Debug logging
-  useEffect(() => {
-    console.log('[NetworkPage] Network data state:', {
-      loading: isLoading,
-      error,
-      data: networkData,
-      filters: { searchQuery, selectedArchetype, currentPage },
-    })
-  }, [networkData, isLoading, error, searchQuery, selectedArchetype, currentPage])
 
   const members = networkData?.data || []
   const pagination = networkData?.pagination

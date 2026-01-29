@@ -57,28 +57,9 @@ export function MessagesPage() {
   const sendMessage = useSendMessage()
   const markRead = useMarkConversationRead()
 
-  // Debug logging
-  useEffect(() => {
-    console.log('[MessagesPage] Conversations state:', {
-      loading: conversationsLoading,
-      error: conversationsError,
-      data: conversationsData,
-    })
-  }, [conversationsData, conversationsLoading, conversationsError])
-
-  useEffect(() => {
-    console.log('[MessagesPage] Messages state:', {
-      conversationId: selectedConversation?.id,
-      loading: messagesLoading,
-      error: messagesError,
-      data: messagesData,
-    })
-  }, [messagesData, messagesLoading, messagesError, selectedConversation?.id])
-
   // Mark conversation as read when selected
   useEffect(() => {
     if (selectedConversation?.id && selectedConversation.unread_count > 0) {
-      console.log('[MessagesPage] Marking conversation as read:', selectedConversation.id)
       markRead.mutate(selectedConversation.id)
     }
   }, [selectedConversation?.id])
@@ -93,7 +74,6 @@ export function MessagesPage() {
 
   const handleSendMessage = () => {
     if (messageInput.trim() && selectedConversation) {
-      console.log('[MessagesPage] Sending message to:', selectedConversation.participant_id)
       sendMessage.mutate({
         recipient_id: selectedConversation.participant_id,
         content: messageInput,

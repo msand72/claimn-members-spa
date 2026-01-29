@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
 import { Search, Users, Globe, ArrowRight, Loader2 } from 'lucide-react'
@@ -75,16 +75,6 @@ export function CirclesPage() {
   } = useMyCircles()
 
   const joinCircle = useJoinCircle()
-
-  // Debug logging
-  useEffect(() => {
-    console.log('[CirclesPage] Circles state:', {
-      loading: circlesLoading,
-      error: circlesError,
-      data: circlesData,
-      myCircles: myCirclesData,
-    })
-  }, [circlesData, circlesLoading, circlesError, myCirclesData])
 
   const allCircles = circlesData?.data || []
   const myCircles = myCirclesData || []
@@ -166,7 +156,6 @@ export function CirclesPage() {
                 key={circle.id}
                 circle={circle}
                 onJoin={() => {
-                  console.log('[CirclesPage] Joining circle:', circle.id)
                   joinCircle.mutate(circle.id)
                 }}
                 isJoining={joinCircle.isPending}
