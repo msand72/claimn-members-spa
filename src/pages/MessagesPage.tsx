@@ -88,7 +88,7 @@ export function MessagesPage() {
 
   // Filter conversations by search
   const filteredConversations = conversations.filter((conv) =>
-    conv.participant.display_name.toLowerCase().includes(searchQuery.toLowerCase())
+    conv.participant?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
   )
 
   const handleSendMessage = () => {
@@ -191,11 +191,11 @@ export function MessagesPage() {
                   )}
                 >
                   <div className="relative flex-shrink-0">
-                    <GlassAvatar initials={getInitials(conv.participant.display_name)} size="md" />
+                    <GlassAvatar initials={getInitials(conv.participant?.display_name || 'Unknown')} size="md" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-kalkvit truncate">{conv.participant.display_name}</span>
+                      <span className="font-medium text-kalkvit truncate">{conv.participant?.display_name || 'Unknown'}</span>
                       <span className="text-xs text-kalkvit/40 ml-2 flex-shrink-0">
                         {formatTimeAgo(conv.updated_at)}
                       </span>
@@ -235,10 +235,10 @@ export function MessagesPage() {
                       <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div className="relative flex-shrink-0">
-                      <GlassAvatar initials={getInitials(selectedConversation.participant.display_name)} size="md" />
+                      <GlassAvatar initials={getInitials(selectedConversation.participant?.display_name || 'Unknown')} size="md" />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-semibold text-kalkvit truncate">{selectedConversation.participant.display_name}</h3>
+                      <h3 className="font-semibold text-kalkvit truncate">{selectedConversation.participant?.display_name || 'Unknown'}</h3>
                       <p className="text-xs text-kalkvit/50">Brotherhood Member</p>
                     </div>
                   </div>
