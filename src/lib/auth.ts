@@ -4,16 +4,27 @@ const TOKEN_KEY = 'claimn_access_token'
 const REFRESH_TOKEN_KEY = 'claimn_refresh_token'
 const EXPIRES_AT_KEY = 'claimn_expires_at'
 
+function log(level: 'info' | 'warn' | 'error', message: string, data?: unknown) {
+  const prefix = `[Auth ${level.toUpperCase()}]`
+  if (data !== undefined) {
+    console[level](prefix, message, data)
+  } else {
+    console[level](prefix, message)
+  }
+}
+
 // Auto-detect production based on hostname, fallback to env var or localhost
 export function getApiBaseUrl(): string {
   // If env var is explicitly set, use it
   if (import.meta.env.VITE_API_URL) {
+    log('info', `Using VITE_API_URL: ${import.meta.env.VITE_API_URL}`)
     return import.meta.env.VITE_API_URL
   }
 
   // Auto-detect production based on hostname
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname
+    log('info', `Detecting API URL from hostname: ${hostname}`)
     if (hostname === 'members.claimn.co' || hostname === 'www.members.claimn.co') {
       return 'https://api.claimn.co'
     }
@@ -129,24 +140,34 @@ export async function getAccessToken(): Promise<string | null> {
 }
 
 export async function login(email: string, password: string): Promise<AuthTokens> {
-  const res = await fetch(`${AUTH_BASE()}/login`, {
+  const url = `${AUTH_BASE()}/login`
+  log('info', `Login attempt for ${email} → ${url}`)
+
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   })
 
+  log('info', `Login response status: ${res.status}`)
+
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ error: 'Login failed' }))
+    log('error', 'Login failed', errorData)
     throw new Error(errorData.error?.message || errorData.error || 'Login failed')
   }
 
   const data = await res.json()
+  log('info', 'Login response data keys:', Object.keys(data))
+  log('info', 'Login user:', data.user)
+
   const tokens: AuthTokens = {
     access_token: data.access_token,
     refresh_token: data.refresh_token,
     expires_at: data.expires_at,
   }
   storeTokens(tokens)
+  log('info', 'Tokens stored successfully')
   return tokens
 }
 
@@ -162,15 +183,23 @@ export async function logout(): Promise<void> {
 }
 
 export async function fetchCurrentUser(token: string): Promise<AuthUserResponse> {
-  const res = await fetch(`${AUTH_BASE()}/me`, {
+  const url = `${AUTH_BASE()}/me`
+  log('info', `Fetching current user → ${url}`)
+
+  const res = await fetch(url, {
     headers: { 'Authorization': `Bearer ${token}` },
   })
 
+  log('info', `/auth/me response status: ${res.status}`)
+
   if (!res.ok) {
+    const errorText = await res.text().catch(() => 'unknown')
+    log('error', `/auth/me failed: ${res.status}`, errorText)
     throw new Error('Failed to fetch user')
   }
 
   const data = await res.json()
+  log('info', '/auth/me response:', data)
   return data.user
 }
 
