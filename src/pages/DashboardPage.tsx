@@ -41,7 +41,7 @@ export function DashboardPage() {
   }, [stats, statsLoading, statsError])
 
   const displayName =
-    profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member'
+    profile?.display_name || user?.display_name || user?.email?.split('@')[0] || 'Member'
   const initials = displayName
     .split(' ')
     .map((n: string) => n[0])
@@ -50,7 +50,7 @@ export function DashboardPage() {
     .toUpperCase()
 
   // Calculate days since joining
-  const createdAt = user?.created_at ? new Date(user.created_at) : new Date()
+  const createdAt = (user as Record<string, unknown>)?.created_at ? new Date((user as Record<string, unknown>).created_at as string) : new Date()
   const daysSinceJoining = Math.floor(
     (new Date().getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
   )

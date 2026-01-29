@@ -90,7 +90,7 @@ export function GlassSidebar() {
     navigate('/login')
   }
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member'
+  const displayName = user?.display_name || user?.email?.split('@')[0] || 'Member'
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
 
   return (

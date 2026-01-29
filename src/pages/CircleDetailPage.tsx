@@ -138,7 +138,7 @@ export function CircleDetailPage() {
   const members = membersData?.data || []
   const posts = postsData?.data || []
 
-  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member'
+  const displayName = user?.display_name || user?.email?.split('@')[0] || 'Member'
   const initials = displayName
     .split(' ')
     .map((n: string) => n[0])

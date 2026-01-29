@@ -61,7 +61,7 @@ export function ProfilePage() {
       // Initialize from user metadata if no profile exists
       setFormData((prev) => ({
         ...prev,
-        display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+        display_name: user.display_name || user.email?.split('@')[0] || '',
       }))
     }
   }, [profile, user])
@@ -94,7 +94,7 @@ export function ProfilePage() {
       }
       await updateProfile.mutateAsync(profileData)
 
-      // Update interests (still uses Supabase direct for now)
+      // Update interests
       await updateMemberInterests.mutateAsync({
         userId: user.id,
         interestIds: selectedInterests,

@@ -1,24 +1,5 @@
-import { supabase } from '../supabase'
-
-// API Configuration
-// Auto-detect production based on hostname, fallback to env var or localhost
-function getApiBaseUrl(): string {
-  // If env var is explicitly set, use it
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL
-  }
-
-  // Auto-detect production based on hostname
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname
-    if (hostname === 'members.claimn.co' || hostname === 'www.members.claimn.co') {
-      return 'https://api.claimn.co'
-    }
-  }
-
-  // Default to localhost for development
-  return 'http://localhost:3001'
-}
+import { getAccessToken } from '../auth'
+import { getApiBaseUrl } from '../auth'
 
 const API_BASE_URL = getApiBaseUrl()
 const API_PREFIX = '/api/v2'
@@ -71,23 +52,18 @@ export interface PaginationParams {
   sort?: string
 }
 
-// Get auth token from Supabase session
+// Get auth token from local storage (auto-refreshes if near expiry)
 async function getAuthToken(): Promise<string | null> {
-  log('info', 'Getting auth token from Supabase session...')
-  const { data: { session }, error } = await supabase.auth.getSession()
+  log('info', 'Getting auth token...')
+  const token = await getAccessToken()
 
-  if (error) {
-    log('error', 'Failed to get session', error)
+  if (!token) {
+    log('warn', 'No auth token available')
     return null
   }
 
-  if (!session) {
-    log('warn', 'No active session found')
-    return null
-  }
-
-  log('info', `Auth token retrieved - User: ${session.user?.email}, Expires: ${new Date(session.expires_at! * 1000).toISOString()}`)
-  return session.access_token
+  log('info', 'Auth token retrieved')
+  return token
 }
 
 // API client with automatic auth

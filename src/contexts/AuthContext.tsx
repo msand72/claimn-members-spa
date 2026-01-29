@@ -1,10 +1,25 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { supabase, type AuthUser } from '../lib/supabase'
-import type { Session } from '@supabase/supabase-js'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  login as authLogin,
+  logout as authLogout,
+  getAccessToken,
+  fetchCurrentUser,
+  getStoredExpiresAt,
+  refreshToken,
+  type AuthUserResponse,
+} from '../lib/auth'
+
+export type AuthUser = AuthUserResponse & Record<string, unknown>
+
+interface AuthSession {
+  access_token: string
+  refresh_token: string
+  expires_at: number
+}
 
 interface AuthContextType {
   user: AuthUser | null
-  session: Session | null
+  session: AuthSession | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
@@ -14,39 +29,96 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
+  const [session, setSession] = useState<AuthSession | null>(null)
   const [loading, setLoading] = useState(true)
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function scheduleRefresh() {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current)
+    }
+
+    const expiresAt = getStoredExpiresAt()
+    if (!expiresAt) return
+
+    // Refresh 5 minutes before expiry
+    const msUntilRefresh = (expiresAt * 1000) - Date.now() - (5 * 60 * 1000)
+    const delay = Math.max(msUntilRefresh, 0)
+
+    refreshTimerRef.current = setTimeout(async () => {
+      try {
+        const tokens = await refreshToken()
+        setSession({
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          expires_at: tokens.expires_at,
+        })
+        scheduleRefresh()
+      } catch {
+        setUser(null)
+        setSession(null)
+      }
+    }, delay)
+  }
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    // Check for existing token on mount
+    async function init() {
+      try {
+        const token = await getAccessToken()
+        if (token) {
+          const userData = await fetchCurrentUser(token)
+          setUser(userData as AuthUser)
+          const expiresAt = getStoredExpiresAt()
+          setSession({
+            access_token: token,
+            refresh_token: localStorage.getItem('claimn_refresh_token') || '',
+            expires_at: expiresAt || 0,
+          })
+          scheduleRefresh()
+        }
+      } catch {
+        setUser(null)
+        setSession(null)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    init()
 
-    return () => subscription.unsubscribe()
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current)
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error: error as Error | null }
+    try {
+      const tokens = await authLogin(email, password)
+      const userData = await fetchCurrentUser(tokens.access_token)
+      setUser(userData as AuthUser)
+      setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: tokens.expires_at,
+      })
+      scheduleRefresh()
+      return { error: null }
+    } catch (err) {
+      return { error: err as Error }
+    }
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    await authLogout()
+    setUser(null)
+    setSession(null)
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current)
+    }
   }
 
   return (

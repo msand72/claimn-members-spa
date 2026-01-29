@@ -37,8 +37,7 @@ export function ResetPasswordPage() {
 
     setIsLoading(true)
 
-    // TODO: Implement password update via Supabase
-    // await supabase.auth.updateUser({ password })
+    // TODO: Implement password update via Go API
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))

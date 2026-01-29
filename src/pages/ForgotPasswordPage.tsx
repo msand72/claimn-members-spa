@@ -13,8 +13,7 @@ export function ForgotPasswordPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // TODO: Implement password reset via Supabase
-    // await supabase.auth.resetPasswordForEmail(email)
+    // TODO: Implement password reset via Go API
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
