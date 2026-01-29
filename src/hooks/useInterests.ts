@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '../lib/supabase'
+import { api } from '../lib/api/client'
 
 export interface Interest {
   id: string
@@ -15,13 +15,8 @@ export function useInterests() {
   return useQuery({
     queryKey: ['interests'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('interests')
-        .select('*')
-        .order('sort_order', { ascending: true })
-
-      if (error) throw error
-      return data as Interest[]
+      const data = await api.get<{ interests: Interest[] }>('/members/interests')
+      return data.interests
     },
   })
 }
@@ -31,15 +26,8 @@ export function useMemberInterests(userId: string | undefined) {
   return useQuery({
     queryKey: ['member-interests', userId],
     queryFn: async () => {
-      if (!userId) return []
-
-      const { data, error } = await supabase
-        .from('member_interests')
-        .select('interest_id')
-        .eq('user_id', userId)
-
-      if (error) throw error
-      return data.map((item) => item.interest_id) as string[]
+      const data = await api.get<{ interest_ids: string[] }>('/members/interests/my')
+      return data.interest_ids
     },
     enabled: !!userId,
   })
@@ -51,31 +39,12 @@ export function useUpdateMemberInterests() {
 
   return useMutation({
     mutationFn: async ({
-      userId,
       interestIds,
     }: {
       userId: string
       interestIds: string[]
     }) => {
-      // Delete existing interests
-      const { error: deleteError } = await supabase
-        .from('member_interests')
-        .delete()
-        .eq('user_id', userId)
-
-      if (deleteError) throw deleteError
-
-      // Insert new interests
-      if (interestIds.length > 0) {
-        const { error: insertError } = await supabase.from('member_interests').insert(
-          interestIds.map((interestId) => ({
-            user_id: userId,
-            interest_id: interestId,
-          }))
-        )
-
-        if (insertError) throw insertError
-      }
+      await api.put('/members/interests', { interest_ids: interestIds })
     },
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ['member-interests', userId] })

@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { supabase } from '../lib/supabase'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { api } from '../lib/api/client'
 
 export interface InterestGroup {
   id: string
@@ -21,46 +21,8 @@ export function useMyInterestGroups(userId: string | undefined) {
   return useQuery({
     queryKey: ['my-interest-groups', userId],
     queryFn: async () => {
-      if (!userId) return []
-
-      // Get member's interests first
-      const { data: memberInterests, error: interestError } = await supabase
-        .from('member_interests')
-        .select('interest_id')
-        .eq('user_id', userId)
-
-      if (interestError) throw interestError
-      if (!memberInterests?.length) return []
-
-      const interestIds = memberInterests.map((mi) => mi.interest_id)
-
-      // Get interest groups for those interests
-      const { data: groups, error: groupError } = await supabase
-        .from('interest_groups')
-        .select(`
-          id,
-          interest_id,
-          name,
-          description,
-          member_count,
-          post_count,
-          interest:interests!interest_id (
-            id,
-            name,
-            slug,
-            icon
-          )
-        `)
-        .in('interest_id', interestIds)
-        .order('name')
-
-      if (groupError) throw groupError
-      // Transform the data - Supabase returns interest as array, we need single object
-      const transformed = (groups || []).map((g) => ({
-        ...g,
-        interest: Array.isArray(g.interest) ? g.interest[0] : g.interest,
-      }))
-      return transformed as InterestGroup[]
+      const data = await api.get<{ groups: InterestGroup[] }>('/members/interest-groups/my')
+      return data.groups
     },
     enabled: !!userId,
   })
@@ -71,31 +33,38 @@ export function useAllInterestGroups() {
   return useQuery({
     queryKey: ['all-interest-groups'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('interest_groups')
-        .select(`
-          id,
-          interest_id,
-          name,
-          description,
-          member_count,
-          post_count,
-          interest:interests!interest_id (
-            id,
-            name,
-            slug,
-            icon
-          )
-        `)
-        .order('name')
+      const data = await api.get<{ groups: InterestGroup[] }>('/members/interest-groups')
+      return data.groups
+    },
+  })
+}
 
-      if (error) throw error
-      // Transform the data - Supabase returns interest as array, we need single object
-      const transformed = (data || []).map((g) => ({
-        ...g,
-        interest: Array.isArray(g.interest) ? g.interest[0] : g.interest,
-      }))
-      return transformed as InterestGroup[]
+// Join an interest group
+export function useJoinInterestGroup() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (groupId: string) => {
+      await api.post(`/members/interest-groups/${groupId}/join`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-interest-groups'] })
+      queryClient.invalidateQueries({ queryKey: ['all-interest-groups'] })
+    },
+  })
+}
+
+// Leave an interest group
+export function useLeaveInterestGroup() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (groupId: string) => {
+      await api.post(`/members/interest-groups/${groupId}/leave`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-interest-groups'] })
+      queryClient.invalidateQueries({ queryKey: ['all-interest-groups'] })
     },
   })
 }
