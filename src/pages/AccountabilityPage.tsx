@@ -13,6 +13,7 @@ import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import { useAccountabilityGroup } from '../lib/api/hooks'
 import type { AccountabilityMember as ApiAccountabilityMember } from '../lib/api/hooks'
+import { useAuth } from '../contexts/AuthContext'
 import {
   Users,
   User,
@@ -26,6 +27,7 @@ import {
   Flame,
   ArrowRight,
   Loader2,
+  Info,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -89,15 +91,19 @@ function MemberCard({ member, isCurrentUser }: { member: ApiAccountabilityMember
 export function AccountabilityPage() {
   const [showCheckInModal, setShowCheckInModal] = useState(false)
   const [checkInMessage, setCheckInMessage] = useState('')
+  const [checkInNotice, setCheckInNotice] = useState<string | null>(null)
 
+  const { user } = useAuth()
   const { data: group, isLoading, error } = useAccountabilityGroup()
-  const currentUserId = 'me' // Will be replaced with actual user ID from auth context
+  const currentUserId = user?.id ?? ''
 
   const handleSubmitCheckIn = () => {
     // Check-in API endpoints not yet implemented
     // When available: POST /members/accountability/groups/:id/check-ins
     setShowCheckInModal(false)
     setCheckInMessage('')
+    setCheckInNotice('Check-in feature coming soon. Your message was not sent.')
+    setTimeout(() => setCheckInNotice(null), 5000)
   }
 
   if (isLoading) {
@@ -202,6 +208,14 @@ export function AccountabilityPage() {
             Share Check-in
           </GlassButton>
         </div>
+
+        {/* Check-in notice banner */}
+        {checkInNotice && (
+          <div className="mb-6 flex items-center gap-3 rounded-xl bg-koppar/10 border border-koppar/20 px-4 py-3 text-sm text-koppar">
+            <Info className="w-4 h-4 flex-shrink-0" />
+            {checkInNotice}
+          </div>
+        )}
 
         {/* Group Header */}
         <GlassCard variant="elevated" className="mb-8">

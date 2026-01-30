@@ -13,6 +13,10 @@ interface BillingInfo {
     current_period_start: string
     current_period_end: string
     cancel_at_period_end: boolean
+    amount?: number
+    currency?: string
+    interval?: string
+    features?: string[]
   }
   payment_method: {
     type: string
@@ -40,15 +44,6 @@ interface PortalResponse {
   url: string
 }
 
-const planFeatures = [
-  'Full community access',
-  'Unlimited messaging',
-  'Expert coaching sessions',
-  'Premium protocols',
-  'Circle memberships',
-  'Priority support',
-]
-
 function formatCurrency(amount: number, currency: string): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -70,6 +65,7 @@ function formatTier(tier: string): string {
 
 export function BillingPage() {
   const [portalLoading, setPortalLoading] = useState(false)
+  const [portalError, setPortalError] = useState<string | null>(null)
 
   const {
     data: billing,
@@ -94,11 +90,12 @@ export function BillingPage() {
 
   const handleManageBilling = async () => {
     setPortalLoading(true)
+    setPortalError(null)
     try {
       const data = await api.post<PortalResponse>('/members/billing/portal')
       window.location.href = data.url
-    } catch (err) {
-      console.error('Failed to open billing portal:', err)
+    } catch {
+      setPortalError('Unable to open the billing portal. Please try again or contact support.')
       setPortalLoading(false)
     }
   }
@@ -139,10 +136,16 @@ export function BillingPage() {
                 <p className="text-kalkvit/60 mb-4">
                   Your next billing date is {formatDate(subscription.current_period_end)}
                 </p>
-                <div className="flex items-baseline gap-1">
-                  <span className="font-display text-4xl font-bold text-kalkvit">$99</span>
-                  <span className="text-kalkvit/60">/month</span>
-                </div>
+                {subscription.amount != null && subscription.currency ? (
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-display text-4xl font-bold text-kalkvit">
+                      {formatCurrency(subscription.amount, subscription.currency)}
+                    </span>
+                    {subscription.interval && (
+                      <span className="text-kalkvit/60">/{subscription.interval}</span>
+                    )}
+                  </div>
+                ) : null}
               </div>
               <GlassButton
                 variant="secondary"
@@ -160,18 +163,27 @@ export function BillingPage() {
           ) : null}
         </GlassCard>
 
-        {/* Plan Features */}
-        <GlassCard variant="base" className="mb-6">
-          <h3 className="font-display text-xl font-semibold text-kalkvit mb-4">Plan Includes</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {planFeatures.map((feature) => (
-              <div key={feature} className="flex items-center gap-3 text-kalkvit/80">
-                <CheckCircle className="w-5 h-5 text-skogsgron" />
-                <span>{feature}</span>
-              </div>
-            ))}
+        {/* Portal error message */}
+        {portalError && (
+          <div className="mb-6 p-4 rounded-xl bg-tegelrod/10 border border-tegelrod/30 text-tegelrod text-sm">
+            {portalError}
           </div>
-        </GlassCard>
+        )}
+
+        {/* Plan Features - only shown when subscription provides feature list */}
+        {subscription?.features && subscription.features.length > 0 && (
+          <GlassCard variant="base" className="mb-6">
+            <h3 className="font-display text-xl font-semibold text-kalkvit mb-4">Plan Includes</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {subscription.features.map((feature) => (
+                <div key={feature} className="flex items-center gap-3 text-kalkvit/80">
+                  <CheckCircle className="w-5 h-5 text-skogsgron" />
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        )}
 
         {/* Payment Method */}
         <GlassCard variant="base" className="mb-6">

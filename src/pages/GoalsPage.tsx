@@ -105,6 +105,7 @@ function GoalCard({ goal }: { goal: Goal }) {
 export function GoalsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all')
+  const [createError, setCreateError] = useState<string | null>(null)
   const [newGoal, setNewGoal] = useState<CreateGoalRequest>({
     title: '',
     description: '',
@@ -133,6 +134,7 @@ export function GoalsPage() {
 
   const handleCreateGoal = async () => {
     if (!newGoal.title.trim()) return
+    setCreateError(null)
 
     try {
       await createGoal.mutateAsync({
@@ -144,7 +146,9 @@ export function GoalsPage() {
       setShowCreateModal(false)
       setNewGoal({ title: '', description: '', pillar_id: undefined, target_date: '' })
     } catch (err) {
-      console.error('Failed to create goal:', err)
+      const message =
+        err instanceof Error ? err.message : 'An unexpected error occurred'
+      setCreateError(`Failed to create goal: ${message}`)
     }
   }
 
@@ -156,7 +160,7 @@ export function GoalsPage() {
             <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Goals & KPIs</h1>
             <p className="text-kalkvit/60">Track your transformation goals and key performance indicators</p>
           </div>
-          <GlassButton variant="primary" onClick={() => setShowCreateModal(true)}>
+          <GlassButton variant="primary" onClick={() => { setCreateError(null); setShowCreateModal(true) }}>
             <Plus className="w-4 h-4" />
             Create Goal
           </GlassButton>
@@ -239,42 +243,44 @@ export function GoalsPage() {
             <p className="text-kalkvit/50 text-sm mb-4">
               Create your first goal to start tracking your transformation
             </p>
-            <GlassButton variant="primary" onClick={() => setShowCreateModal(true)}>
+            <GlassButton variant="primary" onClick={() => { setCreateError(null); setShowCreateModal(true) }}>
               <Plus className="w-4 h-4" />
               Create Goal
             </GlassButton>
           </GlassCard>
         )}
 
-        {/* Achievements Section */}
-        <div className="mt-12">
-          <h2 className="font-serif text-xl font-bold text-kalkvit mb-4">Recent Achievements</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { name: '7-Day Streak', icon: Flame, earned: false },
-              { name: 'First Goal', icon: Target, earned: goals.length > 0 },
-              { name: 'KPI Master', icon: TrendingUp, earned: false },
-              { name: '30-Day Champion', icon: Trophy, earned: false },
-            ].map((achievement) => (
-              <GlassCard
-                key={achievement.name}
-                variant="base"
-                className={cn('text-center py-4', !achievement.earned && 'opacity-40')}
-              >
-                <achievement.icon
-                  className={cn(
-                    'w-8 h-8 mx-auto mb-2',
-                    achievement.earned ? 'text-koppar' : 'text-kalkvit/30'
+        {/* Achievements Section — derived from real goal data */}
+        {goals.length > 0 && (
+          <div className="mt-12">
+            <h2 className="font-serif text-xl font-bold text-kalkvit mb-4">Milestones</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { name: 'First Goal Created', icon: Target, earned: goals.length > 0 },
+                { name: 'Goal Completed', icon: CheckCircle2, earned: completedGoals > 0 },
+                { name: '5 Goals Set', icon: TrendingUp, earned: goals.length >= 5 },
+                { name: '10 Goals Completed', icon: Trophy, earned: completedGoals >= 10 },
+              ].map((milestone) => (
+                <GlassCard
+                  key={milestone.name}
+                  variant="base"
+                  className={cn('text-center py-4', !milestone.earned && 'opacity-40')}
+                >
+                  <milestone.icon
+                    className={cn(
+                      'w-8 h-8 mx-auto mb-2',
+                      milestone.earned ? 'text-koppar' : 'text-kalkvit/30'
+                    )}
+                  />
+                  <p className="text-sm text-kalkvit">{milestone.name}</p>
+                  {milestone.earned && (
+                    <p className="text-xs text-koppar mt-1">Earned</p>
                   )}
-                />
-                <p className="text-sm text-kalkvit">{achievement.name}</p>
-                {achievement.earned && (
-                  <p className="text-xs text-koppar mt-1">Earned</p>
-                )}
-              </GlassCard>
-            ))}
+                </GlassCard>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Create Goal Modal */}
         <GlassModal
@@ -308,6 +314,12 @@ export function GoalsPage() {
               onChange={(e) => setNewGoal({ ...newGoal, target_date: e.target.value })}
             />
           </div>
+          {createError && (
+            <div className="mt-4 flex items-center gap-2 rounded-xl bg-tegelrod/10 border border-tegelrod/20 px-4 py-3 text-sm text-tegelrod">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {createError}
+            </div>
+          )}
           <GlassModalFooter>
             <GlassButton variant="ghost" onClick={() => setShowCreateModal(false)}>
               Cancel

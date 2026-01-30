@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
 import { useSprints, useJoinSprint } from '../lib/api/hooks'
@@ -22,10 +22,14 @@ function SprintCard({
   sprint,
   onJoin,
   isJoining,
+  onViewProgress,
+  onViewResults,
 }: {
   sprint: Sprint
   onJoin: (sprintId: string) => void
   isJoining: boolean
+  onViewProgress: (sprintId: string) => void
+  onViewResults: (sprintId: string) => void
 }) {
   const statusConfig = {
     upcoming: { variant: 'koppar' as const, label: 'Upcoming', color: 'text-koppar' },
@@ -148,13 +152,21 @@ function SprintCard({
           </GlassButton>
         )}
         {sprint.status === 'active' && (
-          <GlassButton variant="secondary" className="text-sm">
+          <GlassButton
+            variant="secondary"
+            className="text-sm"
+            onClick={() => onViewProgress(sprint.id)}
+          >
             View Progress
             <ChevronRight className="w-4 h-4" />
           </GlassButton>
         )}
         {sprint.status === 'completed' && (
-          <GlassButton variant="ghost" className="text-sm">
+          <GlassButton
+            variant="ghost"
+            className="text-sm"
+            onClick={() => onViewResults(sprint.id)}
+          >
             <CheckCircle className="w-4 h-4 text-skogsgron" />
             View Results
           </GlassButton>
@@ -165,6 +177,7 @@ function SprintCard({
 }
 
 export function ProgramsSprintsPage() {
+  const navigate = useNavigate()
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'active' | 'completed'>('all')
   const [joiningSprintId, setJoiningSprintId] = useState<string | null>(null)
 
@@ -187,6 +200,14 @@ export function ProgramsSprintsPage() {
     } finally {
       setJoiningSprintId(null)
     }
+  }
+
+  const handleViewProgress = (sprintId: string) => {
+    navigate(`/programs/sprints/${sprintId}`)
+  }
+
+  const handleViewResults = (sprintId: string) => {
+    navigate(`/programs/sprints/${sprintId}/results`)
   }
 
   const activeCount = sprints.filter((s) => s.status === 'active').length
@@ -283,6 +304,8 @@ export function ProgramsSprintsPage() {
                 sprint={sprint}
                 onJoin={handleJoin}
                 isJoining={joiningSprintId === sprint.id}
+                onViewProgress={handleViewProgress}
+                onViewResults={handleViewResults}
               />
             ))}
           </div>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { Clock, Users, Star, CheckCircle, Lock, ChevronRight, Loader2, AlertTriangle } from 'lucide-react'
+import { Clock, CheckCircle, Lock, ChevronRight, Loader2, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { useProtocolLibrary, useActiveProtocols, type ProtocolTemplate } from '../lib/api/hooks'
 import { PILLARS } from '../lib/constants'
@@ -16,9 +16,6 @@ interface Protocol {
   description: string
   category: string
   duration: string
-  enrolledCount: number
-  rating: number
-  reviews: number
   price: number
   originalPrice?: number
   isPurchased: boolean
@@ -46,9 +43,6 @@ function mapProtocolTemplateToProtocol(
     description: template.description,
     category: pillarName,
     duration: template.timeline,
-    enrolledCount: 0, // Not available from API
-    rating: 0, // Not available from API
-    reviews: 0, // Not available from API
     price: 0, // Protocols are free in the current system
     isPurchased: isActive,
     isNew: false, // Not available from API
@@ -91,14 +85,6 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
         <span className="flex items-center gap-1">
           <Clock className="w-4 h-4" />
           {protocol.duration}
-        </span>
-        <span className="flex items-center gap-1">
-          <Users className="w-4 h-4" />
-          {protocol.enrolledCount.toLocaleString()}
-        </span>
-        <span className="flex items-center gap-1">
-          <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
-          {protocol.rating} ({protocol.reviews})
         </span>
       </div>
 

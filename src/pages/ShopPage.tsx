@@ -65,7 +65,7 @@ export function ShopPage() {
       title: 'Protocols',
       description: 'Structured daily practices for transformation. Follow proven frameworks for physical fitness, mental clarity, and personal growth.',
       icon: <BookOpen className="w-7 h-7 text-koppar" />,
-      link: '/protocols',
+      link: '/shop/protocols',
       linkText: 'Browse Protocols',
       count: protocols?.length,
       isLoading: protocolsLoading,
@@ -75,7 +75,7 @@ export function ShopPage() {
       title: 'Circles',
       description: 'Join exclusive communities of high-achievers. Connect with like-minded individuals, share experiences, and grow together.',
       icon: <Users className="w-7 h-7 text-koppar" />,
-      link: '/circles',
+      link: '/shop/circles',
       linkText: 'Explore Circles',
       count: circlesData?.pagination?.total,
       isLoading: circlesLoading,
@@ -85,7 +85,7 @@ export function ShopPage() {
       title: 'Expert Coaching',
       description: 'Book 1-on-1 sessions with certified coaches. Get personalized guidance tailored to your specific challenges and goals.',
       icon: <UserCheck className="w-7 h-7 text-koppar" />,
-      link: '/coaching',
+      link: '/experts',
       linkText: 'Find a Coach',
       count: expertsData?.pagination?.total,
       isLoading: expertsLoading,
@@ -133,10 +133,11 @@ export function ShopPage() {
               <Sparkles className="w-6 h-6 text-koppar" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-kalkvit mb-1">Featured Collections Coming Soon</h3>
+              <h3 className="font-semibold text-kalkvit mb-1">Featured Collections</h3>
               <p className="text-sm text-kalkvit/60">
-                We are working on curated bundles and special offers. Check back soon for exclusive deals on protocols, coaching packages, and premium memberships.
+                Curated bundles and special offers are on the way. Stay tuned for exclusive deals on protocols, coaching packages, and premium memberships.
               </p>
+              <GlassBadge variant="default" className="mt-2 text-xs">Planned</GlassBadge>
             </div>
           </div>
         </GlassCard>

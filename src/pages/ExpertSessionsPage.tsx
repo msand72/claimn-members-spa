@@ -166,7 +166,7 @@ function SessionCard({ session }: { session: CoachingSession }) {
             </div>
           )}
           {uiStatus === 'completed' && !session.has_notes && (
-            <Link to={`/sessions/${session.id}`}>
+            <Link to="/coaching/session-notes">
               <GlassButton variant="secondary" className="text-sm mt-2">
                 Leave Review
               </GlassButton>

@@ -1,9 +1,7 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
-import { Users, Star, ChevronRight, Award, Loader2, AlertTriangle, Sparkles } from 'lucide-react'
-import { cn } from '../lib/utils'
+import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
+import { Users, ChevronRight, Loader2, AlertTriangle, Sparkles } from 'lucide-react'
 import { useCircles, useMyCircles } from '../lib/api/hooks'
 import type { Circle } from '../lib/api/types'
 
@@ -12,22 +10,8 @@ interface DisplayCircle {
   id: string
   name: string
   description: string
-  category: string
   members: number
-  maxMembers: number
-  price: number
-  priceFrequency: 'monthly' | 'one-time'
-  rating: number
-  reviews: number
   isPurchased: boolean
-  isExclusive: boolean
-  nextMeeting: string
-  leader: {
-    name: string
-    initials: string
-    title: string
-  }
-  benefits: string[]
 }
 
 // Map Circle from API to display format
@@ -36,39 +20,17 @@ function mapCircleToDisplayCircle(circle: Circle): DisplayCircle {
     id: circle.id,
     name: circle.name,
     description: circle.description || 'Join this circle to connect with like-minded members.',
-    category: 'General', // Not available in API
     members: circle.member_count,
-    maxMembers: 100, // Default max, not available in API
-    price: 0, // Free circles - premium pricing not available in API
-    priceFrequency: 'monthly',
-    rating: 0, // Not available in API
-    reviews: 0, // Not available in API
     isPurchased: circle.is_member,
-    isExclusive: false, // Not available in API
-    nextMeeting: 'Check circle for details',
-    leader: {
-      name: 'Circle Admin',
-      initials: 'CA',
-      title: 'Administrator',
-    },
-    benefits: [],
   }
 }
 
 function CircleCard({ circle }: { circle: DisplayCircle }) {
-  const spotsLeft = circle.maxMembers - circle.members
-
   return (
     <GlassCard variant="base" className="group">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
-          <GlassBadge variant="default">{circle.category}</GlassBadge>
-          {circle.isExclusive && (
-            <GlassBadge variant="koppar" className="flex items-center gap-1">
-              <Award className="w-3 h-3" />
-              Exclusive
-            </GlassBadge>
-          )}
+          {/* Category badge reserved for future API support */}
         </div>
         {circle.isPurchased && (
           <GlassBadge variant="success">Member</GlassBadge>
@@ -80,51 +42,15 @@ function CircleCard({ circle }: { circle: DisplayCircle }) {
       </h3>
       <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{circle.description}</p>
 
-      {/* Leader - only show if not default */}
-      {circle.leader.name !== 'Circle Admin' && (
-        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-white/[0.03]">
-          <GlassAvatar initials={circle.leader.initials} size="sm" />
-          <div>
-            <p className="text-sm font-medium text-kalkvit">{circle.leader.name}</p>
-            <p className="text-xs text-kalkvit/50">{circle.leader.title}</p>
-          </div>
-        </div>
-      )}
-
       {/* Stats */}
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
           <Users className="w-4 h-4" />
           {circle.members} members
         </span>
-        {circle.rating > 0 && (
-          <span className="flex items-center gap-1">
-            <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
-            {circle.rating}
-          </span>
-        )}
       </div>
 
-      {/* Benefits preview - only show if benefits exist */}
-      {circle.benefits.length > 0 && (
-        <div className="mb-4">
-          <p className="text-xs text-kalkvit/40 mb-2">Includes:</p>
-          <div className="flex flex-wrap gap-1">
-            {circle.benefits.slice(0, 2).map((benefit, i) => (
-              <span key={i} className="text-xs px-2 py-1 rounded-lg bg-white/[0.06] text-kalkvit/60">
-                {benefit}
-              </span>
-            ))}
-            {circle.benefits.length > 2 && (
-              <span className="text-xs px-2 py-1 text-kalkvit/40">
-                +{circle.benefits.length - 2} more
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Price and CTA */}
+      {/* CTA */}
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
         {circle.isPurchased ? (
           <>
@@ -138,23 +64,7 @@ function CircleCard({ circle }: { circle: DisplayCircle }) {
           </>
         ) : (
           <>
-            <div>
-              {circle.price > 0 ? (
-                <>
-                  <span className="font-display text-2xl font-bold text-kalkvit">
-                    ${circle.price}
-                  </span>
-                  <span className="text-sm text-kalkvit/50">
-                    /{circle.priceFrequency === 'monthly' ? 'mo' : 'once'}
-                  </span>
-                </>
-              ) : (
-                <span className="font-display text-xl font-bold text-skogsgron">Free</span>
-              )}
-              {spotsLeft <= 5 && circle.maxMembers < 100 && (
-                <p className="text-xs text-tegelrod mt-1">{spotsLeft} spots left</p>
-              )}
-            </div>
+            <span className="font-display text-xl font-bold text-skogsgron">Free</span>
             <Link to={`/circles/${circle.id}`}>
               <GlassButton variant="primary" className="text-sm">
                 View Circle
@@ -169,8 +79,6 @@ function CircleCard({ circle }: { circle: DisplayCircle }) {
 }
 
 export function ShopCirclesPage() {
-  const [selectedCategory, setSelectedCategory] = useState('All')
-
   // API hooks
   const {
     data: circlesData,
@@ -189,15 +97,8 @@ export function ShopCirclesPage() {
   // Map API circles to display format
   const displayCircles: DisplayCircle[] = allCircles.map(mapCircleToDisplayCircle)
 
-  // Get unique categories (currently all 'General' from API, but structure supports future categories)
-  const categories = ['All', ...new Set(displayCircles.map((c) => c.category).filter((c) => c !== 'General'))]
-  if (displayCircles.some((c) => c.category === 'General') && !categories.includes('General')) {
-    categories.push('General')
-  }
-
-  const filteredCircles = displayCircles.filter((circle) => {
-    return selectedCategory === 'All' || circle.category === selectedCategory
-  })
+  // Categories not available from API yet - show all circles
+  const filteredCircles = displayCircles
 
   const myCirclesCount = myCircles.length
   const isLoading = isLoadingCircles || isLoadingMyCircles
@@ -251,26 +152,6 @@ export function ShopCirclesPage() {
             </p>
           </div>
         </GlassCard>
-
-        {/* Filters - only show if multiple categories exist */}
-        {categories.length > 1 && (
-          <div className="flex flex-wrap gap-2 mb-8">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={cn(
-                  'px-4 py-2 rounded-xl text-sm font-medium transition-all',
-                  selectedCategory === category
-                    ? 'bg-koppar text-kalkvit'
-                    : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1] hover:text-kalkvit'
-                )}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* Loading state */}
         {isLoading && (

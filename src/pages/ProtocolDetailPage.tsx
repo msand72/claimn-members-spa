@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
@@ -117,6 +118,7 @@ function WeekCard({
 
 export function ProtocolDetailPage() {
   const { slug } = useParams<{ slug: string }>()
+  const [actionError, setActionError] = useState<string | null>(null)
 
   // API hooks
   const {
@@ -145,25 +147,49 @@ export function ProtocolDetailPage() {
 
   const handleStart = async () => {
     if (!slug) return
-    await startMutation.mutateAsync({ protocol_slug: slug })
+    setActionError(null)
+    try {
+      await startMutation.mutateAsync({ protocol_slug: slug })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
+      setActionError(`Failed to start protocol: ${msg}`)
+    }
   }
 
   const handlePause = async () => {
     if (!activeProtocol?.id) return
-    await pauseMutation.mutateAsync(activeProtocol.id)
+    setActionError(null)
+    try {
+      await pauseMutation.mutateAsync(activeProtocol.id)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
+      setActionError(`Failed to pause protocol: ${msg}`)
+    }
   }
 
   const handleResume = async () => {
     if (!activeProtocol?.id) return
-    await resumeMutation.mutateAsync(activeProtocol.id)
+    setActionError(null)
+    try {
+      await resumeMutation.mutateAsync(activeProtocol.id)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
+      setActionError(`Failed to resume protocol: ${msg}`)
+    }
   }
 
   const handleToggleTask = async (taskId: string, completed: boolean) => {
     if (!activeProtocol?.id) return
-    await progressMutation.mutateAsync({
-      protocolId: activeProtocol.id,
-      data: { task_id: taskId, completed },
-    })
+    setActionError(null)
+    try {
+      await progressMutation.mutateAsync({
+        protocolId: activeProtocol.id,
+        data: { task_id: taskId, completed },
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
+      setActionError(`Failed to update task: ${msg}`)
+    }
   }
 
   if (isLoading) {
@@ -231,6 +257,20 @@ export function ProtocolDetailPage() {
           <ChevronLeft className="w-4 h-4" />
           Back to Protocols
         </Link>
+
+        {/* Action error banner */}
+        {actionError && (
+          <div className="mb-6 flex items-center gap-3 rounded-xl bg-tegelrod/10 border border-tegelrod/20 px-4 py-3 text-sm text-tegelrod">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span className="flex-1">{actionError}</span>
+            <button
+              onClick={() => setActionError(null)}
+              className="text-tegelrod/60 hover:text-tegelrod transition-colors text-xs font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
