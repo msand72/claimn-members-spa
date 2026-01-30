@@ -91,8 +91,8 @@ export function ShopCirclesPage() {
     isLoading: isLoadingMyCircles,
   } = useMyCircles()
 
-  const allCircles = circlesData?.data || []
-  const myCircles = myCirclesData || []
+  const allCircles = Array.isArray(circlesData?.data) ? circlesData.data : []
+  const myCircles = Array.isArray(myCirclesData) ? myCirclesData : []
 
   // Map API circles to display format
   const displayCircles: DisplayCircle[] = allCircles.map(mapCircleToDisplayCircle)

@@ -151,7 +151,7 @@ export function ActionItemsPage() {
   const createMutation = useCreateActionItem()
   const toggleMutation = useToggleActionItem()
 
-  const items = actionItemsData?.data || []
+  const items = Array.isArray(actionItemsData?.data) ? actionItemsData.data : []
 
   const handleToggle = async (id: string, completed: boolean) => {
     setTogglingId(id)

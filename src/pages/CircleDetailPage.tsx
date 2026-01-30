@@ -261,8 +261,8 @@ export function CircleDetailPage() {
   const joinCircle = useJoinCircle()
   const leaveCircle = useLeaveCircle()
 
-  const members = membersData?.data || []
-  const posts = postsData?.data || []
+  const members = Array.isArray(membersData?.data) ? membersData.data : []
+  const posts = Array.isArray(postsData?.data) ? postsData.data : []
 
   const displayName = user?.display_name || user?.email?.split('@')[0] || 'Member'
   const initials = displayName

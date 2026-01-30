@@ -146,8 +146,8 @@ export function ProgramsPage() {
   const { data: enrolledData, isLoading: isLoadingEnrolled } = useEnrolledPrograms()
   const enrollMutation = useEnrollProgram()
 
-  const programs = programsData?.data || []
-  const enrolledPrograms = enrolledData?.data || []
+  const programs = Array.isArray(programsData?.data) ? programsData.data : []
+  const enrolledPrograms = Array.isArray(enrolledData?.data) ? enrolledData.data : []
 
   const enrolledProgramIds = new Set(enrolledPrograms.map((ep) => ep.program_id))
 

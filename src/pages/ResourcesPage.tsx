@@ -92,7 +92,7 @@ export function ResourcesPage() {
     search: searchQuery || undefined,
   })
 
-  const resources = resourcesData?.data || []
+  const resources = Array.isArray(resourcesData?.data) ? resourcesData.data : []
 
   if (error) {
     return (

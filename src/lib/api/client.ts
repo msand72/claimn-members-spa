@@ -53,7 +53,9 @@ class ApiClient {
       throw new Error('Not authenticated')
     }
 
-    const url = `${API_URL}${endpoint}`
+    // Strip trailing slashes to avoid 404s from Go backend
+    const cleanEndpoint = endpoint.replace(/\/+$/, '')
+    const url = `${API_URL}${cleanEndpoint}`
 
     try {
       const response = await fetch(url, {

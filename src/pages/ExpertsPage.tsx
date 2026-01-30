@@ -46,7 +46,13 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expertI
         </div>
       </div>
 
-      <p className="text-sm text-kalkvit/70 mb-4 line-clamp-2">{expert.bio}</p>
+      <p className="text-sm text-kalkvit/70 mb-2 line-clamp-2">{expert.bio}</p>
+      <Link
+        to={`/experts/${expert.id}`}
+        className="inline-block text-xs font-medium text-koppar hover:text-koppar/80 transition-colors mb-2"
+      >
+        Read more &rarr;
+      </Link>
 
       <div className="flex flex-wrap gap-1 mb-4">
         {expert.specialties.slice(0, 3).map((s) => (
@@ -116,8 +122,13 @@ export function ExpertsPage() {
     specialty: activeFilter !== 'All' ? activeFilter : undefined,
   })
 
-  const experts = expertsData?.data || []
-  const topRatedExperts = experts.filter((e) => e.is_top_rated)
+  const experts = Array.isArray(expertsData?.data) ? expertsData.data : []
+  // Sort so top-rated experts appear first
+  const sortedExperts = [...experts].sort((a, b) => {
+    if (a.is_top_rated && !b.is_top_rated) return -1
+    if (!a.is_top_rated && b.is_top_rated) return 1
+    return 0
+  })
 
   if (error) {
     return (
@@ -187,29 +198,15 @@ export function ExpertsPage() {
           </div>
         ) : (
           <>
-            {/* Top Rated Section */}
-            {activeFilter === 'All' && searchQuery === '' && topRatedExperts.length > 0 && (
-              <div className="mb-8">
-                <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">Top Rated</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {topRatedExperts.map((expert) => (
-                    <ExpertCard key={expert.id} expert={expert} onMessage={handleMessage} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* All Experts */}
+            {/* All Experts (top-rated sorted first) */}
             <div>
               <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
                 {activeFilter === 'All' && searchQuery === '' ? 'All Experts' : 'Results'}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {experts
-                  .filter((e) => activeFilter !== 'All' || searchQuery !== '' || !e.is_top_rated)
-                  .map((expert) => (
-                    <ExpertCard key={expert.id} expert={expert} onMessage={handleMessage} />
-                  ))}
+                {sortedExperts.map((expert) => (
+                  <ExpertCard key={expert.id} expert={expert} onMessage={handleMessage} />
+                ))}
               </div>
             </div>
 

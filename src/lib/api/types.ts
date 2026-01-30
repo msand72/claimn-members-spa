@@ -398,6 +398,7 @@ export interface Expert {
   total_sessions: number
   hourly_rate: number
   availability: string | null
+  calendar_url: string | null
   languages: string[]
   is_top_rated: boolean
   created_at: string

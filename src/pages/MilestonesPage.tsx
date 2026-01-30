@@ -137,7 +137,8 @@ export function MilestonesPage() {
   const [updateStatus, setUpdateStatus] = useState<MilestoneStatus>('pending')
   const [filter, setFilter] = useState<'all' | MilestoneStatus>('all')
 
-  const { data: milestones = [], isLoading, error } = useMilestones()
+  const { data: rawMilestones, isLoading, error } = useMilestones()
+  const milestones = Array.isArray(rawMilestones) ? rawMilestones : []
   const updateMilestone = useUpdateMilestoneStatus()
 
   const handleUpdateStatus = (milestone: Milestone) => {

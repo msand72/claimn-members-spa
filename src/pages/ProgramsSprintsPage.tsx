@@ -191,7 +191,7 @@ export function ProgramsSprintsPage() {
 
   const joinMutation = useJoinSprint()
 
-  const sprints = sprintsData?.data || []
+  const sprints = Array.isArray(sprintsData?.data) ? sprintsData.data : []
 
   const handleJoin = async (sprintId: string) => {
     setJoiningSprintId(sprintId)

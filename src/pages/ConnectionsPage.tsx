@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
-import { Search, UserPlus, UserCheck, MessageCircle, MoreHorizontal, Loader2, Users, Trash2 } from 'lucide-react'
+import { Search, UserPlus, UserCheck, MessageCircle, MoreHorizontal, Loader2, Users, Trash2, Heart } from 'lucide-react'
 import { cn } from '../lib/utils'
 import {
   useConnections,
@@ -16,6 +16,31 @@ import {
   type NetworkMember,
 } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
+import { PILLARS, type PillarId } from '../lib/constants'
+
+/** Map pillar color tokens to Tailwind bg/text class pairs */
+const PILLAR_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+  koppar:   { bg: 'bg-koppar/20',   text: 'text-koppar',   border: 'border-koppar/40' },
+  oliv:     { bg: 'bg-oliv/20',     text: 'text-oliv',     border: 'border-oliv/40' },
+  jordbrun: { bg: 'bg-jordbrun/20', text: 'text-jordbrun', border: 'border-jordbrun/40' },
+  charcoal: { bg: 'bg-charcoal/40', text: 'text-kalkvit/70', border: 'border-kalkvit/20' },
+}
+
+function PillarBadge({ pillarId }: { pillarId: string }) {
+  const pillar = PILLARS[pillarId as PillarId]
+  if (!pillar) return null
+  const style = PILLAR_STYLES[pillar.color] ?? PILLAR_STYLES.charcoal
+  return (
+    <span
+      className={cn(
+        'px-2 py-0.5 text-xs rounded-full border capitalize',
+        style.bg, style.text, style.border,
+      )}
+    >
+      {pillar.name}
+    </span>
+  )
+}
 
 const tabs = ['All', 'Connected', 'Pending', 'Suggestions']
 
@@ -41,7 +66,7 @@ function SuggestionCard({ member }: SuggestionCardProps) {
   return (
     <GlassCard variant="base" className="p-4 overflow-hidden">
       <div className="flex items-start gap-4">
-        <GlassAvatar initials={initials} size="lg" />
+        <GlassAvatar initials={initials} src={member.avatar_url} size="lg" />
         <div className="flex-1 min-w-0">
           <div>
             <h3 className="font-semibold text-kalkvit">{displayName}</h3>
@@ -57,10 +82,23 @@ function SuggestionCard({ member }: SuggestionCardProps) {
             <p className="text-xs text-kalkvit/50 mt-2 line-clamp-2">{member.bio}</p>
           )}
 
+          {/* Pillar focus badges */}
+          {member.pillar_focus && member.pillar_focus.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {member.pillar_focus.map((pillar) => (
+                <PillarBadge key={pillar} pillarId={pillar} />
+              ))}
+            </div>
+          )}
+
+          {/* Shared interests */}
           {member.shared_interests && member.shared_interests > 0 && (
-            <p className="text-xs text-koppar mt-2">
-              {member.shared_interests} shared interests
-            </p>
+            <div className="flex items-center gap-1.5 mt-2">
+              <Heart className="w-3.5 h-3.5 text-koppar fill-koppar/30" />
+              <span className="text-xs font-medium text-koppar">
+                {member.shared_interests} shared interests
+              </span>
+            </div>
           )}
 
           <div className="flex items-center gap-2 mt-4 overflow-hidden">
@@ -137,7 +175,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
   return (
     <GlassCard variant="base" className="p-4 overflow-hidden">
       <div className="flex items-start gap-4">
-        <GlassAvatar initials={initials} size="lg" />
+        <GlassAvatar initials={initials} src={otherUser?.avatar_url} size="lg" />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <div>
@@ -178,6 +216,15 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
 
           {otherUser?.bio && (
             <p className="text-xs text-kalkvit/50 mt-2 line-clamp-2">{otherUser.bio}</p>
+          )}
+
+          {/* Pillar focus badges */}
+          {otherUser?.pillar_focus && otherUser.pillar_focus.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {otherUser.pillar_focus.map((pillar) => (
+                <PillarBadge key={pillar} pillarId={pillar} />
+              ))}
+            </div>
           )}
 
           <div className="flex items-center gap-2 mt-4 overflow-hidden">
@@ -249,9 +296,9 @@ export function ConnectionsPage() {
     isLoading: suggestionsLoading,
   } = useNetworkSuggestions(10)
 
-  const connections = connectionsData?.data || []
-  const pendingConnections = pendingData?.data || []
-  const suggestions = suggestionsData || []
+  const connections = Array.isArray(connectionsData?.data) ? connectionsData.data : []
+  const pendingConnections = Array.isArray(pendingData?.data) ? pendingData.data : []
+  const suggestions = Array.isArray(suggestionsData) ? suggestionsData : []
 
   // Filter based on search and tab
   const filteredConnections = connections.filter((conn) => {

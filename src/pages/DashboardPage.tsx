@@ -41,9 +41,9 @@ export function DashboardPage() {
   })
   const { data: feedData, isLoading: feedLoading } = useFeed({ limit: 3 })
 
-  const actionItems = actionItemsData?.data ?? []
-  const upcomingSessions = sessionsData?.data ?? []
-  const recentPosts = feedData?.data ?? []
+  const actionItems = Array.isArray(actionItemsData?.data) ? actionItemsData.data : []
+  const upcomingSessions = Array.isArray(sessionsData?.data) ? sessionsData.data : []
+  const recentPosts = Array.isArray(feedData?.data) ? feedData.data : []
 
   const displayName =
     profile?.display_name || user?.display_name || user?.email?.split('@')[0] || 'Member'

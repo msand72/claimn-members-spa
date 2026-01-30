@@ -23,7 +23,31 @@ import {
   useRejectConnection,
   type NetworkMember,
 } from '../lib/api'
-import { ARCHETYPES } from '../lib/constants'
+import { ARCHETYPES, PILLARS, type PillarId } from '../lib/constants'
+
+/** Map pillar color tokens to Tailwind bg/text class pairs */
+const PILLAR_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+  koppar:   { bg: 'bg-koppar/20',   text: 'text-koppar',   border: 'border-koppar/40' },
+  oliv:     { bg: 'bg-oliv/20',     text: 'text-oliv',     border: 'border-oliv/40' },
+  jordbrun: { bg: 'bg-jordbrun/20', text: 'text-jordbrun', border: 'border-jordbrun/40' },
+  charcoal: { bg: 'bg-charcoal/40', text: 'text-kalkvit/70', border: 'border-kalkvit/20' },
+}
+
+function PillarBadge({ pillarId }: { pillarId: string }) {
+  const pillar = PILLARS[pillarId as PillarId]
+  if (!pillar) return null
+  const style = PILLAR_STYLES[pillar.color] ?? PILLAR_STYLES.charcoal
+  return (
+    <span
+      className={cn(
+        'px-2 py-0.5 text-xs rounded-full border capitalize',
+        style.bg, style.text, style.border,
+      )}
+    >
+      {pillar.name}
+    </span>
+  )
+}
 
 const ITEMS_PER_PAGE = 12
 
@@ -74,7 +98,7 @@ function MemberCard({ member }: { member: NetworkMember }) {
         <p className="text-xs text-tegelrod mb-2">Connection request failed. Try again later.</p>
       )}
       <div className="flex items-start gap-4">
-        <GlassAvatar initials={initials} size="lg" />
+        <GlassAvatar initials={initials} src={member.avatar_url} size="lg" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-kalkvit truncate">{displayName}</h3>
@@ -101,12 +125,7 @@ function MemberCard({ member }: { member: NetworkMember }) {
         <div className="mt-3">
           <div className="flex flex-wrap gap-1">
             {member.pillar_focus.slice(0, 3).map((pillar) => (
-              <span
-                key={pillar}
-                className="px-2 py-0.5 text-xs rounded border bg-white/[0.04] text-kalkvit/60 border-white/10 capitalize"
-              >
-                {pillar}
-              </span>
+              <PillarBadge key={pillar} pillarId={pillar} />
             ))}
             {member.pillar_focus.length > 3 && (
               <span className="px-2 py-0.5 text-xs text-kalkvit/40">
@@ -222,7 +241,7 @@ export function NetworkPage() {
     sort: 'display_name:asc',
   })
 
-  const members = networkData?.data || []
+  const members = Array.isArray(networkData?.data) ? networkData.data : []
   const pagination = networkData?.pagination
   const totalPages = pagination?.total_pages || 1
   const totalMembers = pagination?.total || 0

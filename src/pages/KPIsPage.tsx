@@ -123,8 +123,8 @@ export function KPIsPage() {
   const createKPI = useCreateKPI()
   const { data: goalsData } = useGoals()
 
-  const kpis = kpisData?.data || []
-  const goals = goalsData?.data || []
+  const kpis = Array.isArray(kpisData?.data) ? kpisData.data : []
+  const goals = Array.isArray(goalsData?.data) ? goalsData.data : []
 
   const handleLogKpi = (kpi: KPI) => {
     setSelectedKpi(kpi)

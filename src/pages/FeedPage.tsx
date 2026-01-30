@@ -328,7 +328,7 @@ export function FeedPage() {
   }
 
   // Get posts from API response
-  const posts = feedData?.data || []
+  const posts = Array.isArray(feedData?.data) ? feedData.data : []
 
   // Create tab options
   const tabs = [

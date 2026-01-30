@@ -157,7 +157,7 @@ export function CoachingSessionsPage() {
     status: filter !== 'all' ? filter : undefined,
   })
 
-  const sessions = sessionsData?.data || []
+  const sessions = Array.isArray(sessionsData?.data) ? sessionsData.data : []
 
   const scheduledCount = sessions.filter((s) => s.status === 'scheduled').length
   const completedCount = sessions.filter((s) => s.status === 'completed').length

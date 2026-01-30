@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect } from '../components/ui'
 import { useExperts, useExpertAvailability, useBookSession } from '../lib/api/hooks'
 import type { Expert, ExpertAvailabilitySlot } from '../lib/api/types'
-import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 const sessionTypes = [
@@ -113,7 +113,7 @@ export function BookSessionPage() {
 
   // Fetch experts
   const { data: expertsData, isLoading: isLoadingExperts, error: expertsError } = useExperts()
-  const experts = expertsData?.data || []
+  const experts = Array.isArray(expertsData?.data) ? expertsData.data : []
 
   // Find selected expert
   const selectedExpert = useMemo(
@@ -279,97 +279,137 @@ export function BookSessionPage() {
               />
             </GlassCard>
 
-            {/* Date Selection */}
-            <GlassCard variant="base">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-kalkvit">Select Date</h3>
-                <div className="flex gap-1">
-                  <button
-                    className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
-                    onClick={() => setDateOffset(Math.max(0, dateOffset - 7))}
-                    disabled={dateOffset === 0}
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
-                    onClick={() => setDateOffset(dateOffset + 7)}
-                    disabled={dateOffset + 7 >= days.length}
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-7 gap-2">
-                {days.slice(dateOffset, dateOffset + 7).map((day) => (
-                  <button
-                    key={day.dateStr}
-                    onClick={() => {
-                      setSelectedDate(day.dateStr)
-                      setSelectedTime(null)
-                    }}
-                    disabled={!selectedExpertId}
-                    className={cn(
-                      'p-2 rounded-xl text-center transition-all',
-                      !selectedExpertId
-                        ? 'opacity-50 cursor-not-allowed'
-                        : selectedDate === day.dateStr
-                          ? 'bg-koppar text-kalkvit'
-                          : day.isToday
-                            ? 'bg-white/[0.08] text-kalkvit'
-                            : 'hover:bg-white/[0.06] text-kalkvit/70'
-                    )}
-                  >
-                    <p className="text-xs">{day.day}</p>
-                    <p className="font-semibold">{day.date}</p>
-                  </button>
-                ))}
-              </div>
-              {!selectedExpertId && (
-                <p className="text-xs text-kalkvit/40 mt-3">Select an expert first</p>
-              )}
-            </GlassCard>
-
-            {/* Time Selection */}
-            <GlassCard variant="base">
-              <h3 className="font-semibold text-kalkvit mb-4">Select Time</h3>
-              {isLoadingAvailability && selectedExpertId ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="w-6 h-6 text-koppar animate-spin" />
-                </div>
-              ) : timeSlotsForDate.length > 0 ? (
-                <div className="grid grid-cols-3 gap-2">
-                  {timeSlotsForDate.map((slot) => (
+            {/* Date Selection — hidden when expert uses external calendar */}
+            {!selectedExpert?.calendar_url && (
+              <GlassCard variant="base">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-kalkvit">Select Date</h3>
+                  <div className="flex gap-1">
                     <button
-                      key={slot.time}
-                      disabled={!slot.available}
-                      onClick={() => setSelectedTime(slot.time)}
+                      className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
+                      onClick={() => setDateOffset(Math.max(0, dateOffset - 7))}
+                      disabled={dateOffset === 0}
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
+                      onClick={() => setDateOffset(dateOffset + 7)}
+                      disabled={dateOffset + 7 >= days.length}
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-7 gap-2">
+                  {days.slice(dateOffset, dateOffset + 7).map((day) => (
+                    <button
+                      key={day.dateStr}
+                      onClick={() => {
+                        setSelectedDate(day.dateStr)
+                        setSelectedTime(null)
+                      }}
+                      disabled={!selectedExpertId}
                       className={cn(
-                        'p-2 rounded-xl text-sm font-medium transition-all',
-                        !slot.available
-                          ? 'bg-white/[0.03] text-kalkvit/30 cursor-not-allowed'
-                          : selectedTime === slot.time
+                        'p-2 rounded-xl text-center transition-all',
+                        !selectedExpertId
+                          ? 'opacity-50 cursor-not-allowed'
+                          : selectedDate === day.dateStr
                             ? 'bg-koppar text-kalkvit'
-                            : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
+                            : day.isToday
+                              ? 'bg-white/[0.08] text-kalkvit'
+                              : 'hover:bg-white/[0.06] text-kalkvit/70'
                       )}
                     >
-                      {slot.time}
+                      <p className="text-xs">{day.day}</p>
+                      <p className="font-semibold">{day.date}</p>
                     </button>
                   ))}
                 </div>
-              ) : selectedDate ? (
-                <p className="text-sm text-kalkvit/50 text-center py-4">
-                  No available slots for this date
-                </p>
-              ) : (
-                <p className="text-sm text-kalkvit/40 text-center py-4">
-                  Select a date to see available times
-                </p>
-              )}
-            </GlassCard>
+                {!selectedExpertId && (
+                  <p className="text-xs text-kalkvit/40 mt-3">Select an expert first</p>
+                )}
+              </GlassCard>
+            )}
 
-            {/* Session Summary */}
-            {selectedExpert && selectedDate && selectedTime && (
+            {/* External Calendar Fallback */}
+            {selectedExpert?.calendar_url && (
+              <GlassCard variant="accent" leftBorder={false}>
+                <div className="text-center space-y-3">
+                  <Calendar className="w-8 h-8 text-koppar mx-auto" />
+                  <h3 className="font-semibold text-kalkvit">
+                    Book via External Calendar
+                  </h3>
+                  <p className="text-sm text-kalkvit/60">
+                    {selectedExpert.name} uses an external calendar for scheduling.
+                    Book your session directly through their booking page.
+                  </p>
+                  <GlassButton
+                    variant="primary"
+                    className="w-full"
+                    onClick={() =>
+                      window.open(selectedExpert.calendar_url!, '_blank', 'noopener,noreferrer')
+                    }
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Book via Calendar
+                  </GlassButton>
+                </div>
+              </GlassCard>
+            )}
+
+            {/* Time Selection — only show internal picker when expert has no external calendar */}
+            {!selectedExpert?.calendar_url && (
+              <GlassCard variant="base">
+                <h3 className="font-semibold text-kalkvit mb-4">Select Time</h3>
+                {isLoadingAvailability && selectedExpertId ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+                  </div>
+                ) : timeSlotsForDate.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    {timeSlotsForDate.map((slot) => (
+                      <button
+                        key={slot.time}
+                        disabled={!slot.available}
+                        onClick={() => setSelectedTime(slot.time)}
+                        className={cn(
+                          'p-2 rounded-xl text-sm font-medium transition-all',
+                          !slot.available
+                            ? 'bg-white/[0.03] text-kalkvit/30 cursor-not-allowed'
+                            : selectedTime === slot.time
+                              ? 'bg-koppar text-kalkvit'
+                              : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
+                        )}
+                      >
+                        {slot.time}
+                      </button>
+                    ))}
+                  </div>
+                ) : selectedDate ? (
+                  <div className="text-center py-4 space-y-2">
+                    <p className="text-sm text-kalkvit/50">
+                      No slots available for{' '}
+                      <span className="text-kalkvit/70 font-medium">
+                        {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </span>
+                      . Try selecting a different date.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-kalkvit/40 text-center py-4">
+                    Select a date to see available times
+                  </p>
+                )}
+              </GlassCard>
+            )}
+
+            {/* Session Summary — only for internal booking flow */}
+            {selectedExpert && !selectedExpert.calendar_url && selectedDate && selectedTime && (
               <GlassCard variant="accent" leftBorder={false}>
                 <h3 className="font-semibold text-kalkvit mb-4">Session Summary</h3>
                 <div className="space-y-3 text-sm">

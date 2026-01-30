@@ -166,8 +166,8 @@ export function ProtocolsPage() {
   } = useProtocolLibrary()
   const pauseMutation = usePauseProtocol()
 
-  const activeProtocols = activeProtocolsData?.data || []
-  const protocolLibrary = libraryData || []
+  const activeProtocols = Array.isArray(activeProtocolsData?.data) ? activeProtocolsData.data : []
+  const protocolLibrary = Array.isArray(libraryData) ? libraryData : []
 
   const handlePause = async (id: string) => {
     setPausingId(id)

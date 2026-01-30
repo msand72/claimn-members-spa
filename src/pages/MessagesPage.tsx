@@ -1,16 +1,27 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
+import { GlassCard, GlassInput, GlassAvatar, GlassBadge, GlassButton, GlassModal, GlassModalFooter, GlassToast } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, Send, MoreVertical, ArrowLeft, Loader2, MessageCircle } from 'lucide-react'
+import { Search, Send, MoreVertical, ArrowLeft, Loader2, MessageCircle, Plus } from 'lucide-react'
 import { cn } from '../lib/utils'
 import {
   useConversations,
   useConversationMessages,
   useSendMessage,
   useMarkConversationRead,
+  useConnections,
   type Conversation,
+  type Connection,
 } from '../lib/api'
+
+// Optimistic message type (displayed before API confirms)
+interface OptimisticMessage {
+  _optimisticId: string
+  content: string
+  sender_id: string
+  created_at: string
+  status: 'sending' | 'failed'
+}
 
 // Helper to format time ago
 function formatTimeAgo(dateStr: string): string {
@@ -39,6 +50,14 @@ export function MessagesPage() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([])
+  const [toast, setToast] = useState<{ variant: 'error' | 'success'; message: string } | null>(null)
+  const [showNewConversationModal, setShowNewConversationModal] = useState(false)
+  const [connectionSearchQuery, setConnectionSearchQuery] = useState('')
+
+  // Ref for auto-scrolling to latest message
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   // Fetch conversations from API
   const {
@@ -56,6 +75,12 @@ export function MessagesPage() {
 
   const sendMessage = useSendMessage()
   const markRead = useMarkConversationRead()
+
+  // Fetch accepted connections for "New Conversation" modal
+  const {
+    data: connectionsData,
+    isLoading: connectionsLoading,
+  } = useConnections({ status: 'accepted', limit: 100 })
 
   const [showHeaderMenu, setShowHeaderMenu] = useState(false)
   const headerMenuRef = useRef<HTMLDivElement>(null)
@@ -80,33 +105,138 @@ export function MessagesPage() {
     }
   }, [selectedConversation?.id])
 
-  const conversations = conversationsData?.data || []
-  const messages = messagesData?.data || []
+  const conversations = Array.isArray(conversationsData?.data) ? conversationsData.data : []
+  const messages = Array.isArray(messagesData?.data) ? messagesData.data : []
+  const connections: Connection[] = Array.isArray(connectionsData?.data) ? connectionsData.data : []
 
   // Filter conversations by search
   const filteredConversations = conversations.filter((conv) =>
     conv.participant?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
   )
 
-  const handleSendMessage = () => {
-    if (messageInput.trim() && selectedConversation) {
-      sendMessage.mutate({
-        recipient_id: selectedConversation.participant_id,
-        content: messageInput,
-      }, {
-        onSuccess: () => {
-          setMessageInput('')
-        }
-      })
+  // Filter connections for the new conversation modal
+  const filteredConnections = connections.filter((conn) => {
+    const name = conn.requester?.display_name || conn.recipient?.display_name || ''
+    return name.toLowerCase().includes(connectionSearchQuery.toLowerCase())
+  })
+
+  // Auto-scroll to the latest message when messages change or optimistic messages are added
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [])
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages.length, optimisticMessages.length, scrollToBottom])
+
+  // Also scroll when messages finish loading
+  useEffect(() => {
+    if (!messagesLoading && messages.length > 0) {
+      // Use a small delay so the DOM can render first
+      const timer = setTimeout(scrollToBottom, 50)
+      return () => clearTimeout(timer)
     }
+  }, [messagesLoading, scrollToBottom])
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [toast])
+
+  const handleSendMessage = () => {
+    if (!messageInput.trim() || !selectedConversation) return
+
+    const content = messageInput.trim()
+    const optimisticId = `optimistic-${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+    // Add optimistic message to local state immediately
+    const optimistic: OptimisticMessage = {
+      _optimisticId: optimisticId,
+      content,
+      sender_id: user?.id || '',
+      created_at: new Date().toISOString(),
+      status: 'sending',
+    }
+    setOptimisticMessages((prev) => [...prev, optimistic])
+
+    // Clear input immediately for snappy UX
+    setMessageInput('')
+
+    sendMessage.mutate(
+      {
+        recipient_id: selectedConversation.participant_id,
+        content,
+      },
+      {
+        onSuccess: () => {
+          // Remove optimistic message -- query invalidation in the hook will add the real one
+          setOptimisticMessages((prev) =>
+            prev.filter((msg) => msg._optimisticId !== optimisticId)
+          )
+        },
+        onError: () => {
+          // Remove optimistic message and show error toast
+          setOptimisticMessages((prev) =>
+            prev.filter((msg) => msg._optimisticId !== optimisticId)
+          )
+          setToast({ variant: 'error', message: 'Failed to send message. Please try again.' })
+        },
+      }
+    )
   }
 
   const handleSelectConversation = (conv: Conversation) => {
     setSelectedConversation(conv)
+    // Clear optimistic messages when switching conversations
+    setOptimisticMessages([])
   }
 
   const handleBack = () => {
     setSelectedConversation(null)
+    setOptimisticMessages([])
+  }
+
+  // Start a new conversation with a connection
+  const handleStartConversation = (connection: Connection) => {
+    // Determine the other person in the connection
+    const isRequester = connection.requester_id === user?.id
+    const otherPerson = isRequester ? connection.recipient : connection.requester
+    const otherPersonId = isRequester ? connection.recipient_id : connection.requester_id
+
+    if (!otherPerson) return
+
+    // Check if a conversation already exists with this person
+    const existing = conversations.find(
+      (conv) => conv.participant_id === otherPersonId
+    )
+
+    if (existing) {
+      // Select the existing conversation
+      setSelectedConversation(existing)
+    } else {
+      // Create a synthetic conversation to allow the user to send the first message.
+      // Once they send a message, the API will create the real conversation and
+      // query invalidation will populate it.
+      const syntheticConversation: Conversation = {
+        id: `new-${otherPersonId}`,
+        participant_id: otherPersonId,
+        participant: {
+          user_id: otherPerson.user_id,
+          display_name: otherPerson.display_name,
+          avatar_url: otherPerson.avatar_url,
+        },
+        last_message: null,
+        unread_count: 0,
+        updated_at: new Date().toISOString(),
+      }
+      setSelectedConversation(syntheticConversation)
+    }
+
+    setShowNewConversationModal(false)
+    setConnectionSearchQuery('')
   }
 
   // Helper to get initials from name
@@ -117,6 +247,12 @@ export function MessagesPage() {
       .join('')
       .slice(0, 2)
       .toUpperCase()
+  }
+
+  // Helper to get display name from a connection (the other person)
+  const getConnectionDisplayName = (conn: Connection) => {
+    const isRequester = conn.requester_id === user?.id
+    return (isRequester ? conn.recipient?.display_name : conn.requester?.display_name) || 'Unknown'
   }
 
   return (
@@ -138,15 +274,25 @@ export function MessagesPage() {
                 : 'flex flex-col'
             )}
           >
+            {/* Conversation list header with search and new conversation button */}
             <div className="p-3 lg:p-4 border-b border-white/10">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kalkvit/40" />
-                <GlassInput
-                  placeholder="Search conversations..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              <div className="flex items-center gap-2 mb-0">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kalkvit/40" />
+                  <GlassInput
+                    placeholder="Search conversations..."
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <button
+                  onClick={() => setShowNewConversationModal(true)}
+                  className="flex-shrink-0 p-2.5 rounded-xl bg-koppar text-kalkvit hover:bg-koppar/80 transition-all"
+                  title="New conversation"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto">
@@ -171,6 +317,14 @@ export function MessagesPage() {
                   <p className="text-kalkvit/50 text-sm">
                     {searchQuery ? 'No conversations found' : 'No messages yet'}
                   </p>
+                  {!searchQuery && (
+                    <button
+                      onClick={() => setShowNewConversationModal(true)}
+                      className="mt-3 text-sm text-koppar hover:text-koppar/80 transition-colors"
+                    >
+                      Start a new conversation
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -264,7 +418,10 @@ export function MessagesPage() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3 lg:space-y-4">
+                <div
+                  ref={messagesContainerRef}
+                  className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3 lg:space-y-4"
+                >
                   {/* Loading state */}
                   {messagesLoading && (
                     <div className="flex justify-center py-8">
@@ -280,7 +437,7 @@ export function MessagesPage() {
                   )}
 
                   {/* Empty state */}
-                  {!messagesLoading && !messagesError && messages.length === 0 && (
+                  {!messagesLoading && !messagesError && messages.length === 0 && optimisticMessages.length === 0 && (
                     <div className="text-center text-kalkvit/50 text-sm py-8">
                       No messages yet. Start the conversation!
                     </div>
@@ -313,6 +470,32 @@ export function MessagesPage() {
                       </div>
                     )
                   })}
+
+                  {/* Optimistic messages (sending / failed) */}
+                  {optimisticMessages.map((msg) => (
+                    <div
+                      key={msg._optimisticId}
+                      className="flex justify-end"
+                    >
+                      <div className="max-w-[85%] sm:max-w-[70%] rounded-2xl px-3 lg:px-4 py-2 bg-koppar/60 text-kalkvit rounded-br-sm">
+                        <p className="text-sm">{msg.content}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          {msg.status === 'sending' && (
+                            <>
+                              <Loader2 className="w-3 h-3 animate-spin text-kalkvit/50" />
+                              <span className="text-xs text-kalkvit/50 italic">Sending...</span>
+                            </>
+                          )}
+                          {msg.status === 'failed' && (
+                            <span className="text-xs text-tegelrod italic">Failed to send</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Scroll anchor */}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Message Input */}
@@ -323,35 +506,123 @@ export function MessagesPage() {
                       className="flex-1"
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && !sendMessage.isPending && handleSendMessage()}
+                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={!messageInput.trim() || sendMessage.isPending}
+                      disabled={!messageInput.trim()}
                       className={cn(
                         'p-3 rounded-xl transition-all flex-shrink-0',
-                        messageInput.trim() && !sendMessage.isPending
+                        messageInput.trim()
                           ? 'bg-koppar text-kalkvit hover:bg-koppar/80'
                           : 'bg-white/[0.06] text-kalkvit/30 cursor-not-allowed'
                       )}
                     >
-                      {sendMessage.isPending ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <Send className="w-5 h-5" />
-                      )}
+                      <Send className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-kalkvit/40 p-4 text-center">
-                Select a conversation to start messaging
+              <div className="flex-1 flex flex-col items-center justify-center text-kalkvit/40 p-4 text-center gap-4">
+                <MessageCircle className="w-12 h-12 text-kalkvit/20" />
+                <p>Select a conversation to start messaging</p>
+                <GlassButton
+                  variant="secondary"
+                  icon={Plus}
+                  onClick={() => setShowNewConversationModal(true)}
+                >
+                  New Conversation
+                </GlassButton>
               </div>
             )}
           </GlassCard>
         </div>
       </div>
+
+      {/* New Conversation Modal */}
+      <GlassModal
+        isOpen={showNewConversationModal}
+        onClose={() => {
+          setShowNewConversationModal(false)
+          setConnectionSearchQuery('')
+        }}
+        title="New Conversation"
+        description="Select a connection to message"
+        size="md"
+      >
+        <div className="space-y-4">
+          {/* Search connections */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kalkvit/40" />
+            <GlassInput
+              placeholder="Search connections..."
+              className="pl-10"
+              value={connectionSearchQuery}
+              onChange={(e) => setConnectionSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Connections list */}
+          <div className="max-h-[300px] overflow-y-auto -mx-1 px-1 space-y-1">
+            {connectionsLoading && (
+              <div className="flex justify-center py-6">
+                <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+              </div>
+            )}
+
+            {!connectionsLoading && filteredConnections.length === 0 && (
+              <div className="text-center py-6">
+                <p className="text-kalkvit/50 text-sm">
+                  {connectionSearchQuery
+                    ? 'No connections found'
+                    : 'No connections yet. Connect with members first!'}
+                </p>
+              </div>
+            )}
+
+            {!connectionsLoading && filteredConnections.map((conn) => {
+              const displayName = getConnectionDisplayName(conn)
+              return (
+                <button
+                  key={conn.id}
+                  onClick={() => handleStartConversation(conn)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.06] transition-colors text-left"
+                >
+                  <GlassAvatar initials={getInitials(displayName)} size="md" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-kalkvit truncate">{displayName}</p>
+                    <p className="text-xs text-kalkvit/50">Connected</p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <GlassModalFooter>
+          <GlassButton
+            variant="ghost"
+            onClick={() => {
+              setShowNewConversationModal(false)
+              setConnectionSearchQuery('')
+            }}
+          >
+            Cancel
+          </GlassButton>
+        </GlassModalFooter>
+      </GlassModal>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4">
+          <GlassToast
+            variant={toast.variant}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
+        </div>
+      )}
     </MainLayout>
   )
 }

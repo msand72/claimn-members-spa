@@ -69,7 +69,7 @@ export function calculatePillarScore(responses: number[]): PillarScore {
     level = 'high'
   }
 
-  const percentage = Math.round((raw / 7) * 100)
+  const percentage = Math.round(((raw - 1) / 6) * 100)
 
   return { raw, level, percentage }
 }
@@ -280,13 +280,13 @@ export function calculatePillarScores(
     }
   }
 
-  // Calculate percentage for each pillar (1-5 scale to 0-100)
+  // Calculate percentage for each pillar (1-7 Likert scale to 0-100)
   const scores: Record<PillarId, number> = {} as Record<PillarId, number>
   for (const [pillarId, pillarAnswerList] of Object.entries(pillarAnswers)) {
     if (pillarAnswerList.length > 0) {
       const sum = pillarAnswerList.reduce((a, b) => a + b, 0)
       const avg = sum / pillarAnswerList.length
-      scores[pillarId as PillarId] = Math.round(((avg - 1) / 4) * 100) // Convert 1-5 to 0-100
+      scores[pillarId as PillarId] = Math.round(((avg - 1) / 6) * 100) // Convert 1-7 to 0-100
     } else {
       scores[pillarId as PillarId] = 50 // Default if no answers
     }
@@ -340,9 +340,9 @@ export function generateSimpleMicroInsights(
 
   for (const [pillarId, score] of Object.entries(pillarScores)) {
     const pillar = PILLARS[pillarId as PillarId]
-    if (score >= 70) {
+    if (score >= 75) {
       insights[pillarId as PillarId] = `Strong foundation in ${pillar.name}. Continue leveraging this strength to support other areas.`
-    } else if (score >= 40) {
+    } else if (score >= 42) {
       insights[pillarId as PillarId] = `${pillar.name} shows room for growth. Consider focused protocols to strengthen this area.`
     } else {
       insights[pillarId as PillarId] = `${pillar.name} is a key growth opportunity. Prioritize development here for maximum impact.`

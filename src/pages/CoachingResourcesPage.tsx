@@ -130,7 +130,7 @@ export function CoachingResourcesPage() {
     type: selectedType !== 'All Types' ? selectedType : undefined,
   })
 
-  const resources = resourcesData?.data || []
+  const resources = Array.isArray(resourcesData?.data) ? resourcesData.data : []
   const featuredResources = resources.filter((r) => r.is_featured)
 
   if (error) {

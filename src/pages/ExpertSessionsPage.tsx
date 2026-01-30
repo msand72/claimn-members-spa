@@ -190,7 +190,7 @@ export function ExpertSessionsPage() {
         : { status: 'completed' }
   )
 
-  const sessions = sessionsData?.data || []
+  const sessions = Array.isArray(sessionsData?.data) ? sessionsData.data : []
 
   // Map API status to UI filter status
   const getUIStatus = (status: CoachingSession['status']): 'upcoming' | 'completed' | 'cancelled' => {

@@ -152,7 +152,13 @@ export function useCreateKPI() {
     }: {
       goalId: string
       data: Omit<KPI, 'id' | 'goal_id' | 'current_value' | 'created_at' | 'updated_at'>
-    }) => api.post<KPI>(`/members/goals/${goalId}/kpis`, data),
+    }) => api.post<KPI>(`/members/goals/${goalId}/kpis`, {
+      kpi_name: data.name,
+      kpi_type: data.type,
+      target_value: data.target_value,
+      unit: data.unit,
+      tracking_frequency: data.frequency,
+    }),
     onSuccess: (_, { goalId }) => {
       queryClient.invalidateQueries({ queryKey: goalKeys.kpis(goalId) })
       queryClient.invalidateQueries({ queryKey: goalKeys.detail(goalId) })

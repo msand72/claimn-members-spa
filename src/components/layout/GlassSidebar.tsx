@@ -32,6 +32,7 @@ import {
   Tag,
   FileText,
   CircleDot,
+  Library,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -80,7 +81,7 @@ const navGroups: NavGroup[] = [
       { to: '/book-session', icon: Calendar, label: 'Book Session' },
       { to: '/coaching/sessions', icon: CircleDot, label: 'My Sessions' },
       { to: '/coaching/session-notes', icon: FileText, label: 'Session Notes' },
-      { to: '/coaching/resources', icon: FolderOpen, label: 'Resources' },
+      { to: '/coaching/resources', icon: FolderOpen, label: 'Coaching Materials' },
     ],
   },
   {
@@ -107,7 +108,7 @@ const navGroups: NavGroup[] = [
 const accountNav: NavItem[] = [
   { to: '/profile', icon: User, label: 'Profile' },
   { to: '/billing', icon: CreditCard, label: 'Billing' },
-  { to: '/resources', icon: FolderOpen, label: 'Resources' },
+  { to: '/resources', icon: Library, label: 'Resource Library' },
 ]
 
 const STORAGE_KEY = 'members_nav_expanded'
@@ -195,6 +196,7 @@ export function GlassSidebar() {
         {/* Home - always visible, not collapsible */}
         <NavLink
           to="/"
+          end
           className={({ isActive }) =>
             cn(
               'flex items-center gap-3 px-4 py-3 rounded-xl',
@@ -240,6 +242,7 @@ export function GlassSidebar() {
                     <NavLink
                       key={item.to}
                       to={item.to}
+                      end
                       className={({ isActive }) =>
                         cn(
                           'flex items-center gap-3 px-4 py-2 rounded-xl',
@@ -266,6 +269,7 @@ export function GlassSidebar() {
             <NavLink
               key={item.to}
               to={item.to}
+              end
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-3 px-4 py-2.5 rounded-xl',

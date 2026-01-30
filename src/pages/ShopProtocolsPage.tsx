@@ -151,7 +151,7 @@ export function ShopProtocolsPage() {
   } = useActiveProtocols()
 
   const protocolLibrary = libraryData || []
-  const activeProtocols = activeProtocolsData?.data || []
+  const activeProtocols = Array.isArray(activeProtocolsData?.data) ? activeProtocolsData.data : []
   const activeProtocolSlugs = new Set(activeProtocols.map((ap) => ap.protocol_slug))
 
   // Map API protocols to display format

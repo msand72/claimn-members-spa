@@ -249,7 +249,7 @@ export function ProgramsReviewsPage() {
 
   const submitMutation = useSubmitPeerReview()
 
-  const reviews = reviewsData?.data || []
+  const reviews = Array.isArray(reviewsData?.data) ? reviewsData.data : []
 
   const handleSubmit = async (reviewId: string, rating: number, feedback: string) => {
     setSubmittingReviewId(reviewId)

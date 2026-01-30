@@ -38,7 +38,7 @@ export const accountabilityKeys = {
 export function useAccountabilityGroup() {
   return useQuery({
     queryKey: accountabilityKeys.group(),
-    queryFn: () => api.get<AccountabilityGroup>('/members/accountability/group'),
+    queryFn: () => api.get<AccountabilityGroup>('/members/accountability/my'),
   })
 }
 
@@ -46,7 +46,7 @@ export function useAccountabilityMembers() {
   return useQuery({
     queryKey: accountabilityKeys.members(),
     queryFn: async () => {
-      const data = await api.get<{ members: AccountabilityMember[] }>('/members/accountability/group/members')
+      const data = await api.get<{ members: AccountabilityMember[] }>('/members/accountability/my/members')
       return data.members ?? []
     },
   })

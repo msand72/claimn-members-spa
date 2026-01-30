@@ -98,8 +98,8 @@ export function CirclesPage() {
     isLoading: myCirclesLoading,
   } = useMyCircles()
 
-  const allCircles = circlesData?.data || []
-  const myCircles = myCirclesData || []
+  const allCircles = Array.isArray(circlesData?.data) ? circlesData.data : []
+  const myCircles = Array.isArray(myCirclesData) ? myCirclesData : []
 
   // Filter circles based on search and category
   const filteredCircles = (activeCategory === 'My Circles' ? myCircles : allCircles).filter((circle) => {
