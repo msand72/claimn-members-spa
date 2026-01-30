@@ -150,7 +150,9 @@ export function ShopProtocolsPage() {
     error: activeError,
   } = useActiveProtocols()
 
-  const protocolLibrary = libraryData || []
+  const protocolLibrary: ProtocolTemplate[] = Array.isArray(libraryData) ? libraryData
+    : Array.isArray((libraryData as unknown as { data: ProtocolTemplate[] })?.data) ? (libraryData as unknown as { data: ProtocolTemplate[] }).data
+    : []
   const activeProtocols = Array.isArray(activeProtocolsData?.data) ? activeProtocolsData.data : []
   const activeProtocolSlugs = new Set(activeProtocols.map((ap) => ap.protocol_slug))
 
