@@ -23,8 +23,11 @@ export function ProfilePage() {
   const [saveStatus, setSaveStatus] = useState<'idle'|'success'|'error'>('idle')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Fetch profile data
-  const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = useCurrentProfile()
+  // Fetch profile data - handle both direct shape and { data: ... } wrapper
+  const { data: profileRaw, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = useCurrentProfile()
+  const profile = profileRaw && 'display_name' in profileRaw
+    ? profileRaw
+    : (profileRaw as unknown as { data?: typeof profileRaw })?.data ?? profileRaw
   const { data: interests = [], isLoading: interestsLoading } = useInterests()
   const { data: memberInterestIds = [], isLoading: memberInterestsLoading } = useMemberInterests(
     user?.id

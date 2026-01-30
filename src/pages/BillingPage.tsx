@@ -68,7 +68,7 @@ export function BillingPage() {
   const [portalError, setPortalError] = useState<string | null>(null)
 
   const {
-    data: billing,
+    data: billingRaw,
     isLoading: billingLoading,
     error: billingError,
   } = useQuery({
@@ -83,8 +83,10 @@ export function BillingPage() {
   } = useQuery({
     queryKey: ['billing-invoices'],
     queryFn: async () => {
-      const data = await api.get<InvoicesResponse>('/members/billing/invoices')
-      return data.invoices
+      const data = await api.get<InvoicesResponse & { data?: Invoice[] }>('/members/billing/invoices')
+      // Handle both { invoices: [...] } and { data: [...] } response shapes
+      const list = data?.invoices ?? (data as unknown as { data?: Invoice[] })?.data
+      return Array.isArray(list) ? list : []
     },
   })
 
@@ -92,16 +94,24 @@ export function BillingPage() {
     setPortalLoading(true)
     setPortalError(null)
     try {
-      const data = await api.post<PortalResponse>('/members/billing/portal')
-      window.location.href = data.url
+      const data = await api.post<PortalResponse & { data?: { url: string } }>('/members/billing/portal')
+      const portalUrl = data?.url ?? (data as unknown as { data?: { url: string } })?.data?.url
+      if (portalUrl) {
+        window.location.href = portalUrl
+      } else {
+        setPortalError('Unable to open the billing portal. Please try again or contact support.')
+        setPortalLoading(false)
+      }
     } catch {
       setPortalError('Unable to open the billing portal. Please try again or contact support.')
       setPortalLoading(false)
     }
   }
 
-  const subscription = billing?.subscription
-  const paymentMethod = billing?.payment_method
+  // Handle both direct shape and { data: ... } wrapper
+  const billing = billingRaw as BillingInfo | undefined
+  const subscription = billing?.subscription ?? (billingRaw as unknown as { data?: BillingInfo })?.data?.subscription
+  const paymentMethod = billing?.payment_method ?? (billingRaw as unknown as { data?: BillingInfo })?.data?.payment_method
   const invoices = invoicesData ?? []
 
   return (
