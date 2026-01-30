@@ -202,7 +202,7 @@ export function ProgramsSprintsPage() {
     }
   }
 
-  const handleViewProgress = (sprintId: string) => {
+  const handleViewProgress = (_sprintId: string) => {
     navigate('/programs/sprints')
   }
 
