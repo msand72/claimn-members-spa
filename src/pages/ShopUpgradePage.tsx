@@ -36,63 +36,63 @@ interface Plan {
 
 const plans: Plan[] = [
   {
-    id: 'starter',
-    name: 'Starter',
-    description: 'Essential access for new members',
-    price: 0,
-    priceAnnual: 0,
+    id: 'brotherhood',
+    name: 'The Brotherhood',
+    description: 'Full access + community',
+    price: 19,
+    priceAnnual: 180,
     icon: Star,
     isPopular: false,
     isCurrent: true,
     features: [
-      { name: 'Community Feed Access', included: true },
-      { name: 'Free Circles (up to 3)', included: true },
-      { name: 'Basic Resources Library', included: true },
-      { name: 'Monthly Newsletter', included: true },
-      { name: 'Premium Protocols', included: false },
-      { name: 'Expert Sessions', included: false },
-      { name: 'Sprints & Challenges', included: false },
-      { name: 'Priority Support', included: false },
+      { name: 'Access to ALL 50+ protocols', included: true },
+      { name: 'Private community platform', included: true },
+      { name: 'Monthly Brotherhood calls', included: true },
+      { name: 'Peer accountability partners', included: true },
+      { name: 'Exclusive events & AMAs', included: true },
+      { name: 'Assessment results anytime', included: true },
+      { name: 'Expert 1:1 sessions', included: false },
+      { name: 'Quarterly intensives', included: false },
     ],
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    description: 'For committed growth seekers',
-    price: 97,
-    priceAnnual: 970,
+    id: 'coaching',
+    name: 'Expert Guidance',
+    description: 'Tactical expertise + Brotherhood',
+    price: 390,
+    priceAnnual: 3480,
     icon: Zap,
     isPopular: true,
     isCurrent: false,
     features: [
-      { name: 'Everything in Starter', included: true },
-      { name: 'All Premium Protocols', included: true, highlight: true },
-      { name: 'Unlimited Circles', included: true, highlight: true },
-      { name: '2 Expert Sessions/month', included: true, highlight: true },
-      { name: 'Sprint Participation', included: true },
-      { name: 'Full Resources Library', included: true },
-      { name: 'Priority Support', included: true },
-      { name: 'Annual Retreat Invite', included: false },
+      { name: 'Everything in Brotherhood', included: true },
+      { name: 'Bi-weekly 1:1 expert sessions (60-75 min)', included: true, highlight: true },
+      { name: 'Monthly Brotherhood Circles (8-12 ppl)', included: true, highlight: true },
+      { name: 'Quarterly 2-day intensives', included: true, highlight: true },
+      { name: 'Personalized protocol development', included: true },
+      { name: 'Performance assessment & metrics', included: true },
+      { name: 'Priority support & direct expert access', included: true },
+      { name: 'Forge cohort access', included: false },
     ],
   },
   {
-    id: 'elite',
-    name: 'Elite',
-    description: 'Maximum acceleration & access',
-    price: 297,
-    priceAnnual: 2970,
+    id: 'programs',
+    name: 'The Forge',
+    description: 'Identity architecture — by application',
+    price: 1900,
+    priceAnnual: 17880,
     icon: Crown,
     isPopular: false,
     isCurrent: false,
     features: [
-      { name: 'Everything in Pro', included: true },
-      { name: 'Unlimited Expert Sessions', included: true, highlight: true },
-      { name: 'Exclusive Mastermind Access', included: true, highlight: true },
-      { name: '1:1 Coaching (Monthly)', included: true, highlight: true },
-      { name: 'Early Access to Content', included: true },
-      { name: 'White-Glove Support', included: true },
-      { name: 'Annual Retreat Included', included: true },
-      { name: 'Founding Member Badge', included: true },
+      { name: 'Everything in Expert Guidance', included: true },
+      { name: '6-12 month cohort intensive', included: true, highlight: true },
+      { name: 'Forge Sessions (2-day, 4-6x/year)', included: true, highlight: true },
+      { name: 'Protocol Sprints with field application', included: true, highlight: true },
+      { name: 'Trio accountability architecture', included: true },
+      { name: 'Full assessment suite', included: true },
+      { name: 'High-trust, discrete environment', included: true },
+      { name: 'Founding Member recognition', included: true },
     ],
   },
 ]
@@ -113,7 +113,7 @@ function PlanCard({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) {
       {plan.isPopular && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
           <GlassBadge variant="koppar" className="shadow-lg">
-            Most Popular
+            Recommended
           </GlassBadge>
         </div>
       )}
@@ -135,12 +135,12 @@ function PlanCard({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) {
         ) : (
           <>
             <div className="flex items-baseline justify-center gap-1">
-              <span className="font-display text-4xl font-bold text-kalkvit">${price}</span>
+              <span className="font-display text-4xl font-bold text-kalkvit">€{price}</span>
               <span className="text-kalkvit/50">/mo</span>
             </div>
             {isAnnual && (
               <p className="text-sm text-skogsgron mt-1">
-                Save ${plan.price * 12 - plan.priceAnnual}/year
+                Save €{plan.price * 12 - plan.priceAnnual}/year
               </p>
             )}
           </>
@@ -220,7 +220,7 @@ export function ShopUpgradePage() {
           </button>
           <span className={cn('text-sm', isAnnual ? 'text-kalkvit' : 'text-kalkvit/50')}>
             Annual
-            <GlassBadge variant="success" className="ml-2">Save 17%</GlassBadge>
+            <GlassBadge variant="success" className="ml-2">Save 21%</GlassBadge>
           </span>
         </div>
 

@@ -255,8 +255,8 @@ export function CircleDetailPage() {
 
   // API hooks
   const { data: circle, isLoading: circleLoading, error: circleError } = useCircle(circleId || '')
-  const { data: membersData, isLoading: membersLoading } = useCircleMembers(circleId || '')
-  const { data: postsData, isLoading: postsLoading } = useCirclePosts(circleId || '')
+  const { data: membersData, isLoading: membersLoading, error: membersError } = useCircleMembers(circleId || '')
+  const { data: postsData, isLoading: postsLoading, error: postsError } = useCirclePosts(circleId || '')
   const createPost = useCreateCirclePost()
   const joinCircle = useJoinCircle()
   const leaveCircle = useLeaveCircle()
@@ -456,8 +456,17 @@ export function CircleDetailPage() {
               </div>
             )}
 
+            {/* Posts error */}
+            {!postsLoading && postsError && (
+              <GlassCard variant="base" className="text-center py-8">
+                <AlertCircle className="w-10 h-10 text-tegelrod/50 mx-auto mb-3" />
+                <p className="text-kalkvit/50 text-sm">Unable to load posts</p>
+                <p className="text-kalkvit/30 text-xs mt-1">You may not have access yet. Try refreshing.</p>
+              </GlassCard>
+            )}
+
             {/* Posts */}
-            {!postsLoading && posts.length > 0 && (
+            {!postsLoading && !postsError && posts.length > 0 && (
               <div>
                 {posts.map((post) => (
                   <PostCard key={post.id} post={post} />
@@ -466,7 +475,7 @@ export function CircleDetailPage() {
             )}
 
             {/* Empty posts */}
-            {!postsLoading && posts.length === 0 && (
+            {!postsLoading && !postsError && posts.length === 0 && (
               <GlassCard variant="base" className="text-center py-8">
                 <MessageCircle className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
                 <p className="text-kalkvit/50 text-sm">No posts yet</p>
@@ -491,8 +500,16 @@ export function CircleDetailPage() {
               </div>
             )}
 
+            {/* Members error */}
+            {!membersLoading && membersError && (
+              <div className="text-center py-8">
+                <AlertCircle className="w-10 h-10 text-tegelrod/50 mx-auto mb-3" />
+                <p className="text-kalkvit/50 text-sm">Unable to load members</p>
+              </div>
+            )}
+
             {/* Members list */}
-            {!membersLoading && members.length > 0 && (
+            {!membersLoading && !membersError && members.length > 0 && (
               <div className="space-y-3">
                 {members.map((member) => (
                   <MemberCard key={member.user_id} member={member} />
@@ -501,7 +518,7 @@ export function CircleDetailPage() {
             )}
 
             {/* Empty members */}
-            {!membersLoading && members.length === 0 && (
+            {!membersLoading && !membersError && members.length === 0 && (
               <div className="text-center py-8">
                 <Users className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
                 <p className="text-kalkvit/50 text-sm">No members yet</p>

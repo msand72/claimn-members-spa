@@ -231,7 +231,8 @@ export function ProtocolDetailPage() {
   const completedTasks = activeProtocol?.completed_tasks || {}
 
   // Calculate overall progress
-  const totalTasks = protocol.weeks.reduce((sum, week) => sum + week.tasks.length, 0)
+  const weeks = Array.isArray(protocol.weeks) ? protocol.weeks : []
+  const totalTasks = weeks.reduce((sum, week) => sum + (Array.isArray(week.tasks) ? week.tasks.length : 0), 0)
   const completedTasksCount = Object.values(completedTasks).filter(Boolean).length
   const progressPercent =
     totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0
@@ -366,7 +367,7 @@ export function ProtocolDetailPage() {
               </div>
               <div>
                 <p className="font-display text-xl font-bold text-kalkvit">
-                  {Math.max(0, protocol.weeks.length - currentWeek)}
+                  {Math.max(0, weeks.length - currentWeek)}
                 </p>
                 <p className="text-xs text-kalkvit/50">Weeks Left</p>
               </div>
@@ -386,7 +387,7 @@ export function ProtocolDetailPage() {
             </span>
             <span className="flex items-center gap-2">
               <Target className="w-4 h-4" />
-              {protocol.weeks.length} weeks
+              {weeks.length} weeks
             </span>
             <span className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
@@ -406,11 +407,11 @@ export function ProtocolDetailPage() {
         </GlassCard>
 
         {/* Weekly Breakdown */}
-        {protocol.weeks.length > 0 && (
+        {weeks.length > 0 && (
           <div className="mb-8">
             <h3 className="font-semibold text-kalkvit mb-4">Weekly Breakdown</h3>
             <div className="space-y-4">
-              {protocol.weeks.map((week) => (
+              {weeks.map((week) => (
                 <WeekCard
                   key={week.week}
                   week={week}

@@ -12,6 +12,7 @@ export interface ApiError {
     message: string
     details?: Record<string, unknown>
   }
+  status?: number
 }
 
 // Pagination response
@@ -68,6 +69,7 @@ class ApiClient {
         const errorData = await response.json().catch(() => ({
           error: { code: 'UNKNOWN', message: 'An unknown error occurred' }
         }))
+        errorData.status = response.status
         throw errorData
       }
 
@@ -139,6 +141,7 @@ class ApiClient {
       const errorData = await response.json().catch(() => ({
         error: { code: 'UPLOAD_FAILED', message: 'File upload failed' }
       }))
+      errorData.status = response.status
       throw errorData
     }
 

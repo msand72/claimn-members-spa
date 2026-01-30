@@ -53,6 +53,8 @@ function MemberCard({ member }: { member: NetworkMember }) {
     rejectConnection.mutate(member.user_id)
   }
 
+  const connectionError = sendConnection.isError || acceptConnection.isError || rejectConnection.isError
+
   const displayName = member.display_name || 'Anonymous'
   const initials = displayName
     .split(' ')
@@ -68,6 +70,9 @@ function MemberCard({ member }: { member: NetworkMember }) {
 
   return (
     <GlassCard variant="base" className="p-4">
+      {connectionError && (
+        <p className="text-xs text-tegelrod mb-2">Connection request failed. Try again later.</p>
+      )}
       <div className="flex items-start gap-4">
         <GlassAvatar initials={initials} size="lg" />
         <div className="flex-1 min-w-0">

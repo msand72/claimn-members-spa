@@ -189,8 +189,11 @@ export function AccountabilityPage() {
   }
 
   // Calculate group stats
-  const totalGoals = group.members.reduce((sum, m) => sum + m.goals_completed, 0)
-  const avgStreak = Math.round(group.members.reduce((sum, m) => sum + m.current_streak, 0) / group.members.length)
+  const members = Array.isArray(group.members) ? group.members : []
+  const totalGoals = members.reduce((sum, m) => sum + m.goals_completed, 0)
+  const avgStreak = members.length > 0
+    ? Math.round(members.reduce((sum, m) => sum + m.current_streak, 0) / members.length)
+    : 0
   const daysUntilMeeting = group.next_meeting
     ? Math.ceil((new Date(group.next_meeting).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
@@ -266,7 +269,7 @@ export function AccountabilityPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
             <Users className="w-6 h-6 text-koppar mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{group.members.length}</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">{members.length}</p>
             <p className="text-xs text-kalkvit/50">Members</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
@@ -295,7 +298,7 @@ export function AccountabilityPage() {
             Your Partners
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {group.members.map((member) => (
+            {members.map((member) => (
               <MemberCard
                 key={member.id}
                 member={member}
