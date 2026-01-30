@@ -6,6 +6,7 @@ interface GlassCardProps {
   children: ReactNode
   className?: string
   leftBorder?: boolean
+  onClick?: () => void
 }
 
 export function GlassCard({
@@ -13,6 +14,7 @@ export function GlassCard({
   children,
   className,
   leftBorder = true,
+  onClick,
 }: GlassCardProps) {
   const variantClasses = {
     base: 'glass-base',
@@ -28,6 +30,7 @@ export function GlassCard({
         leftBorder && 'border-l-4 border-l-koppar',
         className
       )}
+      onClick={onClick}
     >
       {children}
     </div>

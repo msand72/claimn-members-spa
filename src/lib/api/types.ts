@@ -429,6 +429,7 @@ export interface CoachingSession {
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
   goals: string[]
   progress: number
+  meeting_url: string | null
   has_notes: boolean
   has_recording: boolean
   recording_url: string | null

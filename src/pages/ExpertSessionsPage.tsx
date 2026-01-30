@@ -158,7 +158,7 @@ function SessionCard({ session }: { session: CoachingSession }) {
                 <MessageCircle className="w-4 h-4" />
               </GlassButton>
               {session.meeting_url && (
-                <GlassButton variant="primary" className="text-sm" onClick={() => window.open(session.meeting_url, '_blank')}>
+                <GlassButton variant="primary" className="text-sm" onClick={() => window.open(session.meeting_url!, '_blank')}>
                   Join Call
                   <ChevronRight className="w-4 h-4" />
                 </GlassButton>
