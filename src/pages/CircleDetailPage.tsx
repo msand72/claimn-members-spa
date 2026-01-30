@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassTextarea, GlassAvatar, GlassBadge } from '../components/ui'
+import { GlassCard, GlassButton, GlassTextarea, GlassAvatar, GlassBadge, GlassInput } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import {
   useCircle,
@@ -10,8 +10,12 @@ import {
   useCreateCirclePost,
   useJoinCircle,
   useLeaveCircle,
+  useLikePost,
+  useUnlikePost,
+  usePostComments,
+  useAddComment,
 } from '../lib/api/hooks'
-import type { CirclePost, CircleMember } from '../lib/api/types'
+import type { CirclePost, CircleMember, FeedComment } from '../lib/api/types'
 import {
   Users,
   MessageCircle,
@@ -19,6 +23,7 @@ import {
   ArrowLeft,
   Heart,
   Send,
+  Share2,
   Bell,
   BellOff,
   UserPlus,
@@ -26,6 +31,7 @@ import {
   Clock,
   Loader2,
   AlertCircle,
+  Check,
 } from 'lucide-react'
 
 // Helper to format time ago
@@ -45,12 +51,45 @@ function formatTimeAgo(dateStr: string): string {
 }
 
 function PostCard({ post }: { post: CirclePost }) {
-  const [isLiked, setIsLiked] = useState(post.is_liked)
-  const [likes, setLikes] = useState(post.likes_count)
+  const likePost = useLikePost()
+  const unlikePost = useUnlikePost()
+  const addComment = useAddComment()
+
+  const [showComments, setShowComments] = useState(false)
+  const [commentText, setCommentText] = useState('')
+  const [shareCopied, setShareCopied] = useState(false)
+
+  // Fetch comments only when section is open
+  const { data: commentsData, isLoading: commentsLoading } = usePostComments(
+    showComments ? post.id : ''
+  )
+  const comments: FeedComment[] = Array.isArray(commentsData) ? commentsData : []
 
   const handleLike = () => {
-    setIsLiked(!isLiked)
-    setLikes(isLiked ? likes - 1 : likes + 1)
+    if (post.is_liked) {
+      unlikePost.mutate(post.id)
+    } else {
+      likePost.mutate(post.id)
+    }
+  }
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/circles/${post.circle_id || ''}/posts/${post.id}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2000)
+    } catch {
+      // Fallback: silently fail
+    }
+  }
+
+  const handleAddComment = () => {
+    if (!commentText.trim()) return
+    addComment.mutate(
+      { postId: post.id, data: { content: commentText.trim() } },
+      { onSuccess: () => setCommentText('') }
+    )
   }
 
   const authorName = post.author?.display_name || 'Anonymous'
@@ -78,19 +117,106 @@ function PostCard({ post }: { post: CirclePost }) {
               className="rounded-lg mb-4 max-h-64 object-cover"
             />
           )}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 pt-3 border-t border-white/10">
             <button
               onClick={handleLike}
-              className={`flex items-center gap-1 text-sm ${isLiked ? 'text-tegelrod' : 'text-kalkvit/50 hover:text-kalkvit'}`}
+              disabled={likePost.isPending || unlikePost.isPending}
+              className={`flex items-center gap-1 text-sm font-medium transition-colors ${
+                post.is_liked ? 'text-tegelrod' : 'text-kalkvit/50 hover:text-kalkvit'
+              }`}
             >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-              {likes}
+              <Heart className={`w-4 h-4 ${post.is_liked ? 'fill-current' : ''}`} />
+              {post.likes_count}
             </button>
-            <button className="flex items-center gap-1 text-sm text-kalkvit/50 hover:text-kalkvit">
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-1 text-sm font-medium text-kalkvit/50 hover:text-kalkvit transition-colors"
+            >
               <MessageCircle className="w-4 h-4" />
               {post.comments_count}
             </button>
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-1 text-sm font-medium text-kalkvit/50 hover:text-kalkvit transition-colors"
+            >
+              {shareCopied ? (
+                <>
+                  <Check className="w-4 h-4 text-skogsgron" />
+                  <span className="text-skogsgron">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 className="w-4 h-4" />
+                  Share
+                </>
+              )}
+            </button>
           </div>
+
+          {/* Inline comments section */}
+          {showComments && (
+            <div className="mt-4 pt-3 border-t border-white/10">
+              {commentsLoading && (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-4 h-4 text-koppar animate-spin" />
+                </div>
+              )}
+              {!commentsLoading && comments.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-2">
+                      <GlassAvatar
+                        initials={
+                          (comment.author?.display_name || 'A')
+                            .split(' ')
+                            .map((n: string) => n[0])
+                            .join('')
+                            .slice(0, 2)
+                            .toUpperCase()
+                        }
+                        size="sm"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium text-kalkvit">
+                          {comment.author?.display_name || 'Anonymous'}
+                        </span>
+                        <p className="text-sm text-kalkvit/70">{comment.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!commentsLoading && comments.length === 0 && (
+                <p className="text-xs text-kalkvit/40 mb-3">No comments yet</p>
+              )}
+              <div className="flex gap-2">
+                <GlassInput
+                  placeholder="Write a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleAddComment()
+                    }
+                  }}
+                  className="flex-1 text-sm"
+                />
+                <GlassButton
+                  variant="primary"
+                  onClick={handleAddComment}
+                  disabled={!commentText.trim() || addComment.isPending}
+                  className="px-3"
+                >
+                  {addComment.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </GlassButton>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </GlassCard>

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useEffect, useState, useCallback } from 'react'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
+import { GlassCard, GlassButton, GlassBadge, GlassToast } from '../components/ui'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import {
@@ -11,6 +11,8 @@ import {
   generateSimpleIntegrationInsights,
 } from '../lib/assessment/scoring'
 import { ASSESSMENT_QUESTIONS } from '../lib/assessment/questions'
+import { useAssessmentResults, useLatestAssessmentResult } from '../lib/api/hooks/useAssessments'
+import type { AssessmentResult as ApiAssessmentResult } from '../lib/api/types'
 import {
   Compass,
   Brain,
@@ -42,14 +44,43 @@ interface AssessmentResults {
 
 export function AssessmentResultsPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const resultId = searchParams.get('id')
   const [results, setResults] = useState<AssessmentResults | null>(null)
   const [insights, setInsights] = useState<{
     micro: Record<PillarId, string>
     integration: string[]
   } | null>(null)
+  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'info' | 'warning' | 'error' } | null>(null)
 
+  // Fetch from API if we have a result ID
+  const apiResultById = useAssessmentResults(resultId ?? '')
+  const latestResult = useLatestAssessmentResult()
+
+  // Pick whichever API source is relevant
+  const apiResult: ApiAssessmentResult | undefined = resultId
+    ? apiResultById.data
+    : latestResult.data
+  const apiLoading = resultId ? apiResultById.isLoading : latestResult.isLoading
+  const apiFetched = resultId ? apiResultById.isFetched : latestResult.isFetched
+
+  // Populate results from API or fall back to sessionStorage
   useEffect(() => {
-    // Get answers from sessionStorage
+    // If API returned data, use it
+    if (apiResult) {
+      setResults({
+        pillarScores: apiResult.pillar_scores,
+        archetypes: apiResult.archetypes,
+        answers: {}, // API result may not include raw answers
+      })
+      setInsights(apiResult.insights)
+      return
+    }
+
+    // Still loading from API — wait
+    if (apiLoading) return
+
+    // API fetch completed but returned nothing — fall back to sessionStorage
     const storedAnswers = sessionStorage.getItem('assessmentAnswers')
     if (!storedAnswers) {
       navigate('/assessment')
@@ -58,7 +89,7 @@ export function AssessmentResultsPage() {
 
     const answers = JSON.parse(storedAnswers) as Record<string, number>
 
-    // Calculate results
+    // Calculate results client-side
     const pillarScores = calculatePillarScores(answers, ASSESSMENT_QUESTIONS)
     const archetypes = determineArchetypesFromAnswers(answers, ASSESSMENT_QUESTIONS)
 
@@ -68,12 +99,32 @@ export function AssessmentResultsPage() {
       answers,
     })
 
-    // Generate insights
     setInsights({
       micro: generateSimpleMicroInsights(pillarScores),
       integration: generateSimpleIntegrationInsights(pillarScores, archetypes),
     })
-  }, [navigate])
+  }, [apiResult, apiLoading, apiFetched, navigate])
+
+  const showToast = useCallback(
+    (message: string, variant: 'success' | 'info' | 'warning' | 'error' = 'info') => {
+      setToast({ message, variant })
+      setTimeout(() => setToast(null), 3000)
+    },
+    []
+  )
+
+  const handleShareResults = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      showToast('Link copied to clipboard!', 'success')
+    } catch {
+      showToast('Could not copy link. Try manually copying the URL.', 'error')
+    }
+  }, [showToast])
+
+  const handleDownloadReport = useCallback(() => {
+    showToast('PDF reports are coming soon!', 'info')
+  }, [showToast])
 
   if (!results || !insights) {
     return (
@@ -304,15 +355,26 @@ export function AssessmentResultsPage() {
               <ArrowRight className="w-4 h-4" />
             </GlassButton>
           </Link>
-          <GlassButton variant="secondary">
+          <GlassButton variant="secondary" onClick={handleDownloadReport}>
             <Download className="w-4 h-4" />
             Download Report
           </GlassButton>
-          <GlassButton variant="ghost">
+          <GlassButton variant="ghost" onClick={handleShareResults}>
             <Share2 className="w-4 h-4" />
             Share Results
           </GlassButton>
         </div>
+
+        {/* Toast notification */}
+        {toast && (
+          <div className="fixed bottom-6 right-6 z-50">
+            <GlassToast
+              variant={toast.variant}
+              message={toast.message}
+              onClose={() => setToast(null)}
+            />
+          </div>
+        )}
       </div>
     </MainLayout>
   )

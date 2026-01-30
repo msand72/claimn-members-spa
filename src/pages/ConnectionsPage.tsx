@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
-import { Search, UserPlus, UserCheck, MessageCircle, MoreHorizontal, Loader2, Users } from 'lucide-react'
+import { Search, UserPlus, UserCheck, MessageCircle, MoreHorizontal, Loader2, Users, Trash2 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import {
   useConnections,
   usePendingConnections,
   useAcceptConnection,
   useRejectConnection,
+  useRemoveConnection,
   useNetworkSuggestions,
   useSendConnectionRequest,
   type Connection,
@@ -18,13 +20,14 @@ import { useAuth } from '../contexts/AuthContext'
 const tabs = ['All', 'Connected', 'Pending', 'Suggestions']
 
 // Suggestion card for network suggestions (not yet connected)
+// Each card owns its own mutation hook to avoid shared pending state (Block 12.1)
 interface SuggestionCardProps {
   member: NetworkMember
-  onConnect: () => void
-  isSending: boolean
 }
 
-function SuggestionCard({ member, onConnect, isSending }: SuggestionCardProps) {
+function SuggestionCard({ member }: SuggestionCardProps) {
+  const sendConnection = useSendConnectionRequest()
+
   const displayName = member.display_name || 'Unknown'
   const initials = displayName
     .split(' ')
@@ -40,19 +43,14 @@ function SuggestionCard({ member, onConnect, isSending }: SuggestionCardProps) {
       <div className="flex items-start gap-4">
         <GlassAvatar initials={initials} size="lg" />
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold text-kalkvit">{displayName}</h3>
-              {member.archetype && (
-                <p className="text-sm text-kalkvit/60">{member.archetype}</p>
-              )}
-              {location && (
-                <p className="text-xs text-kalkvit/40 mt-1">{location}</p>
-              )}
-            </div>
-            <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
+          <div>
+            <h3 className="font-semibold text-kalkvit">{displayName}</h3>
+            {member.archetype && (
+              <p className="text-sm text-kalkvit/60">{member.archetype}</p>
+            )}
+            {location && (
+              <p className="text-xs text-kalkvit/40 mt-1">{location}</p>
+            )}
           </div>
 
           {member.bio && (
@@ -69,15 +67,15 @@ function SuggestionCard({ member, onConnect, isSending }: SuggestionCardProps) {
             <GlassButton
               variant="primary"
               className="w-full"
-              onClick={onConnect}
-              disabled={isSending}
+              onClick={() => sendConnection.mutate({ recipient_id: member.user_id })}
+              disabled={sendConnection.isPending}
             >
-              {isSending ? (
+              {sendConnection.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <UserPlus className="w-4 h-4 shrink-0" />
               )}
-              <span className="truncate">{isSending ? 'Sending...' : 'Connect'}</span>
+              <span className="truncate">{sendConnection.isPending ? 'Sending...' : 'Connect'}</span>
             </GlassButton>
           </div>
         </div>
@@ -86,20 +84,42 @@ function SuggestionCard({ member, onConnect, isSending }: SuggestionCardProps) {
   )
 }
 
+// Connection card with its own mutation hooks to avoid shared pending state (Block 12.1)
 interface ConnectionCardProps {
   connection: Connection
   currentUserId?: string
-  onAccept?: () => void
-  onReject?: () => void
-  isAccepting?: boolean
-  isRejecting?: boolean
 }
 
-function ConnectionCard({ connection, currentUserId, onAccept, onReject, isAccepting, isRejecting }: ConnectionCardProps) {
+function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
+  const navigate = useNavigate()
+  const acceptConnection = useAcceptConnection()
+  const rejectConnection = useRejectConnection()
+  const removeConnection = useRemoveConnection()
+
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false)
+      }
+    }
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showMenu])
+
   // Determine which user is the "other" person
   const otherUser = connection.requester_id === currentUserId
     ? connection.recipient
     : connection.requester
+
+  const otherUserId = connection.requester_id === currentUserId
+    ? connection.recipient_id
+    : connection.requester_id
 
   const displayName = otherUser?.display_name || 'Unknown'
   const initials = displayName
@@ -129,9 +149,31 @@ function ConnectionCard({ connection, currentUserId, onAccept, onReject, isAccep
                 <p className="text-xs text-kalkvit/40 mt-1">{location}</p>
               )}
             </div>
-            <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
+            {isConnected && (
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setShowMenu((prev) => !prev)}
+                  className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+                {showMenu && (
+                  <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] rounded-xl glass-elevated border border-white/10 py-1 shadow-lg">
+                    <button
+                      onClick={() => {
+                        removeConnection.mutate(connection.id)
+                        setShowMenu(false)
+                      }}
+                      disabled={removeConnection.isPending}
+                      className="w-full text-left px-4 py-2 text-sm text-tegelrod hover:bg-white/[0.06] transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      {removeConnection.isPending ? 'Removing...' : 'Remove Connection'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {otherUser?.bio && (
@@ -141,7 +183,11 @@ function ConnectionCard({ connection, currentUserId, onAccept, onReject, isAccep
           <div className="flex items-center gap-2 mt-4 overflow-hidden">
             {isConnected ? (
               <>
-                <GlassButton variant="secondary" className="flex-1 min-w-0">
+                <GlassButton
+                  variant="secondary"
+                  className="flex-1 min-w-0"
+                  onClick={() => navigate(`/messages?user=${otherUserId}`)}
+                >
                   <MessageCircle className="w-4 h-4 shrink-0" />
                   <span className="truncate">Message</span>
                 </GlassButton>
@@ -155,18 +201,18 @@ function ConnectionCard({ connection, currentUserId, onAccept, onReject, isAccep
                 <GlassButton
                   variant="primary"
                   className="flex-1"
-                  onClick={onAccept}
-                  disabled={isAccepting}
+                  onClick={() => acceptConnection.mutate(connection.id)}
+                  disabled={acceptConnection.isPending}
                 >
-                  {isAccepting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Accept'}
+                  {acceptConnection.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Accept'}
                 </GlassButton>
                 <GlassButton
                   variant="secondary"
                   className="flex-1"
-                  onClick={onReject}
-                  disabled={isRejecting}
+                  onClick={() => rejectConnection.mutate(connection.id)}
+                  disabled={rejectConnection.isPending}
                 >
-                  {isRejecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Decline'}
+                  {rejectConnection.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Decline'}
                 </GlassButton>
               </div>
             ) : isPending ? (
@@ -202,10 +248,6 @@ export function ConnectionsPage() {
     data: suggestionsData,
     isLoading: suggestionsLoading,
   } = useNetworkSuggestions(10)
-
-  const acceptConnection = useAcceptConnection()
-  const rejectConnection = useRejectConnection()
-  const sendConnection = useSendConnectionRequest()
 
   const connections = connectionsData?.data || []
   const pendingConnections = pendingData?.data || []
@@ -306,10 +348,6 @@ export function ConnectionsPage() {
               <SuggestionCard
                 key={member.user_id}
                 member={member}
-                onConnect={() => {
-                  sendConnection.mutate({ recipient_id: member.user_id })
-                }}
-                isSending={sendConnection.isPending}
               />
             ))}
           </div>
@@ -323,14 +361,6 @@ export function ConnectionsPage() {
                 key={connection.id}
                 connection={connection}
                 currentUserId={user?.id}
-                onAccept={() => {
-                  acceptConnection.mutate(connection.id)
-                }}
-                onReject={() => {
-                  rejectConnection.mutate(connection.id)
-                }}
-                isAccepting={acceptConnection.isPending}
-                isRejecting={rejectConnection.isPending}
               />
             ))}
           </div>

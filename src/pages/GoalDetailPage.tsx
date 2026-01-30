@@ -8,9 +8,10 @@ import {
   GlassInput,
   GlassModal,
   GlassModalFooter,
+  GlassSelect,
 } from '../components/ui'
-import { PILLARS, GOAL_STATUSES } from '../lib/constants'
-import { useGoal, useUpdateGoal, useDeleteGoal, useLogKPI } from '../lib/api/hooks'
+import { PILLARS, GOAL_STATUSES, KPI_TYPES, TRACKING_FREQUENCIES } from '../lib/constants'
+import { useGoal, useUpdateGoal, useDeleteGoal, useLogKPI, useCreateKPI } from '../lib/api/hooks'
 import type { KPI } from '../lib/api/types'
 import {
   ChevronLeft,
@@ -36,10 +37,17 @@ export function GoalDetailPage() {
   const updateGoal = useUpdateGoal()
   const deleteGoal = useDeleteGoal()
   const logKPI = useLogKPI()
+  const createKPI = useCreateKPI()
 
   const [showLogModal, setShowLogModal] = useState(false)
   const [selectedKpi, setSelectedKpi] = useState<KPI | null>(null)
   const [logValue, setLogValue] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [showAddKpiModal, setShowAddKpiModal] = useState(false)
+  const [newKpi, setNewKpi] = useState({ kpiType: '', targetValue: '', frequency: 'daily' })
+  const [actionError, setActionError] = useState<string | null>(null)
 
   if (isLoading) {
     return (
@@ -92,6 +100,7 @@ export function GoalDetailPage() {
 
   const handleSubmitLog = async () => {
     if (!selectedKpi || !logValue) return
+    setActionError(null)
 
     try {
       await logKPI.mutateAsync({
@@ -101,30 +110,87 @@ export function GoalDetailPage() {
       setShowLogModal(false)
       setSelectedKpi(null)
       setLogValue('')
-    } catch (err) {
-      console.error('Failed to log KPI:', err)
+    } catch (_err) {
+      setActionError('Failed to log KPI value. Please try again.')
     }
   }
 
   const handleMarkComplete = async () => {
+    setActionError(null)
     try {
       await updateGoal.mutateAsync({
         id: goal.id,
         data: { status: 'completed' },
       })
-    } catch (err) {
-      console.error('Failed to update goal:', err)
+    } catch (_err) {
+      setActionError('Failed to update goal status. Please try again.')
     }
   }
 
   const handleDeleteGoal = async () => {
     if (!confirm('Are you sure you want to delete this goal?')) return
+    setActionError(null)
 
     try {
       await deleteGoal.mutateAsync(goal.id)
       navigate('/goals')
-    } catch (err) {
-      console.error('Failed to delete goal:', err)
+    } catch (_err) {
+      setActionError('Failed to delete goal. Please try again.')
+    }
+  }
+
+  const handleStartEdit = () => {
+    setEditTitle(goal.title)
+    setEditDescription(goal.description || '')
+    setIsEditing(true)
+    setActionError(null)
+  }
+
+  const handleSaveEdit = async () => {
+    setActionError(null)
+    try {
+      await updateGoal.mutateAsync({
+        id: goal.id,
+        data: {
+          title: editTitle,
+          description: editDescription,
+        },
+      })
+      setIsEditing(false)
+    } catch (_err) {
+      setActionError('Failed to save changes. Please try again.')
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditTitle('')
+    setEditDescription('')
+  }
+
+  const handleCreateKpi = async () => {
+    if (!newKpi.kpiType || !newKpi.targetValue) return
+    setActionError(null)
+
+    const selectedKpiType = [...KPI_TYPES.biological, ...KPI_TYPES.action].find(
+      (k) => k.id === newKpi.kpiType
+    )
+
+    try {
+      await createKPI.mutateAsync({
+        goalId: goal.id,
+        data: {
+          name: selectedKpiType?.name || newKpi.kpiType,
+          type: 'number',
+          target_value: parseFloat(newKpi.targetValue),
+          unit: selectedKpiType?.unit || null,
+          frequency: newKpi.frequency as 'daily' | 'weekly' | 'monthly',
+        },
+      })
+      setShowAddKpiModal(false)
+      setNewKpi({ kpiType: '', targetValue: '', frequency: 'daily' })
+    } catch (_err) {
+      setActionError('Failed to create KPI. Please try again.')
     }
   }
 
@@ -151,11 +217,40 @@ export function GoalDetailPage() {
                 {statusInfo?.name || goal.status}
               </GlassBadge>
             </div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">{goal.title}</h1>
-            <p className="text-kalkvit/60">{goal.description}</p>
+            {isEditing ? (
+              <div className="space-y-3">
+                <GlassInput
+                  label="Title"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                />
+                <GlassInput
+                  label="Description"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <GlassButton
+                    variant="primary"
+                    onClick={handleSaveEdit}
+                    disabled={updateGoal.isPending || !editTitle.trim()}
+                  >
+                    {updateGoal.isPending ? 'Saving...' : 'Save'}
+                  </GlassButton>
+                  <GlassButton variant="ghost" onClick={handleCancelEdit}>
+                    Cancel
+                  </GlassButton>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">{goal.title}</h1>
+                <p className="text-kalkvit/60">{goal.description}</p>
+              </>
+            )}
           </div>
           <div className="flex gap-2">
-            <GlassButton variant="ghost" className="p-2">
+            <GlassButton variant="ghost" className="p-2" onClick={handleStartEdit}>
               <Edit2 className="w-4 h-4" />
             </GlassButton>
             <GlassButton variant="ghost" className="p-2">
@@ -163,6 +258,13 @@ export function GoalDetailPage() {
             </GlassButton>
           </div>
         </div>
+
+        {/* Action Error */}
+        {actionError && (
+          <div className="mb-6 px-4 py-3 rounded-xl bg-tegelrod/10 border border-tegelrod/30">
+            <p className="text-sm text-tegelrod">{actionError}</p>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -207,7 +309,7 @@ export function GoalDetailPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-kalkvit">Key Performance Indicators</h3>
-            <GlassButton variant="ghost" className="text-sm">
+            <GlassButton variant="ghost" className="text-sm" onClick={() => setShowAddKpiModal(true)}>
               <Plus className="w-4 h-4" />
               Add KPI
             </GlassButton>
@@ -328,6 +430,51 @@ export function GoalDetailPage() {
               disabled={!logValue || logKPI.isPending}
             >
               {logKPI.isPending ? 'Logging...' : 'Log Value'}
+            </GlassButton>
+          </GlassModalFooter>
+        </GlassModal>
+
+        {/* Add KPI Modal */}
+        <GlassModal
+          isOpen={showAddKpiModal}
+          onClose={() => setShowAddKpiModal(false)}
+          title="Add New KPI"
+        >
+          <div className="space-y-4">
+            <GlassSelect
+              label="KPI Type"
+              options={[
+                { value: '', label: 'Select KPI type' },
+                ...KPI_TYPES.biological.map((k) => ({ value: k.id, label: `${k.name} (Bio)` })),
+                ...KPI_TYPES.action.map((k) => ({ value: k.id, label: `${k.name} (Action)` })),
+              ]}
+              value={newKpi.kpiType}
+              onChange={(e) => setNewKpi({ ...newKpi, kpiType: e.target.value })}
+            />
+            <GlassInput
+              label="Target Value"
+              type="number"
+              placeholder="Enter target value"
+              value={newKpi.targetValue}
+              onChange={(e) => setNewKpi({ ...newKpi, targetValue: e.target.value })}
+            />
+            <GlassSelect
+              label="Tracking Frequency"
+              options={TRACKING_FREQUENCIES.map((f) => ({ value: f.id, label: f.name }))}
+              value={newKpi.frequency}
+              onChange={(e) => setNewKpi({ ...newKpi, frequency: e.target.value })}
+            />
+          </div>
+          <GlassModalFooter>
+            <GlassButton variant="ghost" onClick={() => setShowAddKpiModal(false)}>
+              Cancel
+            </GlassButton>
+            <GlassButton
+              variant="primary"
+              onClick={handleCreateKpi}
+              disabled={!newKpi.kpiType || !newKpi.targetValue || createKPI.isPending}
+            >
+              {createKPI.isPending ? 'Creating...' : 'Add KPI'}
             </GlassButton>
           </GlassModalFooter>
         </GlassModal>

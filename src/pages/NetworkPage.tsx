@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import {
@@ -11,9 +12,17 @@ import {
   Heart,
   Loader2,
   Users,
+  Check,
+  X,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { useNetwork, useSendConnectionRequest, type NetworkMember } from '../lib/api'
+import {
+  useNetwork,
+  useSendConnectionRequest,
+  useAcceptConnection,
+  useRejectConnection,
+  type NetworkMember,
+} from '../lib/api'
 import { ARCHETYPES } from '../lib/constants'
 
 const ITEMS_PER_PAGE = 12
@@ -21,12 +30,27 @@ const ITEMS_PER_PAGE = 12
 const archetypeFilters = ['All Archetypes', ...ARCHETYPES]
 
 function MemberCard({ member }: { member: NetworkMember }) {
+  const navigate = useNavigate()
   const sendConnection = useSendConnectionRequest()
+  const acceptConnection = useAcceptConnection()
+  const rejectConnection = useRejectConnection()
 
   const handleConnect = () => {
     if (member.connection_status === 'none') {
       sendConnection.mutate({ recipient_id: member.user_id })
     }
+  }
+
+  const handleMessage = () => {
+    navigate(`/messages?user=${member.user_id}`)
+  }
+
+  const handleAccept = () => {
+    acceptConnection.mutate(member.user_id)
+  }
+
+  const handleDecline = () => {
+    rejectConnection.mutate(member.user_id)
   }
 
   const displayName = member.display_name || 'Anonymous'
@@ -105,7 +129,11 @@ function MemberCard({ member }: { member: NetworkMember }) {
       <div className="flex gap-2 mt-3">
         {isConnected ? (
           <>
-            <GlassButton variant="secondary" className="flex-1 text-sm py-2">
+            <GlassButton
+              variant="secondary"
+              className="flex-1 text-sm py-2"
+              onClick={handleMessage}
+            >
               <MessageCircle className="w-4 h-4" />
               Message
             </GlassButton>
@@ -113,9 +141,38 @@ function MemberCard({ member }: { member: NetworkMember }) {
               Connected
             </GlassBadge>
           </>
+        ) : member.connection_status === 'received' ? (
+          <div className="flex gap-2 w-full">
+            <GlassButton
+              variant="primary"
+              className="flex-1 text-sm py-2"
+              onClick={handleAccept}
+              disabled={acceptConnection.isPending}
+            >
+              {acceptConnection.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+              Accept
+            </GlassButton>
+            <GlassButton
+              variant="secondary"
+              className="flex-1 text-sm py-2"
+              onClick={handleDecline}
+              disabled={rejectConnection.isPending}
+            >
+              {rejectConnection.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <X className="w-4 h-4" />
+              )}
+              Decline
+            </GlassButton>
+          </div>
         ) : isPending ? (
           <GlassBadge variant="warning" className="w-full justify-center py-2">
-            {member.connection_status === 'received' ? 'Accept Request' : 'Pending'}
+            Pending
           </GlassBadge>
         ) : (
           <GlassButton

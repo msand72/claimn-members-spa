@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, Send, MoreVertical, Phone, Video, ArrowLeft, Loader2, MessageCircle } from 'lucide-react'
+import { Search, Send, MoreVertical, ArrowLeft, Loader2, MessageCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
 import {
   useConversations,
@@ -56,6 +56,22 @@ export function MessagesPage() {
 
   const sendMessage = useSendMessage()
   const markRead = useMarkConversationRead()
+
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false)
+  const headerMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close header menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (headerMenuRef.current && !headerMenuRef.current.contains(e.target as Node)) {
+        setShowHeaderMenu(false)
+      }
+    }
+    if (showHeaderMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showHeaderMenu])
 
   // Mark conversation as read when selected
   useEffect(() => {
@@ -219,19 +235,31 @@ export function MessagesPage() {
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-semibold text-kalkvit truncate">{selectedConversation.participant?.display_name || 'Unknown'}</h3>
-                      <p className="text-xs text-kalkvit/50">Brotherhood Member</p>
+                      <p className="text-xs text-kalkvit/50">Member</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 lg:gap-2">
-                    <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit">
-                      <Phone className="w-5 h-5" />
-                    </button>
-                    <button className="hidden sm:block p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit">
-                      <Video className="w-5 h-5" />
-                    </button>
-                    <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit">
+                  <div className="relative flex items-center" ref={headerMenuRef}>
+                    <button
+                      onClick={() => setShowHeaderMenu((prev) => !prev)}
+                      className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit"
+                    >
                       <MoreVertical className="w-5 h-5" />
                     </button>
+                    {showHeaderMenu && (
+                      <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl glass-elevated border border-white/10 py-1 shadow-lg">
+                        <button
+                          onClick={() => {
+                            if (selectedConversation) {
+                              markRead.mutate(selectedConversation.id)
+                            }
+                            setShowHeaderMenu(false)
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-kalkvit hover:bg-white/[0.06] transition-colors"
+                        >
+                          Mark as read
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

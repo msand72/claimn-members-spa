@@ -1,15 +1,21 @@
 import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton } from '../components/ui'
+import { GlassCard, GlassButton, GlassAlert } from '../components/ui'
 import { ASSESSMENT_QUESTIONS, SECTION_INFO } from '../lib/assessment/questions'
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { useSubmitAssessment } from '../lib/api/hooks/useAssessments'
+import { ChevronLeft, ChevronRight, Check, Loader2 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 export function AssessmentTakePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const assessmentId = searchParams.get('assessmentId') ?? 'default'
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const submitMutation = useSubmitAssessment()
 
   const totalQuestions = ASSESSMENT_QUESTIONS.length
   const currentQuestion = ASSESSMENT_QUESTIONS[currentIndex]
@@ -61,8 +67,31 @@ export function AssessmentTakePage() {
   }
 
   const handleSubmit = () => {
-    // Store answers in sessionStorage for the results page
+    setSubmitError(null)
+
+    // Always store in sessionStorage as fallback
     sessionStorage.setItem('assessmentAnswers', JSON.stringify(answers))
+
+    // Submit to API
+    submitMutation.mutate(
+      { assessmentId, data: { answers } },
+      {
+        onSuccess: (result) => {
+          // Navigate with the result ID from API
+          navigate(`/assessment/results?id=${result.id}`)
+        },
+        onError: () => {
+          // API failed — fall back to client-side results
+          setSubmitError(
+            'Could not save to server. Your results are available locally — you can continue or retry.'
+          )
+        },
+      }
+    )
+  }
+
+  const handleContinueOffline = () => {
+    // Navigate without result ID — results page will use sessionStorage fallback
     navigate('/assessment/results')
   }
 
@@ -134,12 +163,32 @@ export function AssessmentTakePage() {
           </div>
         </GlassCard>
 
+        {/* Submit Error */}
+        {submitError && (
+          <GlassAlert
+            variant="error"
+            title="Submission failed"
+            onClose={() => setSubmitError(null)}
+            className="mb-4"
+          >
+            {submitError}
+            <div className="mt-3 flex gap-3">
+              <GlassButton variant="primary" onClick={handleSubmit} className="text-xs">
+                Retry
+              </GlassButton>
+              <GlassButton variant="ghost" onClick={handleContinueOffline} className="text-xs">
+                Continue offline
+              </GlassButton>
+            </div>
+          </GlassAlert>
+        )}
+
         {/* Navigation */}
         <div className="flex items-center justify-between">
           <GlassButton
             variant="ghost"
             onClick={handlePrevious}
-            disabled={currentIndex === 0}
+            disabled={currentIndex === 0 || submitMutation.isPending}
           >
             <ChevronLeft className="w-5 h-5" />
             Previous
@@ -148,9 +197,14 @@ export function AssessmentTakePage() {
           <GlassButton
             variant="primary"
             onClick={handleNext}
-            disabled={!isAnswered}
+            disabled={!isAnswered || submitMutation.isPending}
           >
-            {isLastQuestion ? (
+            {submitMutation.isPending ? (
+              <>
+                Submitting
+                <Loader2 className="w-5 h-5 animate-spin" />
+              </>
+            ) : isLastQuestion ? (
               <>
                 Complete Assessment
                 <Check className="w-5 h-5" />

@@ -10,7 +10,7 @@ import {
   GlassSelect,
 } from '../components/ui'
 import { KPI_TYPES, TRACKING_FREQUENCIES, PILLARS, PILLAR_IDS } from '../lib/constants'
-import { useKPIs, useLogKPI } from '../lib/api/hooks'
+import { useKPIs, useLogKPI, useCreateKPI, useGoals } from '../lib/api/hooks'
 import type { KPI } from '../lib/api/types'
 import {
   TrendingUp,
@@ -112,13 +112,19 @@ export function KPIsPage() {
     targetValue: '',
     pillar: '',
     frequency: 'daily',
+    goalId: '',
   })
+
+  const [actionError, setActionError] = useState<string | null>(null)
 
   // API hooks
   const { data: kpisData, isLoading, error } = useKPIs()
   const logKPI = useLogKPI()
+  const createKPI = useCreateKPI()
+  const { data: goalsData } = useGoals()
 
   const kpis = kpisData?.data || []
+  const goals = goalsData?.data || []
 
   const handleLogKpi = (kpi: KPI) => {
     setSelectedKpi(kpi)
@@ -128,6 +134,7 @@ export function KPIsPage() {
 
   const handleSubmitLog = async () => {
     if (!selectedKpi || !logValue) return
+    setActionError(null)
 
     try {
       await logKPI.mutateAsync({
@@ -137,8 +144,34 @@ export function KPIsPage() {
       setShowLogModal(false)
       setSelectedKpi(null)
       setLogValue('')
-    } catch (err) {
-      console.error('Failed to log KPI:', err)
+    } catch (_err) {
+      setActionError('Failed to log KPI value. Please try again.')
+    }
+  }
+
+  const handleCreateKpi = async () => {
+    if (!newKpi.kpiType || !newKpi.targetValue || !newKpi.goalId) return
+    setActionError(null)
+
+    const selectedKpiType = [...KPI_TYPES.biological, ...KPI_TYPES.action].find(
+      (k) => k.id === newKpi.kpiType
+    )
+
+    try {
+      await createKPI.mutateAsync({
+        goalId: newKpi.goalId,
+        data: {
+          name: selectedKpiType?.name || newKpi.kpiType,
+          type: 'number',
+          target_value: parseFloat(newKpi.targetValue),
+          unit: selectedKpiType?.unit || null,
+          frequency: newKpi.frequency as 'daily' | 'weekly' | 'monthly',
+        },
+      })
+      setShowCreateModal(false)
+      setNewKpi({ kpiType: '', targetValue: '', pillar: '', frequency: 'daily', goalId: '' })
+    } catch (_err) {
+      setActionError('Failed to create KPI. Please try again.')
     }
   }
 
@@ -210,6 +243,13 @@ export function KPIsPage() {
             <p className="text-xs text-kalkvit/50">Best Streak</p>
           </GlassCard>
         </div>
+
+        {/* Action Error */}
+        {actionError && (
+          <div className="mb-6 px-4 py-3 rounded-xl bg-tegelrod/10 border border-tegelrod/30">
+            <p className="text-sm text-tegelrod">{actionError}</p>
+          </div>
+        )}
 
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
@@ -336,6 +376,15 @@ export function KPIsPage() {
         >
           <div className="space-y-4">
             <GlassSelect
+              label="Goal"
+              options={[
+                { value: '', label: 'Select a goal' },
+                ...goals.map((g) => ({ value: g.id, label: g.title })),
+              ]}
+              value={newKpi.goalId}
+              onChange={(e) => setNewKpi({ ...newKpi, goalId: e.target.value })}
+            />
+            <GlassSelect
               label="KPI Type"
               options={kpiTypeOptions}
               value={newKpi.kpiType}
@@ -365,8 +414,12 @@ export function KPIsPage() {
             <GlassButton variant="ghost" onClick={() => setShowCreateModal(false)}>
               Cancel
             </GlassButton>
-            <GlassButton variant="primary" onClick={() => setShowCreateModal(false)}>
-              Add KPI
+            <GlassButton
+              variant="primary"
+              onClick={handleCreateKpi}
+              disabled={!newKpi.goalId || !newKpi.kpiType || !newKpi.targetValue || createKPI.isPending}
+            >
+              {createKPI.isPending ? 'Creating...' : 'Add KPI'}
             </GlassButton>
           </GlassModalFooter>
         </GlassModal>

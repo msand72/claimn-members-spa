@@ -108,6 +108,8 @@ export function BookSessionPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [sessionType, setSessionType] = useState('60')
   const [bookingSuccess, setBookingSuccess] = useState(false)
+  const [dateOffset, setDateOffset] = useState(0)
+  const [bookingError, setBookingError] = useState<string | null>(null)
 
   // Fetch experts
   const { data: expertsData, isLoading: isLoadingExperts, error: expertsError } = useExperts()
@@ -175,8 +177,8 @@ export function BookSessionPage() {
       setTimeout(() => {
         navigate('/sessions')
       }, 2000)
-    } catch (error) {
-      console.error('Failed to book session:', error)
+    } catch (_error) {
+      setBookingError('Failed to book session. Please try again.')
     }
   }
 
@@ -282,16 +284,24 @@ export function BookSessionPage() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-kalkvit">Select Date</h3>
                 <div className="flex gap-1">
-                  <button className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit">
+                  <button
+                    className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
+                    onClick={() => setDateOffset(Math.max(0, dateOffset - 7))}
+                    disabled={dateOffset === 0}
+                  >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <button className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit">
+                  <button
+                    className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
+                    onClick={() => setDateOffset(dateOffset + 7)}
+                    disabled={dateOffset + 7 >= days.length}
+                  >
                     <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>
               <div className="grid grid-cols-7 gap-2">
-                {days.slice(0, 7).map((day) => (
+                {days.slice(dateOffset, dateOffset + 7).map((day) => (
                   <button
                     key={day.dateStr}
                     onClick={() => {
@@ -423,9 +433,9 @@ export function BookSessionPage() {
                       'Confirm Booking'
                     )}
                   </GlassButton>
-                  {bookSessionMutation.isError && (
+                  {(bookSessionMutation.isError || bookingError) && (
                     <p className="text-xs text-tegelrod mt-2 text-center">
-                      Failed to book session. Please try again.
+                      {bookingError || 'Failed to book session. Please try again.'}
                     </p>
                   )}
                 </div>
