@@ -1,15 +1,15 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import { useExperts } from '../lib/api/hooks'
 import type { Expert } from '../lib/api/types'
-import { Search, Star, Calendar, MessageCircle, Filter, Loader2, AlertTriangle } from 'lucide-react'
+import { Search, Star, Calendar, MessageCircle, Loader2, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 const specialtyFilters = ['All', 'Leadership', 'Mindset', 'Business', 'Wellness', 'Finance', 'Communication']
 
-function ExpertCard({ expert }: { expert: Expert }) {
+function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expertId: string) => void }) {
   const initials = expert.name
     .split(' ')
     .map((n) => n[0])
@@ -74,7 +74,7 @@ function ExpertCard({ expert }: { expert: Expert }) {
           {expert.availability || 'Contact for availability'}
         </span>
         <div className="flex gap-2">
-          <GlassButton variant="ghost" className="p-2">
+          <GlassButton variant="ghost" className="p-2" onClick={() => onMessage(expert.id)}>
             <MessageCircle className="w-4 h-4" />
           </GlassButton>
           <Link to={`/book-session?expert=${expert.id}`}>
@@ -91,14 +91,28 @@ function ExpertCard({ expert }: { expert: Expert }) {
 
 export function ExpertsPage() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
+  const navigate = useNavigate()
+
+  // Debounce search input by 300ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  const handleMessage = (expertId: string) => {
+    navigate(`/messages?user=${expertId}`)
+  }
 
   const {
     data: expertsData,
     isLoading,
     error,
   } = useExperts({
-    search: searchQuery || undefined,
+    search: debouncedSearch || undefined,
     specialty: activeFilter !== 'All' ? activeFilter : undefined,
   })
 
@@ -148,10 +162,6 @@ export function ExpertsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <GlassButton variant="secondary">
-            <Filter className="w-4 h-4" />
-            Filters
-          </GlassButton>
         </div>
 
         <div className="flex gap-2 flex-wrap mb-8">
@@ -183,7 +193,7 @@ export function ExpertsPage() {
                 <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">Top Rated</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {topRatedExperts.map((expert) => (
-                    <ExpertCard key={expert.id} expert={expert} />
+                    <ExpertCard key={expert.id} expert={expert} onMessage={handleMessage} />
                   ))}
                 </div>
               </div>
@@ -198,7 +208,7 @@ export function ExpertsPage() {
                 {experts
                   .filter((e) => activeFilter !== 'All' || searchQuery !== '' || !e.is_top_rated)
                   .map((expert) => (
-                    <ExpertCard key={expert.id} expert={expert} />
+                    <ExpertCard key={expert.id} expert={expert} onMessage={handleMessage} />
                   ))}
               </div>
             </div>

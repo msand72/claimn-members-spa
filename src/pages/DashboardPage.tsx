@@ -2,13 +2,18 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassStatsCard, GlassAvatar, GlassBadge } from '../components/ui'
-import { useCurrentProfile, useDashboardStats } from '../lib/api/hooks'
+import {
+  useCurrentProfile,
+  useDashboardStats,
+  useActionItems,
+  useCoachingSessions,
+  useFeed,
+} from '../lib/api/hooks'
 import { PILLARS } from '../lib/constants'
 import {
   Heart,
   MessageCircle,
   Users,
-  User,
   Newspaper,
   Calendar,
   ArrowRight,
@@ -24,6 +29,19 @@ export function DashboardPage() {
   const { user } = useAuth()
   const { data: profile } = useCurrentProfile()
   const { data: stats, isLoading: statsLoading } = useDashboardStats()
+  const { data: actionItemsData, isLoading: actionItemsLoading } = useActionItems({
+    status: 'pending',
+    limit: 5,
+  })
+  const { data: sessionsData, isLoading: sessionsLoading } = useCoachingSessions({
+    status: 'scheduled',
+    limit: 3,
+  })
+  const { data: feedData, isLoading: feedLoading } = useFeed({ limit: 3 })
+
+  const actionItems = actionItemsData?.data ?? []
+  const upcomingSessions = sessionsData?.data ?? []
+  const recentPosts = feedData?.data ?? []
 
   const displayName =
     profile?.display_name || user?.display_name || user?.email?.split('@')[0] || 'Member'
@@ -99,7 +117,7 @@ export function DashboardPage() {
           <GlassStatsCard
             icon={CheckSquare}
             label="Action Items"
-            value={statsLoading ? '...' : String(stats?.goals_active ?? 0)}
+            value={actionItemsLoading ? '...' : String(actionItemsData?.pagination?.total ?? actionItems.length)}
             trend="--"
             trendLabel="pending"
           />
@@ -179,22 +197,48 @@ export function DashboardPage() {
                 View all <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="space-y-3">
-              <div className="p-4 bg-white/[0.03] rounded-xl border border-white/[0.08]">
-                <div className="flex items-center gap-3 mb-2">
-                  <Calendar className="w-5 h-5 text-koppar" />
-                  <span className="text-kalkvit font-medium">Next Brotherhood Call</span>
-                </div>
-                <p className="text-kalkvit/60 text-sm ml-8">No upcoming calls scheduled</p>
+            {sessionsLoading ? (
+              <div className="text-center py-8">
+                <p className="text-kalkvit/50 text-sm">Loading sessions...</p>
               </div>
-              <div className="p-4 bg-white/[0.03] rounded-xl border border-white/[0.08]">
-                <div className="flex items-center gap-3 mb-2">
-                  <User className="w-5 h-5 text-koppar" />
-                  <span className="text-kalkvit font-medium">Next Expert Session</span>
+            ) : upcomingSessions.length === 0 ? (
+              <div className="space-y-3">
+                <div className="p-4 bg-white/[0.03] rounded-xl border border-white/[0.08]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Calendar className="w-5 h-5 text-koppar" />
+                    <span className="text-kalkvit font-medium">No Upcoming Sessions</span>
+                  </div>
+                  <p className="text-kalkvit/50 text-sm ml-8">
+                    Book a coaching session to get started
+                  </p>
                 </div>
-                <p className="text-kalkvit/60 text-sm ml-8">No sessions scheduled</p>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-3">
+                {upcomingSessions.map((session) => (
+                  <Link
+                    key={session.id}
+                    to={`/expert-sessions/${session.id}`}
+                    className="block p-4 bg-white/[0.03] rounded-xl border border-white/[0.08] hover:border-koppar/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <Calendar className="w-5 h-5 text-koppar" />
+                      <span className="text-kalkvit font-medium">{session.title}</span>
+                    </div>
+                    <p className="text-kalkvit/60 text-sm ml-8">
+                      {new Date(session.scheduled_at).toLocaleDateString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                      {' '}&middot; {session.duration} min
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            )}
           </GlassCard>
         </div>
 
@@ -210,13 +254,46 @@ export function DashboardPage() {
                 View all <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="text-center py-8">
-              <CheckSquare className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
-              <p className="text-kalkvit/50 text-sm">No action items yet</p>
-              <p className="text-kalkvit/30 text-xs mt-1">
-                Action items from sessions and goals will appear here
-              </p>
-            </div>
+            {actionItemsLoading ? (
+              <div className="text-center py-8">
+                <p className="text-kalkvit/50 text-sm">Loading action items...</p>
+              </div>
+            ) : actionItems.length === 0 ? (
+              <div className="text-center py-8">
+                <CheckSquare className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
+                <p className="text-kalkvit/50 text-sm">No action items yet</p>
+                <p className="text-kalkvit/30 text-xs mt-1">
+                  Action items from sessions and goals will appear here
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {actionItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 bg-white/[0.03] rounded-xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          item.priority === 'high'
+                            ? 'bg-tegelrod'
+                            : item.priority === 'medium'
+                              ? 'bg-koppar'
+                              : 'bg-kalkvit/40'
+                        }`}
+                      />
+                      <span className="text-kalkvit/80 text-sm">{item.title}</span>
+                    </div>
+                    {item.due_date && (
+                      <span className="text-kalkvit/40 text-xs">
+                        {new Date(item.due_date).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </GlassCard>
 
           <GlassCard>
@@ -229,24 +306,38 @@ export function DashboardPage() {
                 View all <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="space-y-3">
-              {[
-                { text: 'Welcome to CLAIM\'N Brotherhood!', time: 'Just now' },
-                { text: 'Complete your profile to get started', time: 'Suggested' },
-                { text: 'Explore protocols to begin your journey', time: 'Suggested' },
-              ].map((activity, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-3 bg-white/[0.03] rounded-xl"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-koppar rounded-full" />
-                    <span className="text-kalkvit/80 text-sm">{activity.text}</span>
+            {feedLoading ? (
+              <div className="text-center py-8">
+                <p className="text-kalkvit/50 text-sm">Loading activity...</p>
+              </div>
+            ) : recentPosts.length === 0 ? (
+              <div className="text-center py-8">
+                <Newspaper className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
+                <p className="text-kalkvit/50 text-sm">No recent activity</p>
+                <p className="text-kalkvit/30 text-xs mt-1">
+                  Posts and updates from the community will appear here
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="flex items-center justify-between p-3 bg-white/[0.03] rounded-xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-koppar rounded-full" />
+                      <span className="text-kalkvit/80 text-sm line-clamp-1">
+                        {post.author?.display_name ?? 'Member'}: {post.content}
+                      </span>
+                    </div>
+                    <span className="text-kalkvit/40 text-xs whitespace-nowrap ml-2">
+                      {new Date(post.created_at).toLocaleDateString()}
+                    </span>
                   </div>
-                  <span className="text-kalkvit/40 text-xs">{activity.time}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </GlassCard>
         </div>
       </div>

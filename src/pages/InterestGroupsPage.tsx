@@ -1,8 +1,14 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassInput, GlassBadge, GlassAvatar } from '../components/ui'
+import { GlassCard, GlassButton, GlassInput, GlassBadge, GlassToast } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { useMyInterestGroups, useAllInterestGroups } from '../hooks/useInterestGroups'
+import {
+  useMyInterestGroups,
+  useAllInterestGroups,
+  useJoinInterestGroup,
+  useLeaveInterestGroup,
+} from '../hooks/useInterestGroups'
 import {
   Search,
   Users,
@@ -10,41 +16,44 @@ import {
   Heart,
   ChevronRight,
   Plus,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-interface GroupMember {
-  id: string
-  initials: string
-  name: string
-}
-
-// Mock additional data for interest groups
-const mockGroupData: Record<string, { recentPosts: number; topMembers: GroupMember[] }> = {
-  '1': {
-    recentPosts: 12,
-    topMembers: [
-      { id: '1', initials: 'JD', name: 'John Davidson' },
-      { id: '2', initials: 'MC', name: 'Michael Chen' },
-      { id: '3', initials: 'AJ', name: 'Alex Johnson' },
-    ],
-  },
-  '2': {
-    recentPosts: 8,
-    topMembers: [
-      { id: '4', initials: 'SW', name: 'Sarah Williams' },
-      { id: '5', initials: 'DM', name: 'David Miller' },
-    ],
-  },
-}
-
 export function InterestGroupsPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'my-groups' | 'discover'>('my-groups')
   const [searchQuery, setSearchQuery] = useState('')
+  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'info' | 'warning' | 'error' } | null>(null)
 
   const { data: myGroups = [], isLoading: myGroupsLoading } = useMyInterestGroups(user?.id)
   const { data: allGroups = [], isLoading: allGroupsLoading } = useAllInterestGroups()
+
+  const joinGroup = useJoinInterestGroup()
+  const leaveGroup = useLeaveInterestGroup()
+
+  const handleJoinGroup = (groupId: string, groupName: string) => {
+    joinGroup.mutate(groupId, {
+      onSuccess: () => {
+        setToast({ message: `Joined "${groupName}" successfully!`, variant: 'success' })
+      },
+      onError: () => {
+        setToast({ message: `Failed to join "${groupName}". Please try again.`, variant: 'error' })
+      },
+    })
+  }
+
+  const handleLeaveGroup = (groupId: string, groupName: string) => {
+    leaveGroup.mutate(groupId, {
+      onSuccess: () => {
+        setToast({ message: `Left "${groupName}" successfully.`, variant: 'info' })
+      },
+      onError: () => {
+        setToast({ message: `Failed to leave "${groupName}". Please try again.`, variant: 'error' })
+      },
+    })
+  }
 
   // Filter groups based on search
   const filteredMyGroups = myGroups.filter((group) =>
@@ -123,13 +132,7 @@ export function InterestGroupsPage() {
           <>
             {filteredMyGroups.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredMyGroups.map((group) => {
-                  const extraData = mockGroupData[group.id] || {
-                    recentPosts: Math.floor(Math.random() * 20) + 1,
-                    topMembers: [],
-                  }
-
-                  return (
+                {filteredMyGroups.map((group) => (
                     <GlassCard key={group.id} variant="base" className="hover:border-koppar/30 transition-colors">
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -159,36 +162,30 @@ export function InterestGroupsPage() {
                         </span>
                         <span className="flex items-center gap-1">
                           <MessageSquare className="w-4 h-4" />
-                          {extraData.recentPosts} posts
+                          {group.post_count ?? 0} posts
                         </span>
                       </div>
 
-                      {/* Top Members */}
-                      {extraData.topMembers.length > 0 && (
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="flex -space-x-2">
-                            {extraData.topMembers.slice(0, 3).map((member) => (
-                              <GlassAvatar
-                                key={member.id}
-                                initials={member.initials}
-                                size="sm"
-                                className="ring-2 ring-charcoal"
-                              />
-                            ))}
-                          </div>
-                          <span className="text-xs text-kalkvit/50">
-                            {extraData.topMembers.map((m) => m.name.split(' ')[0]).join(', ')}
-                          </span>
-                        </div>
-                      )}
-
-                      <GlassButton variant="secondary" className="w-full">
-                        View Group
-                        <ChevronRight className="w-4 h-4" />
-                      </GlassButton>
+                      <div className="flex gap-2">
+                        <GlassButton
+                          variant="secondary"
+                          className="flex-1"
+                          onClick={() => navigate(`/feed?group=${group.id}`)}
+                        >
+                          View Group
+                          <ChevronRight className="w-4 h-4" />
+                        </GlassButton>
+                        <GlassButton
+                          variant="ghost"
+                          className="text-kalkvit/50 hover:text-tegelrod"
+                          onClick={() => handleLeaveGroup(group.id, group.name)}
+                          disabled={leaveGroup.isPending}
+                        >
+                          <LogOut className="w-4 h-4" />
+                        </GlassButton>
+                      </div>
                     </GlassCard>
-                  )
-                })}
+                  ))}
               </div>
             ) : (
               <GlassCard variant="base" className="text-center py-12">
@@ -244,9 +241,14 @@ export function InterestGroupsPage() {
                       </span>
                     </div>
 
-                    <GlassButton variant="primary" className="w-full">
+                    <GlassButton
+                      variant="primary"
+                      className="w-full"
+                      onClick={() => handleJoinGroup(group.id, group.name)}
+                      disabled={joinGroup.isPending}
+                    >
                       <Plus className="w-4 h-4" />
-                      Join Group
+                      {joinGroup.isPending ? 'Joining...' : 'Join Group'}
                     </GlassButton>
                   </GlassCard>
                 ))}
@@ -267,6 +269,17 @@ export function InterestGroupsPage() {
           </>
         )}
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4">
+          <GlassToast
+            variant={toast.variant}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
+        </div>
+      )}
     </MainLayout>
   )
 }
