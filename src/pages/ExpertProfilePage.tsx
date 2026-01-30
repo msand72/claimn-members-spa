@@ -319,3 +319,5 @@ export function ExpertProfilePage() {
     </MainLayout>
   )
 }
+
+export default ExpertProfilePage;

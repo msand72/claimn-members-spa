@@ -394,3 +394,5 @@ export function ActionItemsPage() {
     </MainLayout>
   )
 }
+
+export default ActionItemsPage;

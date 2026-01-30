@@ -264,3 +264,5 @@ export function CoachingSessionsPage() {
     </MainLayout>
   )
 }
+
+export default CoachingSessionsPage;

@@ -283,3 +283,5 @@ export function InterestGroupsPage() {
     </MainLayout>
   )
 }
+
+export default InterestGroupsPage;

@@ -203,11 +203,11 @@ export function ProgramsSprintsPage() {
   }
 
   const handleViewProgress = (sprintId: string) => {
-    navigate(`/programs/sprints/${sprintId}`)
+    navigate('/programs/sprints')
   }
 
-  const handleViewResults = (sprintId: string) => {
-    navigate(`/programs/sprints/${sprintId}/results`)
+  const handleViewResults = (_sprintId: string) => {
+    navigate('/programs/sprints')
   }
 
   const activeCount = sprints.filter((s) => s.status === 'active').length
@@ -318,3 +318,5 @@ export function ProgramsSprintsPage() {
     </MainLayout>
   )
 }
+
+export default ProgramsSprintsPage;

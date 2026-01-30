@@ -387,3 +387,5 @@ export function AccountabilityPage() {
     </MainLayout>
   )
 }
+
+export default AccountabilityPage;

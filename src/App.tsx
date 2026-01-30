@@ -1,61 +1,64 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { RouteErrorBoundary } from './components/RouteErrorBoundary'
+import { LoadingSpinner } from './components/LoadingSpinner'
 
 // Pages - Auth
-import { LoginPage } from './pages/LoginPage'
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
-import { ResetPasswordPage } from './pages/ResetPasswordPage'
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 
 // Pages - Core
-import { DashboardPage } from './pages/DashboardPage'
-import { ProfilePage } from './pages/ProfilePage'
-import { BillingPage } from './pages/BillingPage'
-import { ResourcesPage } from './pages/ResourcesPage'
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
+const BillingPage = lazy(() => import('./pages/BillingPage'))
+const ResourcesPage = lazy(() => import('./pages/ResourcesPage'))
 
 // Pages - Community
-import { FeedPage } from './pages/FeedPage'
-import { MessagesPage } from './pages/MessagesPage'
-import { ConnectionsPage } from './pages/ConnectionsPage'
-import { CirclesPage } from './pages/CirclesPage'
-import { CircleDetailPage } from './pages/CircleDetailPage'
-import { NetworkPage } from './pages/NetworkPage'
+const FeedPage = lazy(() => import('./pages/FeedPage'))
+const MessagesPage = lazy(() => import('./pages/MessagesPage'))
+const ConnectionsPage = lazy(() => import('./pages/ConnectionsPage'))
+const CirclesPage = lazy(() => import('./pages/CirclesPage'))
+const CircleDetailPage = lazy(() => import('./pages/CircleDetailPage'))
+const NetworkPage = lazy(() => import('./pages/NetworkPage'))
 
 // Pages - Shop & Experts
-import { ShopPage } from './pages/ShopPage'
-import { ShopProtocolsPage } from './pages/ShopProtocolsPage'
-import { ShopProtocolDetailPage } from './pages/ShopProtocolDetailPage'
-import { ShopCirclesPage } from './pages/ShopCirclesPage'
-import { ShopUpgradePage } from './pages/ShopUpgradePage'
-import { ShopSuccessPage } from './pages/ShopSuccessPage'
-import { BookSessionPage } from './pages/BookSessionPage'
-import { ExpertsPage } from './pages/ExpertsPage'
-import { ExpertSessionsPage } from './pages/ExpertSessionsPage'
-import { ExpertProfilePage } from './pages/ExpertProfilePage'
-import { ProgramsPage } from './pages/ProgramsPage'
-import { ProgramsSprintsPage } from './pages/ProgramsSprintsPage'
-import { ProgramsReviewsPage } from './pages/ProgramsReviewsPage'
+const ShopPage = lazy(() => import('./pages/ShopPage'))
+const ShopProtocolsPage = lazy(() => import('./pages/ShopProtocolsPage'))
+const ShopProtocolDetailPage = lazy(() => import('./pages/ShopProtocolDetailPage'))
+const ShopCirclesPage = lazy(() => import('./pages/ShopCirclesPage'))
+const ShopUpgradePage = lazy(() => import('./pages/ShopUpgradePage'))
+const ShopSuccessPage = lazy(() => import('./pages/ShopSuccessPage'))
+const BookSessionPage = lazy(() => import('./pages/BookSessionPage'))
+const ExpertsPage = lazy(() => import('./pages/ExpertsPage'))
+const ExpertSessionsPage = lazy(() => import('./pages/ExpertSessionsPage'))
+const ExpertProfilePage = lazy(() => import('./pages/ExpertProfilePage'))
+const ProgramsPage = lazy(() => import('./pages/ProgramsPage'))
+const ProgramsSprintsPage = lazy(() => import('./pages/ProgramsSprintsPage'))
+const ProgramsReviewsPage = lazy(() => import('./pages/ProgramsReviewsPage'))
 
 // Pages - Coaching
-import { CoachingSessionsPage } from './pages/CoachingSessionsPage'
-import { CoachingResourcesPage } from './pages/CoachingResourcesPage'
-import { SessionNotesPage } from './pages/SessionNotesPage'
+const CoachingSessionsPage = lazy(() => import('./pages/CoachingSessionsPage'))
+const CoachingResourcesPage = lazy(() => import('./pages/CoachingResourcesPage'))
+const SessionNotesPage = lazy(() => import('./pages/SessionNotesPage'))
 
 // Pages - Transformation Tracking
-import { AssessmentPage } from './pages/AssessmentPage'
-import { AssessmentTakePage } from './pages/AssessmentTakePage'
-import { AssessmentResultsPage } from './pages/AssessmentResultsPage'
-import { GoalsPage } from './pages/GoalsPage'
-import { GoalDetailPage } from './pages/GoalDetailPage'
-import { ActionItemsPage } from './pages/ActionItemsPage'
-import { ProtocolsPage } from './pages/ProtocolsPage'
-import { ProtocolDetailPage } from './pages/ProtocolDetailPage'
-import { InterestGroupsPage } from './pages/InterestGroupsPage'
-import { KPIsPage } from './pages/KPIsPage'
-import { MilestonesPage } from './pages/MilestonesPage'
-import { AccountabilityPage } from './pages/AccountabilityPage'
+const AssessmentPage = lazy(() => import('./pages/AssessmentPage'))
+const AssessmentTakePage = lazy(() => import('./pages/AssessmentTakePage'))
+const AssessmentResultsPage = lazy(() => import('./pages/AssessmentResultsPage'))
+const GoalsPage = lazy(() => import('./pages/GoalsPage'))
+const GoalDetailPage = lazy(() => import('./pages/GoalDetailPage'))
+const ActionItemsPage = lazy(() => import('./pages/ActionItemsPage'))
+const ProtocolsPage = lazy(() => import('./pages/ProtocolsPage'))
+const ProtocolDetailPage = lazy(() => import('./pages/ProtocolDetailPage'))
+const InterestGroupsPage = lazy(() => import('./pages/InterestGroupsPage'))
+const KPIsPage = lazy(() => import('./pages/KPIsPage'))
+const MilestonesPage = lazy(() => import('./pages/MilestonesPage'))
+const AccountabilityPage = lazy(() => import('./pages/AccountabilityPage'))
 
 
 const queryClient = new QueryClient({
@@ -74,340 +77,92 @@ const queryClient = new QueryClient({
   },
 })
 
+function Protected({ children }: { children: React.ReactNode }) {
+  return <ProtectedRoute>{children}</ProtectedRoute>
+}
+
+function SuspenseLayout() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <Outlet />
+    </Suspense>
+  )
+}
+
+const router = createBrowserRouter([
+  {
+    element: <SuspenseLayout />,
+    errorElement: <RouteErrorBoundary />,
+    children: [
+      // Public routes - Auth
+      { path: '/login', element: <LoginPage /> },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      { path: '/reset-password', element: <ResetPasswordPage /> },
+
+      // Protected routes - Core Pages
+      { path: '/', element: <Protected><DashboardPage /></Protected> },
+      { path: '/profile', element: <Protected><ProfilePage /></Protected> },
+      { path: '/billing', element: <Protected><BillingPage /></Protected> },
+      { path: '/resources', element: <Protected><ResourcesPage /></Protected> },
+
+      // Protected routes - Community Pages
+      { path: '/feed', element: <Protected><FeedPage /></Protected> },
+      { path: '/messages', element: <Protected><MessagesPage /></Protected> },
+      { path: '/connections', element: <Protected><ConnectionsPage /></Protected> },
+      { path: '/circles', element: <Protected><CirclesPage /></Protected> },
+      { path: '/circles/:id', element: <Protected><CircleDetailPage /></Protected> },
+      { path: '/network', element: <Protected><NetworkPage /></Protected> },
+
+      // Protected routes - Shop & Experts
+      { path: '/shop', element: <Protected><ShopPage /></Protected> },
+      { path: '/book-session', element: <Protected><BookSessionPage /></Protected> },
+      { path: '/experts', element: <Protected><ExpertsPage /></Protected> },
+      { path: '/experts/:id', element: <Protected><ExpertProfilePage /></Protected> },
+      { path: '/programs', element: <Protected><ProgramsPage /></Protected> },
+      { path: '/programs/sprints', element: <Protected><ProgramsSprintsPage /></Protected> },
+      { path: '/programs/reviews', element: <Protected><ProgramsReviewsPage /></Protected> },
+
+      // Protected routes - Coaching
+      { path: '/coaching/sessions', element: <Protected><CoachingSessionsPage /></Protected> },
+      { path: '/coaching/resources', element: <Protected><CoachingResourcesPage /></Protected> },
+      { path: '/coaching/session-notes', element: <Protected><SessionNotesPage /></Protected> },
+
+      // Protected routes - Expert Sessions
+      { path: '/expert-sessions', element: <Protected><ExpertSessionsPage /></Protected> },
+
+      // Protected routes - Transformation Tracking
+      { path: '/assessment', element: <Protected><AssessmentPage /></Protected> },
+      { path: '/assessment/take', element: <Protected><AssessmentTakePage /></Protected> },
+      { path: '/assessment/results', element: <Protected><AssessmentResultsPage /></Protected> },
+      { path: '/goals', element: <Protected><GoalsPage /></Protected> },
+      { path: '/goals/:id', element: <Protected><GoalDetailPage /></Protected> },
+      { path: '/action-items', element: <Protected><ActionItemsPage /></Protected> },
+      { path: '/protocols', element: <Protected><ProtocolsPage /></Protected> },
+      { path: '/protocols/:slug', element: <Protected><ProtocolDetailPage /></Protected> },
+      { path: '/interest-groups', element: <Protected><InterestGroupsPage /></Protected> },
+      { path: '/kpis', element: <Protected><KPIsPage /></Protected> },
+      { path: '/milestones', element: <Protected><MilestonesPage /></Protected> },
+      { path: '/accountability', element: <Protected><AccountabilityPage /></Protected> },
+
+      // Protected routes - Shop
+      { path: '/shop/protocols', element: <Protected><ShopProtocolsPage /></Protected> },
+      { path: '/shop/protocols/:slug', element: <Protected><ShopProtocolDetailPage /></Protected> },
+      { path: '/shop/circles', element: <Protected><ShopCirclesPage /></Protected> },
+      { path: '/shop/upgrade', element: <Protected><ShopUpgradePage /></Protected> },
+      { path: '/shop/success', element: <Protected><ShopSuccessPage /></Protected> },
+
+      // 404 fallback — handled by errorElement (RouteErrorBoundary)
+      { path: '*', element: <RouteErrorBoundary /> },
+    ],
+  },
+])
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <BrowserRouter>
-          <Routes>
-            {/* Public routes - Auth */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-            {/* Protected routes - Core Pages */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/billing"
-              element={
-                <ProtectedRoute>
-                  <BillingPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/resources"
-              element={
-                <ProtectedRoute>
-                  <ResourcesPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected routes - Community Pages */}
-            <Route
-              path="/feed"
-              element={
-                <ProtectedRoute>
-                  <FeedPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <MessagesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/connections"
-              element={
-                <ProtectedRoute>
-                  <ConnectionsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/circles"
-              element={
-                <ProtectedRoute>
-                  <CirclesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/circles/:id"
-              element={
-                <ProtectedRoute>
-                  <CircleDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/network"
-              element={
-                <ProtectedRoute>
-                  <NetworkPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected routes - Shop & Experts */}
-            <Route
-              path="/shop"
-              element={
-                <ProtectedRoute>
-                  <ShopPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/book-session"
-              element={
-                <ProtectedRoute>
-                  <BookSessionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/experts"
-              element={
-                <ProtectedRoute>
-                  <ExpertsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/experts/:id"
-              element={
-                <ProtectedRoute>
-                  <ExpertProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/programs"
-              element={
-                <ProtectedRoute>
-                  <ProgramsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/programs/sprints"
-              element={
-                <ProtectedRoute>
-                  <ProgramsSprintsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/programs/reviews"
-              element={
-                <ProtectedRoute>
-                  <ProgramsReviewsPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected routes - Coaching */}
-            <Route
-              path="/coaching/sessions"
-              element={
-                <ProtectedRoute>
-                  <CoachingSessionsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/coaching/resources"
-              element={
-                <ProtectedRoute>
-                  <CoachingResourcesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/coaching/session-notes"
-              element={
-                <ProtectedRoute>
-                  <SessionNotesPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected routes - Expert Sessions */}
-            <Route
-              path="/expert-sessions"
-              element={
-                <ProtectedRoute>
-                  <ExpertSessionsPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected routes - Transformation Tracking */}
-            <Route
-              path="/assessment"
-              element={
-                <ProtectedRoute>
-                  <AssessmentPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessment/take"
-              element={
-                <ProtectedRoute>
-                  <AssessmentTakePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessment/results"
-              element={
-                <ProtectedRoute>
-                  <AssessmentResultsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/goals"
-              element={
-                <ProtectedRoute>
-                  <GoalsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/goals/:id"
-              element={
-                <ProtectedRoute>
-                  <GoalDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/action-items"
-              element={
-                <ProtectedRoute>
-                  <ActionItemsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/protocols"
-              element={
-                <ProtectedRoute>
-                  <ProtocolsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/protocols/:slug"
-              element={
-                <ProtectedRoute>
-                  <ProtocolDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/interest-groups"
-              element={
-                <ProtectedRoute>
-                  <InterestGroupsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/kpis"
-              element={
-                <ProtectedRoute>
-                  <KPIsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/milestones"
-              element={
-                <ProtectedRoute>
-                  <MilestonesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/accountability"
-              element={
-                <ProtectedRoute>
-                  <AccountabilityPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Protected routes - Shop */}
-            <Route
-              path="/shop/protocols"
-              element={
-                <ProtectedRoute>
-                  <ShopProtocolsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/shop/protocols/:slug"
-              element={
-                <ProtectedRoute>
-                  <ShopProtocolDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/shop/circles"
-              element={
-                <ProtectedRoute>
-                  <ShopCirclesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/shop/upgrade"
-              element={
-                <ProtectedRoute>
-                  <ShopUpgradePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/shop/success"
-              element={
-                <ProtectedRoute>
-                  <ShopSuccessPage />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* 404 fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          </BrowserRouter>
+          <RouterProvider router={router} />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

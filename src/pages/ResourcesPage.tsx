@@ -166,3 +166,5 @@ export function ResourcesPage() {
     </MainLayout>
   )
 }
+
+export default ResourcesPage;

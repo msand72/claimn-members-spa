@@ -355,3 +355,5 @@ export function MessagesPage() {
     </MainLayout>
   )
 }
+
+export default MessagesPage;

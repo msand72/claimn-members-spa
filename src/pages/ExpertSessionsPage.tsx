@@ -334,3 +334,5 @@ export function ExpertSessionsPage() {
     </MainLayout>
   )
 }
+
+export default ExpertSessionsPage;

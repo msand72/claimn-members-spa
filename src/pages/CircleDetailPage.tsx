@@ -530,3 +530,5 @@ export function CircleDetailPage() {
     </MainLayout>
   )
 }
+
+export default CircleDetailPage;

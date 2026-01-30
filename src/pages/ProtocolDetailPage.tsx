@@ -449,3 +449,5 @@ export function ProtocolDetailPage() {
     </MainLayout>
   )
 }
+
+export default ProtocolDetailPage;

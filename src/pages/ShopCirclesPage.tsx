@@ -189,3 +189,5 @@ export function ShopCirclesPage() {
     </MainLayout>
   )
 }
+
+export default ShopCirclesPage;

@@ -224,3 +224,5 @@ export function ExpertsPage() {
     </MainLayout>
   )
 }
+
+export default ExpertsPage;

@@ -15,7 +15,7 @@ import { useInterests, useMemberInterests, useUpdateMemberInterests } from '../h
 import { ARCHETYPES, PILLARS, PILLAR_IDS } from '../lib/constants'
 import type { Archetype, PillarId } from '../lib/constants'
 import type { UpdateProfileRequest } from '../lib/api/types'
-import { Camera, Save, Loader2 } from 'lucide-react'
+import { Camera, Save, Loader2, AlertTriangle } from 'lucide-react'
 
 export function ProfilePage() {
   const { user } = useAuth()
@@ -24,7 +24,7 @@ export function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch profile data
-  const { data: profile, isLoading: profileLoading } = useCurrentProfile()
+  const { data: profile, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = useCurrentProfile()
   const { data: interests = [], isLoading: interestsLoading } = useInterests()
   const { data: memberInterestIds = [], isLoading: memberInterestsLoading } = useMemberInterests(
     user?.id
@@ -155,7 +155,7 @@ export function ProfilePage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Profile</h1>
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-kalkvit mb-2">Profile</h1>
             <p className="text-kalkvit/60">Manage your account settings and preferences</p>
           </div>
           <GlassButton
@@ -189,6 +189,14 @@ export function ProfilePage() {
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+          </div>
+        ) : profileError ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-4">
+            <AlertTriangle className="w-8 h-8 text-tegelrod" />
+            <p className="text-kalkvit/70">Failed to load profile.</p>
+            <GlassButton variant="secondary" onClick={() => refetchProfile()}>
+              Try Again
+            </GlassButton>
           </div>
         ) : (
           <>
@@ -381,3 +389,5 @@ export function ProfilePage() {
     </MainLayout>
   )
 }
+
+export default ProfilePage;

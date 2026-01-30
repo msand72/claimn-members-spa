@@ -482,3 +482,5 @@ export function GoalDetailPage() {
     </MainLayout>
   )
 }
+
+export default GoalDetailPage;

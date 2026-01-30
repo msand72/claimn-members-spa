@@ -353,7 +353,7 @@ export function FeedPage() {
     <MainLayout>
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Community Feed</h1>
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-kalkvit mb-2">Community Feed</h1>
           <p className="text-kalkvit/60">Share updates and connect with the brotherhood</p>
         </div>
 
@@ -480,3 +480,5 @@ export function FeedPage() {
     </MainLayout>
   )
 }
+
+export default FeedPage;

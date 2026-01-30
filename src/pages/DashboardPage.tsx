@@ -23,12 +23,14 @@ import {
   Trophy,
   Clock,
   Compass,
+  Loader2,
+  AlertTriangle,
 } from 'lucide-react'
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const { data: profile } = useCurrentProfile()
-  const { data: stats, isLoading: statsLoading } = useDashboardStats()
+  const { data: profile, isLoading: profileLoading, isError: profileError } = useCurrentProfile()
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useDashboardStats()
   const { data: actionItemsData, isLoading: actionItemsLoading } = useActionItems({
     status: 'pending',
     limit: 5,
@@ -62,16 +64,39 @@ export function DashboardPage() {
   const primaryPillarId = profile?.pillar_focus?.[0] as keyof typeof PILLARS | undefined
   const pillarFocus = primaryPillarId && primaryPillarId in PILLARS ? PILLARS[primaryPillarId] : null
 
+  const isInitialLoading = profileLoading && statsLoading
+
+  if (isInitialLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  if (profileError && statsError) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <AlertTriangle className="w-8 h-8 text-tegelrod" />
+          <p className="text-kalkvit/70">Failed to load dashboard data.</p>
+        </div>
+      </MainLayout>
+    )
+  }
+
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto">
         {/* Welcome Card */}
         <GlassCard variant="elevated" className="mb-8">
-          <div className="bg-gradient-to-br from-charcoal to-jordbrun rounded-2xl p-8">
-            <div className="flex items-start gap-6">
-              <GlassAvatar initials={initials} size="xl" className="w-24 h-24 text-4xl" />
+          <div className="bg-gradient-to-br from-charcoal to-jordbrun rounded-2xl p-4 md:p-8">
+            <div className="flex items-start gap-4 md:gap-6">
+              <GlassAvatar initials={initials} size="xl" className="w-16 h-16 md:w-24 md:h-24 text-2xl md:text-4xl hidden sm:flex" />
               <div className="flex-1">
-                <h1 className="font-display text-3xl font-bold text-kalkvit mb-1">
+                <h1 className="font-display text-2xl md:text-3xl font-bold text-kalkvit mb-1">
                   Welcome back, {displayName}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -218,7 +243,7 @@ export function DashboardPage() {
                 {upcomingSessions.map((session) => (
                   <Link
                     key={session.id}
-                    to={`/expert-sessions/${session.id}`}
+                    to="/expert-sessions"
                     className="block p-4 bg-white/[0.03] rounded-xl border border-white/[0.08] hover:border-koppar/30 transition-colors"
                   >
                     <div className="flex items-center gap-3 mb-2">
@@ -344,3 +369,5 @@ export function DashboardPage() {
     </MainLayout>
   )
 }
+
+export default DashboardPage;

@@ -391,3 +391,5 @@ export function ProgramsReviewsPage() {
     </MainLayout>
   )
 }
+
+export default ProgramsReviewsPage;

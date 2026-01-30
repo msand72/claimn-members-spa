@@ -157,7 +157,7 @@ export function GoalsPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Goals & KPIs</h1>
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-kalkvit mb-2">Goals & KPIs</h1>
             <p className="text-kalkvit/60">Track your transformation goals and key performance indicators</p>
           </div>
           <GlassButton variant="primary" onClick={() => { setCreateError(null); setShowCreateModal(true) }}>
@@ -337,3 +337,5 @@ export function GoalsPage() {
     </MainLayout>
   )
 }
+
+export default GoalsPage;

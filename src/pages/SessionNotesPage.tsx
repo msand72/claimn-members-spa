@@ -345,3 +345,5 @@ export function SessionNotesPage() {
     </MainLayout>
   )
 }
+
+export default SessionNotesPage;

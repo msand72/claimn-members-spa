@@ -156,3 +156,5 @@ export function AssessmentPage() {
     </MainLayout>
   )
 }
+
+export default AssessmentPage;

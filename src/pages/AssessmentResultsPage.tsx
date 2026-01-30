@@ -379,3 +379,5 @@ export function AssessmentResultsPage() {
     </MainLayout>
   )
 }
+
+export default AssessmentResultsPage;

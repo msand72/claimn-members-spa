@@ -198,3 +198,5 @@ export function CirclesPage() {
     </MainLayout>
   )
 }
+
+export default CirclesPage;

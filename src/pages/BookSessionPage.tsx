@@ -175,7 +175,7 @@ export function BookSessionPage() {
 
       // Navigate to sessions page after a short delay
       setTimeout(() => {
-        navigate('/sessions')
+        navigate('/expert-sessions')
       }, 2000)
     } catch (_error) {
       setBookingError('Failed to book session. Please try again.')
@@ -447,3 +447,5 @@ export function BookSessionPage() {
     </MainLayout>
   )
 }
+
+export default BookSessionPage;

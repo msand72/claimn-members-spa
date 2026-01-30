@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
+import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassAlert } from '../components/ui'
+import { useCheckout } from '../lib/api/hooks'
 import {
   ArrowLeft,
   Clock,
@@ -14,6 +15,7 @@ import {
   Award,
   ChevronRight,
   ChevronDown,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -188,10 +190,27 @@ function ModuleCard({ module, index }: { module: Module; index: number }) {
 }
 
 export function ShopProtocolDetailPage() {
-  const { slug: _slug } = useParams() // Protocol slug for future API calls
+  const { slug } = useParams()
+  const checkout = useCheckout()
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   // In real app, would fetch protocol based on slug
   const protocol = mockProtocol
+
+  const handlePurchase = () => {
+    setCheckoutError(null)
+    checkout.mutate(
+      { item_type: 'protocol', item_slug: slug },
+      {
+        onSuccess: (data) => {
+          window.location.href = data.checkout_url
+        },
+        onError: () => {
+          setCheckoutError('Failed to start checkout. Please try again.')
+        },
+      }
+    )
+  }
 
   const completedModules = protocol.modules.filter((m) => m.isCompleted).length
   const progress = Math.round((completedModules / protocol.modules.length) * 100)
@@ -379,10 +398,24 @@ export function ShopProtocolDetailPage() {
                       <p className="text-sm text-skogsgron mt-1">Included with membership</p>
                     )}
                   </div>
-                  <GlassButton variant="primary" className="w-full">
-                    <Lock className="w-4 h-4" />
-                    Get Access
+                  <GlassButton
+                    variant="primary"
+                    className="w-full"
+                    onClick={handlePurchase}
+                    disabled={checkout.isPending}
+                  >
+                    {checkout.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Lock className="w-4 h-4" />
+                    )}
+                    {checkout.isPending ? 'Processing...' : 'Get Access'}
                   </GlassButton>
+                  {checkoutError && (
+                    <GlassAlert variant="error" className="mt-3">
+                      {checkoutError}
+                    </GlassAlert>
+                  )}
                 </>
               )}
 
@@ -424,3 +457,5 @@ export function ShopProtocolDetailPage() {
     </MainLayout>
   )
 }
+
+export default ShopProtocolDetailPage;

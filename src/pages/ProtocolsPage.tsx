@@ -343,3 +343,5 @@ export function ProtocolsPage() {
     </MainLayout>
   )
 }
+
+export default ProtocolsPage;

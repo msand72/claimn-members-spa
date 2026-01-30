@@ -433,3 +433,5 @@ export function MilestonesPage() {
     </MainLayout>
   )
 }
+
+export default MilestonesPage;

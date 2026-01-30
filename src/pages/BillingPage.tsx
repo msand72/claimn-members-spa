@@ -273,3 +273,5 @@ export function BillingPage() {
     </MainLayout>
   )
 }
+
+export default BillingPage;

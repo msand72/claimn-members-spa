@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
+import { GlassCard, GlassButton, GlassBadge, GlassAlert } from '../components/ui'
+import { useCheckout } from '../lib/api/hooks'
 import {
   Check,
   X,
@@ -15,6 +15,7 @@ import {
   Video,
   MessageCircle,
   Award,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -97,7 +98,7 @@ const plans: Plan[] = [
   },
 ]
 
-function PlanCard({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) {
+function PlanCard({ plan, isAnnual, onUpgrade, isLoading }: { plan: Plan; isAnnual: boolean; onUpgrade: (planId: string) => void; isLoading: boolean }) {
   const price = isAnnual ? Math.round(plan.priceAnnual / 12) : plan.price
   const Icon = plan.icon
 
@@ -152,12 +153,21 @@ function PlanCard({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) {
           Current Plan
         </GlassButton>
       ) : (
-        <Link to="/shop/success">
-          <GlassButton variant={plan.isPopular ? 'primary' : 'secondary'} className="w-full mb-6">
-            Upgrade to {plan.name}
-            <ArrowRight className="w-4 h-4" />
-          </GlassButton>
-        </Link>
+        <GlassButton
+          variant={plan.isPopular ? 'primary' : 'secondary'}
+          className="w-full mb-6"
+          onClick={() => onUpgrade(plan.id)}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <>
+              Upgrade to {plan.name}
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </GlassButton>
       )}
 
       <ul className="space-y-3">
@@ -186,6 +196,23 @@ function PlanCard({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) {
 
 export function ShopUpgradePage() {
   const [isAnnual, setIsAnnual] = useState(true)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const checkout = useCheckout()
+
+  const handleUpgrade = (planId: string) => {
+    setCheckoutError(null)
+    checkout.mutate(
+      { plan_tier: planId },
+      {
+        onSuccess: (data) => {
+          window.location.href = data.checkout_url
+        },
+        onError: () => {
+          setCheckoutError('Failed to start checkout. Please try again.')
+        },
+      }
+    )
+  }
 
   return (
     <MainLayout>
@@ -225,9 +252,15 @@ export function ShopUpgradePage() {
         </div>
 
         {/* Plans Grid */}
+        {checkoutError && (
+          <GlassAlert variant="error" className="mb-6">
+            {checkoutError}
+          </GlassAlert>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {plans.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} isAnnual={isAnnual} />
+            <PlanCard key={plan.id} plan={plan} isAnnual={isAnnual} onUpgrade={handleUpgrade} isLoading={checkout.isPending} />
           ))}
         </div>
 
@@ -287,3 +320,5 @@ export function ShopUpgradePage() {
     </MainLayout>
   )
 }
+
+export default ShopUpgradePage;

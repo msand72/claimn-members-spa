@@ -427,3 +427,5 @@ export function KPIsPage() {
     </MainLayout>
   )
 }
+
+export default KPIsPage;

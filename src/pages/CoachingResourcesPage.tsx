@@ -256,3 +256,5 @@ export function CoachingResourcesPage() {
     </MainLayout>
   )
 }
+
+export default CoachingResourcesPage;

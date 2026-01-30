@@ -387,3 +387,5 @@ export function ConnectionsPage() {
     </MainLayout>
   )
 }
+
+export default ConnectionsPage;

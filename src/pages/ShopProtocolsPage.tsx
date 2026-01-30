@@ -264,3 +264,5 @@ export function ShopProtocolsPage() {
     </MainLayout>
   )
 }
+
+export default ShopProtocolsPage;

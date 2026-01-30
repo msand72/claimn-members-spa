@@ -243,7 +243,7 @@ export function NetworkPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Network</h1>
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-kalkvit mb-2">Network</h1>
             <p className="text-kalkvit/60">Discover and connect with members across the community</p>
           </div>
           <GlassCard variant="accent" leftBorder={false} className="px-6 py-3 text-center">
@@ -386,3 +386,5 @@ export function NetworkPage() {
     </MainLayout>
   )
 }
+
+export default NetworkPage;

@@ -240,3 +240,5 @@ export function AssessmentTakePage() {
     </MainLayout>
   )
 }
+
+export default AssessmentTakePage;

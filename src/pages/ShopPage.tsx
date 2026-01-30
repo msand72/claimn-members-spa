@@ -145,3 +145,5 @@ export function ShopPage() {
     </MainLayout>
   )
 }
+
+export default ShopPage;
