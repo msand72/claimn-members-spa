@@ -9,6 +9,11 @@ export type ArchetypeId = 'achiever' | 'optimizer' | 'networker' | 'grinder' | '
 // =====================================================
 // Member Profile
 // =====================================================
+export interface NotificationPreferences {
+  email_notifications?: boolean
+  weekly_digest?: boolean
+}
+
 export interface MemberProfile {
   user_id: string
   display_name: string | null
@@ -25,6 +30,7 @@ export interface MemberProfile {
   } | null
   avatar_url: string | null
   whatsapp_number: string | null
+  notification_preferences: NotificationPreferences | null
   created_at: string
   updated_at: string
 }
@@ -39,6 +45,7 @@ export interface UpdateProfileRequest {
   links?: Record<string, string>
   visibility?: MemberProfile['visibility']
   whatsapp_number?: string
+  notification_preferences?: NotificationPreferences
 }
 
 // =====================================================

@@ -34,8 +34,18 @@ function ResourceCard({ resource }: { resource: CoachingResource }) {
   const config = typeConfig[resource.type] || typeConfig.article
   const TypeIcon = config.icon
 
+  const handleOpen = () => {
+    if (resource.url) {
+      window.open(resource.url, '_blank')
+    }
+  }
+
   return (
-    <GlassCard variant="base" className="group">
+    <GlassCard
+      variant="base"
+      className={`group ${resource.url ? 'cursor-pointer' : ''}`}
+      onClick={handleOpen}
+    >
       <div className="flex items-start gap-4">
         <div className={cn('p-3 rounded-xl bg-white/[0.06]', config.color)}>
           <TypeIcon className="w-6 h-6" />
@@ -66,11 +76,29 @@ function ResourceCard({ resource }: { resource: CoachingResource }) {
             </div>
             <div className="flex gap-2">
               {resource.type === 'pdf' && (
-                <GlassButton variant="ghost" className="p-2">
+                <GlassButton
+                  variant="ghost"
+                  className="p-2"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (resource.url) {
+                      window.open(resource.url, '_blank')
+                    }
+                  }}
+                >
                   <Download className="w-4 h-4" />
                 </GlassButton>
               )}
-              <GlassButton variant="secondary" className="text-sm">
+              <GlassButton
+                variant="secondary"
+                className="text-sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (resource.url) {
+                    window.open(resource.url, '_blank')
+                  }
+                }}
+              >
                 {resource.type === 'article' ? (
                   <>
                     Read <ExternalLink className="w-3 h-3" />
@@ -153,7 +181,12 @@ export function CoachingResourcesPage() {
                         key={resource.id}
                         variant="accent"
                         leftBorder={false}
-                        className="text-center"
+                        className={`text-center ${resource.url ? 'cursor-pointer' : ''}`}
+                        onClick={() => {
+                          if (resource.url) {
+                            window.open(resource.url, '_blank')
+                          }
+                        }}
                       >
                         <div className="p-3 rounded-xl bg-white/[0.06] w-fit mx-auto mb-3">
                           <TypeIcon className={cn('w-6 h-6', config.color)} />

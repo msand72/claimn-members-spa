@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
 import { Search, Users, Globe, ArrowRight, Loader2 } from 'lucide-react'
@@ -9,13 +10,36 @@ const categories = ['All', 'My Circles']
 
 interface CircleCardProps {
   circle: Circle
-  onJoin: () => void
-  isJoining: boolean
 }
 
-function CircleCard({ circle, onJoin, isJoining }: CircleCardProps) {
+function CircleCard({ circle }: CircleCardProps) {
+  const navigate = useNavigate()
+  const joinCircle = useJoinCircle()
+
+  const handleCardClick = () => {
+    if (circle.is_member) {
+      navigate(`/circles/${circle.id}`)
+    }
+  }
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (circle.is_member) {
+      navigate(`/circles/${circle.id}`)
+    } else {
+      joinCircle.mutate(circle.id)
+    }
+  }
+
   return (
-    <GlassCard variant="base" className="group cursor-pointer hover:border-koppar/30 transition-all">
+    <GlassCard
+      variant="base"
+      className={cn(
+        'group hover:border-koppar/30 transition-all',
+        circle.is_member && 'cursor-pointer'
+      )}
+      onClick={handleCardClick}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
           <GlassBadge variant="default">
@@ -43,12 +67,12 @@ function CircleCard({ circle, onJoin, isJoining }: CircleCardProps) {
       <GlassButton
         variant={circle.is_member ? 'secondary' : 'primary'}
         className="w-full"
-        onClick={() => !circle.is_member && onJoin()}
-        disabled={isJoining}
+        onClick={handleButtonClick}
+        disabled={joinCircle.isPending}
       >
         {circle.is_member ? (
           <>Enter Circle <ArrowRight className="w-4 h-4" /></>
-        ) : isJoining ? (
+        ) : joinCircle.isPending ? (
           <><Loader2 className="w-4 h-4 animate-spin" /> Joining...</>
         ) : (
           <>Join Circle</>
@@ -73,8 +97,6 @@ export function CirclesPage() {
     data: myCirclesData,
     isLoading: myCirclesLoading,
   } = useMyCircles()
-
-  const joinCircle = useJoinCircle()
 
   const allCircles = circlesData?.data || []
   const myCircles = myCirclesData || []
@@ -155,10 +177,6 @@ export function CirclesPage() {
               <CircleCard
                 key={circle.id}
                 circle={circle}
-                onJoin={() => {
-                  joinCircle.mutate(circle.id)
-                }}
-                isJoining={joinCircle.isPending}
               />
             ))}
           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
   GlassCard,
@@ -20,6 +20,8 @@ import { Camera, Save, Loader2 } from 'lucide-react'
 export function ProfilePage() {
   const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle'|'success'|'error'>('idle')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch profile data
   const { data: profile, isLoading: profileLoading } = useCurrentProfile()
@@ -42,6 +44,8 @@ export function ProfilePage() {
     bio: '',
     archetype: '' as Archetype | '',
     pillar_focus: [] as PillarId[],
+    email_notifications: true,
+    weekly_digest: true,
   })
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
 
@@ -56,6 +60,8 @@ export function ProfilePage() {
         bio: profile.bio || '',
         archetype: (profile.archetype as Archetype) || '',
         pillar_focus: (profile.pillar_focus as PillarId[]) || [],
+        email_notifications: profile.notification_preferences?.email_notifications ?? true,
+        weekly_digest: profile.notification_preferences?.weekly_digest ?? true,
       })
     } else if (user) {
       // Initialize from user metadata if no profile exists
@@ -78,8 +84,21 @@ export function ProfilePage() {
     .slice(0, 2)
     .toUpperCase()
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      await uploadAvatar.mutateAsync(file)
+    } catch {
+      setSaveStatus('error')
+    }
+  }
+
   const handleSave = async () => {
     if (!user?.id) return
+
+    setSaveStatus('idle')
 
     try {
       // Update profile via API
@@ -91,6 +110,10 @@ export function ProfilePage() {
         bio: formData.bio || undefined,
         archetype: formData.archetype || undefined,
         pillar_focus: formData.pillar_focus.length > 0 ? formData.pillar_focus : undefined,
+        notification_preferences: {
+          email_notifications: formData.email_notifications,
+          weekly_digest: formData.weekly_digest,
+        },
       }
       await updateProfile.mutateAsync(profileData)
 
@@ -100,9 +123,10 @@ export function ProfilePage() {
         interestIds: selectedInterests,
       })
 
+      setSaveStatus('success')
       setIsEditing(false)
-    } catch (error) {
-      console.error('Failed to save profile:', error)
+    } catch {
+      setSaveStatus('error')
     }
   }
 
@@ -155,6 +179,13 @@ export function ProfilePage() {
           </GlassButton>
         </div>
 
+        {saveStatus === 'error' && (
+          <p className="text-sm text-tegelrod mt-2 mb-4">Failed to save. Please try again.</p>
+        )}
+        {saveStatus === 'success' && (
+          <p className="text-sm text-skogsgron mt-2 mb-4">Profile saved successfully.</p>
+        )}
+
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-koppar" />
@@ -166,10 +197,27 @@ export function ProfilePage() {
               <div className="flex items-center gap-6">
                 <div className="relative">
                   <GlassAvatar initials={initials} size="xl" />
+                  {uploadAvatar.isPending && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                      <Loader2 className="w-6 h-6 animate-spin text-kalkvit" />
+                    </div>
+                  )}
                   {isEditing && (
-                    <button className="absolute bottom-0 right-0 p-2 rounded-full bg-koppar text-kalkvit hover:bg-koppar/80 transition-colors">
-                      <Camera className="w-4 h-4" />
-                    </button>
+                    <>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        onChange={handleAvatarChange}
+                        className="hidden"
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute bottom-0 right-0 p-2 rounded-full bg-koppar text-kalkvit hover:bg-koppar/80 transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </>
                   )}
                 </div>
                 <div>
@@ -295,7 +343,15 @@ export function ProfilePage() {
                     <p className="text-sm text-kalkvit/50">Receive updates about your activity</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={formData.email_notifications}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email_notifications: e.target.checked })
+                      }
+                      disabled={!isEditing}
+                    />
                     <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-kalkvit after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-koppar"></div>
                   </label>
                 </div>
@@ -305,7 +361,15 @@ export function ProfilePage() {
                     <p className="text-sm text-kalkvit/50">Get a summary of community activity</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={formData.weekly_digest}
+                      onChange={(e) =>
+                        setFormData({ ...formData, weekly_digest: e.target.checked })
+                      }
+                      disabled={!isEditing}
+                    />
                     <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-kalkvit after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-koppar"></div>
                   </label>
                 </div>

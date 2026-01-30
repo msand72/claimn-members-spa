@@ -30,8 +30,18 @@ const typeIconMap: Record<string, React.ComponentType<{ className?: string }>> =
 function ResourceCard({ resource }: { resource: Resource }) {
   const IconComponent = typeIconMap[resource.type] || FileText
 
+  const handleOpen = () => {
+    if (resource.url) {
+      window.open(resource.url, '_blank')
+    }
+  }
+
   return (
-    <GlassCard variant="base" className="group cursor-pointer hover:border-koppar/30">
+    <GlassCard
+      variant="base"
+      className={`group hover:border-koppar/30 ${resource.url ? 'cursor-pointer' : ''}`}
+      onClick={handleOpen}
+    >
       <div className="flex items-start gap-4">
         <div className="p-3 rounded-xl bg-koppar/10">
           <IconComponent className="w-6 h-6 text-koppar" />
@@ -46,7 +56,16 @@ function ResourceCard({ resource }: { resource: Resource }) {
           <p className="text-sm text-kalkvit/60 mb-3 line-clamp-2">{resource.description}</p>
           <div className="flex items-center justify-between">
             <span className="text-xs text-kalkvit/40">{resource.duration || resource.size}</span>
-            <GlassButton variant="ghost" className="text-xs p-2">
+            <GlassButton
+              variant="ghost"
+              className="text-xs p-2"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (resource.url) {
+                  window.open(resource.url, '_blank')
+                }
+              }}
+            >
               {resource.type === 'template' || resource.type === 'pdf' ? (
                 <Download className="w-4 h-4" />
               ) : (
