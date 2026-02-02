@@ -21,8 +21,9 @@ export function useMyInterestGroups(userId: string | undefined) {
   return useQuery({
     queryKey: ['my-interest-groups', userId],
     queryFn: async () => {
-      const data = await api.get<{ groups: InterestGroup[] }>('/members/interest-groups/my')
-      return data.groups
+      const res = await api.get<{ groups?: InterestGroup[]; data?: InterestGroup[] }>('/members/interest-groups/my')
+      const list = res?.groups ?? (res as unknown as { data?: InterestGroup[] })?.data
+      return Array.isArray(list) ? list : []
     },
     enabled: !!userId,
   })
@@ -33,8 +34,9 @@ export function useAllInterestGroups() {
   return useQuery({
     queryKey: ['all-interest-groups'],
     queryFn: async () => {
-      const data = await api.get<{ groups: InterestGroup[] }>('/members/interest-groups')
-      return data.groups
+      const res = await api.get<{ groups?: InterestGroup[]; data?: InterestGroup[] }>('/members/interest-groups')
+      const list = res?.groups ?? (res as unknown as { data?: InterestGroup[] })?.data
+      return Array.isArray(list) ? list : []
     },
   })
 }

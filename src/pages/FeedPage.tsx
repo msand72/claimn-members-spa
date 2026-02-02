@@ -10,7 +10,8 @@ import {
   GlassDropdown,
 } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { useMyInterestGroups } from '../hooks/useInterestGroups'
+import { useMyInterestGroups, useAllInterestGroups, type InterestGroup } from '../hooks/useInterestGroups'
+import { useInterests, useMemberInterests } from '../hooks/useInterests'
 import {
   useFeed,
   useCreatePost,
@@ -295,6 +296,34 @@ export function FeedPage() {
   const [selectedGroupId, setSelectedGroupId] = useState<string>('')
 
   const { data: myGroups = [] } = useMyInterestGroups(user?.id)
+  const { data: allGroups = [] } = useAllInterestGroups()
+  const { data: memberInterestIds = [] } = useMemberInterests(user?.id)
+  const { data: allInterests = [] } = useInterests()
+
+  // Derive effective groups with fallback chain:
+  // 1. Backend "my groups" (user explicitly joined)
+  // 2. All groups filtered by user's selected interests
+  // 3. Virtual groups created from user's selected interests
+  const effectiveGroups: InterestGroup[] = (() => {
+    if (myGroups.length > 0) return myGroups
+    if (allGroups.length > 0 && memberInterestIds.length > 0) {
+      return allGroups.filter((g) => memberInterestIds.includes(g.interest_id))
+    }
+    if (allInterests.length > 0 && memberInterestIds.length > 0) {
+      return allInterests
+        .filter((i) => memberInterestIds.includes(i.id))
+        .map((i) => ({
+          id: i.id,
+          interest_id: i.id,
+          name: i.name,
+          description: i.description,
+          member_count: 0,
+          post_count: 0,
+          interest: { id: i.id, name: i.name, slug: i.slug, icon: i.icon },
+        }))
+    }
+    return []
+  })()
 
   // Fetch feed from API
   const interestGroupFilter = activeTab !== 'all' && activeTab !== 'my-groups' ? activeTab : undefined
@@ -329,16 +358,18 @@ export function FeedPage() {
 
   // Get posts from API response, filter for "My Groups" tab
   const allPosts = Array.isArray(feedData?.data) ? feedData.data : []
-  const myGroupIds = new Set(myGroups.map((g) => g.id))
+  const effectiveGroupIds = new Set(effectiveGroups.map((g) => g.id))
   const posts = activeTab === 'my-groups'
-    ? allPosts.filter((p) => p.interest_group_id && myGroupIds.has(p.interest_group_id))
+    ? allPosts.filter((p) => p.interest_group_id && effectiveGroupIds.has(p.interest_group_id))
     : allPosts
 
-  // Create tab options
+  // Create tab options — show individual interest tabs
   const tabs = [
     { value: 'all', label: 'All Posts' },
-    { value: 'my-groups', label: 'My Groups' },
-    ...myGroups.slice(0, 4).map((g) => ({
+    ...(effectiveGroups.length > 0
+      ? [{ value: 'my-groups', label: 'My Groups' }]
+      : []),
+    ...effectiveGroups.slice(0, 5).map((g) => ({
       value: g.id,
       label: g.name,
     })),
@@ -347,7 +378,7 @@ export function FeedPage() {
   // Create group dropdown options for posting
   const groupOptions = [
     { value: '', label: 'Post to General Feed' },
-    ...myGroups.map((g) => ({
+    ...effectiveGroups.map((g) => ({
       value: g.id,
       label: g.name,
     })),
@@ -387,7 +418,7 @@ export function FeedPage() {
                   <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit">
                     <Image className="w-5 h-5" />
                   </button>
-                  {myGroups.length > 0 && (
+                  {effectiveGroups.length > 0 && (
                     <GlassDropdown
                       items={groupOptions}
                       value={selectedGroupId}
@@ -415,14 +446,14 @@ export function FeedPage() {
         </GlassCard>
 
         {/* My Interest Groups Summary */}
-        {myGroups.length > 0 && activeTab === 'all' && (
+        {effectiveGroups.length > 0 && activeTab === 'all' && (
           <GlassCard variant="base" className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-kalkvit">My Interest Groups</h3>
-              <span className="text-sm text-kalkvit/50">{myGroups.length} groups</span>
+              <h3 className="font-medium text-kalkvit">My Interests</h3>
+              <span className="text-sm text-kalkvit/50">{effectiveGroups.length} topics</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {myGroups.slice(0, 6).map((group) => (
+              {effectiveGroups.slice(0, 8).map((group) => (
                 <button
                   key={group.id}
                   onClick={() => setActiveTab(group.id)}
@@ -432,9 +463,9 @@ export function FeedPage() {
                   {group.name}
                 </button>
               ))}
-              {myGroups.length > 6 && (
+              {effectiveGroups.length > 8 && (
                 <span className="px-3 py-1.5 text-kalkvit/50 text-sm">
-                  +{myGroups.length - 6} more
+                  +{effectiveGroups.length - 8} more
                 </span>
               )}
             </div>
