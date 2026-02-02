@@ -183,19 +183,19 @@ export function ShopSuccessPage() {
                 </p>
               </div>
             </Link>
-            <a href="#" className="block">
+            <Link to="/billing" className="block">
               <div className="p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-left">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-lg bg-koppar/20">
                     <Download className="w-5 h-5 text-koppar" />
                   </div>
-                  <h3 className="font-medium text-kalkvit">Download Receipt</h3>
+                  <h3 className="font-medium text-kalkvit">View Receipt</h3>
                 </div>
                 <p className="text-sm text-kalkvit/60">
-                  Get a PDF receipt for your records
+                  View invoices and receipts in your billing history
                 </p>
               </div>
-            </a>
+            </Link>
           </div>
         </GlassCard>
 

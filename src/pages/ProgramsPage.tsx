@@ -165,8 +165,8 @@ export function ProgramsPage() {
       ? programs.filter((p) => enrolledProgramIds.has(p.id))
       : programs.filter(
           (p) =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.description.toLowerCase().includes(searchQuery.toLowerCase())
+            (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.description || '').toLowerCase().includes(searchQuery.toLowerCase())
         )
 
   const myPrograms = programs.filter((p) => enrolledProgramIds.has(p.id))

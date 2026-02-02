@@ -14,6 +14,7 @@ import {
   Trash2,
   Loader2,
   AlertTriangle,
+  FileText,
 } from 'lucide-react'
 import { useCoachingSession, useSessionNotes, useUpdateSessionNotes } from '../lib/api/hooks'
 import type { SessionActionItem, UpdateSessionNoteRequest } from '../lib/api/types'
@@ -105,6 +106,26 @@ export function SessionNotesPage() {
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // --- No session selected ---
+  if (!sessionId) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <FileText className="w-12 h-12 text-kalkvit/20" />
+          <h2 className="font-display text-xl font-semibold text-kalkvit">No session selected</h2>
+          <p className="text-kalkvit/50 text-sm text-center max-w-md">
+            Select a completed session from My Sessions to view and edit your notes.
+          </p>
+          <Link to="/coaching/sessions">
+            <GlassButton variant="primary">
+              Go to My Sessions
+            </GlassButton>
+          </Link>
         </div>
       </MainLayout>
     )

@@ -85,6 +85,7 @@ const navGroups: NavGroup[] = [
       { to: '/coaching/sessions', icon: CircleDot, label: 'My Sessions' },
       { to: '/coaching/session-notes', icon: FileText, label: 'Session Notes' },
       { to: '/coaching/resources', icon: FolderOpen, label: 'Coaching Materials' },
+      { to: '/events', icon: Calendar, label: 'Events' },
     ],
   },
   {
