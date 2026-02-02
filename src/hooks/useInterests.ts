@@ -15,10 +15,12 @@ export function useInterests() {
   return useQuery({
     queryKey: ['interests'],
     queryFn: async () => {
-      const data = await api.get<{ interests?: Interest[]; data?: Interest[] }>('/members/interests')
-      // Handle both { interests: [...] } and { data: [...] } response shapes
-      const list = data?.interests ?? (data as unknown as { data?: Interest[] })?.data
-      return Array.isArray(list) ? list : []
+      const raw = await api.get<unknown>('/members/interests')
+      // Handle: bare array [...], { interests: [...] }, or { data: [...] }
+      if (Array.isArray(raw)) return raw as Interest[]
+      const obj = raw as Record<string, unknown>
+      const list = obj?.interests ?? obj?.data
+      return Array.isArray(list) ? (list as Interest[]) : []
     },
   })
 }
@@ -28,10 +30,12 @@ export function useMemberInterests(userId: string | undefined) {
   return useQuery({
     queryKey: ['member-interests', userId],
     queryFn: async () => {
-      const data = await api.get<{ interest_ids?: string[]; data?: string[] }>('/members/interests/my')
-      // Handle both { interest_ids: [...] } and { data: [...] } response shapes
-      const ids = data?.interest_ids ?? (data as unknown as { data?: string[] })?.data
-      return Array.isArray(ids) ? ids : []
+      const raw = await api.get<unknown>('/members/interests/my')
+      // Handle: bare array [...], { interest_ids: [...] }, or { data: [...] }
+      if (Array.isArray(raw)) return raw as string[]
+      const obj = raw as Record<string, unknown>
+      const ids = obj?.interest_ids ?? obj?.data
+      return Array.isArray(ids) ? (ids as string[]) : []
     },
     enabled: !!userId,
   })

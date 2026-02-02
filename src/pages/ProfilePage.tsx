@@ -104,8 +104,10 @@ export function ProfilePage() {
 
     setSaveStatus('idle')
 
+    const errors: string[] = []
+
+    // Update profile — don't let a failure block interests save
     try {
-      // Update profile via API
       const profileData: UpdateProfileRequest = {
         display_name: formData.display_name || undefined,
         whatsapp_number: formData.whatsapp_number || undefined,
@@ -120,17 +122,25 @@ export function ProfilePage() {
         },
       }
       await updateProfile.mutateAsync(profileData)
+    } catch {
+      errors.push('profile')
+    }
 
-      // Update interests
+    // Update interests independently
+    try {
       await updateMemberInterests.mutateAsync({
         userId: user.id,
         interestIds: selectedInterests,
       })
+    } catch {
+      errors.push('interests')
+    }
 
+    if (errors.length > 0) {
+      setSaveStatus('error')
+    } else {
       setSaveStatus('success')
       setIsEditing(false)
-    } catch {
-      setSaveStatus('error')
     }
   }
 
