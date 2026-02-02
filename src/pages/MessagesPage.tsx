@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge, GlassButton, GlassModal, GlassModalFooter, GlassToast } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
@@ -47,6 +48,7 @@ function formatMessageTime(dateStr: string): string {
 
 export function MessagesPage() {
   const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -108,6 +110,32 @@ export function MessagesPage() {
   const conversations = Array.isArray(conversationsData?.data) ? conversationsData.data : []
   const messages = Array.isArray(messagesData?.data) ? messagesData.data : []
   const connections: Connection[] = Array.isArray(connectionsData?.data) ? connectionsData.data : []
+
+  // Auto-select conversation when navigating with ?user= param
+  const targetUserId = searchParams.get('user')
+  useEffect(() => {
+    if (!targetUserId || conversationsLoading || connectionsLoading) return
+    // Already selected this user
+    if (selectedConversation?.participant_id === targetUserId) return
+
+    // Try to find existing conversation
+    const existing = conversations.find((conv) => conv.participant_id === targetUserId)
+    if (existing) {
+      setSelectedConversation(existing)
+      setSearchParams({}, { replace: true })
+      return
+    }
+
+    // Try to find connection and create synthetic conversation
+    const conn = connections.find((c) => {
+      const otherId = c.requester_id === user?.id ? c.recipient_id : c.requester_id
+      return otherId === targetUserId
+    })
+    if (conn) {
+      handleStartConversation(conn)
+      setSearchParams({}, { replace: true })
+    }
+  }, [targetUserId, conversationsLoading, connectionsLoading, conversations, connections])
 
   // Filter conversations by search
   const filteredConversations = conversations.filter((conv) =>
