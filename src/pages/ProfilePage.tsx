@@ -15,7 +15,8 @@ import { useInterests, useMemberInterests, useUpdateMemberInterests } from '../h
 import { ARCHETYPES, PILLARS, PILLAR_IDS } from '../lib/constants'
 import type { Archetype, PillarId } from '../lib/constants'
 import type { UpdateProfileRequest } from '../lib/api/types'
-import { Camera, Save, Loader2, AlertTriangle } from 'lucide-react'
+import { Camera, Save, Loader2, AlertTriangle, Check } from 'lucide-react'
+import { cn } from '../lib/utils'
 
 export function ProfilePage() {
   const { user } = useAuth()
@@ -147,11 +148,6 @@ export function ProfilePage() {
     label: PILLARS[id].name,
   }))
 
-  const interestItems = interests.map((interest) => ({
-    value: interest.id,
-    label: interest.name,
-    description: interest.description || undefined,
-  }))
 
   return (
     <MainLayout>
@@ -318,15 +314,42 @@ export function ProfilePage() {
                   maxDisplay={3}
                 />
                 <div className="md:col-span-2">
-                  <GlassMultiSelect
-                    label="Your Interests"
-                    items={interestItems}
-                    value={selectedInterests}
-                    onChange={setSelectedInterests}
-                    placeholder="Select your interests"
-                    disabled={!isEditing}
-                    maxDisplay={5}
-                  />
+                  <label className="block text-sm font-medium text-kalkvit/80 mb-3">
+                    Your Interests
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {interests.map((interest) => {
+                      const isSelected = selectedInterests.includes(interest.id)
+                      return (
+                        <button
+                          key={interest.id}
+                          type="button"
+                          disabled={!isEditing}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedInterests(selectedInterests.filter((id) => id !== interest.id))
+                            } else {
+                              setSelectedInterests([...selectedInterests, interest.id])
+                            }
+                          }}
+                          className={cn(
+                            'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-all duration-200',
+                            isSelected
+                              ? 'bg-koppar text-kalkvit shadow-[0_2px_8px_rgba(184,115,51,0.3)]'
+                              : 'bg-white/[0.06] text-kalkvit/70',
+                            isEditing && !isSelected && 'hover:bg-white/[0.12] hover:text-kalkvit',
+                            !isEditing && 'cursor-default opacity-80'
+                          )}
+                        >
+                          {isSelected && <Check className="w-3.5 h-3.5" />}
+                          {interest.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {interests.length === 0 && !interestsLoading && (
+                    <p className="text-sm text-kalkvit/40 mt-2">No interests available.</p>
+                  )}
                 </div>
               </div>
             </GlassCard>
