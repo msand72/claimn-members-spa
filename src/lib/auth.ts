@@ -28,10 +28,13 @@ interface AuthTokens {
   expires_at: number
 }
 
+export type UserType = 'guest' | 'member' | 'client' | 'expert' | 'admin' | 'superadmin'
+
 export interface AuthUserResponse {
   id: string
   email: string
   role: string
+  user_type: UserType
   display_name: string
   avatar_url: string
 }
@@ -178,6 +181,7 @@ export async function fetchCurrentUser(token: string): Promise<AuthUserResponse>
     id: user.id,
     email: user.email,
     role: user.role,
+    user_type: user.user_type || user.profile?.user_type || 'member',
     display_name: user.profile?.display_name || user.display_name || user.email?.split('@')[0] || '',
     avatar_url: user.profile?.avatar_url || user.avatar_url || '',
   }

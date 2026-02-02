@@ -7,6 +7,7 @@ import {
   getStoredExpiresAt,
   refreshToken,
   type AuthUserResponse,
+  type UserType,
 } from '../lib/auth'
 
 export type AuthUser = AuthUserResponse & Record<string, unknown>
@@ -21,6 +22,8 @@ interface AuthContextType {
   user: AuthUser | null
   session: AuthSession | null
   loading: boolean
+  userType: UserType
+  hasAccess: (...types: UserType[]) => boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
 }
@@ -120,8 +123,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // User type hierarchy: superadmin > admin > expert > client > member > guest
+  const USER_TYPE_HIERARCHY: UserType[] = ['guest', 'member', 'client', 'expert', 'admin', 'superadmin']
+
+  const userType: UserType = user?.user_type || 'guest'
+
+  const hasAccess = (...types: UserType[]) => {
+    if (userType === 'superadmin') return true
+    return types.includes(userType)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, userType, hasAccess, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )

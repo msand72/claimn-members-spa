@@ -13,6 +13,7 @@ const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 
 // Pages - Core
+const JourneyDashboardPage = lazy(() => import('./pages/JourneyDashboardPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const BillingPage = lazy(() => import('./pages/BillingPage'))
@@ -45,6 +46,13 @@ const ProgramsReviewsPage = lazy(() => import('./pages/ProgramsReviewsPage'))
 const CoachingSessionsPage = lazy(() => import('./pages/CoachingSessionsPage'))
 const CoachingResourcesPage = lazy(() => import('./pages/CoachingResourcesPage'))
 const SessionNotesPage = lazy(() => import('./pages/SessionNotesPage'))
+
+// Pages - Onboarding
+const OnboardingWelcomePage = lazy(() => import('./pages/onboarding/OnboardingWelcomePage'))
+const OnboardingAssessmentPage = lazy(() => import('./pages/onboarding/OnboardingAssessmentPage'))
+const OnboardingResultsPage = lazy(() => import('./pages/onboarding/OnboardingResultsPage'))
+const OnboardingChallengePage = lazy(() => import('./pages/onboarding/OnboardingChallengePage'))
+const OnboardingPathPage = lazy(() => import('./pages/onboarding/OnboardingPathPage'))
 
 // Pages - Transformation Tracking
 const AssessmentPage = lazy(() => import('./pages/AssessmentPage'))
@@ -99,8 +107,17 @@ const router = createBrowserRouter([
       { path: '/forgot-password', element: <ForgotPasswordPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
 
+      // Protected routes - Onboarding (no sidebar layout)
+      { path: '/onboarding', element: <Protected><OnboardingWelcomePage /></Protected> },
+      { path: '/onboarding/welcome', element: <Protected><OnboardingWelcomePage /></Protected> },
+      { path: '/onboarding/assessment', element: <Protected><OnboardingAssessmentPage /></Protected> },
+      { path: '/onboarding/results', element: <Protected><OnboardingResultsPage /></Protected> },
+      { path: '/onboarding/challenge', element: <Protected><OnboardingChallengePage /></Protected> },
+      { path: '/onboarding/path', element: <Protected><OnboardingPathPage /></Protected> },
+
       // Protected routes - Core Pages
-      { path: '/', element: <Protected><DashboardPage /></Protected> },
+      { path: '/', element: <Protected><JourneyDashboardPage /></Protected> },
+      { path: '/dashboard', element: <Protected><DashboardPage /></Protected> },
       { path: '/profile', element: <Protected><ProfilePage /></Protected> },
       { path: '/billing', element: <Protected><BillingPage /></Protected> },
       { path: '/resources', element: <Protected><ResourcesPage /></Protected> },

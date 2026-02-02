@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../contexts/AuthContext'
 import { GlassAvatar } from '../ui/GlassAvatar'
+import { JourneyWidget } from '../journey/JourneyWidget'
 import {
   Home,
   Newspaper,
@@ -33,6 +34,7 @@ import {
   FileText,
   CircleDot,
   Library,
+  Compass,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -53,6 +55,7 @@ const navGroups: NavGroup[] = [
     label: 'My Growth',
     icon: TrendingUp,
     items: [
+      { to: '/', icon: Compass, label: 'Journey' },
       { to: '/goals', icon: Target, label: 'Goals' },
       { to: '/kpis', icon: BarChart3, label: 'KPIs' },
       { to: '/action-items', icon: CheckSquare, label: 'Action Items' },
@@ -190,6 +193,9 @@ export function GlassSidebar() {
           </div>
         </div>
       </div>
+
+      {/* Journey Widget */}
+      <JourneyWidget />
 
       {/* Navigation */}
       <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto">
