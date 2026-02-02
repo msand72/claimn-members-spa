@@ -70,7 +70,7 @@ export function useProtocolTemplate(slug: string) {
   return useQuery({
     queryKey: protocolKeys.detail(slug),
     queryFn: () => api.get<ProtocolTemplate>(`/members/protocols/library/${slug}`),
-    enabled: !!slug,
+    enabled: !!slug && slug !== 'library',
   })
 }
 

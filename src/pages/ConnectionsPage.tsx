@@ -64,59 +64,60 @@ function SuggestionCard({ member }: SuggestionCardProps) {
   const location = [member.city, member.country].filter(Boolean).join(', ')
 
   return (
-    <GlassCard variant="base" className="p-4 overflow-hidden">
-      <div className="flex items-start gap-4">
-        <GlassAvatar initials={initials} src={member.avatar_url} size="lg" />
+    <GlassCard variant="base" className="p-5 overflow-hidden">
+      {/* Header: avatar + name */}
+      <div className="flex items-center gap-4 mb-4">
+        <GlassAvatar initials={initials} src={member.avatar_url} size="xl" />
         <div className="flex-1 min-w-0">
-          <div>
-            <h3 className="font-semibold text-kalkvit">{displayName}</h3>
-            {member.archetype && (
-              <p className="text-sm text-kalkvit/60">{member.archetype}</p>
-            )}
-            {location && (
-              <p className="text-xs text-kalkvit/40 mt-1">{location}</p>
-            )}
-          </div>
-
-          {member.bio && (
-            <p className="text-xs text-kalkvit/50 mt-2 line-clamp-2">{member.bio}</p>
+          <h3 className="font-display text-lg font-semibold text-kalkvit truncate">{displayName}</h3>
+          {member.archetype && (
+            <p className="text-sm text-koppar font-medium">{member.archetype}</p>
           )}
-
-          {/* Pillar focus badges */}
-          {member.pillar_focus && member.pillar_focus.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {member.pillar_focus.map((pillar) => (
-                <PillarBadge key={pillar} pillarId={pillar} />
-              ))}
-            </div>
+          {location && (
+            <p className="text-xs text-kalkvit/40 mt-0.5">{location}</p>
           )}
-
-          {/* Shared interests */}
-          {member.shared_interests && member.shared_interests > 0 && (
-            <div className="flex items-center gap-1.5 mt-2">
-              <Heart className="w-3.5 h-3.5 text-koppar fill-koppar/30" />
-              <span className="text-xs font-medium text-koppar">
-                {member.shared_interests} shared interests
-              </span>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2 mt-4 overflow-hidden">
-            <GlassButton
-              variant="primary"
-              className="w-full"
-              onClick={() => sendConnection.mutate({ recipient_id: member.user_id })}
-              disabled={sendConnection.isPending}
-            >
-              {sendConnection.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <UserPlus className="w-4 h-4 shrink-0" />
-              )}
-              <span className="truncate">{sendConnection.isPending ? 'Sending...' : 'Connect'}</span>
-            </GlassButton>
-          </div>
         </div>
+      </div>
+
+      {/* Bio */}
+      {member.bio && (
+        <p className="text-sm text-kalkvit/60 line-clamp-3 mb-3">{member.bio}</p>
+      )}
+
+      {/* Pillar focus badges */}
+      {member.pillar_focus && member.pillar_focus.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {member.pillar_focus.map((pillar) => (
+            <PillarBadge key={pillar} pillarId={pillar} />
+          ))}
+        </div>
+      )}
+
+      {/* Shared interests */}
+      {member.shared_interests && member.shared_interests > 0 && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <Heart className="w-3.5 h-3.5 text-koppar fill-koppar/30" />
+          <span className="text-xs font-medium text-koppar">
+            {member.shared_interests} shared interests
+          </span>
+        </div>
+      )}
+
+      {/* Action */}
+      <div className="pt-3 border-t border-white/[0.08]">
+        <GlassButton
+          variant="primary"
+          className="w-full justify-center"
+          onClick={() => sendConnection.mutate({ recipient_id: member.user_id })}
+          disabled={sendConnection.isPending}
+        >
+          {sendConnection.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <UserPlus className="w-4 h-4 shrink-0" />
+          )}
+          <span>{sendConnection.isPending ? 'Sending...' : 'Connect'}</span>
+        </GlassButton>
       </div>
     </GlassCard>
   )
@@ -173,101 +174,102 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
   const isIncoming = isPending && connection.recipient_id === currentUserId
 
   return (
-    <GlassCard variant="base" className="p-4 overflow-hidden">
-      <div className="flex items-start gap-4">
-        <GlassAvatar initials={initials} src={otherUser?.avatar_url} size="lg" />
+    <GlassCard variant="base" className="p-5 overflow-hidden">
+      {/* Header: avatar + name + menu */}
+      <div className="flex items-center gap-4 mb-4">
+        <GlassAvatar initials={initials} src={otherUser?.avatar_url} size="xl" />
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold text-kalkvit">{displayName}</h3>
-              {otherUser?.archetype && (
-                <p className="text-sm text-kalkvit/60">{otherUser.archetype}</p>
-              )}
-              {location && (
-                <p className="text-xs text-kalkvit/40 mt-1">{location}</p>
-              )}
-            </div>
-            {isConnected && (
-              <div className="relative" ref={menuRef}>
+          <h3 className="font-display text-lg font-semibold text-kalkvit truncate">{displayName}</h3>
+          {otherUser?.archetype && (
+            <p className="text-sm text-koppar font-medium">{otherUser.archetype}</p>
+          )}
+          {location && (
+            <p className="text-xs text-kalkvit/40 mt-0.5">{location}</p>
+          )}
+        </div>
+        {isConnected && (
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              onClick={() => setShowMenu((prev) => !prev)}
+              className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit"
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+            {showMenu && (
+              <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] rounded-xl bg-charcoal border border-white/15 py-1 shadow-xl shadow-black/40">
                 <button
-                  onClick={() => setShowMenu((prev) => !prev)}
-                  className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit"
+                  onClick={() => {
+                    removeConnection.mutate(connection.id)
+                    setShowMenu(false)
+                  }}
+                  disabled={removeConnection.isPending}
+                  className="w-full text-left px-4 py-2.5 text-sm text-tegelrod hover:bg-white/[0.06] transition-colors flex items-center gap-2"
                 >
-                  <MoreHorizontal className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" />
+                  {removeConnection.isPending ? 'Removing...' : 'Remove Connection'}
                 </button>
-                {showMenu && (
-                  <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] rounded-xl glass-elevated border border-white/10 py-1 shadow-lg">
-                    <button
-                      onClick={() => {
-                        removeConnection.mutate(connection.id)
-                        setShowMenu(false)
-                      }}
-                      disabled={removeConnection.isPending}
-                      className="w-full text-left px-4 py-2 text-sm text-tegelrod hover:bg-white/[0.06] transition-colors flex items-center gap-2"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      {removeConnection.isPending ? 'Removing...' : 'Remove Connection'}
-                    </button>
-                  </div>
-                )}
               </div>
             )}
           </div>
+        )}
+      </div>
 
-          {otherUser?.bio && (
-            <p className="text-xs text-kalkvit/50 mt-2 line-clamp-2">{otherUser.bio}</p>
-          )}
+      {/* Bio */}
+      {otherUser?.bio && (
+        <p className="text-sm text-kalkvit/60 line-clamp-3 mb-3">{otherUser.bio}</p>
+      )}
 
-          {/* Pillar focus badges */}
-          {otherUser?.pillar_focus && otherUser.pillar_focus.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {otherUser.pillar_focus.map((pillar) => (
-                <PillarBadge key={pillar} pillarId={pillar} />
-              ))}
-            </div>
-          )}
+      {/* Pillar focus badges */}
+      {otherUser?.pillar_focus && otherUser.pillar_focus.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {otherUser.pillar_focus.map((pillar) => (
+            <PillarBadge key={pillar} pillarId={pillar} />
+          ))}
+        </div>
+      )}
 
-          <div className="flex items-center gap-2 mt-4 overflow-hidden">
-            {isConnected ? (
-              <>
-                <GlassButton
-                  variant="secondary"
-                  className="flex-1 min-w-0"
-                  onClick={() => navigate(`/messages?user=${otherUserId}`)}
-                >
-                  <MessageCircle className="w-4 h-4 shrink-0" />
-                  <span className="truncate">Message</span>
-                </GlassButton>
-                <GlassBadge variant="success" className="shrink-0">
-                  <UserCheck className="w-3 h-3 mr-1" />
-                  Connected
-                </GlassBadge>
-              </>
-            ) : isIncoming ? (
-              <div className="flex gap-2 w-full">
-                <GlassButton
-                  variant="primary"
-                  className="flex-1"
-                  onClick={() => acceptConnection.mutate(connection.id)}
-                  disabled={acceptConnection.isPending}
-                >
-                  {acceptConnection.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Accept'}
-                </GlassButton>
-                <GlassButton
-                  variant="secondary"
-                  className="flex-1"
-                  onClick={() => rejectConnection.mutate(connection.id)}
-                  disabled={rejectConnection.isPending}
-                >
-                  {rejectConnection.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Decline'}
-                </GlassButton>
-              </div>
-            ) : isPending ? (
-              <GlassBadge variant="warning" className="w-full justify-center py-2">
-                Request Sent
+      {/* Actions */}
+      <div className="pt-3 border-t border-white/[0.08]">
+        <div className="flex items-center gap-2">
+          {isConnected ? (
+            <>
+              <GlassButton
+                variant="secondary"
+                className="flex-1 justify-center"
+                onClick={() => navigate(`/messages?user=${otherUserId}`)}
+              >
+                <MessageCircle className="w-4 h-4 shrink-0" />
+                <span>Message</span>
+              </GlassButton>
+              <GlassBadge variant="success" className="shrink-0">
+                <UserCheck className="w-3 h-3 mr-1" />
+                Connected
               </GlassBadge>
-            ) : null}
-          </div>
+            </>
+          ) : isIncoming ? (
+            <div className="flex gap-2 w-full">
+              <GlassButton
+                variant="primary"
+                className="flex-1 justify-center"
+                onClick={() => acceptConnection.mutate(connection.id)}
+                disabled={acceptConnection.isPending}
+              >
+                {acceptConnection.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Accept'}
+              </GlassButton>
+              <GlassButton
+                variant="secondary"
+                className="flex-1 justify-center"
+                onClick={() => rejectConnection.mutate(connection.id)}
+                disabled={rejectConnection.isPending}
+              >
+                {rejectConnection.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Decline'}
+              </GlassButton>
+            </div>
+          ) : isPending ? (
+            <GlassBadge variant="warning" className="w-full justify-center py-2">
+              Request Sent
+            </GlassBadge>
+          ) : null}
         </div>
       </div>
     </GlassCard>

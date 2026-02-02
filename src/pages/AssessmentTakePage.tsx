@@ -10,7 +10,7 @@ import { cn } from '../lib/utils'
 export function AssessmentTakePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const assessmentId = searchParams.get('assessmentId') ?? 'default'
+  const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
