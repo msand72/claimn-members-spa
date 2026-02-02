@@ -78,7 +78,7 @@ function EventCard({ event }: { event: ClaimnEvent }) {
   const unregisterMutation = useUnregisterFromEvent()
   const isMutating = registerMutation.isPending || unregisterMutation.isPending
   const isFull = event.registered_count >= event.capacity
-  const isPast = new Date(event.start_time) < new Date()
+  const isPast = new Date(event.scheduled_date) < new Date()
 
   const handleRegister = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -98,7 +98,7 @@ function EventCard({ event }: { event: ClaimnEvent }) {
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <GlassBadge variant="koppar" className="text-xs">
-            {event.type === 'brotherhood_call' ? 'Brotherhood Call' : 'GO Session'}
+            {event.event_type === 'brotherhood_call' ? 'Brotherhood Call' : 'GO Session'}
           </GlassBadge>
           <GlassBadge variant="default" className="text-xs">
             {event.tier_required}
@@ -112,13 +112,13 @@ function EventCard({ event }: { event: ClaimnEvent }) {
         <div className="flex items-center gap-4 text-sm text-kalkvit/60 mb-2">
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
-            {formatEventDate(event.start_time)}
+            {formatEventDate(event.scheduled_date)}
           </span>
         </div>
         <div className="flex items-center gap-4 text-sm text-kalkvit/60 mb-4">
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
-            {formatEventTime(event.start_time)}
+            {formatEventTime(event.scheduled_date)}
           </span>
           <span className="text-kalkvit/40">|</span>
           <span>{formatDuration(event.duration_minutes)}</span>
@@ -258,7 +258,7 @@ export function EventsPage() {
 
   // Filter my events by status
   const filteredMyEvents = myEvents.filter((event) => {
-    const eventDate = new Date(event.start_time)
+    const eventDate = new Date(event.scheduled_date)
     const now = new Date()
     return statusFilter === 'upcoming' ? eventDate >= now : eventDate < now
   })

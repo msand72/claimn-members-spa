@@ -6,6 +6,7 @@ import {
   fetchCurrentUser,
   getStoredExpiresAt,
   refreshToken,
+  exchangeToken,
   type AuthUserResponse,
   type UserType,
 } from '../lib/auth'
@@ -100,12 +101,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       const tokens = await authLogin(email, password)
-      const userData = await fetchCurrentUser(tokens.access_token)
-      setUser(userData as AuthUser)
+
+      // Exchange the Supabase-style token for a Go-issued JWT that includes user_type
+      let accessToken = tokens.access_token
+      let expiresAt = tokens.expires_at
+      let userType: UserType = 'member'
+
+      try {
+        const exchangeResponse = await exchangeToken(tokens.access_token)
+        accessToken = exchangeResponse.access_token
+        expiresAt = exchangeResponse.expires_at
+        userType = exchangeResponse.user.user_type
+      } catch {
+        // If exchange fails, fall back to the original token
+        console.warn('Token exchange failed, using original token')
+      }
+
+      const userData = await fetchCurrentUser(accessToken)
+      // Merge user_type from exchange response if available
+      const mergedUser = { ...userData, user_type: userType || userData.user_type } as AuthUser
+      setUser(mergedUser)
       setSession({
-        access_token: tokens.access_token,
+        access_token: accessToken,
         refresh_token: tokens.refresh_token,
-        expires_at: tokens.expires_at,
+        expires_at: expiresAt,
       })
       scheduleRefresh()
       return { error: null }

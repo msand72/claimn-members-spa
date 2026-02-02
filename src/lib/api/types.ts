@@ -121,6 +121,7 @@ export interface CreatePostRequest {
   content: string
   image_url?: string
   interest_group_id?: string
+  is_expert_question?: boolean
 }
 
 export interface FeedComment {

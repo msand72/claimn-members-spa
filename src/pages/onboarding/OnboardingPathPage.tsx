@@ -14,7 +14,7 @@ export function OnboardingPathPage() {
   const updateOnboarding = useUpdateOnboarding()
 
   const handleComplete = async () => {
-    await updateOnboarding.mutateAsync({ step: 'complete' })
+    await updateOnboarding.mutateAsync({ current_step: 'complete' })
     navigate('/')
   }
 
@@ -67,9 +67,9 @@ export function OnboardingPathPage() {
                 We'll add this protocol to your journey dashboard. You can start it right away
                 or browse the full library for alternatives.
               </p>
-              {onboarding?.recommended_protocol_slug && (
+              {onboarding?.recommended_protocol_id && (
                 <p className="text-koppar text-sm mt-2 font-medium">
-                  {onboarding.recommended_protocol_slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                  {onboarding.recommended_protocol_id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                 </p>
               )}
             </div>

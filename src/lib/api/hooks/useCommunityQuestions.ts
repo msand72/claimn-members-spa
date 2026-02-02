@@ -1,23 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type PaginatedResponse } from '../client'
+import type { FeedPost } from '../types'
 
-export interface CommunityQuestion {
-  id: string
-  question: string
-  context_type: string
-  context_id: string
-  author_name: string
-  author_avatar: string
-  created_at: string
-  answer_count: number
-  is_answered: boolean
+/**
+ * Community questions are feed posts with `is_expert_question: true`.
+ * The backend has no dedicated `/members/community/questions` endpoint.
+ * We use `GET /members/feed?is_expert_question=true` to list them
+ * and `POST /members/feed` with `{ content, is_expert_question: true }` to create them.
+ */
+
+export interface CommunityQuestion extends FeedPost {
   is_expert_question: boolean
 }
 
 export interface CommunityQuestionsParams {
-  context_type?: string
-  context_id?: string
-  is_answered?: boolean
   page?: number
   limit?: number
 }
@@ -32,10 +28,8 @@ export function useCommunityQuestions(params?: CommunityQuestionsParams) {
   return useQuery({
     queryKey: communityQuestionKeys.list(params),
     queryFn: () =>
-      api.get<PaginatedResponse<CommunityQuestion>>('/members/community/questions', {
-        context_type: params?.context_type,
-        context_id: params?.context_id,
-        is_answered: params?.is_answered,
+      api.get<PaginatedResponse<CommunityQuestion>>('/members/feed', {
+        is_expert_question: true,
         page: params?.page,
         limit: params?.limit,
       }),
@@ -45,7 +39,7 @@ export function useCommunityQuestions(params?: CommunityQuestionsParams) {
 export function useQuestionDetail(id: string) {
   return useQuery({
     queryKey: communityQuestionKeys.detail(id),
-    queryFn: () => api.get<CommunityQuestion>(`/members/community/questions/${id}`),
+    queryFn: () => api.get<CommunityQuestion>(`/members/feed/${id}`),
     enabled: !!id,
   })
 }
@@ -55,12 +49,12 @@ export function useAskQuestion() {
 
   return useMutation({
     mutationFn: (data: {
-      question: string
-      context_type?: string
-      context_id?: string
-      is_expert_question?: boolean
+      content: string
     }) =>
-      api.post<CommunityQuestion>('/members/community/questions', data),
+      api.post<CommunityQuestion>('/members/feed', {
+        content: data.content,
+        is_expert_question: true,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: communityQuestionKeys.all })
     },

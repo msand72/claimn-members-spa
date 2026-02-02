@@ -11,15 +11,6 @@ export interface SmartPrompt {
   type: string
   message: string
   action_url: string
-  priority: 'low' | 'medium' | 'high'
-}
-
-export interface JourneyTask {
-  id: string
-  title: string
-  type: 'action_item' | 'protocol_step' | 'kpi_log'
-  due: string
-  completed: boolean
 }
 
 export interface JourneyProtocol {
@@ -39,19 +30,24 @@ export interface JourneySession {
   type: string
 }
 
+export interface JourneyFocus {
+  current_pillar: string | null
+  changed_at: string | null
+}
+
+export interface JourneyOnboarding {
+  current_step: string
+}
+
 export interface JourneyData {
-  current_focus_pillar: string | null
-  active_protocol: JourneyProtocol | null
-  todays_tasks: JourneyTask[]
+  focus: JourneyFocus
+  active_protocols: JourneyProtocol[]
   upcoming_sessions: JourneySession[]
+  goals: unknown[]
+  kpi_streaks: unknown[]
   milestones: JourneyMilestone[]
+  onboarding: JourneyOnboarding
   smart_prompts: SmartPrompt[]
-  weekly_stats: {
-    tasks_completed: number
-    tasks_total: number
-    kpi_logs: number
-    streak_days: number
-  }
 }
 
 export const journeyKeys = {
@@ -72,7 +68,7 @@ export function useUpdateJourneyFocus() {
 
   return useMutation({
     mutationFn: (pillar: string) =>
-      api.put<{ current_focus_pillar: string }>('/members/journey/focus', { pillar }),
+      api.put<{ success: boolean }>('/members/journey/focus', { current_pillar: pillar }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: journeyKeys.data() })
     },

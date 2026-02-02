@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../client'
 
-export type OnboardingStep = 'profile' | 'assessment' | 'results' | 'challenge' | 'path' | 'complete'
+export type OnboardingStep = 'welcome' | 'profile' | 'assessment' | 'results' | 'challenge' | 'path' | 'complete'
 
 export type PrimaryChallenge = 'identity' | 'vitality' | 'connection' | 'emotional' | 'mission'
 
@@ -9,9 +9,8 @@ export interface OnboardingState {
   step: OnboardingStep
   completed_at: string | null
   primary_challenge: PrimaryChallenge | null
-  recommended_protocol_slug: string | null
+  recommended_protocol_id: string | null
   recommended_circle_id: string | null
-  skipped_steps: string[]
 }
 
 export const onboardingKeys = {
@@ -37,8 +36,8 @@ export function useUpdateOnboarding() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: Partial<OnboardingState>) =>
-      api.put<OnboardingState>('/members/onboarding', data),
+    mutationFn: (data: { current_step?: string; primary_challenge?: string }) =>
+      api.put<{ success: boolean }>('/members/onboarding', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: onboardingKeys.state() })
     },

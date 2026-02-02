@@ -220,3 +220,21 @@ export {
   type CommunityQuestion,
   type CommunityQuestionsParams,
 } from './useCommunityQuestions'
+
+// My Expert
+export {
+  myExpertKeys,
+  useMyExpert,
+  type MyExpertData,
+} from './useMyExpert'
+
+// Notifications
+export {
+  notificationKeys,
+  useNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+  type Notification,
+  type NotificationsResponse,
+  type NotificationsParams,
+} from './useNotifications'

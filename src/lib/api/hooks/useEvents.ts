@@ -3,10 +3,10 @@ import { api, type PaginatedResponse } from '../client'
 
 export interface ClaimnEvent {
   id: string
-  type: 'brotherhood_call' | 'go_session'
+  event_type: 'brotherhood_call' | 'go_session'
   title: string
   description: string
-  start_time: string
+  scheduled_date: string
   duration_minutes: number
   capacity: number
   registered_count: number

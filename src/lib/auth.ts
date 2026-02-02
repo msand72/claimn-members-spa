@@ -213,6 +213,49 @@ export async function resetPassword(token: string, password: string): Promise<vo
   }
 }
 
+export interface ExchangeTokenResponse {
+  access_token: string
+  token_type: string
+  expires_in: number
+  expires_at: number
+  user: {
+    id: string
+    email: string
+    user_type: UserType
+    full_name: string
+  }
+}
+
+/**
+ * Exchange a Supabase access token for a Go-issued JWT.
+ * No Authorization header required — the backend validates the Supabase token directly.
+ */
+export async function exchangeToken(supabaseToken: string): Promise<ExchangeTokenResponse> {
+  const url = `${AUTH_BASE()}/exchange`
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ supabase_token: supabaseToken }),
+  })
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: 'Token exchange failed' }))
+    throw new Error(errorData.error?.message || errorData.error || 'Token exchange failed')
+  }
+
+  const data: ExchangeTokenResponse = await res.json()
+
+  // Store the Go JWT as the primary access token
+  storeTokens({
+    access_token: data.access_token,
+    refresh_token: localStorage.getItem(REFRESH_TOKEN_KEY) || '',
+    expires_at: data.expires_at,
+  })
+
+  return data
+}
+
 export function getStoredExpiresAt(): number | null {
   const val = localStorage.getItem(EXPIRES_AT_KEY)
   return val ? Number(val) : null

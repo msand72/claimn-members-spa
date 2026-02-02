@@ -85,7 +85,7 @@ export function EventDetailPage() {
     )
   }
 
-  const isPast = new Date(event.start_time) < new Date()
+  const isPast = new Date(event.scheduled_date) < new Date()
   const isFull = event.registered_count >= event.capacity
   const capacityPct = event.capacity > 0 ? Math.min((event.registered_count / event.capacity) * 100, 100) : 0
 
@@ -105,7 +105,7 @@ export function EventDetailPage() {
         <GlassCard variant="elevated" className="mb-6">
           <div className="flex items-center gap-3 mb-4 flex-wrap">
             <GlassBadge variant="koppar">
-              {event.type === 'brotherhood_call' ? 'Brotherhood Call' : 'GO Session'}
+              {event.event_type === 'brotherhood_call' ? 'Brotherhood Call' : 'GO Session'}
             </GlassBadge>
             <GlassBadge variant="default">
               {event.tier_required}
@@ -124,11 +124,11 @@ export function EventDetailPage() {
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-kalkvit/60">
             <span className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-koppar" />
-              {formatEventDate(event.start_time)}
+              {formatEventDate(event.scheduled_date)}
             </span>
             <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-koppar" />
-              {formatEventTime(event.start_time)}
+              {formatEventTime(event.scheduled_date)}
             </span>
             <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-koppar" />

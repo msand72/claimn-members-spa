@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { MainLayout } from '../components/layout/MainLayout'
@@ -16,7 +16,6 @@ import {
   Newspaper,
   Calendar,
   ArrowRight,
-  CheckSquare,
   CheckCircle2,
   Circle,
   X,
@@ -54,23 +53,6 @@ function isPromptDismissed(key: string): boolean {
   return Date.now() - ts < TWENTY_FOUR_HOURS
 }
 
-const TASK_TYPE_LABELS: Record<string, { label: string; variant: 'koppar' | 'default' | 'outline' }> = {
-  action_item: { label: 'Action', variant: 'koppar' },
-  protocol_step: { label: 'Protocol', variant: 'default' },
-  kpi_log: { label: 'KPI Log', variant: 'outline' },
-}
-
-const PRIORITY_COLORS: Record<string, string> = {
-  high: 'text-koppar',
-  medium: 'text-kalkvit/60',
-  low: 'text-kalkvit/40',
-}
-
-const PRIORITY_BORDER: Record<string, string> = {
-  high: 'border-koppar/40',
-  medium: 'border-white/[0.08]',
-  low: 'border-white/[0.05]',
-}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -81,9 +63,6 @@ export function JourneyDashboardPage() {
   const { data: profile } = useCurrentProfile()
   const { data: journey, isLoading, isError } = useJourney()
 
-  // Local visual-only checkbox state for today's tasks
-  const [checkedTasks, setCheckedTasks] = useState<Record<string, boolean>>({})
-
   // Dismissed smart prompts (re-render trigger)
   const [, setDismissedTick] = useState(0)
 
@@ -92,23 +71,15 @@ export function JourneyDashboardPage() {
     setDismissedTick((t) => t + 1)
   }, [])
 
-  const handleToggleTask = useCallback((taskId: string, currentCompleted: boolean) => {
-    setCheckedTasks((prev) => ({
-      ...prev,
-      [taskId]: prev[taskId] !== undefined ? !prev[taskId] : !currentCompleted,
-    }))
-  }, [])
-
   // Derived data
   const displayName =
     profile?.display_name || user?.display_name || user?.email?.split('@')[0] || 'Member'
 
-  const focusPillarId = journey?.current_focus_pillar as PillarId | null
+  const focusPillarId = journey?.focus?.current_pillar as PillarId | null
   const focusPillar = focusPillarId && focusPillarId in PILLARS ? PILLARS[focusPillarId] : null
 
-  const protocol = journey?.active_protocol ?? null
-  const weeklyStats = journey?.weekly_stats
-  const tasks = journey?.todays_tasks ?? []
+  const protocols = journey?.active_protocols ?? []
+  const protocol = protocols.length > 0 ? protocols[0] : null
   const sessions = journey?.upcoming_sessions ?? []
   const milestones = journey?.milestones ?? []
   const smartPrompts = (journey?.smart_prompts ?? []).filter(
@@ -125,11 +96,8 @@ export function JourneyDashboardPage() {
     return null
   }, [protocol, journey?.smart_prompts])
 
-  // Find the next incomplete protocol_step task for today
-  const nextProtocolTask = useMemo(
-    () => tasks.find((t) => t.type === 'protocol_step' && !t.completed) ?? null,
-    [tasks]
-  )
+  // Find the next incomplete protocol_step task for today (tasks not in backend journey response)
+  const nextProtocolTask = null
 
   // -----------------------------------------------------------------------
   // Loading state
@@ -206,22 +174,15 @@ export function JourneyDashboardPage() {
                 </div>
               )}
 
-              {/* Weekly stats row */}
-              {weeklyStats && (
+              {/* KPI streaks summary */}
+              {(journey?.kpi_streaks ?? []).length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <GlassStatsCard
-                    icon={CheckSquare}
-                    label="Tasks Done"
-                    value={`${weeklyStats.tasks_completed}/${weeklyStats.tasks_total}`}
-                    trend="--"
-                    trendLabel="this week"
-                  />
-                  <GlassStatsCard
                     icon={Flame}
-                    label="Streak"
-                    value={String(weeklyStats.streak_days)}
+                    label="Active Streaks"
+                    value={String((journey?.kpi_streaks ?? []).length)}
                     trend="--"
-                    trendLabel="days"
+                    trendLabel="tracked"
                   />
                 </div>
               )}
@@ -232,12 +193,14 @@ export function JourneyDashboardPage() {
         {/* ================================================================
             1b. Active Protocol Card / Recommended Protocol
             ================================================================ */}
-        {protocol && (
-          <div className="mb-8">
-            <ActiveProtocolCard protocol={protocol} nextTask={nextProtocolTask} />
+        {protocols.length > 0 && (
+          <div className="mb-8 space-y-4">
+            {protocols.map((p) => (
+              <ActiveProtocolCard key={p.id} protocol={p} nextTask={nextProtocolTask} />
+            ))}
           </div>
         )}
-        {!protocol && recommendedProtocolSlug && (
+        {protocols.length === 0 && recommendedProtocolSlug && (
           <div className="mb-8">
             <RecommendedProtocol protocolSlug={recommendedProtocolSlug} />
           </div>
@@ -253,11 +216,11 @@ export function JourneyDashboardPage() {
               return (
                 <div
                   key={promptKey}
-                  className={`relative flex items-center justify-between gap-4 p-4 bg-white/[0.03] rounded-xl border ${PRIORITY_BORDER[prompt.priority] || 'border-white/[0.08]'}`}
+                  className="relative flex items-center justify-between gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/[0.08]"
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Zap className={`w-5 h-5 flex-shrink-0 ${PRIORITY_COLORS[prompt.priority] || 'text-kalkvit/60'}`} />
-                    <span className={`text-sm ${PRIORITY_COLORS[prompt.priority] || 'text-kalkvit/60'}`}>
+                    <Zap className="w-5 h-5 flex-shrink-0 text-koppar" />
+                    <span className="text-sm text-kalkvit/60">
                       {prompt.message}
                     </span>
                   </div>
@@ -285,52 +248,29 @@ export function JourneyDashboardPage() {
             3. Today's Tasks + 4. Progress Timeline (two-column)
             ================================================================ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Today's Tasks */}
+          {/* Goals */}
           <GlassCard>
             <h3 className="font-display text-xl font-semibold text-kalkvit mb-4">
-              Today&rsquo;s Tasks
+              Goals
             </h3>
-            {tasks.length === 0 ? (
+            {(journey?.goals ?? []).length === 0 ? (
               <div className="text-center py-8">
-                <CheckSquare className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
-                <p className="text-kalkvit/50 text-sm">No tasks for today</p>
+                <Target className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
+                <p className="text-kalkvit/50 text-sm">No active goals</p>
                 <p className="text-kalkvit/30 text-xs mt-1">
-                  Tasks from your protocol and action items will appear here
+                  Set goals from the Goals page to track your progress
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
-                {tasks.map((task) => {
-                  const isChecked =
-                    checkedTasks[task.id] !== undefined ? checkedTasks[task.id] : task.completed
-                  const typeInfo = TASK_TYPE_LABELS[task.type] || {
-                    label: task.type,
-                    variant: 'outline' as const,
-                  }
-                  return (
-                    <button
-                      key={task.id}
-                      onClick={() => handleToggleTask(task.id, task.completed)}
-                      className={`w-full flex items-center gap-3 p-3 bg-white/[0.03] rounded-xl border border-white/[0.08] hover:border-koppar/30 transition-colors text-left ${
-                        isChecked ? 'opacity-60' : ''
-                      }`}
-                    >
-                      {isChecked ? (
-                        <CheckCircle2 className="w-5 h-5 text-koppar flex-shrink-0" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-kalkvit/30 flex-shrink-0" />
-                      )}
-                      <span
-                        className={`flex-1 text-sm ${
-                          isChecked ? 'line-through text-kalkvit/40' : 'text-kalkvit/80'
-                        }`}
-                      >
-                        {task.title}
-                      </span>
-                      <GlassBadge variant={typeInfo.variant}>{typeInfo.label}</GlassBadge>
-                    </button>
-                  )
-                })}
+                <p className="text-kalkvit/60 text-sm">
+                  {(journey?.goals ?? []).length} active goal{(journey?.goals ?? []).length !== 1 ? 's' : ''}
+                </p>
+                <Link to="/goals">
+                  <GlassButton variant="primary" className="text-xs px-3 py-1">
+                    View Goals <ArrowRight className="w-3 h-3 ml-1" />
+                  </GlassButton>
+                </Link>
               </div>
             )}
           </GlassCard>
