@@ -192,6 +192,18 @@ export {
   type AccountabilityMember,
 } from './useAccountability'
 
+// Events
+export {
+  eventKeys,
+  useEvents,
+  useEvent,
+  useMyEvents,
+  useRegisterForEvent,
+  useUnregisterFromEvent,
+  type ClaimnEvent,
+  type EventsParams,
+} from './useEvents'
+
 // Billing
 export {
   billingKeys,

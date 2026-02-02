@@ -42,6 +42,10 @@ const ProgramsPage = lazy(() => import('./pages/ProgramsPage'))
 const ProgramsSprintsPage = lazy(() => import('./pages/ProgramsSprintsPage'))
 const ProgramsReviewsPage = lazy(() => import('./pages/ProgramsReviewsPage'))
 
+// Pages - Events
+const EventsPage = lazy(() => import('./pages/EventsPage'))
+const EventDetailPage = lazy(() => import('./pages/EventDetailPage'))
+
 // Pages - Coaching
 const CoachingSessionsPage = lazy(() => import('./pages/CoachingSessionsPage'))
 const CoachingResourcesPage = lazy(() => import('./pages/CoachingResourcesPage'))
@@ -138,6 +142,10 @@ const router = createBrowserRouter([
       { path: '/programs', element: <Protected><ProgramsPage /></Protected> },
       { path: '/programs/sprints', element: <Protected><ProgramsSprintsPage /></Protected> },
       { path: '/programs/reviews', element: <Protected><ProgramsReviewsPage /></Protected> },
+
+      // Protected routes - Events
+      { path: '/events', element: <Protected><EventsPage /></Protected> },
+      { path: '/events/:id', element: <Protected><EventDetailPage /></Protected> },
 
       // Protected routes - Coaching
       { path: '/coaching/sessions', element: <Protected><CoachingSessionsPage /></Protected> },
