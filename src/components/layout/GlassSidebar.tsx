@@ -6,6 +6,7 @@ import { GlassAvatar } from '../ui/GlassAvatar'
 import { JourneyWidget } from '../journey/JourneyWidget'
 import {
   Home,
+  Heart,
   Newspaper,
   MessageCircle,
   Users,
@@ -74,6 +75,7 @@ const navGroups: NavGroup[] = [
       { to: '/connections', icon: Users, label: 'Connections' },
       { to: '/network', icon: Globe, label: 'Network' },
       { to: '/circles', icon: Award, label: 'Circles' },
+      { to: '/interest-groups', icon: Heart, label: 'Interest Groups' },
     ],
   },
   {

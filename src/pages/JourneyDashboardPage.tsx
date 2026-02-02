@@ -225,11 +225,19 @@ export function JourneyDashboardPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Link to={prompt.action_url}>
-                      <GlassButton variant="primary" className="text-xs px-3 py-1">
-                        Go <ArrowRight className="w-3 h-3 ml-1" />
-                      </GlassButton>
-                    </Link>
+                    {prompt.action_url.startsWith('http') ? (
+                      <a href={prompt.action_url} target="_blank" rel="noopener noreferrer">
+                        <GlassButton variant="primary" className="text-xs px-3 py-1">
+                          Go <ArrowRight className="w-3 h-3 ml-1" />
+                        </GlassButton>
+                      </a>
+                    ) : (
+                      <Link to={prompt.action_url}>
+                        <GlassButton variant="primary" className="text-xs px-3 py-1">
+                          Go <ArrowRight className="w-3 h-3 ml-1" />
+                        </GlassButton>
+                      </Link>
+                    )}
                     <button
                       onClick={() => handleDismissPrompt(promptKey)}
                       className="text-kalkvit/30 hover:text-kalkvit/60 transition-colors"
