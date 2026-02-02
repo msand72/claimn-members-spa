@@ -26,6 +26,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { AskExpertButton } from '../components/AskExpertButton'
 
 function WeekCard({
   week,
@@ -300,6 +301,14 @@ export function ProtocolDetailPage() {
             <p className="text-3xl font-bold text-koppar">{protocol.stat}</p>
             <p className="text-xs text-kalkvit/50">Expected Result</p>
           </div>
+        </div>
+
+        {/* Ask Expert */}
+        <div className="mb-6">
+          <AskExpertButton
+            context={`Protocol: ${protocol.name}`}
+            protocolSlug={slug}
+          />
         </div>
 
         {/* Progress Card (if started) */}

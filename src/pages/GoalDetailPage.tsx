@@ -27,6 +27,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { AskExpertButton } from '../components/AskExpertButton'
 
 export function GoalDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -257,6 +258,13 @@ export function GoalDetailPage() {
               <MoreHorizontal className="w-4 h-4" />
             </GlassButton>
           </div>
+        </div>
+
+        {/* Ask Expert */}
+        <div className="mb-6">
+          <AskExpertButton
+            context={`Goal: ${goal.title}`}
+          />
         </div>
 
         {/* Action Error */}

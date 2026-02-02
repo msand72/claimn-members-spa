@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { MainLayout } from '../components/layout/MainLayout'
@@ -6,6 +6,8 @@ import { GlassCard, GlassButton, GlassStatsCard, GlassBadge } from '../component
 import { useCurrentProfile } from '../lib/api/hooks'
 import { useJourney } from '../lib/api/hooks/useJourney'
 import { PILLARS, type PillarId } from '../lib/constants'
+import { RecommendedProtocol } from '../components/journey/RecommendedProtocol'
+import { ActiveProtocolCard } from '../components/journey/ActiveProtocolCard'
 import {
   Loader2,
   AlertTriangle,
@@ -113,6 +115,22 @@ export function JourneyDashboardPage() {
     (p) => !isPromptDismissed(`${p.type}:${p.action_url}`)
   )
 
+  // Extract a recommended protocol slug from smart prompts (e.g. action_url = "/protocols/my-protocol")
+  const recommendedProtocolSlug = useMemo(() => {
+    if (protocol) return null // already have an active protocol
+    for (const prompt of journey?.smart_prompts ?? []) {
+      const match = prompt.action_url.match(/^\/protocols\/([a-z0-9-]+)$/)
+      if (match) return match[1]
+    }
+    return null
+  }, [protocol, journey?.smart_prompts])
+
+  // Find the next incomplete protocol_step task for today
+  const nextProtocolTask = useMemo(
+    () => tasks.find((t) => t.type === 'protocol_step' && !t.completed) ?? null,
+    [tasks]
+  )
+
   // -----------------------------------------------------------------------
   // Loading state
   // -----------------------------------------------------------------------
@@ -167,7 +185,7 @@ export function JourneyDashboardPage() {
                 )}
               </div>
 
-              {/* Active protocol progress */}
+              {/* Active protocol progress (compact inline preview) */}
               {protocol && (
                 <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -210,6 +228,20 @@ export function JourneyDashboardPage() {
             </div>
           </div>
         </GlassCard>
+
+        {/* ================================================================
+            1b. Active Protocol Card / Recommended Protocol
+            ================================================================ */}
+        {protocol && (
+          <div className="mb-8">
+            <ActiveProtocolCard protocol={protocol} nextTask={nextProtocolTask} />
+          </div>
+        )}
+        {!protocol && recommendedProtocolSlug && (
+          <div className="mb-8">
+            <RecommendedProtocol protocolSlug={recommendedProtocolSlug} />
+          </div>
+        )}
 
         {/* ================================================================
             2. Smart Prompts
