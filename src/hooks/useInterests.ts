@@ -52,6 +52,10 @@ export function useUpdateMemberInterests() {
     },
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ['member-interests', userId] })
+      // Interest changes may auto-join/leave interest groups on the backend,
+      // so refresh group queries so the feed tabs update immediately
+      queryClient.invalidateQueries({ queryKey: ['my-interest-groups'] })
+      queryClient.invalidateQueries({ queryKey: ['all-interest-groups'] })
     },
   })
 }

@@ -327,8 +327,12 @@ export function FeedPage() {
     }
   }
 
-  // Get posts from API response
-  const posts = Array.isArray(feedData?.data) ? feedData.data : []
+  // Get posts from API response, filter for "My Groups" tab
+  const allPosts = Array.isArray(feedData?.data) ? feedData.data : []
+  const myGroupIds = new Set(myGroups.map((g) => g.id))
+  const posts = activeTab === 'my-groups'
+    ? allPosts.filter((p) => p.interest_group_id && myGroupIds.has(p.interest_group_id))
+    : allPosts
 
   // Create tab options
   const tabs = [
