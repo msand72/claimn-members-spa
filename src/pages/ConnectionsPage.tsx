@@ -64,29 +64,29 @@ function SuggestionCard({ member }: SuggestionCardProps) {
   const location = [member.city, member.country].filter(Boolean).join(', ')
 
   return (
-    <GlassCard variant="base" className="p-5 overflow-hidden">
+    <GlassCard variant="base" className="p-6 md:p-8 overflow-hidden flex flex-col">
       {/* Header: avatar + name */}
-      <div className="flex items-center gap-4 mb-4">
-        <GlassAvatar initials={initials} src={member.avatar_url} size="xl" />
+      <div className="flex items-center gap-5 mb-5">
+        <GlassAvatar initials={initials} src={member.avatar_url} size="xl" className="!w-20 !h-20 !text-2xl" />
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-lg font-semibold text-kalkvit truncate">{displayName}</h3>
+          <h3 className="font-display text-xl font-bold text-kalkvit truncate">{displayName}</h3>
           {member.archetype && (
-            <p className="text-sm text-koppar font-medium">{member.archetype}</p>
+            <p className="text-sm text-koppar font-semibold mt-0.5">{member.archetype}</p>
           )}
           {location && (
-            <p className="text-xs text-kalkvit/40 mt-0.5">{location}</p>
+            <p className="text-sm text-kalkvit/50 mt-1">{location}</p>
           )}
         </div>
       </div>
 
       {/* Bio */}
-      {member.bio && (
-        <p className="text-sm text-kalkvit/60 line-clamp-3 mb-3">{member.bio}</p>
-      )}
+      <p className="text-sm text-kalkvit/60 line-clamp-3 mb-4 min-h-[3.75rem]">
+        {member.bio || 'No bio yet.'}
+      </p>
 
       {/* Pillar focus badges */}
       {member.pillar_focus && member.pillar_focus.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className="flex flex-wrap gap-2 mb-4">
           {member.pillar_focus.map((pillar) => (
             <PillarBadge key={pillar} pillarId={pillar} />
           ))}
@@ -95,16 +95,16 @@ function SuggestionCard({ member }: SuggestionCardProps) {
 
       {/* Shared interests */}
       {member.shared_interests && member.shared_interests > 0 && (
-        <div className="flex items-center gap-1.5 mb-3">
-          <Heart className="w-3.5 h-3.5 text-koppar fill-koppar/30" />
-          <span className="text-xs font-medium text-koppar">
+        <div className="flex items-center gap-2 mb-4">
+          <Heart className="w-4 h-4 text-koppar fill-koppar/30" />
+          <span className="text-sm font-medium text-koppar">
             {member.shared_interests} shared interests
           </span>
         </div>
       )}
 
       {/* Action */}
-      <div className="pt-3 border-t border-white/[0.08]">
+      <div className="pt-4 border-t border-white/[0.08] mt-auto">
         <GlassButton
           variant="primary"
           className="w-full justify-center"
@@ -174,21 +174,21 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
   const isIncoming = isPending && connection.recipient_id === currentUserId
 
   return (
-    <GlassCard variant="base" className="p-5 overflow-hidden">
+    <GlassCard variant="base" className="p-6 md:p-8 overflow-hidden flex flex-col">
       {/* Header: avatar + name + menu */}
-      <div className="flex items-center gap-4 mb-4">
-        <GlassAvatar initials={initials} src={otherUser?.avatar_url} size="xl" />
+      <div className="flex items-center gap-5 mb-5">
+        <GlassAvatar initials={initials} src={otherUser?.avatar_url} size="xl" className="!w-20 !h-20 !text-2xl" />
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-lg font-semibold text-kalkvit truncate">{displayName}</h3>
+          <h3 className="font-display text-xl font-bold text-kalkvit truncate">{displayName}</h3>
           {otherUser?.archetype && (
-            <p className="text-sm text-koppar font-medium">{otherUser.archetype}</p>
+            <p className="text-sm text-koppar font-semibold mt-0.5">{otherUser.archetype}</p>
           )}
           {location && (
-            <p className="text-xs text-kalkvit/40 mt-0.5">{location}</p>
+            <p className="text-sm text-kalkvit/50 mt-1">{location}</p>
           )}
         </div>
         {isConnected && (
-          <div className="relative shrink-0" ref={menuRef}>
+          <div className="relative shrink-0 self-start" ref={menuRef}>
             <button
               onClick={() => setShowMenu((prev) => !prev)}
               className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit"
@@ -196,7 +196,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
               <MoreHorizontal className="w-5 h-5" />
             </button>
             {showMenu && (
-              <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] rounded-xl bg-charcoal border border-white/15 py-1 shadow-xl shadow-black/40">
+              <div className="absolute right-0 top-full mt-1 z-50 min-w-[200px] rounded-xl bg-charcoal border border-white/15 py-1 shadow-xl shadow-black/40">
                 <button
                   onClick={() => {
                     removeConnection.mutate(connection.id)
@@ -215,13 +215,13 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
       </div>
 
       {/* Bio */}
-      {otherUser?.bio && (
-        <p className="text-sm text-kalkvit/60 line-clamp-3 mb-3">{otherUser.bio}</p>
-      )}
+      <p className="text-sm text-kalkvit/60 line-clamp-3 mb-4 min-h-[3.75rem]">
+        {otherUser?.bio || 'No bio yet.'}
+      </p>
 
       {/* Pillar focus badges */}
       {otherUser?.pillar_focus && otherUser.pillar_focus.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className="flex flex-wrap gap-2 mb-4">
           {otherUser.pillar_focus.map((pillar) => (
             <PillarBadge key={pillar} pillarId={pillar} />
           ))}
@@ -229,8 +229,8 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
       )}
 
       {/* Actions */}
-      <div className="pt-3 border-t border-white/[0.08]">
-        <div className="flex items-center gap-2">
+      <div className="pt-4 border-t border-white/[0.08] mt-auto">
+        <div className="flex items-center gap-3">
           {isConnected ? (
             <>
               <GlassButton
@@ -241,13 +241,13 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
                 <MessageCircle className="w-4 h-4 shrink-0" />
                 <span>Message</span>
               </GlassButton>
-              <GlassBadge variant="success" className="shrink-0">
-                <UserCheck className="w-3 h-3 mr-1" />
+              <GlassBadge variant="success" className="shrink-0 px-3 py-1.5">
+                <UserCheck className="w-3.5 h-3.5 mr-1" />
                 Connected
               </GlassBadge>
             </>
           ) : isIncoming ? (
-            <div className="flex gap-2 w-full">
+            <div className="flex gap-3 w-full">
               <GlassButton
                 variant="primary"
                 className="flex-1 justify-center"
@@ -266,7 +266,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
               </GlassButton>
             </div>
           ) : isPending ? (
-            <GlassBadge variant="warning" className="w-full justify-center py-2">
+            <GlassBadge variant="warning" className="w-full justify-center py-2.5">
               Request Sent
             </GlassBadge>
           ) : null}
@@ -392,7 +392,7 @@ export function ConnectionsPage() {
 
         {/* Suggestions Grid - for NetworkMember type */}
         {!isLoading && !connectionsError && activeTab === 'Suggestions' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {suggestions.map((member) => (
               <SuggestionCard
                 key={member.user_id}
@@ -404,7 +404,7 @@ export function ConnectionsPage() {
 
         {/* Connections Grid - for Connection type */}
         {!isLoading && !connectionsError && activeTab !== 'Suggestions' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {filteredConnections.map((connection) => (
               <ConnectionCard
                 key={connection.id}
