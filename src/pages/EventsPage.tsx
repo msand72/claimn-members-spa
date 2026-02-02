@@ -13,7 +13,6 @@ import {
   Calendar,
   Clock,
   Users,
-  ChevronRight,
   Loader2,
   AlertTriangle,
   CalendarDays,

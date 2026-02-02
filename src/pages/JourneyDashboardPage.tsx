@@ -386,7 +386,7 @@ export function JourneyDashboardPage() {
                         })}
                       </span>
                       <span className="text-kalkvit/40">&middot;</span>
-                      <GlassBadge variant="outline">{session.type}</GlassBadge>
+                      <GlassBadge variant="default">{session.type}</GlassBadge>
                     </div>
                   </Link>
                 ))}

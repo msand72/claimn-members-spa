@@ -20,7 +20,7 @@ interface AskExpertButtonProps {
  * Posts to the community feed with is_expert_question flag.
  * Experts see these in their admin-spa Community Questions feed.
  */
-export function AskExpertButton({ context, protocolSlug, circleId, size = 'sm' }: AskExpertButtonProps) {
+export function AskExpertButton({ context, circleId }: AskExpertButtonProps) {
   const { userType } = useAuth()
   const createPost = useCreatePost()
   const [isOpen, setIsOpen] = useState(false)
@@ -55,7 +55,6 @@ export function AskExpertButton({ context, protocolSlug, circleId, size = 'sm' }
     <>
       <GlassButton
         variant="secondary"
-        size={size}
         onClick={() => setIsOpen(true)}
       >
         <HelpCircle className="w-4 h-4" />
@@ -63,7 +62,7 @@ export function AskExpertButton({ context, protocolSlug, circleId, size = 'sm' }
       </GlassButton>
 
       <GlassModal
-        open={isOpen}
+        isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Ask an Expert"
         size="md"
@@ -94,12 +93,11 @@ export function AskExpertButton({ context, protocolSlug, circleId, size = 'sm' }
               rows={4}
             />
             <GlassModalFooter>
-              <GlassButton variant="secondary" size="sm" onClick={() => setIsOpen(false)}>
+              <GlassButton variant="secondary" onClick={() => setIsOpen(false)}>
                 Cancel
               </GlassButton>
               <GlassButton
                 variant="primary"
-                size="sm"
                 onClick={handleSubmit}
                 disabled={!question.trim() || createPost.isPending}
               >

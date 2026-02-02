@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUpdateOnboarding, type PrimaryChallenge } from '../../lib/api/hooks/useOnboarding'
 import { OnboardingLayout } from './OnboardingLayout'
-import { GlassCard, GlassButton } from '../../components/ui'
+import { GlassButton } from '../../components/ui'
 import { ArrowRight, Compass, Brain, Heart, Users, Target } from 'lucide-react'
 
 const CHALLENGES: Array<{
@@ -57,7 +57,7 @@ export function OnboardingChallengePage() {
   const handleContinue = async () => {
     if (!selected) return
     await updateOnboarding.mutateAsync({
-      step: 'path',
+      current_step: 'path',
       primary_challenge: selected,
     })
     navigate('/onboarding/path')

@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, ListChecks } from 'lucide-react'
 import { GlassCard, GlassButton, GlassBadge } from '../ui'
-import type { JourneyProtocol, JourneyTask } from '../../lib/api/hooks/useJourney'
+import type { JourneyProtocol } from '../../lib/api/hooks/useJourney'
 
 interface ActiveProtocolCardProps {
   protocol: JourneyProtocol
-  /** Optional next task from todays_tasks that is of type protocol_step */
-  nextTask?: JourneyTask | null
+  /** Optional next task */
+  nextTask?: { title: string } | null
 }
 
 export function ActiveProtocolCard({ protocol, nextTask }: ActiveProtocolCardProps) {

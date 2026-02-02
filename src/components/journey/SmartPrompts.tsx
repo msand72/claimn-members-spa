@@ -70,7 +70,8 @@ export function SmartPrompts({ prompts }: SmartPromptsProps) {
   return (
     <div className="space-y-2">
       {visiblePrompts.map((prompt) => {
-        const style = PRIORITY_STYLES[prompt.priority] || PRIORITY_STYLES.medium
+        const priority = (prompt as SmartPrompt & { priority?: keyof typeof PRIORITY_STYLES }).priority
+        const style = (priority && PRIORITY_STYLES[priority]) || PRIORITY_STYLES.medium
         const Icon = style.icon
         return (
           <div

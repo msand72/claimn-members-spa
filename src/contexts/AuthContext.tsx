@@ -142,9 +142,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // User type hierarchy: superadmin > admin > expert > client > member > guest
-  const USER_TYPE_HIERARCHY: UserType[] = ['guest', 'member', 'client', 'expert', 'admin', 'superadmin']
-
   const userType: UserType = user?.user_type || 'guest'
 
   const hasAccess = (...types: UserType[]) => {

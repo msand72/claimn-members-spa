@@ -12,7 +12,7 @@ export function OnboardingResultsPage() {
   const updateOnboarding = useUpdateOnboarding()
 
   const handleContinue = async () => {
-    await updateOnboarding.mutateAsync({ step: 'challenge' })
+    await updateOnboarding.mutateAsync({ current_step: 'challenge' })
     navigate('/onboarding/challenge')
   }
 
@@ -26,7 +26,7 @@ export function OnboardingResultsPage() {
     )
   }
 
-  const archetype = result?.archetype || 'Your Archetype'
+  const archetype = result?.archetypes?.[0] || 'Your Archetype'
   const pillarScores = (result?.pillar_scores || {}) as Record<string, number>
 
   // Sort pillars by score for display

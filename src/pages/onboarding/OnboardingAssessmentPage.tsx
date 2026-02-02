@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { useUpdateOnboarding } from '../../lib/api/hooks/useOnboarding'
 import { OnboardingLayout } from './OnboardingLayout'
 import { GlassCard, GlassButton } from '../../components/ui'
 import { ClipboardCheck, ArrowRight } from 'lucide-react'
@@ -11,7 +10,6 @@ import { ClipboardCheck, ArrowRight } from 'lucide-react'
  */
 export function OnboardingAssessmentPage() {
   const navigate = useNavigate()
-  const updateOnboarding = useUpdateOnboarding()
 
   const handleStart = () => {
     // Navigate to existing assessment flow with return URL

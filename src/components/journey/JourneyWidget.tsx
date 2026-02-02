@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronUp, Eye } from 'lucide-react'
+import { ChevronUp, Eye } from 'lucide-react'
 import { useJourney } from '../../lib/api/hooks/useJourney'
 
 const STORAGE_KEY = 'journey_widget_expanded'
@@ -92,7 +92,8 @@ export function JourneyWidget() {
   if (isError || !data) return null
 
   const journey = data
-  const progressPct = journey.active_protocol?.progress_pct ?? 0
+  const firstProtocol = journey.active_protocols?.[0]
+  const progressPct = firstProtocol?.progress_pct ?? 0
 
   if (!expanded) {
     return (
@@ -126,25 +127,25 @@ export function JourneyWidget() {
 
       {/* Focus Pillar */}
       <p className="text-xs font-medium text-kalkvit/70 mb-2">
-        {journey.current_focus_pillar ?? 'No focus set'}
+        {journey.focus?.current_pillar ?? 'No focus set'}
       </p>
 
       {/* Active Protocol */}
-      {journey.active_protocol && (
+      {firstProtocol && (
         <div className="flex items-center gap-2 mb-2">
-          <CircularProgress pct={journey.active_protocol.progress_pct} />
+          <CircularProgress pct={firstProtocol.progress_pct} />
           <p className="text-xs font-medium text-kalkvit truncate flex-1">
-            {journey.active_protocol.title}
+            {firstProtocol.title}
           </p>
         </div>
       )}
 
-      {/* Weekly Stats */}
-      <p className="text-[11px] text-kalkvit/50 mb-2">
-        {journey.weekly_stats.tasks_completed}/{journey.weekly_stats.tasks_total} tasks
-        {' · '}
-        {journey.weekly_stats.streak_days} day streak
-      </p>
+      {/* Protocols count */}
+      {journey.active_protocols.length > 0 && (
+        <p className="text-[11px] text-kalkvit/50 mb-2">
+          {journey.active_protocols.length} active protocol{journey.active_protocols.length !== 1 ? 's' : ''}
+        </p>
+      )}
 
       {/* View Journey Link */}
       <Link
