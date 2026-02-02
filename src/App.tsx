@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, type ComponentType } from 'react'
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
@@ -7,70 +7,94 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
 import { LoadingSpinner } from './components/LoadingSpinner'
 
+// Auto-reload on stale chunk errors after deploy
+function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }>) {
+  return lazy(() =>
+    importFn().catch((error: unknown) => {
+      const isChunkError =
+        error instanceof TypeError &&
+        (error.message.includes('dynamically imported module') ||
+          error.message.includes('Failed to fetch') ||
+          error.message.includes('Loading chunk'))
+      if (!isChunkError) throw error
+
+      // Prevent infinite reload loop: only reload once per session
+      const reloadKey = 'chunk_reload_' + window.location.pathname
+      const lastReload = sessionStorage.getItem(reloadKey)
+      if (lastReload && Date.now() - Number(lastReload) < 10000) throw error
+
+      sessionStorage.setItem(reloadKey, String(Date.now()))
+      window.location.reload()
+      // Return a never-resolving promise to prevent React from rendering while reload happens
+      return new Promise<never>(() => {})
+    })
+  )
+}
+
 // Pages - Auth
-const LoginPage = lazy(() => import('./pages/LoginPage'))
-const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
-const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
+const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'))
+const ForgotPasswordPage = lazyWithRetry(() => import('./pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazyWithRetry(() => import('./pages/ResetPasswordPage'))
 
 // Pages - Core
-const JourneyDashboardPage = lazy(() => import('./pages/JourneyDashboardPage'))
-const DashboardPage = lazy(() => import('./pages/DashboardPage'))
-const ProfilePage = lazy(() => import('./pages/ProfilePage'))
-const BillingPage = lazy(() => import('./pages/BillingPage'))
-const ResourcesPage = lazy(() => import('./pages/ResourcesPage'))
+const JourneyDashboardPage = lazyWithRetry(() => import('./pages/JourneyDashboardPage'))
+const DashboardPage = lazyWithRetry(() => import('./pages/DashboardPage'))
+const ProfilePage = lazyWithRetry(() => import('./pages/ProfilePage'))
+const BillingPage = lazyWithRetry(() => import('./pages/BillingPage'))
+const ResourcesPage = lazyWithRetry(() => import('./pages/ResourcesPage'))
 
 // Pages - Community
-const FeedPage = lazy(() => import('./pages/FeedPage'))
-const MessagesPage = lazy(() => import('./pages/MessagesPage'))
-const ConnectionsPage = lazy(() => import('./pages/ConnectionsPage'))
-const CirclesPage = lazy(() => import('./pages/CirclesPage'))
-const CircleDetailPage = lazy(() => import('./pages/CircleDetailPage'))
-const NetworkPage = lazy(() => import('./pages/NetworkPage'))
+const FeedPage = lazyWithRetry(() => import('./pages/FeedPage'))
+const MessagesPage = lazyWithRetry(() => import('./pages/MessagesPage'))
+const ConnectionsPage = lazyWithRetry(() => import('./pages/ConnectionsPage'))
+const CirclesPage = lazyWithRetry(() => import('./pages/CirclesPage'))
+const CircleDetailPage = lazyWithRetry(() => import('./pages/CircleDetailPage'))
+const NetworkPage = lazyWithRetry(() => import('./pages/NetworkPage'))
 
 // Pages - Shop & Experts
-const ShopPage = lazy(() => import('./pages/ShopPage'))
-const ShopProtocolsPage = lazy(() => import('./pages/ShopProtocolsPage'))
-const ShopProtocolDetailPage = lazy(() => import('./pages/ShopProtocolDetailPage'))
-const ShopCirclesPage = lazy(() => import('./pages/ShopCirclesPage'))
-const ShopUpgradePage = lazy(() => import('./pages/ShopUpgradePage'))
-const ShopSuccessPage = lazy(() => import('./pages/ShopSuccessPage'))
-const BookSessionPage = lazy(() => import('./pages/BookSessionPage'))
-const ExpertsPage = lazy(() => import('./pages/ExpertsPage'))
-const ExpertSessionsPage = lazy(() => import('./pages/ExpertSessionsPage'))
-const ExpertProfilePage = lazy(() => import('./pages/ExpertProfilePage'))
-const ProgramsPage = lazy(() => import('./pages/ProgramsPage'))
-const ProgramsSprintsPage = lazy(() => import('./pages/ProgramsSprintsPage'))
-const ProgramsReviewsPage = lazy(() => import('./pages/ProgramsReviewsPage'))
+const ShopPage = lazyWithRetry(() => import('./pages/ShopPage'))
+const ShopProtocolsPage = lazyWithRetry(() => import('./pages/ShopProtocolsPage'))
+const ShopProtocolDetailPage = lazyWithRetry(() => import('./pages/ShopProtocolDetailPage'))
+const ShopCirclesPage = lazyWithRetry(() => import('./pages/ShopCirclesPage'))
+const ShopUpgradePage = lazyWithRetry(() => import('./pages/ShopUpgradePage'))
+const ShopSuccessPage = lazyWithRetry(() => import('./pages/ShopSuccessPage'))
+const BookSessionPage = lazyWithRetry(() => import('./pages/BookSessionPage'))
+const ExpertsPage = lazyWithRetry(() => import('./pages/ExpertsPage'))
+const ExpertSessionsPage = lazyWithRetry(() => import('./pages/ExpertSessionsPage'))
+const ExpertProfilePage = lazyWithRetry(() => import('./pages/ExpertProfilePage'))
+const ProgramsPage = lazyWithRetry(() => import('./pages/ProgramsPage'))
+const ProgramsSprintsPage = lazyWithRetry(() => import('./pages/ProgramsSprintsPage'))
+const ProgramsReviewsPage = lazyWithRetry(() => import('./pages/ProgramsReviewsPage'))
 
 // Pages - Events
-const EventsPage = lazy(() => import('./pages/EventsPage'))
-const EventDetailPage = lazy(() => import('./pages/EventDetailPage'))
+const EventsPage = lazyWithRetry(() => import('./pages/EventsPage'))
+const EventDetailPage = lazyWithRetry(() => import('./pages/EventDetailPage'))
 
 // Pages - Coaching
-const CoachingSessionsPage = lazy(() => import('./pages/CoachingSessionsPage'))
-const CoachingResourcesPage = lazy(() => import('./pages/CoachingResourcesPage'))
-const SessionNotesPage = lazy(() => import('./pages/SessionNotesPage'))
+const CoachingSessionsPage = lazyWithRetry(() => import('./pages/CoachingSessionsPage'))
+const CoachingResourcesPage = lazyWithRetry(() => import('./pages/CoachingResourcesPage'))
+const SessionNotesPage = lazyWithRetry(() => import('./pages/SessionNotesPage'))
 
 // Pages - Onboarding
-const OnboardingWelcomePage = lazy(() => import('./pages/onboarding/OnboardingWelcomePage'))
-const OnboardingAssessmentPage = lazy(() => import('./pages/onboarding/OnboardingAssessmentPage'))
-const OnboardingResultsPage = lazy(() => import('./pages/onboarding/OnboardingResultsPage'))
-const OnboardingChallengePage = lazy(() => import('./pages/onboarding/OnboardingChallengePage'))
-const OnboardingPathPage = lazy(() => import('./pages/onboarding/OnboardingPathPage'))
+const OnboardingWelcomePage = lazyWithRetry(() => import('./pages/onboarding/OnboardingWelcomePage'))
+const OnboardingAssessmentPage = lazyWithRetry(() => import('./pages/onboarding/OnboardingAssessmentPage'))
+const OnboardingResultsPage = lazyWithRetry(() => import('./pages/onboarding/OnboardingResultsPage'))
+const OnboardingChallengePage = lazyWithRetry(() => import('./pages/onboarding/OnboardingChallengePage'))
+const OnboardingPathPage = lazyWithRetry(() => import('./pages/onboarding/OnboardingPathPage'))
 
 // Pages - Transformation Tracking
-const AssessmentPage = lazy(() => import('./pages/AssessmentPage'))
-const AssessmentTakePage = lazy(() => import('./pages/AssessmentTakePage'))
-const AssessmentResultsPage = lazy(() => import('./pages/AssessmentResultsPage'))
-const GoalsPage = lazy(() => import('./pages/GoalsPage'))
-const GoalDetailPage = lazy(() => import('./pages/GoalDetailPage'))
-const ActionItemsPage = lazy(() => import('./pages/ActionItemsPage'))
-const ProtocolsPage = lazy(() => import('./pages/ProtocolsPage'))
-const ProtocolDetailPage = lazy(() => import('./pages/ProtocolDetailPage'))
-const InterestGroupsPage = lazy(() => import('./pages/InterestGroupsPage'))
-const KPIsPage = lazy(() => import('./pages/KPIsPage'))
-const MilestonesPage = lazy(() => import('./pages/MilestonesPage'))
-const AccountabilityPage = lazy(() => import('./pages/AccountabilityPage'))
+const AssessmentPage = lazyWithRetry(() => import('./pages/AssessmentPage'))
+const AssessmentTakePage = lazyWithRetry(() => import('./pages/AssessmentTakePage'))
+const AssessmentResultsPage = lazyWithRetry(() => import('./pages/AssessmentResultsPage'))
+const GoalsPage = lazyWithRetry(() => import('./pages/GoalsPage'))
+const GoalDetailPage = lazyWithRetry(() => import('./pages/GoalDetailPage'))
+const ActionItemsPage = lazyWithRetry(() => import('./pages/ActionItemsPage'))
+const ProtocolsPage = lazyWithRetry(() => import('./pages/ProtocolsPage'))
+const ProtocolDetailPage = lazyWithRetry(() => import('./pages/ProtocolDetailPage'))
+const InterestGroupsPage = lazyWithRetry(() => import('./pages/InterestGroupsPage'))
+const KPIsPage = lazyWithRetry(() => import('./pages/KPIsPage'))
+const MilestonesPage = lazyWithRetry(() => import('./pages/MilestonesPage'))
+const AccountabilityPage = lazyWithRetry(() => import('./pages/AccountabilityPage'))
 
 
 const queryClient = new QueryClient({

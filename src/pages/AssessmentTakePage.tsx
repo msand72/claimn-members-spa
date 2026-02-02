@@ -11,6 +11,7 @@ export function AssessmentTakePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
+  const returnTo = searchParams.get('returnTo')
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -77,8 +78,8 @@ export function AssessmentTakePage() {
       { assessmentId, data: { answers } },
       {
         onSuccess: (result) => {
-          // Navigate with the result ID from API
-          navigate(`/assessment/results?id=${result.id}`)
+          const resultsUrl = returnTo || `/assessment/results?id=${result.id}`
+          navigate(resultsUrl)
         },
         onError: () => {
           // API failed — fall back to client-side results
@@ -91,8 +92,7 @@ export function AssessmentTakePage() {
   }
 
   const handleContinueOffline = () => {
-    // Navigate without result ID — results page will use sessionStorage fallback
-    navigate('/assessment/results')
+    navigate(returnTo || '/assessment/results')
   }
 
   const isAnswered = answers[currentQuestion.id] !== undefined
