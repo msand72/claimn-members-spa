@@ -68,11 +68,7 @@ function PostCard({ post }: { post: FeedPost }) {
   const { data: commentsData, isLoading: commentsLoading } = usePostComments(
     showComments ? post.id : ''
   )
-  const comments: FeedComment[] = Array.isArray(commentsData)
-    ? commentsData
-    : Array.isArray((commentsData as any)?.data)
-      ? (commentsData as any).data
-      : []
+  const comments: FeedComment[] = commentsData ?? []
 
   const handleLike = () => {
     if (post.is_liked) {
@@ -360,19 +356,12 @@ export function FeedPage() {
     }
   }
 
-  // Get posts from API response, filter for "My Groups" tab
-  const allPosts = Array.isArray(feedData?.data) ? feedData.data : []
-  const effectiveGroupIds = new Set(effectiveGroups.map((g) => g.id))
-  const posts = activeTab === 'my-groups'
-    ? allPosts.filter((p) => p.interest_group_id && effectiveGroupIds.has(p.interest_group_id))
-    : allPosts
+  // Get posts from API response
+  const posts = Array.isArray(feedData?.data) ? feedData.data : []
 
-  // Create tab options — show individual interest tabs
+  // Create tab options — show individual interest group tabs
   const tabs = [
     { value: 'all', label: 'All Posts' },
-    ...(effectiveGroups.length > 0
-      ? [{ value: 'my-groups', label: 'My Groups' }]
-      : []),
     ...effectiveGroups.slice(0, 5).map((g) => ({
       value: g.id,
       label: g.name,

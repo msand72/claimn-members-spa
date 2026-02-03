@@ -96,8 +96,13 @@ export function useUnlikePost() {
 export function usePostComments(postId: string) {
   return useQuery({
     queryKey: feedKeys.comments(postId),
-    queryFn: () =>
-      api.get<FeedComment[]>(`/members/feed/${postId}/comments`),
+    queryFn: async () => {
+      const res = await api.get<any>(`/members/feed/${postId}/comments`)
+      // Backend may return bare array or { data: [...] } wrapper
+      if (Array.isArray(res)) return res as FeedComment[]
+      if (res && Array.isArray(res.data)) return res.data as FeedComment[]
+      return [] as FeedComment[]
+    },
     enabled: !!postId,
   })
 }
