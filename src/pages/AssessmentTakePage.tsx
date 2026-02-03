@@ -44,8 +44,8 @@ export function AssessmentTakePage() {
   }, [apiQuestions])
 
   const totalQuestions = questions.length
-  const currentQuestion = questions[currentIndex]
-  const progress = ((currentIndex + 1) / totalQuestions) * 100
+  const currentQuestion = questions[currentIndex] as LocalAssessmentQuestion | undefined
+  const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0
 
   // Compute section counts from the active questions array
   const sectionCounts = useMemo(() => {
@@ -82,6 +82,7 @@ export function AssessmentTakePage() {
   }
 
   const handleAnswer = (value: number) => {
+    if (!currentQuestion) return
     setAnswers((prev) => ({
       ...prev,
       [currentQuestion.id]: value,
@@ -131,7 +132,7 @@ export function AssessmentTakePage() {
     navigate(returnTo || '/assessment/results')
   }
 
-  const isAnswered = answers[currentQuestion.id] !== undefined
+  const isAnswered = currentQuestion ? answers[currentQuestion.id] !== undefined : false
   const isLastQuestion = currentIndex === totalQuestions - 1
 
   // Show a brief loading state while questions are being fetched
@@ -146,8 +147,8 @@ export function AssessmentTakePage() {
     )
   }
 
-  // Show error if questions could not be loaded
-  if (isQuestionsError || questions.length === 0) {
+  // Show error if questions could not be loaded or current question missing
+  if (isQuestionsError || questions.length === 0 || !currentQuestion) {
     return (
       <MainLayout>
         <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-24 gap-6">
