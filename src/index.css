@@ -103,13 +103,13 @@ body {
 
   /* Light theme glass variants */
   .light .glass-base {
-    @apply bg-white/40 backdrop-blur-[16px] border border-white/60;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    @apply bg-white/70 backdrop-blur-[16px] border border-black/[0.08];
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   }
 
   .light .glass-elevated {
-    @apply bg-white/60 backdrop-blur-[24px] border border-white/80;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+    @apply bg-white/90 backdrop-blur-[24px] border border-black/[0.1];
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
   }
 
   .light .glass-accent {
