@@ -35,15 +35,15 @@ export function MainLayout({ children }: MainLayoutProps) {
       </div>
 
       {/* Main Content - with left margin for fixed sidebar on desktop */}
-      <main className="relative z-10 min-h-screen pt-14 pb-20 lg:pt-0 lg:pb-0 lg:ml-64 overflow-x-hidden">
+      <main className="relative z-10 min-h-screen pt-14 pb-20 lg:pt-0 lg:pb-0 lg:ml-64">
+        {section && (
+          <SectionTopBar
+            items={section.items}
+            moreItems={section.moreItems}
+            mode={section.mode}
+          />
+        )}
         <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-full">
-          {section && (
-            <SectionTopBar
-              items={section.items}
-              moreItems={section.moreItems}
-              mode={section.mode}
-            />
-          )}
           {children}
         </div>
       </main>

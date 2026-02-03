@@ -64,33 +64,35 @@ function StepperBar({
   }, [showMore])
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide p-1">
-      {items.map((item, index) => {
-        const active = isActive(item.to, pathname)
+    <div className="relative flex items-center gap-1 p-1">
+      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+        {items.map((item, index) => {
+          const active = isActive(item.to, pathname)
 
-        return (
-          <div key={item.to} className="flex items-center shrink-0">
-            {index > 0 && (
-              <ChevronRight className="w-4 h-4 text-kalkvit/20 mx-0.5 shrink-0" />
-            )}
-            <NavLink
-              to={item.to}
-              end={item.to === '/'}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
-                active
-                  ? 'bg-koppar/15 text-koppar border border-koppar/30'
-                  : 'text-kalkvit/60 hover:text-kalkvit hover:bg-white/[0.05] border border-transparent'
+          return (
+            <div key={item.to} className="flex items-center shrink-0">
+              {index > 0 && (
+                <ChevronRight className="w-4 h-4 text-kalkvit/20 mx-0.5 shrink-0" />
               )}
-            >
-              <item.icon className="w-3.5 h-3.5" />
-              {item.label}
-            </NavLink>
-          </div>
-        )
-      })}
+              <NavLink
+                to={item.to}
+                end={item.to === '/'}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
+                  active
+                    ? 'bg-koppar/15 text-koppar border border-koppar/30'
+                    : 'text-kalkvit/60 hover:text-kalkvit hover:bg-white/[0.05] border border-transparent'
+                )}
+              >
+                <item.icon className="w-3.5 h-3.5" />
+                {item.label}
+              </NavLink>
+            </div>
+          )
+        })}
+      </div>
 
-      {/* More dropdown for extra items */}
+      {/* More dropdown for extra items — outside the scrollable area so it won't be clipped */}
       {moreItems && moreItems.length > 0 && (
         <div className="relative shrink-0 ml-1" ref={moreRef}>
           <ChevronRight className="w-4 h-4 text-kalkvit/20 mx-0.5 shrink-0 inline" />
@@ -107,7 +109,7 @@ function StepperBar({
           </button>
 
           {showMore && (
-            <div className="absolute top-full right-0 mt-1 py-1 min-w-[160px] rounded-xl glass-elevated border border-white/10 shadow-xl z-50">
+            <div className="absolute top-full right-0 mt-1 py-1 min-w-[160px] rounded-xl glass-elevated border border-white/10 shadow-xl z-[100]">
               {moreItems.map((item) => (
                 <NavLink
                   key={item.to}
@@ -137,12 +139,14 @@ function StepperBar({
 
 export function SectionTopBar({ items, moreItems, mode = 'tabs' }: SectionTopBarProps) {
   return (
-    <div className="border-b border-white/10 bg-white/[0.02] -mx-3 sm:-mx-4 md:-mx-6 lg:-mx-8 px-3 sm:px-4 md:px-6 lg:px-8 mb-4 sm:mb-6">
-      {mode === 'stepper' ? (
-        <StepperBar items={items} moreItems={moreItems} />
-      ) : (
-        <TabsBar items={items} />
-      )}
+    <div className="relative z-20 border-b border-white/10 bg-white/[0.02] px-3 sm:px-4 md:px-6 lg:px-8">
+      <div className="flex justify-center">
+        {mode === 'stepper' ? (
+          <StepperBar items={items} moreItems={moreItems} />
+        ) : (
+          <TabsBar items={items} />
+        )}
+      </div>
     </div>
   )
 }
