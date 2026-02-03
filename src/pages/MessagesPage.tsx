@@ -103,7 +103,7 @@ export function MessagesPage() {
 
   // Mark conversation as read when selected (skip synthetic conversations)
   useEffect(() => {
-    if (selectedConversation?.id && !selectedConversation.id.startsWith('new-') && selectedConversation.unread_count > 0) {
+    if (selectedConversation?.id && !selectedConversation.id?.startsWith('new-') && selectedConversation.unread_count > 0) {
       markRead.mutate(selectedConversation.id)
     }
   }, [selectedConversation?.id])
@@ -141,8 +141,7 @@ export function MessagesPage() {
   // Include the synthetic conversation in the list if it's not already there
   const allConversations = (() => {
     if (
-      selectedConversation &&
-      selectedConversation.id.startsWith('new-') &&
+      selectedConversation?.id?.startsWith('new-') &&
       !conversations.some((c) => c.participant_id === selectedConversation.participant_id)
     ) {
       return [selectedConversation, ...conversations]
