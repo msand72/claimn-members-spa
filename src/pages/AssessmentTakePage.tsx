@@ -27,7 +27,6 @@ export function AssessmentTakePage() {
   const [searchParams] = useSearchParams()
   const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
   const returnTo = searchParams.get('returnTo')
-  const _variant = searchParams.get('variant') // 'light' | 'full' | null — reserved for future filtering
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
