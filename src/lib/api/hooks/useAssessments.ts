@@ -5,6 +5,7 @@ import type {
   AssessmentQuestion,
   AssessmentResult,
   SubmitAssessmentRequest,
+  AssessmentContentMap,
 } from '../types'
 
 // Query keys
@@ -15,6 +16,7 @@ export const assessmentKeys = {
   questions: (id: string) => [...assessmentKeys.all, 'questions', id] as const,
   results: (id: string) => [...assessmentKeys.all, 'results', id] as const,
   latestResult: () => [...assessmentKeys.all, 'latest-result'] as const,
+  content: () => [...assessmentKeys.all, 'content'] as const,
 }
 
 // =====================================================
@@ -44,73 +46,67 @@ export function useAssessment(id: string) {
 }
 
 // Get assessment questions
+// Handles both new format { questions: [...] } and legacy flat array
 export function useAssessmentQuestions(assessmentId: string) {
   return useQuery({
     queryKey: assessmentKeys.questions(assessmentId),
     queryFn: async () => {
-      console.log('[DEBUG useAssessmentQuestions] Fetching for assessmentId:', assessmentId)
-      try {
-        const result = await api.get<AssessmentQuestion[]>(`/members/assessments/${assessmentId}/questions`)
-        console.log('[DEBUG useAssessmentQuestions] Response type:', typeof result, 'isArray:', Array.isArray(result), 'length:', Array.isArray(result) ? result.length : 'N/A')
-        console.log('[DEBUG useAssessmentQuestions] Raw response shape:', JSON.stringify(result, null, 2)?.slice(0, 2000))
-        if (Array.isArray(result) && result.length > 0) {
-          const sections = result.map((q: any) => q.section).filter(Boolean)
-          const pillars = result.map((q: any) => q.pillar).filter(Boolean)
-          console.log('[DEBUG useAssessmentQuestions] Sections:', [...new Set(sections)], 'Pillars:', [...new Set(pillars)])
-        }
-        return result
-      } catch (error: any) {
-        console.error('[DEBUG useAssessmentQuestions] FAILED:', error?.status, error?.error?.message || error?.message)
-        throw error
-      }
+      const result = await api.get<AssessmentQuestion[] | { questions: AssessmentQuestion[] }>(
+        `/members/assessments/${assessmentId}/questions`
+      )
+      // Handle both wrapped { questions: [...] } and flat [...] response shapes
+      const questions = Array.isArray(result)
+        ? result
+        : (result as { questions: AssessmentQuestion[] }).questions ?? []
+      return questions
     },
     enabled: !!assessmentId,
   })
 }
 
-// Get assessment results
+// Get assessment results by assessment ID
 export function useAssessmentResults(assessmentId: string) {
   return useQuery({
     queryKey: assessmentKeys.results(assessmentId),
     queryFn: async () => {
-      console.log('[DEBUG useAssessmentResults] Fetching for assessmentId:', assessmentId)
-      try {
-        const result = await api.get<AssessmentResult>(`/members/assessments/${assessmentId}/results`)
-        console.log('[DEBUG useAssessmentResults] Response:', JSON.stringify(result, null, 2)?.slice(0, 2000))
-        return result
-      } catch (error: any) {
-        console.error('[DEBUG useAssessmentResults] FAILED:', error?.status, error?.error?.message || error?.message)
-        throw error
-      }
+      const result = await api.get<AssessmentResult>(
+        `/members/assessments/${assessmentId}/results`
+      )
+      return normalizeAssessmentResult(result)
     },
     enabled: !!assessmentId,
   })
 }
 
-// Get latest assessment result (for showing on dashboard, etc.)
+// Get latest assessment result (for dashboard, onboarding, etc.)
 export function useLatestAssessmentResult() {
   return useQuery({
     queryKey: assessmentKeys.latestResult(),
     queryFn: async () => {
-      console.log('[DEBUG useLatestAssessmentResult] Fetching /members/assessments/results/latest')
-      try {
-        const result = await api.get<AssessmentResult>('/members/assessments/results/latest')
-        console.log('[DEBUG useLatestAssessmentResult] Response keys:', result ? Object.keys(result) : 'null')
-        console.log('[DEBUG useLatestAssessmentResult] pillar_scores:', JSON.stringify((result as any)?.pillar_scores))
-        console.log('[DEBUG useLatestAssessmentResult] archetypes:', JSON.stringify((result as any)?.archetypes))
-        console.log('[DEBUG useLatestAssessmentResult] overall_score:', (result as any)?.overall_score)
-        console.log('[DEBUG useLatestAssessmentResult] insights:', JSON.stringify((result as any)?.insights)?.slice(0, 1000))
-        console.log('[DEBUG useLatestAssessmentResult] Full response:', JSON.stringify(result, null, 2)?.slice(0, 3000))
-        return result
-      } catch (error: any) {
-        console.error('[DEBUG useLatestAssessmentResult] FAILED:', error?.status, error?.error?.message || error?.message)
-        throw error
-      }
+      const result = await api.get<AssessmentResult | AssessmentResult[]>(
+        '/members/assessments/results/latest'
+      )
+      // Handle both single object and array (take first) responses
+      const single = Array.isArray(result) ? result[0] : result
+      if (!single) return undefined
+      return normalizeAssessmentResult(single)
     },
   })
 }
 
-// Submit assessment answers
+// Get assessment content map (for rendering full report text from content table)
+export function useAssessmentContent() {
+  return useQuery({
+    queryKey: assessmentKeys.content(),
+    queryFn: async () => {
+      const result = await api.get<AssessmentContentMap>('/members/assessments/content')
+      return result
+    },
+    staleTime: 1000 * 60 * 60, // Content rarely changes — cache for 1 hour
+  })
+}
+
+// Submit assessment answers (structured format for server-side scoring)
 export function useSubmitAssessment() {
   const queryClient = useQueryClient()
 
@@ -122,18 +118,15 @@ export function useSubmitAssessment() {
       assessmentId: string
       data: SubmitAssessmentRequest
     }) => {
-      console.log('[DEBUG useSubmitAssessment] Submitting to:', `/members/assessments/${assessmentId}/submit`)
-      console.log('[DEBUG useSubmitAssessment] Answer count:', Object.keys(data.answers).length)
-      console.log('[DEBUG useSubmitAssessment] Answers:', JSON.stringify(data.answers)?.slice(0, 1000))
-      try {
-        const result = await api.post<AssessmentResult>(`/members/assessments/${assessmentId}/submit`, data)
-        console.log('[DEBUG useSubmitAssessment] Success response:', JSON.stringify(result, null, 2)?.slice(0, 2000))
-        return result
-      } catch (error: any) {
-        console.error('[DEBUG useSubmitAssessment] FAILED:', error?.status, error?.error?.message || error?.message)
-        console.error('[DEBUG useSubmitAssessment] Full error:', JSON.stringify(error, null, 2)?.slice(0, 1000))
-        throw error
-      }
+      const response = await api.post<{ success: boolean; results: AssessmentResult } | AssessmentResult>(
+        `/members/assessments/${assessmentId}/submit`,
+        data
+      )
+
+      // Handle both { success, results } wrapper and flat result
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (response as any).results ?? response
+      return normalizeAssessmentResult(result as AssessmentResult)
     },
     onSuccess: (_, { assessmentId }) => {
       queryClient.invalidateQueries({ queryKey: assessmentKeys.all })
@@ -141,4 +134,38 @@ export function useSubmitAssessment() {
       queryClient.invalidateQueries({ queryKey: assessmentKeys.latestResult() })
     },
   })
+}
+
+// =====================================================
+// Helpers
+// =====================================================
+
+/**
+ * Normalize an AssessmentResult to handle both old and new API response shapes
+ * during the migration period. Once the backend is fully updated, the legacy
+ * branch can be removed.
+ */
+function normalizeAssessmentResult(result: AssessmentResult): AssessmentResult {
+  if (!result) return result
+
+  // If result already has new-format fields, return as-is
+  if (result.primary_archetype && result.pillar_scores) {
+    return result
+  }
+
+  // Legacy format compatibility: map old fields to new structure
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const legacy = result as any
+
+  if (legacy.archetypes && !result.primary_archetype) {
+    // Old format had archetypes as ["The Achiever", "The Optimizer"]
+    const primaryDisplay = legacy.archetypes[0] ?? ''
+    const secondaryDisplay = legacy.archetypes[1] ?? null
+    result.primary_archetype = primaryDisplay.replace('The ', '').toLowerCase()
+    result.secondary_archetype = secondaryDisplay
+      ? secondaryDisplay.replace('The ', '').toLowerCase()
+      : null
+  }
+
+  return result
 }

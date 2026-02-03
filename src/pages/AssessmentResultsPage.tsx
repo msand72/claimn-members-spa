@@ -1,17 +1,22 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassToast } from '../components/ui'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
+import type { PillarScore, AssessmentInsight, ArchetypeScores } from '../lib/api/types'
 import {
   calculatePillarScores,
   determineArchetypesFromAnswers,
   generateSimpleMicroInsights,
   generateSimpleIntegrationInsights,
 } from '../lib/assessment/scoring'
-import { useAssessmentResults, useLatestAssessmentResult, useAssessmentQuestions } from '../lib/api/hooks/useAssessments'
-import type { AssessmentResult as ApiAssessmentResult } from '../lib/api/types'
+import {
+  useAssessmentResults,
+  useLatestAssessmentResult,
+  useAssessmentQuestions,
+  useAssessmentContent,
+} from '../lib/api/hooks/useAssessments'
 import {
   Compass,
   Brain,
@@ -24,8 +29,18 @@ import {
   Sparkles,
   TrendingUp,
   AlertCircle,
+  RefreshCw,
+  ChevronRight,
+  BarChart3,
+  Zap,
+  Shield,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+
+// =====================================================
+// Constants
+// =====================================================
 
 const PILLAR_ICONS: Record<PillarId, React.ReactNode> = {
   identity: <Compass className="w-5 h-5" />,
@@ -35,84 +50,156 @@ const PILLAR_ICONS: Record<PillarId, React.ReactNode> = {
   mission: <Target className="w-5 h-5" />,
 }
 
-interface AssessmentResults {
-  pillarScores: Record<PillarId, number>
-  archetypes: string[]
-  answers: Record<string, number>
+const ARCHETYPE_DISPLAY: Record<string, { name: string; subtitle: string }> = {
+  achiever: { name: 'The Achiever', subtitle: 'Results-Driven, Goal-Oriented' },
+  optimizer: { name: 'The Optimizer', subtitle: 'Systems-Focused, Efficiency-Driven' },
+  networker: { name: 'The Networker', subtitle: 'Connection-Builder, Relationship-Focused' },
+  grinder: { name: 'The Grinder', subtitle: 'Discipline-Driven, Relentless Worker' },
+  philosopher: { name: 'The Philosopher', subtitle: 'Deep Thinker, Meaning-Seeker' },
 }
+
+const INSIGHT_TYPE_STYLES: Record<string, { icon: React.ReactNode; color: string }> = {
+  pillar_synergy: { icon: <Zap className="w-4 h-4" />, color: 'text-skogsgron' },
+  pillar_analysis: { icon: <BarChart3 className="w-4 h-4" />, color: 'text-koppar' },
+  dual_integration: { icon: <Users className="w-4 h-4" />, color: 'text-brandAmber' },
+  archetype_dominance: { icon: <Shield className="w-4 h-4" />, color: 'text-koppar' },
+  archetype_spectrum: { icon: <BarChart3 className="w-4 h-4" />, color: 'text-kalkvit/60' },
+  general: { icon: <Sparkles className="w-4 h-4" />, color: 'text-koppar' },
+}
+
+// =====================================================
+// Types for derived data
+// =====================================================
+
+interface DerivedResults {
+  resultId?: string
+  primaryArchetype: string // lowercase key
+  secondaryArchetype: string | null
+  primaryPercentage: number
+  secondaryPercentage: number
+  archetypeScores: Record<string, number>
+  pillarScores: Record<PillarId, PillarScore>
+  pillarPercentages: Record<PillarId, number>
+  consistencyScore: number
+  microInsights: AssessmentInsight[]
+  integrationInsights: AssessmentInsight[]
+  overallScore: number
+}
+
+// =====================================================
+// Helper to get content from content map with fallback
+// =====================================================
+
+function getContent(
+  contentMap: Record<string, string> | undefined,
+  key: string,
+  fallback: string = ''
+): string {
+  return contentMap?.[key] ?? fallback
+}
+
+// =====================================================
+// Component
+// =====================================================
 
 export function AssessmentResultsPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const resultId = searchParams.get('id')
-  const [results, setResults] = useState<AssessmentResults | null>(null)
-  const [insights, setInsights] = useState<{
-    micro: Record<PillarId, string>
-    integration: string[]
-  } | null>(null)
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'info' | 'warning' | 'error' } | null>(null)
 
-  // Fetch from API if we have a result ID
+  // Fetch from API
   const apiResultById = useAssessmentResults(resultId ?? '')
   const latestResult = useLatestAssessmentResult()
-
-  // Fetch questions from API for client-side scoring fallback
   const { data: apiQuestions } = useAssessmentQuestions('five-pillars')
+  const { data: contentMap } = useAssessmentContent()
 
   // Pick whichever API source is relevant
-  const apiResult: ApiAssessmentResult | undefined = resultId
-    ? apiResultById.data
-    : latestResult.data
+  const apiResult = resultId ? apiResultById.data : latestResult.data
   const apiLoading = resultId ? apiResultById.isLoading : latestResult.isLoading
-  const apiFetched = resultId ? apiResultById.isFetched : latestResult.isFetched
 
-  // Populate results from API or fall back to sessionStorage
-  useEffect(() => {
-    // If API returned data, use it
+  // Derive normalized results
+  const results: DerivedResults | null = useMemo(() => {
     if (apiResult) {
-      setResults({
-        pillarScores: apiResult.pillar_scores,
-        archetypes: apiResult.archetypes,
-        answers: {}, // API result may not include raw answers
-      })
-      setInsights(apiResult.insights)
-      return
+      return deriveFromApiResult(apiResult)
     }
 
-    // Still loading from API — wait
-    if (apiLoading) return
+    // Still loading
+    if (apiLoading) return null
 
-    // API fetch completed but returned nothing — fall back to sessionStorage
+    // Fallback: client-side scoring from sessionStorage
     const storedAnswers = sessionStorage.getItem('assessmentAnswers')
     if (!storedAnswers || !apiQuestions || apiQuestions.length === 0) {
-      navigate('/assessment')
-      return
+      return null
     }
 
     const answers = JSON.parse(storedAnswers) as Record<string, number>
-
-    // Transform API questions to scoring format
     const questionsForScoring = apiQuestions.map(q => ({
       id: q.id,
-      section: q.section,
-      pillar: q.pillar,
+      section: q.section ?? q.question_type,
+      pillar: q.pillar ?? q.pillar_category,
+      question_type: q.question_type,
+      pillar_category: q.pillar_category,
     }))
 
-    // Calculate results client-side using API questions
-    const pillarScores = calculatePillarScores(answers, questionsForScoring)
+    const pillarPercentages = calculatePillarScores(answers, questionsForScoring)
     const archetypes = determineArchetypesFromAnswers(answers, questionsForScoring)
 
-    setResults({
-      pillarScores,
-      archetypes,
-      answers,
-    })
+    // Build PillarScore objects from percentages
+    const pillarScores: Record<PillarId, PillarScore> = {} as Record<PillarId, PillarScore>
+    for (const [pid, pct] of Object.entries(pillarPercentages)) {
+      const raw = Math.round((pct / 100) * 7 * 10) / 10
+      pillarScores[pid as PillarId] = {
+        raw,
+        level: raw <= 3.5 ? 'low' : raw <= 5.5 ? 'moderate' : 'high',
+        percentage: pct,
+      }
+    }
 
-    setInsights({
-      micro: generateSimpleMicroInsights(pillarScores),
-      integration: generateSimpleIntegrationInsights(pillarScores, archetypes),
-    })
-  }, [apiResult, apiLoading, apiFetched, apiQuestions, navigate])
+    const primaryKey = (archetypes[0] ?? 'achiever').replace('The ', '').toLowerCase()
+    const pillarValues = Object.values(pillarPercentages)
+    const overallScore = pillarValues.length > 0
+      ? Math.round(pillarValues.reduce((s, v) => s + v, 0) / pillarValues.length)
+      : 0
+
+    // Generate simple insights for offline mode
+    const microInsightsMap = generateSimpleMicroInsights(pillarPercentages)
+    const microInsights: AssessmentInsight[] = Object.entries(microInsightsMap).map(([pillar, text]) => ({
+      type: 'pillar_analysis',
+      title: `${PILLARS[pillar as PillarId]?.name ?? pillar} Focus`,
+      insight: text,
+      pillar,
+      level: pillarScores[pillar as PillarId]?.level,
+    }))
+
+    const integrationTexts = generateSimpleIntegrationInsights(pillarPercentages, archetypes)
+    const integrationInsights: AssessmentInsight[] = integrationTexts.map((text) => ({
+      type: 'general',
+      title: 'Integration Insight',
+      insight: text,
+    }))
+
+    return {
+      primaryArchetype: primaryKey,
+      secondaryArchetype: null,
+      primaryPercentage: 0,
+      secondaryPercentage: 0,
+      archetypeScores: {},
+      pillarScores,
+      pillarPercentages,
+      consistencyScore: 0,
+      microInsights,
+      integrationInsights,
+      overallScore,
+    }
+  }, [apiResult, apiLoading, apiQuestions])
+
+  // Redirect if no data at all
+  useEffect(() => {
+    if (!apiLoading && !results) {
+      navigate('/assessment')
+    }
+  }, [apiLoading, results, navigate])
 
   const showToast = useCallback(
     (message: string, variant: 'success' | 'info' | 'warning' | 'error' = 'info') => {
@@ -132,15 +219,16 @@ export function AssessmentResultsPage() {
   }, [showToast])
 
   const handleDownloadReport = useCallback(() => {
-    showToast('PDF reports are coming soon!', 'info')
-  }, [showToast])
+    window.print()
+  }, [])
 
-  if (!results || !insights) {
+  // Loading
+  if (!results) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="animate-spin w-8 h-8 border-2 border-koppar border-t-transparent rounded-full mx-auto mb-4" />
+            <Loader2 className="w-8 h-8 animate-spin text-koppar mx-auto mb-4" />
             <p className="text-kalkvit/60">Calculating your results...</p>
           </div>
         </div>
@@ -148,96 +236,132 @@ export function AssessmentResultsPage() {
     )
   }
 
-  // Sort pillars by score for display
-  const sortedPillars = Object.entries(results.pillarScores)
+  const {
+    primaryArchetype,
+    secondaryArchetype,
+    primaryPercentage,
+    archetypeScores,
+    pillarScores,
+    pillarPercentages,
+    consistencyScore,
+    microInsights,
+    integrationInsights,
+    overallScore,
+  } = results
+
+  const archetypeInfo = ARCHETYPE_DISPLAY[primaryArchetype] ?? {
+    name: primaryArchetype,
+    subtitle: '',
+  }
+
+  // Sort pillars by percentage
+  const sortedPillars = Object.entries(pillarPercentages)
     .sort(([, a], [, b]) => b - a)
     .map(([id]) => id as PillarId)
+    .filter((id) => PILLARS[id])
 
   const strongestPillar = sortedPillars[0]
   const weakestPillar = sortedPillars[sortedPillars.length - 1]
-  const overallScore = Math.round(
-    Object.values(results.pillarScores).reduce((sum, score) => sum + score, 0) / 5
-  )
+
+  // Top pillar info for hero
+  const topPillar = strongestPillar ? PILLARS[strongestPillar] : null
+  const topPillarScore = strongestPillar ? pillarPercentages[strongestPillar] : 0
 
   return (
     <MainLayout>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
+      <div className="max-w-4xl mx-auto print:max-w-none">
+        {/* ============================================= */}
+        {/* Section 1: Header */}
+        {/* ============================================= */}
+        <div className="text-center mb-4">
           <GlassBadge variant="koppar" className="mb-4">
             <Sparkles className="w-4 h-4" />
-            Assessment Complete
+            CLAIM'N Archetype Results
           </GlassBadge>
-          <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">
-            Your CLAIM'N Profile
-          </h1>
-          <p className="text-kalkvit/60">
-            Here's what we learned about your current state and growth opportunities
-          </p>
         </div>
 
-        {/* Overall Score */}
-        <GlassCard variant="elevated" className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-koppar/20 to-brandAmber/20 border-2 border-koppar mb-4">
-            <span className="font-display text-4xl font-bold text-koppar">{overallScore}</span>
+        {/* ============================================= */}
+        {/* Section 2: Hero — Score Circle + Quick Stats */}
+        {/* ============================================= */}
+        <GlassCard variant="elevated" className="mb-8">
+          <div className="text-center mb-6">
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-kalkvit mb-1">
+              {archetypeInfo.name}
+            </h1>
+            {archetypeInfo.subtitle && (
+              <p className="text-koppar/80 text-lg">{archetypeInfo.subtitle}</p>
+            )}
+            {getContent(contentMap, `${primaryArchetype}_subtitle`) && (
+              <p className="text-kalkvit/60 text-sm mt-2 max-w-lg mx-auto">
+                {getContent(contentMap, `${primaryArchetype}_subtitle`)}
+              </p>
+            )}
           </div>
-          <h2 className="font-serif text-xl font-semibold text-kalkvit mb-2">
-            Overall Wellbeing Score
-          </h2>
-          <p className="text-kalkvit/60 text-sm max-w-md mx-auto">
-            {overallScore >= 80
-              ? 'Excellent! You have a strong foundation across all pillars.'
-              : overallScore >= 60
-                ? 'Good progress! Some areas show strength while others offer growth opportunities.'
-                : overallScore >= 40
-                  ? 'Solid starting point. Focused work on key pillars will drive transformation.'
-                  : 'Great potential for growth. Your journey starts here.'}
-          </p>
+
+          {/* Score circle */}
+          <div className="flex justify-center mb-8">
+            <div className="relative w-32 h-32">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
+                <circle
+                  cx="60" cy="60" r="54" fill="none"
+                  stroke="#B87333"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(overallScore / 100) * 339.3} 339.3`}
+                  className="transition-all duration-1000 ease-out"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="font-display text-4xl font-bold text-koppar">{overallScore}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick stat cards */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-3 rounded-xl bg-white/[0.04] border border-white/10">
+              <p className="text-2xl font-bold text-koppar">{primaryPercentage || overallScore}%</p>
+              <p className="text-xs text-kalkvit/50 mt-1">Primary Archetype</p>
+            </div>
+            <div className="text-center p-3 rounded-xl bg-white/[0.04] border border-white/10">
+              <p className="text-2xl font-bold text-koppar">
+                {consistencyScore > 0 ? `${Math.round(consistencyScore * 100)}%` : `${overallScore}%`}
+              </p>
+              <p className="text-xs text-kalkvit/50 mt-1">
+                {consistencyScore > 0 ? 'Consistency' : 'Overall Score'}
+              </p>
+            </div>
+            <div className="text-center p-3 rounded-xl bg-white/[0.04] border border-white/10">
+              <p className="text-2xl font-bold text-skogsgron">{topPillarScore}%</p>
+              <p className="text-xs text-kalkvit/50 mt-1">{topPillar?.name ?? 'Top Pillar'}</p>
+            </div>
+          </div>
         </GlassCard>
 
-        {/* Archetype Section */}
-        <GlassCard variant="base" className="mb-8">
-          <h3 className="font-display text-lg font-semibold text-kalkvit mb-4">
-            Your Primary Archetype{results.archetypes.length > 1 ? 's' : ''}
-          </h3>
-          <div className="flex flex-wrap gap-3 mb-4">
-            {results.archetypes.map((archetype, index) => (
-              <GlassBadge
-                key={archetype}
-                variant={index === 0 ? 'koppar' : 'default'}
-                className="text-base py-2 px-4"
-              >
-                {archetype}
-              </GlassBadge>
-            ))}
-          </div>
-          <p className="text-kalkvit/60 text-sm">
-            {results.archetypes.length === 1
-              ? `You strongly identify as ${results.archetypes[0]}. This archetype shapes how you approach challenges and growth.`
-              : `You show traits of multiple archetypes, with ${results.archetypes[0]} being your primary style. This versatility can be a strength.`}
-          </p>
-        </GlassCard>
-
-        {/* Pillar Scores */}
+        {/* ============================================= */}
+        {/* Section 3: Five Pillar Foundation */}
+        {/* ============================================= */}
         <div className="mb-8">
-          <h3 className="font-display text-lg font-semibold text-kalkvit mb-4">
-            Your Five Pillars
-          </h3>
+          <h2 className="font-display text-xl font-bold text-kalkvit mb-4">
+            Your Five Pillar Foundation
+          </h2>
           <div className="space-y-4">
             {sortedPillars.map((pillarId) => {
               const pillar = PILLARS[pillarId]
-              const score = results.pillarScores[pillarId]
+              const score = pillarPercentages[pillarId]
+              const pillarScore = pillarScores[pillarId]
               const isStrongest = pillarId === strongestPillar
               const isWeakest = pillarId === weakestPillar
+
+              // Find micro insight for this pillar
+              const insight = microInsights.find((i) => i.pillar === pillarId)
 
               return (
                 <GlassCard
                   key={pillarId}
                   variant={isStrongest ? 'accent' : 'base'}
-                  className={cn(
-                    'transition-all',
-                    isStrongest && 'ring-1 ring-koppar/30'
-                  )}
+                  className={cn(isStrongest && 'ring-1 ring-koppar/30')}
                 >
                   <div className="flex items-start gap-4">
                     <div
@@ -254,15 +378,26 @@ export function AssessmentResultsPage() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium text-kalkvit">{pillar.name}</h4>
+                          {pillarScore && (
+                            <GlassBadge
+                              variant={
+                                pillarScore.level === 'high' ? 'success' :
+                                pillarScore.level === 'moderate' ? 'koppar' : 'warning'
+                              }
+                              className="text-xs"
+                            >
+                              {pillarScore.level === 'high' && <TrendingUp className="w-3 h-3" />}
+                              {pillarScore.level === 'low' && <AlertCircle className="w-3 h-3" />}
+                              {pillarScore.level}
+                            </GlassBadge>
+                          )}
                           {isStrongest && (
                             <GlassBadge variant="success" className="text-xs">
-                              <TrendingUp className="w-3 h-3" />
                               Strongest
                             </GlassBadge>
                           )}
                           {isWeakest && (
                             <GlassBadge variant="warning" className="text-xs">
-                              <AlertCircle className="w-3 h-3" />
                               Growth Area
                             </GlassBadge>
                           )}
@@ -273,13 +408,13 @@ export function AssessmentResultsPage() {
                             score >= 70 ? 'text-skogsgron' : score >= 40 ? 'text-koppar' : 'text-tegelrod'
                           )}
                         >
-                          {score}
+                          {score}%
                         </span>
                       </div>
                       <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-3">
                         <div
                           className={cn(
-                            'h-full rounded-full transition-all',
+                            'h-full rounded-full transition-all duration-1000 ease-out',
                             score >= 70
                               ? 'bg-skogsgron'
                               : score >= 40
@@ -289,7 +424,15 @@ export function AssessmentResultsPage() {
                           style={{ width: `${score}%` }}
                         />
                       </div>
-                      <p className="text-sm text-kalkvit/60">{insights.micro[pillarId]}</p>
+                      {insight && (
+                        <p className="text-sm text-kalkvit/60">{insight.insight}</p>
+                      )}
+                      {/* Content-driven insight from content table */}
+                      {!insight && contentMap && pillarScore && (
+                        <p className="text-sm text-kalkvit/60">
+                          {getContent(contentMap, `${primaryArchetype}_${pillarId}_${pillarScore.level}`)}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </GlassCard>
@@ -298,56 +441,310 @@ export function AssessmentResultsPage() {
           </div>
         </div>
 
-        {/* Integration Insights */}
+        {/* ============================================= */}
+        {/* Section 4: Primary Archetype Deep Dive */}
+        {/* ============================================= */}
         <GlassCard variant="elevated" className="mb-8">
-          <h3 className="font-display text-lg font-semibold text-kalkvit mb-4">
-            Key Insights
-          </h3>
-          <div className="space-y-3">
-            {insights.integration.map((insight, index) => (
-              <div key={index} className="flex gap-3">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-koppar/20 flex items-center justify-center">
-                  <span className="text-xs font-bold text-koppar">{index + 1}</span>
-                </div>
-                <p className="text-kalkvit/80 text-sm">{insight}</p>
+          <h2 className="font-display text-xl font-bold text-kalkvit mb-4">
+            Primary Archetype Deep Dive
+          </h2>
+
+          <div className="space-y-4">
+            {/* Strengths */}
+            {getContent(contentMap, `${primaryArchetype}_strengths`) && (
+              <div>
+                <h4 className="font-medium text-koppar mb-2">Core Strengths</h4>
+                <p className="text-kalkvit/70 text-sm">
+                  {getContent(contentMap, `${primaryArchetype}_strengths`)}
+                </p>
               </div>
-            ))}
+            )}
+
+            {/* Growth Edges */}
+            {getContent(contentMap, `${primaryArchetype}_growth_edges`) && (
+              <div>
+                <h4 className="font-medium text-koppar mb-2">Growth Edges</h4>
+                <p className="text-kalkvit/70 text-sm">
+                  {getContent(contentMap, `${primaryArchetype}_growth_edges`)}
+                </p>
+              </div>
+            )}
+
+            {/* Key Insight */}
+            {getContent(contentMap, `${primaryArchetype}_key_insight`) && (
+              <div className="p-4 rounded-xl bg-koppar/5 border border-koppar/20">
+                <h4 className="font-medium text-koppar mb-2">Key Insight</h4>
+                <p className="text-kalkvit/80 text-sm">
+                  {getContent(contentMap, `${primaryArchetype}_key_insight`)}
+                </p>
+              </div>
+            )}
+
+            {/* Fallback if no content keys */}
+            {!contentMap && (
+              <p className="text-kalkvit/60 text-sm">
+                As {archetypeInfo.name}, you approach growth with a distinctive style.
+                Your assessment reveals how this archetype intersects with your pillar scores
+                to create unique strengths and opportunities.
+              </p>
+            )}
           </div>
         </GlassCard>
 
-        {/* Recommended Next Steps */}
+        {/* ============================================= */}
+        {/* Section 5: All Archetype Scores + Consistency */}
+        {/* ============================================= */}
+        {Object.keys(archetypeScores).length > 0 && (
+          <GlassCard variant="base" className="mb-8">
+            <h2 className="font-display text-xl font-bold text-kalkvit mb-4">
+              All Archetype Scores
+            </h2>
+
+            <div className="space-y-3 mb-6">
+              {Object.entries(archetypeScores)
+                .sort(([, a], [, b]) => b - a)
+                .map(([key, score]) => {
+                  const info = ARCHETYPE_DISPLAY[key]
+                  const percentage = Math.round((score / 6) * 100)
+                  const isPrimary = key === primaryArchetype
+
+                  return (
+                    <div key={key}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={cn('text-sm', isPrimary ? 'text-koppar font-medium' : 'text-kalkvit/70')}>
+                          {info?.name ?? key}
+                        </span>
+                        <span className={cn('text-sm font-medium', isPrimary ? 'text-koppar' : 'text-kalkvit/50')}>
+                          {score}/6 ({percentage}%)
+                        </span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-all duration-700',
+                            isPrimary ? 'bg-koppar' : 'bg-white/20'
+                          )}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+
+            {/* Consistency Badge */}
+            {consistencyScore > 0 && (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10">
+                <div className="p-2 rounded-lg bg-koppar/10">
+                  <BarChart3 className="w-4 h-4 text-koppar" />
+                </div>
+                <div>
+                  <p className="text-sm text-kalkvit font-medium">
+                    Consistency Score: {Math.round(consistencyScore * 100)}%
+                  </p>
+                  <p className="text-xs text-kalkvit/50">
+                    {consistencyScore >= 0.7
+                      ? 'Highly balanced archetype distribution'
+                      : consistencyScore >= 0.4
+                        ? 'Moderate archetype focus with some variety'
+                        : 'Strong dominant archetype with clear specialization'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </GlassCard>
+        )}
+
+        {/* ============================================= */}
+        {/* Section 6: Integration Analysis */}
+        {/* ============================================= */}
+        {integrationInsights.length > 0 && (
+          <GlassCard variant="elevated" className="mb-8">
+            <h2 className="font-display text-xl font-bold text-kalkvit mb-4">
+              Integration Analysis
+            </h2>
+            <div className="space-y-3">
+              {integrationInsights.map((insight, index) => {
+                const style = INSIGHT_TYPE_STYLES[insight.type] ?? INSIGHT_TYPE_STYLES.general
+                return (
+                  <div
+                    key={index}
+                    className="p-4 rounded-xl bg-white/[0.04] border border-white/10"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn('mt-0.5', style?.color)}>
+                        {style?.icon}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-kalkvit mb-1">{insight.title}</h4>
+                        <p className="text-sm text-kalkvit/60">{insight.insight}</p>
+                        {insight.priority && (
+                          <GlassBadge
+                            variant={insight.priority === 'high' ? 'warning' : 'default'}
+                            className="text-xs mt-2"
+                          >
+                            {insight.priority} priority
+                          </GlassBadge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </GlassCard>
+        )}
+
+        {/* ============================================= */}
+        {/* Section 7: Development Focus Areas */}
+        {/* ============================================= */}
         <GlassCard variant="base" className="mb-8">
-          <h3 className="font-display text-lg font-semibold text-kalkvit mb-4">
+          <h2 className="font-display text-xl font-bold text-kalkvit mb-4">
+            Development Focus Areas
+          </h2>
+          <div className="space-y-3">
+            {sortedPillars
+              .slice()
+              .reverse() // lowest first
+              .filter((pid) => pillarScores[pid]?.level !== 'high')
+              .slice(0, 3)
+              .map((pillarId, index) => {
+                const pillar = PILLARS[pillarId]
+                const score = pillarPercentages[pillarId]
+                const level = pillarScores[pillarId]?.level
+
+                return (
+                  <div key={pillarId} className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-koppar/20 flex items-center justify-center mt-0.5">
+                      <span className="text-xs font-bold text-koppar">{index + 1}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-kalkvit font-medium">
+                        {pillar.name}
+                        <span className="text-kalkvit/40 ml-2">({score}% — {level})</span>
+                      </p>
+                      <p className="text-xs text-kalkvit/50 mt-0.5">
+                        {getContent(
+                          contentMap,
+                          `${primaryArchetype}_${pillarId}_${level}_action`,
+                          `Focus on structured development in ${pillar.name.toLowerCase()} to build momentum.`
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            {sortedPillars.every((pid) => pillarScores[pid]?.level === 'high') && (
+              <p className="text-sm text-kalkvit/60">
+                All pillars are at a high level. Focus on integration and synergy between areas.
+              </p>
+            )}
+          </div>
+        </GlassCard>
+
+        {/* ============================================= */}
+        {/* Section 8: Action Plan */}
+        {/* ============================================= */}
+        <GlassCard variant="elevated" className="mb-8">
+          <h2 className="font-display text-xl font-bold text-kalkvit mb-4">
+            Your Action Plan
+          </h2>
+
+          <div className="space-y-6">
+            {/* 30-day */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full bg-skogsgron" />
+                <h4 className="font-medium text-kalkvit text-sm">First 30 Days</h4>
+              </div>
+              <p className="text-sm text-kalkvit/60 ml-4">
+                {getContent(
+                  contentMap,
+                  `${primaryArchetype}_action_30d`,
+                  `Start with your growth area: ${weakestPillar ? PILLARS[weakestPillar].name : 'lowest-scoring pillar'}. Build one daily habit aligned with this pillar.`
+                )}
+              </p>
+            </div>
+
+            {/* 90-day */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full bg-koppar" />
+                <h4 className="font-medium text-kalkvit text-sm">90-Day Milestone</h4>
+              </div>
+              <p className="text-sm text-kalkvit/60 ml-4">
+                {getContent(
+                  contentMap,
+                  `${primaryArchetype}_action_90d`,
+                  'Expand your practice across multiple pillars. Begin integrating your archetype strengths with targeted development protocols.'
+                )}
+              </p>
+            </div>
+
+            {/* 6-month+ */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full bg-brandAmber" />
+                <h4 className="font-medium text-kalkvit text-sm">6-Month Vision</h4>
+              </div>
+              <p className="text-sm text-kalkvit/60 ml-4">
+                {getContent(
+                  contentMap,
+                  `${primaryArchetype}_action_6m`,
+                  'Achieve balanced development across all five pillars. Leverage your archetype to mentor others and contribute to the community.'
+                )}
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* ============================================= */}
+        {/* Section 9: Recommended Next Steps */}
+        {/* ============================================= */}
+        <GlassCard variant="base" className="mb-8">
+          <h2 className="font-display text-xl font-bold text-kalkvit mb-4">
             Recommended Next Steps
-          </h3>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link to="/protocols">
-              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all">
-                <h4 className="font-medium text-kalkvit mb-1">Start a Protocol</h4>
+              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all group">
+                <h4 className="font-medium text-kalkvit mb-1 flex items-center gap-2">
+                  Start a Protocol
+                  <ChevronRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                </h4>
                 <p className="text-sm text-kalkvit/60">
-                  Begin with the {PILLARS[weakestPillar].name} protocol to address your growth area
+                  Begin with the {weakestPillar ? PILLARS[weakestPillar].name : 'recommended'} protocol to address your growth area
                 </p>
               </div>
             </Link>
             <Link to="/goals">
-              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all">
-                <h4 className="font-medium text-kalkvit mb-1">Set Your Goals</h4>
+              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all group">
+                <h4 className="font-medium text-kalkvit mb-1 flex items-center gap-2">
+                  Set Your Goals
+                  <ChevronRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                </h4>
                 <p className="text-sm text-kalkvit/60">
                   Create measurable goals aligned with your assessment insights
                 </p>
               </div>
             </Link>
             <Link to="/book-session">
-              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all">
-                <h4 className="font-medium text-kalkvit mb-1">Book a Coaching Session</h4>
+              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all group">
+                <h4 className="font-medium text-kalkvit mb-1 flex items-center gap-2">
+                  Book a Coaching Session
+                  <ChevronRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                </h4>
                 <p className="text-sm text-kalkvit/60">
                   Get personalized guidance from an expert coach
                 </p>
               </div>
             </Link>
             <Link to="/network">
-              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all">
-                <h4 className="font-medium text-kalkvit mb-1">Connect with Others</h4>
+              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all group">
+                <h4 className="font-medium text-kalkvit mb-1 flex items-center gap-2">
+                  Connect with Others
+                  <ChevronRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                </h4>
                 <p className="text-sm text-kalkvit/60">
                   Find members with shared interests and goals
                 </p>
@@ -356,8 +753,10 @@ export function AssessmentResultsPage() {
           </div>
         </GlassCard>
 
-        {/* Actions */}
-        <div className="flex flex-wrap gap-4 justify-center">
+        {/* ============================================= */}
+        {/* Action Buttons */}
+        {/* ============================================= */}
+        <div className="flex flex-wrap gap-4 justify-center mb-8 print:hidden">
           <Link to="/">
             <GlassButton variant="primary">
               Go to Dashboard
@@ -366,12 +765,18 @@ export function AssessmentResultsPage() {
           </Link>
           <GlassButton variant="secondary" onClick={handleDownloadReport}>
             <Download className="w-4 h-4" />
-            Download Report
+            Save PDF
           </GlassButton>
           <GlassButton variant="ghost" onClick={handleShareResults}>
             <Share2 className="w-4 h-4" />
             Share Results
           </GlassButton>
+          <Link to="/assessment">
+            <GlassButton variant="ghost">
+              <RefreshCw className="w-4 h-4" />
+              Retake Assessment
+            </GlassButton>
+          </Link>
         </div>
 
         {/* Toast notification */}
@@ -389,4 +794,106 @@ export function AssessmentResultsPage() {
   )
 }
 
-export default AssessmentResultsPage;
+// =====================================================
+// Helper: Derive results from API AssessmentResult
+// =====================================================
+
+function deriveFromApiResult(apiResult: {
+  id?: string
+  primary_archetype?: string
+  secondary_archetype?: string | null
+  archetype_scores?: ArchetypeScores | Record<string, number>
+  pillar_scores?: Record<string, PillarScore | number>
+  consistency_score?: number
+  micro_insights?: AssessmentInsight[]
+  integration_insights?: AssessmentInsight[]
+  // Legacy
+  archetypes?: string[]
+  overall_score?: number
+  insights?: { micro: Record<PillarId, string>; integration: string[] }
+}): DerivedResults {
+  // Archetype
+  const primaryArchetype = apiResult.primary_archetype
+    ?? (apiResult.archetypes?.[0] ?? 'achiever').replace('The ', '').toLowerCase()
+  const secondaryArchetype = apiResult.secondary_archetype
+    ?? (apiResult.archetypes?.[1] ? apiResult.archetypes[1].replace('The ', '').toLowerCase() : null)
+
+  // Archetype scores
+  const archetypeScores: Record<string, number> = apiResult.archetype_scores
+    ? { ...apiResult.archetype_scores }
+    : {}
+
+  const primaryScore = archetypeScores[primaryArchetype] ?? 0
+  const secondaryScore = secondaryArchetype ? (archetypeScores[secondaryArchetype] ?? 0) : 0
+  const primaryPercentage = Math.round((primaryScore / 6) * 100)
+  const secondaryPercentage = secondaryArchetype ? Math.round((secondaryScore / 6) * 100) : 0
+
+  // Pillar scores
+  const pillarScores: Record<PillarId, PillarScore> = {} as Record<PillarId, PillarScore>
+  const pillarPercentages: Record<PillarId, number> = {} as Record<PillarId, number>
+
+  if (apiResult.pillar_scores) {
+    for (const [key, val] of Object.entries(apiResult.pillar_scores)) {
+      const pillarId = key as PillarId
+      if (typeof val === 'object' && val !== null && 'percentage' in val) {
+        pillarScores[pillarId] = val as PillarScore
+        pillarPercentages[pillarId] = (val as PillarScore).percentage
+      } else if (typeof val === 'number') {
+        pillarPercentages[pillarId] = val
+        const raw = Math.round((val / 100) * 7 * 10) / 10
+        pillarScores[pillarId] = {
+          raw,
+          level: raw <= 3.5 ? 'low' : raw <= 5.5 ? 'moderate' : 'high',
+          percentage: val,
+        }
+      }
+    }
+  }
+
+  // Consistency
+  const consistencyScore = apiResult.consistency_score ?? 0
+
+  // Insights
+  let microInsights: AssessmentInsight[] = apiResult.micro_insights ?? []
+  let integrationInsights: AssessmentInsight[] = apiResult.integration_insights ?? []
+
+  // Legacy insight format
+  if (microInsights.length === 0 && apiResult.insights?.micro) {
+    microInsights = Object.entries(apiResult.insights.micro).map(([pillar, text]) => ({
+      type: 'pillar_analysis',
+      title: `${PILLARS[pillar as PillarId]?.name ?? pillar} Focus`,
+      insight: text,
+      pillar,
+    }))
+  }
+  if (integrationInsights.length === 0 && apiResult.insights?.integration) {
+    integrationInsights = apiResult.insights.integration.map((text) => ({
+      type: 'general',
+      title: 'Integration Insight',
+      insight: text,
+    }))
+  }
+
+  // Overall score
+  const pillarValues = Object.values(pillarPercentages)
+  const overallScore = pillarValues.length > 0
+    ? Math.round(pillarValues.reduce((s, v) => s + v, 0) / pillarValues.length)
+    : apiResult.overall_score ?? 0
+
+  return {
+    resultId: apiResult.id,
+    primaryArchetype,
+    secondaryArchetype,
+    primaryPercentage,
+    secondaryPercentage,
+    archetypeScores,
+    pillarScores,
+    pillarPercentages,
+    consistencyScore,
+    microInsights,
+    integrationInsights,
+    overallScore,
+  }
+}
+
+export default AssessmentResultsPage

@@ -1,5 +1,6 @@
-// Assessment Scoring Engine - Ported from claimn-web
-// Handles archetype detection, pillar scoring, and insight generation
+// Assessment Scoring Engine - Client-side fallback
+// Scale: 1-7 Likert (matching PHP original and claimn-web reference)
+// Primary scoring is done server-side; this is for offline fallback only
 
 import { PILLARS } from '../constants'
 import type { Archetype, PillarId } from '../constants'
@@ -23,6 +24,7 @@ export interface Insight {
   archetype?: string
   score?: number
   level?: string
+  [key: string]: unknown
 }
 
 export interface AssessmentResult {
@@ -37,7 +39,7 @@ export interface AssessmentResult {
   created_at: string
 }
 
-// Calculate consistency score
+// Calculate consistency score (exact port from PHP — max possible range is 6)
 export function calculateConsistencyScore(archetypeScores: ArchetypeScores): number {
   if (Object.keys(archetypeScores).length === 0) return 0.0
 
@@ -45,13 +47,13 @@ export function calculateConsistencyScore(archetypeScores: ArchetypeScores): num
   const max = Math.max(...scores)
   const min = Math.min(...scores)
   const range = max - min
-  const maxPossibleRange = 4
+  const maxPossibleRange = 6 // All 6 archetype questions could go to one archetype
 
   const consistency = 1 - range / maxPossibleRange
   return Math.round(consistency * 100) / 100
 }
 
-// Calculate pillar score from responses (1-5 Likert scale)
+// Calculate pillar score from responses (1-7 Likert scale)
 export function calculatePillarScore(responses: number[]): PillarScore {
   if (responses.length === 0) {
     return { raw: 0, level: 'low', percentage: 0 }
@@ -61,15 +63,15 @@ export function calculatePillarScore(responses: number[]): PillarScore {
   const raw = Math.round((sum / responses.length) * 10) / 10
 
   let level: 'low' | 'moderate' | 'high'
-  if (raw <= 2.5) {
+  if (raw <= 3.5) {
     level = 'low'
-  } else if (raw <= 3.5) {
+  } else if (raw <= 5.5) {
     level = 'moderate'
   } else {
     level = 'high'
   }
 
-  const percentage = Math.round(((raw - 1) / 4) * 100) // Convert 1-5 to 0-100
+  const percentage = Math.round((raw / 7) * 100) // 1-7 scale → 0-100
 
   return { raw, level, percentage }
 }
@@ -217,12 +219,12 @@ export function generateIntegrationInsights(
   const lowestPillar = sortedPillars[sortedPillars.length - 1]
   const gap = highestPillar[1].raw - lowestPillar[1].raw
 
-  // High-Low Gap Analysis
-  if (gap >= 1.5 && highestPillar[1].raw >= 3.5 && lowestPillar[1].raw <= 3.0) {
+  // High-Low Gap Analysis (thresholds matching PHP original)
+  if (gap >= 2.5 && highestPillar[1].raw >= 5.0 && lowestPillar[1].raw <= 4.0) {
     insights.push({
       type: 'pillar_synergy',
       title: 'Pillar Gap Analysis',
-      insight: `Your strength in ${PILLARS[highestPillar[0] as PillarId].name} (${highestPillar[1].raw}/5) can be leveraged to develop ${PILLARS[lowestPillar[0] as PillarId].name} (${lowestPillar[1].raw}/5). Apply the same systematic approach that created your strength.`,
+      insight: `Your strength in ${PILLARS[highestPillar[0] as PillarId].name} (${highestPillar[1].raw}/7) can be leveraged to develop ${PILLARS[lowestPillar[0] as PillarId].name} (${lowestPillar[1].raw}/7). Apply the same systematic approach that created your strength.`,
       priority: 'high',
     })
   }
@@ -236,10 +238,9 @@ export function generateIntegrationInsights(
     })
   }
 
-  // Archetype dominance analysis
+  // Archetype dominance analysis (percentage out of 6 questions, matching PHP)
   const primaryScore = archetypeScores[primary] || 0
-  const totalArchetypeQuestions = Object.values(archetypeScores).reduce((a, b) => a + b, 0) || 1
-  const primaryPercent = Math.round((primaryScore / totalArchetypeQuestions) * 100)
+  const primaryPercent = Math.round((primaryScore / 6) * 100)
 
   if (primaryPercent >= 70) {
     insights.push({
@@ -257,78 +258,96 @@ export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-// Calculate pillar scores from assessment answers
-// This is a simplified version for the UI - maps question answers to pillar percentages
+// Calculate pillar scores from assessment answers (1-7 Likert scale)
+// Used as client-side fallback when API scoring is unavailable
 export function calculatePillarScores(
   answers: Record<string, number>,
-  questions: { id: string; section: string; pillar?: string }[]
+  questions: { id: string; section?: string; question_type?: string; pillar?: string; pillar_category?: string }[]
 ): Record<PillarId, number> {
   // Build pillar groups dynamically from questions array
   const pillarAnswers: Record<string, number[]> = {}
   for (const question of questions) {
-    if (question.section === 'pillar' && question.pillar) {
-      if (!pillarAnswers[question.pillar]) {
-        pillarAnswers[question.pillar] = []
+    // Support both old format (section='pillar') and new format (question_type='pillar')
+    const isPillarQuestion = question.question_type === 'pillar' || question.section === 'pillar'
+    const pillarKey = question.pillar_category || question.pillar
+
+    if (isPillarQuestion && pillarKey) {
+      if (!pillarAnswers[pillarKey]) {
+        pillarAnswers[pillarKey] = []
       }
       if (answers[question.id] !== undefined) {
-        pillarAnswers[question.pillar].push(answers[question.id])
+        pillarAnswers[pillarKey].push(answers[question.id])
       }
     }
   }
 
-  // Calculate percentage for each pillar (1-5 Likert scale to 0-100)
+  // Calculate percentage for each pillar (1-7 Likert scale to 0-100)
   const scores: Record<PillarId, number> = {} as Record<PillarId, number>
   for (const [pillarId, pillarAnswerList] of Object.entries(pillarAnswers)) {
     if (pillarAnswerList.length > 0) {
       const sum = pillarAnswerList.reduce((a, b) => a + b, 0)
       const avg = sum / pillarAnswerList.length
-      scores[pillarId as PillarId] = Math.round(((avg - 1) / 4) * 100) // Convert 1-5 to 0-100
+      scores[pillarId as PillarId] = Math.round((avg / 7) * 100) // 1-7 → 0-100
     } else {
-      scores[pillarId as PillarId] = 0 // No answered questions for this pillar
+      scores[pillarId as PillarId] = 0
     }
   }
 
   return scores
 }
 
-// Determine archetypes from answers (simplified)
-// Returns array of archetype names, primary first
+// Determine archetypes from answers
+// Archetype questions have forced-choice options where each option maps to an archetype
+// The answer value IS the archetype key (e.g. "optimizer"), not an index
 export function determineArchetypesFromAnswers(
-  answers: Record<string, number>,
-  questions: { id: string; section: string }[]
+  answers: Record<string, number | string>,
+  questions: { id: string; section?: string; question_type?: string }[]
 ): string[] {
   const archetypeScores: Record<string, number> = {
-    'The Achiever': 0,
-    'The Optimizer': 0,
-    'The Networker': 0,
-    'The Grinder': 0,
-    'The Philosopher': 0,
+    achiever: 0,
+    optimizer: 0,
+    networker: 0,
+    grinder: 0,
+    philosopher: 0,
   }
 
-  const archetypeNames = Object.keys(archetypeScores)
+  const archetypeDisplayNames: Record<string, string> = {
+    achiever: 'The Achiever',
+    optimizer: 'The Optimizer',
+    networker: 'The Networker',
+    grinder: 'The Grinder',
+    philosopher: 'The Philosopher',
+  }
 
   // Count answers for archetype questions
   for (const question of questions) {
-    if (question.section === 'archetype' && answers[question.id] !== undefined) {
-      // Each answer value (1-5) maps to an archetype
-      const answerValue = answers[question.id]
-      if (answerValue >= 1 && answerValue <= 5) {
-        const archetype = archetypeNames[answerValue - 1]
-        archetypeScores[archetype]++
+    const isArchetypeQuestion = question.question_type === 'archetype' || question.section === 'archetype'
+    if (isArchetypeQuestion && answers[question.id] !== undefined) {
+      const answerValue = String(answers[question.id]).toLowerCase()
+      // New format: answer value is archetype key directly (e.g. "optimizer")
+      if (archetypeScores.hasOwnProperty(answerValue)) {
+        archetypeScores[answerValue]++
+      } else {
+        // Legacy format: answer value is 1-5 index mapping to archetype
+        const numVal = Number(answers[question.id])
+        const archetypeKeys = Object.keys(archetypeScores)
+        if (numVal >= 1 && numVal <= 5) {
+          archetypeScores[archetypeKeys[numVal - 1]]++
+        }
       }
     }
   }
 
-  // Sort by score and return top archetypes
+  // Sort by score and return top archetypes with display names
   const sorted = Object.entries(archetypeScores)
     .sort((a, b) => b[1] - a[1])
     .filter(([, score]) => score > 0)
-    .map(([name]) => name)
+    .map(([key]) => archetypeDisplayNames[key] || capitalize(key))
 
   return sorted.length > 0 ? sorted : ['The Achiever'] // Default
 }
 
-// Generate simple micro insights for pillar scores
+// Generate simple micro insights for pillar scores (percentage-based)
 export function generateSimpleMicroInsights(
   pillarScores: Record<PillarId, number>
 ): Record<PillarId, string> {

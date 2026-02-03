@@ -172,6 +172,7 @@ export {
   useAssessmentQuestions,
   useAssessmentResults,
   useLatestAssessmentResult,
+  useAssessmentContent,
   useSubmitAssessment,
 } from './useAssessments'
 

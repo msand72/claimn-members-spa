@@ -596,34 +596,118 @@ export interface Assessment {
 
 export interface AssessmentQuestion {
   id: string
-  assessment_id: string
-  question: string
-  section: string
-  pillar?: string
-  options: AssessmentOption[]
-  order: number
+  question_key: string
+  question_text: string
+  question_type: 'archetype' | 'pillar'
+  pillar_category?: PillarId
   is_reverse_scored?: boolean
+  sort_order: number
+  options: AssessmentOption[]
+  // Legacy fields for backward compatibility during migration
+  assessment_id?: string
+  question?: string
+  section?: string
+  pillar?: string
+  order?: number
 }
 
 export interface AssessmentOption {
-  value: number
-  label: string
+  id?: string
+  option_key?: string
+  option_text?: string
+  value?: number
+  label?: string
+}
+
+// Pillar score as stored in DB (JSONB shape)
+export interface PillarScore {
+  raw: number // 1-7 average
+  level: 'low' | 'moderate' | 'high'
+  percentage: number // (raw/7)*100
+}
+
+// Archetype scores as stored in DB (JSONB shape)
+export interface ArchetypeScores {
+  achiever: number
+  optimizer: number
+  networker: number
+  grinder: number
+  philosopher: number
+}
+
+// Integration insight from scoring engine
+export interface AssessmentInsight {
+  type: string
+  title: string
+  insight: string
+  priority?: string
+  pillar?: string
+  archetype?: string
+  score?: number
+  level?: string
+  high_pillar?: string
+  low_pillar?: string
+  gap_size?: number
+  high_score?: number
+  low_score?: number
+  strong_pillars?: string[]
+  weak_pillars?: string[]
+  dominance_level?: string
+  primary_percent?: number
+  secondary_percent?: number
+  balance_level?: string
+  missing_archetype?: string
+  gap_implication?: string
+  archetypes?: string[]
+  consistency_score?: number
+  focus_level?: string
+  leverage_pillar?: string
+  development_pillar?: string
 }
 
 export interface AssessmentResult {
   id: string
-  user_id: string
   assessment_id: string
-  pillar_scores: Record<PillarId, number>
-  archetypes: string[]
-  overall_score: number
-  insights: {
+  user_id?: string
+  primary_archetype: string
+  secondary_archetype: string | null
+  archetype_scores: ArchetypeScores
+  pillar_scores: Record<PillarId, PillarScore>
+  consistency_score: number
+  micro_insights: AssessmentInsight[]
+  integration_insights: AssessmentInsight[]
+  created_at: string
+  // Legacy fields for backward compatibility during migration
+  archetypes?: string[]
+  overall_score?: number
+  insights?: {
     micro: Record<PillarId, string>
     integration: string[]
   }
-  completed_at: string
+  completed_at?: string
+}
+
+// Structured submit format matching backend scoring engine
+export interface ArchetypeResponse {
+  questionKey: string
+  archetype: ArchetypeId
+}
+
+export interface PillarResponse {
+  questionKey: string
+  pillar: PillarId
+  value: number // 1-7
 }
 
 export interface SubmitAssessmentRequest {
+  archetypeResponses: ArchetypeResponse[]
+  pillarResponses: PillarResponse[]
+}
+
+// Legacy flat submit format (kept for fallback)
+export interface LegacySubmitAssessmentRequest {
   answers: Record<string, number>
 }
+
+// Content table lookup map
+export type AssessmentContentMap = Record<string, string>

@@ -1,34 +1,87 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAlert } from '../components/ui'
 import { SECTION_INFO } from '../lib/assessment/questions'
 import type { AssessmentQuestion as LocalAssessmentQuestion } from '../lib/assessment/questions'
 import { useSubmitAssessment, useAssessmentQuestions } from '../lib/api/hooks/useAssessments'
-import type { AssessmentQuestion as ApiAssessmentQuestion } from '../lib/api/types'
+import type {
+  AssessmentQuestion as ApiAssessmentQuestion,
+  ArchetypeId,
+} from '../lib/api/types'
 import { ChevronLeft, ChevronRight, Check, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-/** Default Likert scale for pillar questions that have no options from the API */
+const PROGRESS_KEY = 'claimn_assessment_progress'
+
+/** Default 7-point Likert scale for pillar questions */
 const DEFAULT_LIKERT_OPTIONS = [
   { value: 1, label: 'Strongly Disagree' },
   { value: 2, label: 'Disagree' },
-  { value: 3, label: 'Neutral' },
-  { value: 4, label: 'Agree' },
-  { value: 5, label: 'Strongly Agree' },
+  { value: 3, label: 'Somewhat Disagree' },
+  { value: 4, label: 'Neutral' },
+  { value: 5, label: 'Somewhat Agree' },
+  { value: 6, label: 'Agree' },
+  { value: 7, label: 'Strongly Agree' },
 ]
 
-/** Transform API questions to the local AssessmentQuestion format */
-function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): LocalAssessmentQuestion[] {
+/**
+ * Extended local question with metadata needed for structured submit.
+ * _questionKey and _questionType are carried from the API for submission.
+ * _pillarCategory identifies the pillar for pillar-type questions.
+ * _optionKeys maps option indices to archetype keys for archetype questions.
+ */
+interface EnrichedQuestion extends LocalAssessmentQuestion {
+  _questionKey: string
+  _questionType: 'archetype' | 'pillar' | 'background'
+  _pillarCategory?: string
+  _optionKeys?: string[] // archetype option_key values
+}
+
+/** Transform API questions to the local format, enriched with submit metadata */
+function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): EnrichedQuestion[] {
   return apiQuestions
-    .sort((a, b) => a.order - b.order)
-    .map((q) => ({
-      id: q.id,
-      section: q.section as LocalAssessmentQuestion['section'],
-      ...(q.pillar ? { pillar: q.pillar as LocalAssessmentQuestion['pillar'] } : {}),
-      question: q.question,
-      options: q.options && q.options.length > 0 ? q.options : DEFAULT_LIKERT_OPTIONS,
-    }))
+    .sort((a, b) => (a.sort_order ?? a.order ?? 0) - (b.sort_order ?? b.order ?? 0))
+    .map((q) => {
+      const questionType = q.question_type ?? q.section ?? 'pillar'
+      const questionText = q.question_text ?? q.question ?? ''
+      const questionKey = q.question_key ?? q.id
+      const pillarCategory = q.pillar_category ?? q.pillar
+
+      // Build display options
+      let options: { value: number; label: string }[]
+      let optionKeys: string[] | undefined
+
+      if (questionType === 'archetype' && q.options && q.options.length > 0) {
+        // Archetype: each option maps to an archetype key
+        options = q.options.map((opt, idx) => ({
+          value: idx,
+          label: opt.option_text ?? opt.label ?? `Option ${idx + 1}`,
+        }))
+        optionKeys = q.options.map((opt, i) => opt.option_key ?? String(opt.value ?? i))
+      } else if (q.options && q.options.length > 0 && q.options[0].value !== undefined) {
+        // Pillar with explicit options from API
+        options = q.options.map((opt) => ({
+          value: opt.value ?? 0,
+          label: opt.label ?? opt.option_text ?? '',
+        }))
+      } else {
+        // Default 7-point Likert
+        options = DEFAULT_LIKERT_OPTIONS
+      }
+
+      return {
+        id: q.id,
+        section: (questionType === 'archetype' ? 'archetype' : questionType === 'pillar' ? 'pillar' : 'background') as LocalAssessmentQuestion['section'],
+        ...(pillarCategory ? { pillar: pillarCategory as LocalAssessmentQuestion['pillar'] } : {}),
+        question: questionText,
+        options,
+        _questionKey: questionKey,
+        _questionType: questionType as EnrichedQuestion['_questionType'],
+        _pillarCategory: pillarCategory,
+        _optionKeys: optionKeys,
+      }
+    })
 }
 
 export function AssessmentTakePage() {
@@ -37,23 +90,57 @@ export function AssessmentTakePage() {
   const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
   const returnTo = searchParams.get('returnTo')
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, number | string>>({})
+  const [answers, setAnswers] = useState<Record<string, number>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [restoredFromStorage, setRestoredFromStorage] = useState(false)
 
   const submitMutation = useSubmitAssessment()
 
-  // Fetch questions from API (no hardcoded fallback)
+  // Fetch questions from API
   const { data: apiQuestions, isLoading: isLoadingQuestions, isError: isQuestionsError } = useAssessmentQuestions(assessmentId)
 
-  const questions: LocalAssessmentQuestion[] = useMemo(() => {
+  const questions: EnrichedQuestion[] = useMemo(() => {
     if (apiQuestions && apiQuestions.length > 0) {
       return transformApiQuestions(apiQuestions)
     }
     return []
   }, [apiQuestions])
 
+  // Restore progress from sessionStorage on mount
+  useEffect(() => {
+    if (restoredFromStorage || questions.length === 0) return
+    try {
+      const stored = sessionStorage.getItem(PROGRESS_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed.assessmentId === assessmentId && parsed.answers) {
+          setAnswers(parsed.answers)
+          if (typeof parsed.currentIndex === 'number' && parsed.currentIndex < questions.length) {
+            setCurrentIndex(parsed.currentIndex)
+          }
+        }
+      }
+    } catch {
+      // Ignore corrupt storage
+    }
+    setRestoredFromStorage(true)
+  }, [questions, assessmentId, restoredFromStorage])
+
+  // Persist progress to sessionStorage on each answer change
+  useEffect(() => {
+    if (!restoredFromStorage || Object.keys(answers).length === 0) return
+    try {
+      sessionStorage.setItem(
+        PROGRESS_KEY,
+        JSON.stringify({ assessmentId, answers, currentIndex })
+      )
+    } catch {
+      // Storage full — ignore
+    }
+  }, [answers, currentIndex, assessmentId, restoredFromStorage])
+
   const totalQuestions = questions.length
-  const currentQuestion = questions[currentIndex] as LocalAssessmentQuestion | undefined
+  const currentQuestion = questions[currentIndex] as EnrichedQuestion | undefined
   const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0
 
   // Compute section counts from the active questions array
@@ -90,11 +177,11 @@ export function AssessmentTakePage() {
     return currentIndex - sectionCounts.background - sectionCounts.archetype + 1
   }
 
-  const handleAnswer = (value: number) => {
+  const handleAnswer = (optionIndex: number) => {
     if (!currentQuestion) return
     setAnswers((prev) => ({
       ...prev,
-      [currentQuestion.id]: value,
+      [currentQuestion.id]: optionIndex,
     }))
   }
 
@@ -102,7 +189,6 @@ export function AssessmentTakePage() {
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex((prev) => prev + 1)
     } else {
-      // Submit assessment and navigate to results
       handleSubmit()
     }
   }
@@ -116,30 +202,65 @@ export function AssessmentTakePage() {
   const handleSubmit = () => {
     setSubmitError(null)
 
-    // Map indices back to option values for backend scoring
-    const submissionAnswers: Record<string, number> = {}
-    for (const [questionId, selectedIndex] of Object.entries(answers)) {
-      const q = questions.find((qq) => qq.id === questionId)
-      if (q && q.options[selectedIndex as number]) {
-        submissionAnswers[questionId] = q.options[selectedIndex as number].value
-      } else {
-        submissionAnswers[questionId] = selectedIndex as number
+    // Build structured submit request
+    const archetypeResponses: { questionKey: string; archetype: ArchetypeId }[] = []
+    const pillarResponses: { questionKey: string; pillar: string; value: number }[] = []
+
+    for (const q of questions) {
+      const selectedIndex = answers[q.id]
+      if (selectedIndex === undefined) continue
+
+      if (q._questionType === 'archetype') {
+        // Resolve option index to archetype key
+        const archetypeKey = q._optionKeys?.[selectedIndex]
+        if (archetypeKey) {
+          archetypeResponses.push({
+            questionKey: q._questionKey,
+            archetype: archetypeKey as ArchetypeId,
+          })
+        }
+      } else if (q._questionType === 'pillar' && q._pillarCategory) {
+        // Resolve option index to Likert value (1-7)
+        const value = q.options[selectedIndex]?.value
+        if (value !== undefined) {
+          pillarResponses.push({
+            questionKey: q._questionKey,
+            pillar: q._pillarCategory,
+            value,
+          })
+        }
       }
     }
 
-    // Always store in sessionStorage as fallback
-    sessionStorage.setItem('assessmentAnswers', JSON.stringify(submissionAnswers))
+    // Also store flat answers in sessionStorage as fallback for client-side scoring
+    const flatAnswers: Record<string, number> = {}
+    for (const [questionId, selectedIndex] of Object.entries(answers)) {
+      const q = questions.find((qq) => qq.id === questionId)
+      if (q) {
+        if (q._questionType === 'archetype' && q._optionKeys) {
+          // Store archetype key string for client-side scoring
+          flatAnswers[questionId] = selectedIndex
+        } else {
+          flatAnswers[questionId] = q.options[selectedIndex]?.value ?? selectedIndex
+        }
+      }
+    }
+    sessionStorage.setItem('assessmentAnswers', JSON.stringify(flatAnswers))
 
-    // Submit to API
+    // Submit structured format to API
     submitMutation.mutate(
-      { assessmentId, data: { answers: submissionAnswers } },
+      {
+        assessmentId,
+        data: { archetypeResponses, pillarResponses },
+      },
       {
         onSuccess: (result) => {
+          // Clear progress on successful submit
+          sessionStorage.removeItem(PROGRESS_KEY)
           const resultsUrl = returnTo || `/assessment/results?id=${result.id}`
           navigate(resultsUrl)
         },
         onError: () => {
-          // API failed — fall back to client-side results
           setSubmitError(
             'Could not save to server. Your results are available locally — you can continue or retry.'
           )
@@ -149,6 +270,7 @@ export function AssessmentTakePage() {
   }
 
   const handleContinueOffline = () => {
+    sessionStorage.removeItem(PROGRESS_KEY)
     navigate(returnTo || '/assessment/results')
   }
 
@@ -231,12 +353,11 @@ export function AssessmentTakePage() {
 
           <div className="space-y-3">
             {currentQuestion.options.map((option, idx) => {
-              const optionKey = idx
-              const isSelected = answers[currentQuestion.id] === optionKey
+              const isSelected = answers[currentQuestion.id] === idx
               return (
                 <button
-                  key={optionKey}
-                  onClick={() => handleAnswer(optionKey)}
+                  key={idx}
+                  onClick={() => handleAnswer(idx)}
                   className={cn(
                     'w-full text-left p-4 rounded-xl border transition-all',
                     isSelected
@@ -320,7 +441,7 @@ export function AssessmentTakePage() {
           </GlassButton>
         </div>
 
-        {/* Quick Jump (Optional) */}
+        {/* Quick Jump */}
         <div className="mt-8 flex flex-wrap gap-1 justify-center">
           {questions.map((_, index) => (
             <button
@@ -343,4 +464,4 @@ export function AssessmentTakePage() {
   )
 }
 
-export default AssessmentTakePage;
+export default AssessmentTakePage

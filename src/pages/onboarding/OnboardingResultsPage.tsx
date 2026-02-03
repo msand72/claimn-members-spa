@@ -6,6 +6,7 @@ import { useUpdateOnboarding } from '../../lib/api/hooks/useOnboarding'
 import { OnboardingLayout } from './OnboardingLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../../components/ui'
 import { PILLARS, type PillarId } from '../../lib/constants'
+import type { PillarScore } from '../../lib/api/types'
 import {
   calculatePillarScores,
   determineArchetypesFromAnswers,
@@ -23,6 +24,7 @@ import {
   Target,
   TrendingUp,
   AlertCircle,
+  ExternalLink,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
@@ -34,6 +36,24 @@ const PILLAR_ICONS: Record<PillarId, React.ReactNode> = {
   mission: <Target className="w-5 h-5" />,
 }
 
+const ARCHETYPE_DISPLAY: Record<string, string> = {
+  achiever: 'The Achiever',
+  optimizer: 'The Optimizer',
+  networker: 'The Networker',
+  grinder: 'The Grinder',
+  philosopher: 'The Philosopher',
+}
+
+interface DerivedResults {
+  pillarScores: Record<PillarId, number> // percentage (0-100)
+  primaryArchetype: string | null // display name
+  secondaryArchetype: string | null
+  overallScore: number
+  microInsights: Record<PillarId, string>
+  integrationInsights: string[]
+  resultId?: string
+}
+
 export function OnboardingResultsPage() {
   const navigate = useNavigate()
   const { data: apiResult, isLoading } = useLatestAssessmentResult()
@@ -41,13 +61,93 @@ export function OnboardingResultsPage() {
   const updateOnboarding = useUpdateOnboarding()
 
   // Derive results from API or fall back to sessionStorage client-side scoring
-  const results = useMemo(() => {
+  const results: DerivedResults | null = useMemo(() => {
     if (apiResult) {
+      // New format: pillar_scores has { raw, level, percentage } objects
+      const pillarScores: Record<PillarId, number> = {} as Record<PillarId, number>
+      const microInsights: Record<PillarId, string> = {} as Record<PillarId, string>
+
+      if (apiResult.pillar_scores) {
+        for (const [key, val] of Object.entries(apiResult.pillar_scores)) {
+          const pillarId = key as PillarId
+          if (typeof val === 'object' && val !== null && 'percentage' in val) {
+            // New format: PillarScore object
+            pillarScores[pillarId] = (val as PillarScore).percentage
+          } else if (typeof val === 'number') {
+            // Legacy format: already a percentage number
+            pillarScores[pillarId] = val
+          }
+        }
+      }
+
+      // Extract micro insights
+      if (apiResult.micro_insights) {
+        if (Array.isArray(apiResult.micro_insights)) {
+          // New format: AssessmentInsight[] — extract pillar-keyed insight text
+          for (const insight of apiResult.micro_insights) {
+            if (insight.pillar && PILLARS[insight.pillar as PillarId]) {
+              microInsights[insight.pillar as PillarId] = insight.insight
+            }
+          }
+        }
+      }
+      // Legacy fallback
+      if (apiResult.insights?.micro) {
+        for (const [key, val] of Object.entries(apiResult.insights.micro)) {
+          if (!microInsights[key as PillarId]) {
+            microInsights[key as PillarId] = val
+          }
+        }
+      }
+
+      // Extract integration insights
+      let integrationInsights: string[] = []
+      if (apiResult.integration_insights && Array.isArray(apiResult.integration_insights)) {
+        integrationInsights = apiResult.integration_insights.map((i) => i.insight)
+      } else if (apiResult.insights?.integration) {
+        integrationInsights = apiResult.insights.integration
+      }
+
+      // Fill missing micro insights with simple generated ones
+      const allPillarIds: PillarId[] = ['identity', 'emotional', 'physical', 'connection', 'mission']
+      for (const pid of allPillarIds) {
+        if (!microInsights[pid] && pillarScores[pid] !== undefined) {
+          const pillar = PILLARS[pid]
+          const score = pillarScores[pid]
+          if (score >= 75) {
+            microInsights[pid] = `Strong foundation in ${pillar.name}. Continue leveraging this strength.`
+          } else if (score >= 42) {
+            microInsights[pid] = `${pillar.name} shows room for growth. Consider focused protocols.`
+          } else {
+            microInsights[pid] = `${pillar.name} is a key growth opportunity. Prioritize development here.`
+          }
+        }
+      }
+
+      // Primary archetype display
+      const primaryKey = apiResult.primary_archetype
+      const secondaryKey = apiResult.secondary_archetype
+      const primaryArchetype = primaryKey
+        ? ARCHETYPE_DISPLAY[primaryKey] ?? primaryKey
+        : apiResult.archetypes?.[0] ?? null
+      const secondaryArchetype = secondaryKey
+        ? ARCHETYPE_DISPLAY[secondaryKey] ?? secondaryKey
+        : apiResult.archetypes?.[1] ?? null
+
+      // Overall score from pillar percentages
+      const pillarValues = Object.values(pillarScores)
+      const overallScore = pillarValues.length > 0
+        ? Math.round(pillarValues.reduce((sum, s) => sum + s, 0) / pillarValues.length)
+        : apiResult.overall_score ?? 0
+
       return {
-        pillarScores: apiResult.pillar_scores,
-        archetypes: apiResult.archetypes,
-        overallScore: apiResult.overall_score,
-        insights: apiResult.insights,
+        pillarScores,
+        primaryArchetype,
+        secondaryArchetype,
+        overallScore,
+        microInsights,
+        integrationInsights,
+        resultId: apiResult.id,
       }
     }
 
@@ -58,8 +158,10 @@ export function OnboardingResultsPage() {
     const answers = JSON.parse(storedAnswers) as Record<string, number>
     const questionsForScoring = apiQuestions.map(q => ({
       id: q.id,
-      section: q.section,
-      pillar: q.pillar,
+      section: q.section ?? q.question_type,
+      pillar: q.pillar ?? q.pillar_category,
+      question_type: q.question_type,
+      pillar_category: q.pillar_category,
     }))
 
     const pillarScores = calculatePillarScores(answers, questionsForScoring)
@@ -71,12 +173,11 @@ export function OnboardingResultsPage() {
 
     return {
       pillarScores,
-      archetypes,
+      primaryArchetype: archetypes[0] ?? null,
+      secondaryArchetype: archetypes[1] ?? null,
       overallScore,
-      insights: {
-        micro: generateSimpleMicroInsights(pillarScores),
-        integration: generateSimpleIntegrationInsights(pillarScores, archetypes),
-      },
+      microInsights: generateSimpleMicroInsights(pillarScores),
+      integrationInsights: generateSimpleIntegrationInsights(pillarScores, archetypes),
     }
   }, [apiResult, apiQuestions])
 
@@ -95,8 +196,7 @@ export function OnboardingResultsPage() {
     )
   }
 
-  const { pillarScores, archetypes, overallScore, insights } = results
-  const archetype = archetypes?.[0] || null
+  const { pillarScores, primaryArchetype, overallScore, microInsights, integrationInsights, resultId } = results
 
   // Sort pillars by score for display
   const sortedPillars = Object.entries(pillarScores)
@@ -115,8 +215,8 @@ export function OnboardingResultsPage() {
           <Sparkles className="w-10 h-10 text-koppar" />
         </div>
         <h1 className="font-display text-3xl md:text-4xl font-bold text-kalkvit mb-3">
-          {archetype ? (
-            <>You are <span className="text-koppar">{archetype}</span></>
+          {primaryArchetype ? (
+            <>You are <span className="text-koppar">{primaryArchetype}</span></>
           ) : (
             'Your Assessment Results'
           )}
@@ -147,22 +247,25 @@ export function OnboardingResultsPage() {
       </GlassCard>
 
       {/* Archetype */}
-      {archetype && (
+      {primaryArchetype && (
         <GlassCard variant="base" className="!p-5 mb-6">
           <h3 className="font-display text-base font-semibold text-kalkvit mb-3">
-            Your Archetype{archetypes.length > 1 ? 's' : ''}
+            Your Archetype{results.secondaryArchetype ? 's' : ''}
           </h3>
           <div className="flex flex-wrap gap-2 mb-2">
-            {archetypes.map((a, i) => (
-              <GlassBadge key={a} variant={i === 0 ? 'koppar' : 'default'} className="text-sm py-1.5 px-3">
-                {a}
+            <GlassBadge variant="koppar" className="text-sm py-1.5 px-3">
+              {primaryArchetype}
+            </GlassBadge>
+            {results.secondaryArchetype && (
+              <GlassBadge variant="default" className="text-sm py-1.5 px-3">
+                {results.secondaryArchetype}
               </GlassBadge>
-            ))}
+            )}
           </div>
           <p className="text-kalkvit/60 text-sm">
-            {archetypes.length === 1
-              ? `You strongly identify as ${archetypes[0]}. This archetype shapes how you approach challenges and growth.`
-              : `You show traits of multiple archetypes, with ${archetypes[0]} being your primary style.`}
+            {results.secondaryArchetype
+              ? `You show traits of multiple archetypes, with ${primaryArchetype} being your primary style.`
+              : `You strongly identify as ${primaryArchetype}. This archetype shapes how you approach challenges and growth.`}
           </p>
         </GlassCard>
       )}
@@ -231,8 +334,8 @@ export function OnboardingResultsPage() {
                       style={{ width: `${score}%` }}
                     />
                   </div>
-                  {insights?.micro[pillarId] && (
-                    <p className="text-xs text-kalkvit/50">{insights.micro[pillarId]}</p>
+                  {microInsights[pillarId] && (
+                    <p className="text-xs text-kalkvit/50">{microInsights[pillarId]}</p>
                   )}
                 </div>
               </div>
@@ -248,13 +351,13 @@ export function OnboardingResultsPage() {
       )}
 
       {/* Integration Insights */}
-      {insights?.integration && insights.integration.length > 0 && (
+      {integrationInsights.length > 0 && (
         <GlassCard variant="elevated" className="!p-5 mb-6">
           <h3 className="font-display text-base font-semibold text-kalkvit mb-3">
             Key Insights
           </h3>
           <div className="space-y-2.5">
-            {insights.integration.map((insight, index) => (
+            {integrationInsights.map((insight, index) => (
               <div key={index} className="flex gap-3">
                 <div className="flex-shrink-0 w-5 h-5 rounded-full bg-koppar/20 flex items-center justify-center mt-0.5">
                   <span className="text-xs font-bold text-koppar">{index + 1}</span>
@@ -266,15 +369,26 @@ export function OnboardingResultsPage() {
         </GlassCard>
       )}
 
-      <div className="flex justify-end">
-        <GlassButton
-          variant="primary"
-          onClick={handleContinue}
-          disabled={updateOnboarding.isPending}
-        >
-          Continue
-          <ArrowRight className="w-4 h-4" />
-        </GlassButton>
+      <div className="flex items-center justify-between">
+        {resultId && (
+          <GlassButton
+            variant="ghost"
+            onClick={() => navigate(`/assessment/results?id=${resultId}`)}
+          >
+            View Full Report
+            <ExternalLink className="w-4 h-4" />
+          </GlassButton>
+        )}
+        <div className="ml-auto">
+          <GlassButton
+            variant="primary"
+            onClick={handleContinue}
+            disabled={updateOnboarding.isPending}
+          >
+            Continue
+            <ArrowRight className="w-4 h-4" />
+          </GlassButton>
+        </div>
       </div>
     </OnboardingLayout>
   )
