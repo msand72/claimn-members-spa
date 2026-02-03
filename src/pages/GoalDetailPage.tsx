@@ -72,10 +72,6 @@ export function GoalDetailPage() {
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [isAddingSubtask, setIsAddingSubtask] = useState(false)
 
-  // Debug logging for goal API response
-  console.log('[DEBUG GoalDetailPage] id:', id, 'isLoading:', isLoading, 'error:', error, 'goal:', goal ? JSON.stringify(goal, null, 2).slice(0, 1500) : 'null')
-  console.log('[DEBUG GoalDetailPage] actionItemsData:', actionItemsData ? JSON.stringify(actionItemsData, null, 2).slice(0, 1000) : 'null')
-
   // IMPORTANT: All hooks (useMemo, useCallback, etc.) must be called BEFORE any early returns.
   // React requires hooks to be called in the same order every render.
 

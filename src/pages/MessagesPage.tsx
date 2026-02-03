@@ -20,7 +20,7 @@ interface OptimisticMessage {
   content: string
   sender_id: string
   created_at: string
-  status: 'sending' | 'failed'
+  status: 'sending' | 'sent' | 'failed'
 }
 
 // Helper to format time ago
@@ -72,7 +72,6 @@ export function MessagesPage() {
   // since conversation_id can be empty from the backend
   const isRealConversation = !!selectedConversation?.id && !selectedConversation.id.startsWith('new-')
   const conversationKey = isRealConversation ? (selectedConversation.id || selectedConversation.participant_id) : ''
-  console.log('[DEBUG MessagesPage] Selected conversation:', selectedConversation?.id, 'participant_id:', selectedConversation?.participant_id, 'isReal:', isRealConversation, 'conversationKey:', conversationKey)
   const {
     data: messagesData,
     isLoading: messagesLoading,
@@ -119,14 +118,12 @@ export function MessagesPage() {
   // We use other_user_id as the conversation identifier in that case, since the
   // useConversationMessages hook handles 404 fallback to user-based lookup.
   const rawConversations: Record<string, unknown>[] = Array.isArray(conversationsData?.data) ? conversationsData.data as unknown as Record<string, unknown>[] : []
-  console.log('[DEBUG MessagesPage] Raw conversations count:', rawConversations.length, 'first raw:', JSON.stringify(rawConversations[0], null, 2)?.slice(0, 1000))
   const conversations: Conversation[] = rawConversations.map((raw) => {
     // Prefer real conversation_id, fall back to other_user_id
     const conversationId = (raw.conversation_id as string) || (raw.id as string) || ''
     const otherUserId = (raw.other_user_id as string) || (raw.participant_id as string) || ''
     // Use real conversation_id if available, otherwise other_user_id as the lookup key
     const effectiveId = conversationId || otherUserId
-    console.log('[DEBUG MessagesPage] Normalizing conversation: conversation_id=', raw.conversation_id, 'other_user_id=', raw.other_user_id, 'effectiveId=', effectiveId)
     return {
       id: effectiveId,
       participant_id: otherUserId,
@@ -153,7 +150,44 @@ export function MessagesPage() {
     ...msg,
     content: msg.content || msg.body || '',
   }))
-  console.log('[DEBUG MessagesPage] Messages count:', messages.length, messages.length > 0 ? 'first msg keys: ' + Object.keys(messages[0]).join(', ') : '')
+  // Build a unified message list: real messages (chronological) + pending optimistic messages.
+  // Merging into one array avoids DOM element swaps that cause flickering.
+  type UnifiedMessage = {
+    id: string
+    content: string
+    sender_id: string
+    created_at: string
+    _optimistic?: boolean
+    _status?: 'sending' | 'sent' | 'failed'
+  }
+  const unifiedMessages: UnifiedMessage[] = [
+    ...[...messages].reverse().map((msg: any) => ({
+      id: msg.id as string,
+      content: msg.content as string,
+      sender_id: msg.sender_id as string,
+      created_at: msg.created_at as string,
+    })),
+    // Only append optimistic messages that don't match a real message
+    ...optimisticMessages
+      .filter((opt) =>
+        !messages.some(
+          (real: any) => real.content === opt.content && real.sender_id === opt.sender_id
+        )
+      )
+      .map((opt) => ({
+        id: opt._optimisticId,
+        content: opt.content,
+        sender_id: opt.sender_id,
+        created_at: opt.created_at,
+        _optimistic: true as const,
+        _status: opt.status,
+      })),
+  ]
+  // For sidebar optimistic updates, check if there are any pending optimistic messages
+  const pendingOptimistic = optimisticMessages.filter((opt) =>
+    opt.status !== 'failed' &&
+    !messages.some((real: any) => real.content === opt.content && real.sender_id === opt.sender_id)
+  )
 
   // Build connected members from connections API.
   // API uses 'addressee_id' (not 'recipient_id') and provides 'is_requester' convenience flag.
@@ -198,7 +232,7 @@ export function MessagesPage() {
   // Apply optimistic last_message updates to the conversation list.
   // When the user sends a message, the sidebar should immediately show
   // the new message text and "Just now" timestamp — before the API confirms.
-  const latestOptimistic = optimisticMessages.length > 0 ? optimisticMessages[optimisticMessages.length - 1] : null
+  const latestOptimistic = pendingOptimistic.length > 0 ? pendingOptimistic[pendingOptimistic.length - 1] : null
   const conversationsWithOptimistic = conversations.map((conv) => {
     // If this is the selected conversation and we have optimistic messages, update its preview
     if (selectedConversation && conv.participant_id === selectedConversation.participant_id && latestOptimistic) {
@@ -257,7 +291,7 @@ export function MessagesPage() {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages.length, optimisticMessages.length, scrollToBottom])
+  }, [unifiedMessages.length, scrollToBottom])
 
   // Also scroll when messages finish loading
   useEffect(() => {
@@ -302,16 +336,18 @@ export function MessagesPage() {
       },
       {
         onSuccess: () => {
-          // Remove optimistic message -- query invalidation in the hook will add the real one
+          // Mark optimistic message as 'sent' — it stays visible until the refetch
+          // brings the real message, at which point deduplication removes it.
           setOptimisticMessages((prev) =>
-            prev.filter((msg) => msg._optimisticId !== optimisticId)
+            prev.map((msg) =>
+              msg._optimisticId === optimisticId ? { ...msg, status: 'sent' as const } : msg
+            )
           )
           // If this was a synthetic "new-" conversation, transition to a real one.
           // After query invalidation, the conversations list will contain the real entry.
           // Update selectedConversation to use the participant_id as the real conversation key
           // (the backend uses user IDs as conversation IDs).
           if (selectedConversation.id.startsWith('new-')) {
-            console.log('[DEBUG MessagesPage] Transitioning synthetic conversation to real, participant_id:', selectedConversation.participant_id)
             setSelectedConversation({
               ...selectedConversation,
               id: selectedConversation.participant_id,
@@ -566,62 +602,53 @@ export function MessagesPage() {
                   )}
 
                   {/* Empty state */}
-                  {!messagesLoading && !messagesError && messages.length === 0 && optimisticMessages.length === 0 && (
+                  {!messagesLoading && !messagesError && unifiedMessages.length === 0 && (
                     <div className="text-center text-kalkvit/50 text-sm py-8">
                       No messages yet. Start the conversation!
                     </div>
                   )}
 
-                  {/* Messages list - reverse order since API returns newest first */}
-                  {!messagesLoading && !messagesError && [...messages].reverse().map((msg) => {
+                  {/* Unified messages list (real + optimistic merged to prevent flickering) */}
+                  {!messagesLoading && !messagesError && unifiedMessages.map((msg) => {
                     const isOwn = msg.sender_id === user?.id
+                    const isFailed = msg._optimistic && msg._status === 'failed'
+                    const isSending = msg._optimistic && msg._status === 'sending'
                     return (
                       <div
                         key={msg.id}
-                        className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}
+                        className={cn(
+                          'flex items-end gap-1.5',
+                          isOwn ? 'justify-end' : 'justify-start'
+                        )}
                       >
                         <div
                           className={cn(
                             'max-w-[85%] sm:max-w-[70%] rounded-2xl px-3 lg:px-4 py-2',
                             isOwn
-                              ? 'bg-koppar text-kalkvit rounded-br-sm'
+                              ? isFailed
+                                ? 'bg-koppar/40 text-kalkvit rounded-br-sm'
+                                : 'bg-koppar text-kalkvit rounded-br-sm'
                               : 'bg-white/[0.08] text-kalkvit rounded-bl-sm'
                           )}
                         >
                           <p className="text-sm">{msg.content}</p>
-                          <p className={cn(
-                            'text-xs mt-1',
-                            isOwn ? 'text-kalkvit/70' : 'text-kalkvit/40'
-                          )}>
-                            {formatMessageTime(msg.created_at)}
-                          </p>
+                          {isFailed ? (
+                            <p className="text-xs text-tegelrod mt-1 italic">Failed to send</p>
+                          ) : (
+                            <p className={cn(
+                              'text-xs mt-1',
+                              isOwn ? 'text-kalkvit/70' : 'text-kalkvit/40'
+                            )}>
+                              {msg._optimistic ? 'Just now' : formatMessageTime(msg.created_at)}
+                            </p>
+                          )}
                         </div>
+                        {isSending && (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-kalkvit/40 flex-shrink-0 mb-2" />
+                        )}
                       </div>
                     )
                   })}
-
-                  {/* Optimistic messages (sending / failed) */}
-                  {optimisticMessages.map((msg) => (
-                    <div
-                      key={msg._optimisticId}
-                      className="flex justify-end"
-                    >
-                      <div className="max-w-[85%] sm:max-w-[70%] rounded-2xl px-3 lg:px-4 py-2 bg-koppar/60 text-kalkvit rounded-br-sm">
-                        <p className="text-sm">{msg.content}</p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          {msg.status === 'sending' && (
-                            <>
-                              <Loader2 className="w-3 h-3 animate-spin text-kalkvit/50" />
-                              <span className="text-xs text-kalkvit/50 italic">Sending...</span>
-                            </>
-                          )}
-                          {msg.status === 'failed' && (
-                            <span className="text-xs text-tegelrod italic">Failed to send</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
 
                   {/* Scroll anchor */}
                   <div ref={messagesEndRef} />
