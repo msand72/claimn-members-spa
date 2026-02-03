@@ -440,16 +440,16 @@ export function AssessmentTakePage() {
       return (
         <GlassSelect
           value={textAnswers[currentQuestion.id] ?? ''}
-          onChange={(e) => handleSelectAnswer(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleSelectAnswer(e.target.value)}
           className="w-full"
-        >
-          <option value="">Select...</option>
-          {currentQuestion._backgroundOptions.map((opt, idx) => (
-            <option key={idx} value={opt.value}>
-              {opt.text}
-            </option>
-          ))}
-        </GlassSelect>
+          options={[
+            { value: '', label: 'Select...' },
+            ...currentQuestion._backgroundOptions.map((opt) => ({
+              value: opt.value,
+              label: opt.text,
+            })),
+          ]}
+        />
       )
     }
 
