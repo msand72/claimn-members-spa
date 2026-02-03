@@ -10,7 +10,8 @@ export const API_URL = `${API_BASE_URL}${API_PREFIX}`
 // mismatches between TypeScript types and backend reality are visible
 // in the console instead of causing silent UI bugs.
 // ---------------------------------------------------------------------------
-const IS_DEV = import.meta.env.DEV
+// Enable logging in dev, or on production via localStorage: localStorage.setItem('api_debug', '1')
+const IS_DEV = import.meta.env.DEV || (typeof localStorage !== 'undefined' && localStorage.getItem('api_debug') === '1')
 
 function describeShape(obj: unknown): string {
   if (obj === null) return 'null'
@@ -38,7 +39,7 @@ function describeShape(obj: unknown): string {
 
 function logResponse(method: string, endpoint: string, data: unknown) {
   if (!IS_DEV) return
-  console.debug(`[API ${method} ${endpoint}]`, describeShape(data))
+  console.log(`[API ${method} ${endpoint}]`, describeShape(data))
 }
 
 // ---------------------------------------------------------------------------

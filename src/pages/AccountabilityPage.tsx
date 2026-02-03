@@ -116,7 +116,10 @@ export function AccountabilityPage() {
     )
   }
 
-  if (error || !group) {
+  // Treat an empty/invalid group (no name, no members) as "no group"
+  const hasValidGroup = group && typeof group === 'object' && ('name' in group) && (group.name || (Array.isArray(group.members) && group.members.length > 0))
+
+  if (error || !hasValidGroup) {
     return (
       <MainLayout>
         <div className="max-w-6xl mx-auto">
