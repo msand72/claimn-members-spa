@@ -10,8 +10,7 @@ import {
   generateSimpleMicroInsights,
   generateSimpleIntegrationInsights,
 } from '../lib/assessment/scoring'
-import { ASSESSMENT_QUESTIONS } from '../lib/assessment/questions'
-import { useAssessmentResults, useLatestAssessmentResult } from '../lib/api/hooks/useAssessments'
+import { useAssessmentResults, useLatestAssessmentResult, useAssessmentQuestions } from '../lib/api/hooks/useAssessments'
 import type { AssessmentResult as ApiAssessmentResult } from '../lib/api/types'
 import {
   Compass,
@@ -57,6 +56,9 @@ export function AssessmentResultsPage() {
   const apiResultById = useAssessmentResults(resultId ?? '')
   const latestResult = useLatestAssessmentResult()
 
+  // Fetch questions from API for client-side scoring fallback
+  const { data: apiQuestions } = useAssessmentQuestions('five-pillars')
+
   // Pick whichever API source is relevant
   const apiResult: ApiAssessmentResult | undefined = resultId
     ? apiResultById.data
@@ -82,16 +84,23 @@ export function AssessmentResultsPage() {
 
     // API fetch completed but returned nothing — fall back to sessionStorage
     const storedAnswers = sessionStorage.getItem('assessmentAnswers')
-    if (!storedAnswers) {
+    if (!storedAnswers || !apiQuestions || apiQuestions.length === 0) {
       navigate('/assessment')
       return
     }
 
     const answers = JSON.parse(storedAnswers) as Record<string, number>
 
-    // Calculate results client-side
-    const pillarScores = calculatePillarScores(answers, ASSESSMENT_QUESTIONS)
-    const archetypes = determineArchetypesFromAnswers(answers, ASSESSMENT_QUESTIONS)
+    // Transform API questions to scoring format
+    const questionsForScoring = apiQuestions.map(q => ({
+      id: q.id,
+      section: q.section,
+      pillar: q.pillar,
+    }))
+
+    // Calculate results client-side using API questions
+    const pillarScores = calculatePillarScores(answers, questionsForScoring)
+    const archetypes = determineArchetypesFromAnswers(answers, questionsForScoring)
 
     setResults({
       pillarScores,
@@ -103,7 +112,7 @@ export function AssessmentResultsPage() {
       micro: generateSimpleMicroInsights(pillarScores),
       integration: generateSimpleIntegrationInsights(pillarScores, archetypes),
     })
-  }, [apiResult, apiLoading, apiFetched, navigate])
+  }, [apiResult, apiLoading, apiFetched, apiQuestions, navigate])
 
   const showToast = useCallback(
     (message: string, variant: 'success' | 'info' | 'warning' | 'error' = 'info') => {

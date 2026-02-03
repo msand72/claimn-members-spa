@@ -2,11 +2,11 @@ import { useState, useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAlert } from '../components/ui'
-import { ASSESSMENT_QUESTIONS, SECTION_INFO } from '../lib/assessment/questions'
+import { SECTION_INFO } from '../lib/assessment/questions'
 import type { AssessmentQuestion as LocalAssessmentQuestion } from '../lib/assessment/questions'
 import { useSubmitAssessment, useAssessmentQuestions } from '../lib/api/hooks/useAssessments'
 import type { AssessmentQuestion as ApiAssessmentQuestion } from '../lib/api/types'
-import { ChevronLeft, ChevronRight, Check, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 /** Transform API questions to the local AssessmentQuestion format */
@@ -34,14 +34,14 @@ export function AssessmentTakePage() {
 
   const submitMutation = useSubmitAssessment()
 
-  // Fetch questions from API with hardcoded fallback
-  const { data: apiQuestions, isLoading: isLoadingQuestions } = useAssessmentQuestions(assessmentId)
+  // Fetch questions from API (no hardcoded fallback)
+  const { data: apiQuestions, isLoading: isLoadingQuestions, isError: isQuestionsError } = useAssessmentQuestions(assessmentId)
 
   const questions: LocalAssessmentQuestion[] = useMemo(() => {
     if (apiQuestions && apiQuestions.length > 0) {
       return transformApiQuestions(apiQuestions)
     }
-    return ASSESSMENT_QUESTIONS
+    return []
   }, [apiQuestions])
 
   const totalQuestions = questions.length
@@ -142,6 +142,35 @@ export function AssessmentTakePage() {
         <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-24 gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-koppar" />
           <p className="text-sm text-kalkvit/60">Loading assessment questions...</p>
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // Show error if questions could not be loaded
+  if (isQuestionsError || questions.length === 0) {
+    return (
+      <MainLayout>
+        <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-24 gap-6">
+          <div className="p-4 rounded-full bg-red-500/10">
+            <AlertCircle className="w-10 h-10 text-red-400" />
+          </div>
+          <div className="text-center">
+            <h2 className="font-display text-xl font-bold text-kalkvit mb-2">
+              Assessment Unavailable
+            </h2>
+            <p className="text-kalkvit/60 text-sm max-w-md">
+              We couldn't load the assessment questions. Please try again later or contact support if the problem persists.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <GlassButton variant="primary" onClick={() => window.location.reload()}>
+              Try Again
+            </GlassButton>
+            <GlassButton variant="ghost" onClick={() => navigate(-1)}>
+              Go Back
+            </GlassButton>
+          </div>
         </div>
       </MainLayout>
     )
