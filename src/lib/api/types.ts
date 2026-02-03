@@ -599,8 +599,10 @@ export interface AssessmentQuestion {
   assessment_id: string
   question: string
   section: string
+  pillar?: string
   options: AssessmentOption[]
   order: number
+  is_reverse_scored?: boolean
 }
 
 export interface AssessmentOption {

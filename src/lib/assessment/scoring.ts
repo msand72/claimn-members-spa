@@ -262,20 +262,15 @@ export function calculatePillarScores(
   answers: Record<string, number>,
   questions: { id: string; section: string; pillar?: string }[]
 ): Record<PillarId, number> {
-  const pillarAnswers: Record<PillarId, number[]> = {
-    identity: [],
-    emotional: [],
-    physical: [],
-    connection: [],
-    mission: [],
-  }
-
-  // Group answers by pillar
+  // Build pillar groups dynamically from questions array
+  const pillarAnswers: Record<string, number[]> = {}
   for (const question of questions) {
-    if (question.section === 'pillar' && question.pillar && answers[question.id] !== undefined) {
-      const pillarId = question.pillar as PillarId
-      if (pillarAnswers[pillarId]) {
-        pillarAnswers[pillarId].push(answers[question.id])
+    if (question.section === 'pillar' && question.pillar) {
+      if (!pillarAnswers[question.pillar]) {
+        pillarAnswers[question.pillar] = []
+      }
+      if (answers[question.id] !== undefined) {
+        pillarAnswers[question.pillar].push(answers[question.id])
       }
     }
   }
@@ -288,7 +283,7 @@ export function calculatePillarScores(
       const avg = sum / pillarAnswerList.length
       scores[pillarId as PillarId] = Math.round(((avg - 1) / 6) * 100) // Convert 1-7 to 0-100
     } else {
-      scores[pillarId as PillarId] = 50 // Default if no answers
+      scores[pillarId as PillarId] = 0 // No answered questions for this pillar
     }
   }
 
@@ -379,7 +374,8 @@ export function generateSimpleIntegrationInsights(
   }
 
   // Balance insight
-  const avgScore = Object.values(pillarScores).reduce((a, b) => a + b, 0) / 5
+  const pillarValues = Object.values(pillarScores)
+  const avgScore = pillarValues.length > 0 ? pillarValues.reduce((a, b) => a + b, 0) / pillarValues.length : 0
   if (avgScore >= 60) {
     insights.push(
       'Your overall scores indicate a solid foundation. Focus on integration and synergy between pillars.'

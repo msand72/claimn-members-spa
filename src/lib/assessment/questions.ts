@@ -1,5 +1,5 @@
 // CLAIM'N Assessment Questions
-// 30 questions total: 4 background, 6 archetype identification, 24 pillar assessment
+// 25 questions total: 4 background, 6 archetype identification, 15 pillar assessment (light version)
 
 export interface AssessmentQuestion {
   id: string
@@ -17,7 +17,7 @@ const backgroundQuestions: AssessmentQuestion[] = [
   {
     id: 'bg-1',
     section: 'background',
-    question: 'What is your current age range?',
+    question: 'What is your age range?',
     options: [
       { value: 1, label: '18-25' },
       { value: 2, label: '26-35' },
@@ -29,24 +29,25 @@ const backgroundQuestions: AssessmentQuestion[] = [
   {
     id: 'bg-2',
     section: 'background',
-    question: 'How would you describe your current life stage?',
+    question: 'What best describes your professional level?',
     options: [
-      { value: 1, label: 'Building foundation (early career, establishing habits)' },
-      { value: 2, label: 'Growth phase (advancing career, deepening relationships)' },
-      { value: 3, label: 'Peak performance (leadership roles, family responsibilities)' },
-      { value: 4, label: 'Legacy building (mentoring, passing on wisdom)' },
+      { value: 1, label: 'Early career / building foundation' },
+      { value: 2, label: 'Mid-career / growing expertise' },
+      { value: 3, label: 'Senior / leadership role' },
+      { value: 4, label: 'Executive / C-suite' },
+      { value: 5, label: 'Entrepreneur / business owner' },
     ],
   },
   {
     id: 'bg-3',
     section: 'background',
-    question: 'What area of your life needs the most attention right now?',
+    question: 'What is your biggest challenge right now?',
     options: [
-      { value: 1, label: 'Career and professional growth' },
-      { value: 2, label: 'Health and fitness' },
+      { value: 1, label: 'Career growth and direction' },
+      { value: 2, label: 'Health and energy' },
       { value: 3, label: 'Relationships and connection' },
-      { value: 4, label: 'Personal identity and purpose' },
-      { value: 5, label: 'Mental and emotional wellbeing' },
+      { value: 4, label: 'Finding purpose and meaning' },
+      { value: 5, label: 'Managing stress and emotions' },
     ],
   },
   {
@@ -54,7 +55,7 @@ const backgroundQuestions: AssessmentQuestion[] = [
     section: 'background',
     question: 'How committed are you to personal transformation?',
     options: [
-      { value: 1, label: 'Just curious, exploring options' },
+      { value: 1, label: 'Just curious exploring options' },
       { value: 2, label: 'Ready to make small changes' },
       { value: 3, label: 'Committed to significant improvement' },
       { value: 4, label: 'All in - ready for complete transformation' },
@@ -67,447 +68,203 @@ const archetypeQuestions: AssessmentQuestion[] = [
   {
     id: 'arch-1',
     section: 'archetype',
-    question: 'When facing a challenge, your first instinct is to:',
+    question: 'What drives you most on a daily basis?',
     options: [
-      { value: 1, label: 'Set a clear goal and work relentlessly toward it' }, // Achiever
-      { value: 2, label: 'Analyze the situation and find the most efficient solution' }, // Optimizer
-      { value: 3, label: 'Reach out to your network for advice and support' }, // Networker
-      { value: 4, label: 'Put in the hours and outwork the competition' }, // Grinder
-      { value: 5, label: 'Step back and reflect on the deeper meaning' }, // Philosopher
+      { value: 1, label: 'Setting and hitting ambitious targets' }, // Achiever
+      { value: 2, label: 'Optimizing systems and processes for peak efficiency' }, // Optimizer
+      { value: 3, label: 'Building meaningful relationships and expanding my network' }, // Networker
+      { value: 4, label: 'Putting in the work and outgrinding everyone else' }, // Grinder
+      { value: 5, label: 'Seeking deeper understanding and wisdom' }, // Philosopher
     ],
   },
   {
     id: 'arch-2',
     section: 'archetype',
-    question: 'You feel most fulfilled when you:',
+    question: 'Under pressure, you tend to:',
     options: [
-      { value: 1, label: 'Accomplish a major goal or milestone' }, // Achiever
-      { value: 2, label: 'Improve a system or process to peak efficiency' }, // Optimizer
-      { value: 3, label: 'Connect people who can help each other' }, // Networker
-      { value: 4, label: 'Complete a hard days work with visible results' }, // Grinder
-      { value: 5, label: 'Gain a new insight or understanding about life' }, // Philosopher
+      { value: 1, label: 'Double down on your goals and push harder' }, // Achiever
+      { value: 2, label: 'Analyze the situation and find the optimal solution' }, // Optimizer
+      { value: 3, label: 'Reach out to trusted people for perspective' }, // Networker
+      { value: 4, label: 'Work longer hours and power through' }, // Grinder
+      { value: 5, label: 'Step back and reflect on the bigger picture' }, // Philosopher
     ],
   },
   {
     id: 'arch-3',
     section: 'archetype',
-    question: 'Your approach to self-improvement is:',
+    question: 'When making a decision, you primarily rely on:',
     options: [
-      { value: 1, label: 'Set ambitious targets and track progress religiously' }, // Achiever
-      { value: 2, label: 'Research the best methods and optimize my routine' }, // Optimizer
-      { value: 3, label: 'Learn from mentors and share knowledge with others' }, // Networker
-      { value: 4, label: 'Consistent daily effort, no shortcuts' }, // Grinder
-      { value: 5, label: 'Deep reading and contemplation of principles' }, // Philosopher
+      { value: 1, label: 'Whether it moves you closer to your goals' }, // Achiever
+      { value: 2, label: 'Data, research, and logical analysis' }, // Optimizer
+      { value: 3, label: 'Input from your network and trusted advisors' }, // Networker
+      { value: 4, label: 'Gut feeling backed by hard work ethic' }, // Grinder
+      { value: 5, label: 'Your principles and philosophical framework' }, // Philosopher
     ],
   },
   {
     id: 'arch-4',
     section: 'archetype',
-    question: 'Others often describe you as:',
+    question: 'Success to you means:',
     options: [
-      { value: 1, label: 'Driven and goal-oriented' }, // Achiever
-      { value: 2, label: 'Analytical and systematic' }, // Optimizer
-      { value: 3, label: 'Well-connected and sociable' }, // Networker
-      { value: 4, label: 'Hard-working and reliable' }, // Grinder
-      { value: 5, label: 'Thoughtful and wise' }, // Philosopher
+      { value: 1, label: 'Achieving measurable goals and recognition' }, // Achiever
+      { value: 2, label: 'Having perfectly optimized systems in every area of life' }, // Optimizer
+      { value: 3, label: 'Being surrounded by strong, meaningful relationships' }, // Networker
+      { value: 4, label: 'Knowing you gave everything you had' }, // Grinder
+      { value: 5, label: 'Living with wisdom, purpose, and inner peace' }, // Philosopher
     ],
   },
   {
     id: 'arch-5',
     section: 'archetype',
-    question: 'When learning something new, you prefer to:',
+    question: 'When developing a new skill, you:',
     options: [
-      { value: 1, label: 'Focus on what will help you achieve your goals fastest' }, // Achiever
-      { value: 2, label: 'Understand the underlying system and mechanics' }, // Optimizer
-      { value: 3, label: 'Learn alongside others and discuss insights' }, // Networker
-      { value: 4, label: 'Practice repeatedly until you master it' }, // Grinder
-      { value: 5, label: 'Study the history and philosophy behind it' }, // Philosopher
+      { value: 1, label: 'Focus on what will give you a competitive edge' }, // Achiever
+      { value: 2, label: 'Research the most efficient learning methods first' }, // Optimizer
+      { value: 3, label: 'Find a mentor or community to learn with' }, // Networker
+      { value: 4, label: 'Practice relentlessly until you master it' }, // Grinder
+      { value: 5, label: 'Study the underlying principles and philosophy' }, // Philosopher
     ],
   },
   {
     id: 'arch-6',
     section: 'archetype',
-    question: 'Your ideal weekend involves:',
+    question: 'Your deepest concern is:',
     options: [
-      { value: 1, label: 'Working on a side project or business goal' }, // Achiever
-      { value: 2, label: 'Optimizing your health routine or environment' }, // Optimizer
-      { value: 3, label: 'Attending events and catching up with friends' }, // Networker
-      { value: 4, label: 'Tackling your to-do list and home projects' }, // Grinder
-      { value: 5, label: 'Reading, journaling, or time in nature' }, // Philosopher
+      { value: 1, label: 'Not reaching your full potential' }, // Achiever
+      { value: 2, label: 'Inefficiency and wasted potential' }, // Optimizer
+      { value: 3, label: 'Being disconnected from others' }, // Networker
+      { value: 4, label: 'Not working hard enough' }, // Grinder
+      { value: 5, label: 'Living without meaning or purpose' }, // Philosopher
     ],
   },
 ]
 
-// Pillar assessment questions (24 - about 5 per pillar)
+// Likert scale used for all pillar questions
+const likertScale = [
+  { value: 1, label: 'Not true at all' },
+  { value: 2, label: 'Rarely true' },
+  { value: 3, label: 'Sometimes true' },
+  { value: 4, label: 'Moderately true' },
+  { value: 5, label: 'Often true' },
+  { value: 6, label: 'Very true' },
+  { value: 7, label: 'Completely true' },
+]
+
+// Pillar assessment questions (15 - 3 per pillar)
 const pillarQuestions: AssessmentQuestion[] = [
-  // Identity & Purpose (5)
+  // Identity & Purpose (3)
   {
     id: 'id-1',
     section: 'pillar',
     pillar: 'identity',
-    question: 'How clear are you on your core values and what you stand for?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I have a clear sense of my core values and what I stand for',
+    options: likertScale,
   },
   {
     id: 'id-2',
     section: 'pillar',
     pillar: 'identity',
-    question: 'How often do you feel aligned with your purpose in life?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I feel like I am living authentically as my true self',
+    options: likertScale,
   },
   {
     id: 'id-3',
     section: 'pillar',
     pillar: 'identity',
-    question: 'How confident are you in making decisions that reflect who you truly are?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
-  },
-  {
-    id: 'id-4',
-    section: 'pillar',
-    pillar: 'identity',
-    question: 'How well do you understand what makes you unique?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
-  },
-  {
-    id: 'id-5',
-    section: 'pillar',
-    pillar: 'identity',
-    question: 'How often do you feel you are living authentically?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I have a strong sense of who I am, independent of my roles and responsibilities',
+    options: likertScale,
   },
 
-  // Emotional & Mental (5)
+  // Emotional & Mental (3)
   {
     id: 'em-1',
     section: 'pillar',
     pillar: 'emotional',
-    question: 'How well do you manage stress in your daily life?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I manage stress effectively without it overwhelming me',
+    options: likertScale,
   },
   {
     id: 'em-2',
     section: 'pillar',
     pillar: 'emotional',
-    question: 'How often do you experience negative self-talk?',
-    options: [
-      { value: 7, label: 'Not true at all' },
-      { value: 6, label: 'Rarely true' },
-      { value: 5, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 3, label: 'Often true' },
-      { value: 2, label: 'Very true' },
-      { value: 1, label: 'Completely true' },
-    ],
+    question: 'I can regulate my emotions even in difficult situations',
+    options: likertScale,
   },
   {
     id: 'em-3',
     section: 'pillar',
     pillar: 'emotional',
-    question: 'How well can you identify and express your emotions?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
-  },
-  {
-    id: 'em-4',
-    section: 'pillar',
-    pillar: 'emotional',
-    question: 'How resilient do you feel when facing setbacks?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
-  },
-  {
-    id: 'em-5',
-    section: 'pillar',
-    pillar: 'emotional',
-    question: 'How often do you feel at peace with yourself?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I feel at peace with myself and my inner world',
+    options: likertScale,
   },
 
-  // Physical & Vital (5)
+  // Physical & Vital (3)
   {
     id: 'ph-1',
     section: 'pillar',
     pillar: 'physical',
-    question: 'How would you rate your overall energy levels?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I have consistent energy throughout the day',
+    options: likertScale,
   },
   {
     id: 'ph-2',
     section: 'pillar',
     pillar: 'physical',
-    question: 'How consistent is your exercise routine?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I maintain a regular fitness routine that I\'m satisfied with',
+    options: likertScale,
   },
   {
     id: 'ph-3',
     section: 'pillar',
     pillar: 'physical',
-    question: 'How would you rate your sleep quality?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
-  },
-  {
-    id: 'ph-4',
-    section: 'pillar',
-    pillar: 'physical',
-    question: 'How well do you manage your nutrition?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
-  },
-  {
-    id: 'ph-5',
-    section: 'pillar',
-    pillar: 'physical',
-    question: 'How satisfied are you with your physical appearance?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I prioritize and get quality sleep most nights',
+    options: likertScale,
   },
 
-  // Connection & Leadership (5)
+  // Connection & Leadership (3)
   {
     id: 'cn-1',
     section: 'pillar',
     pillar: 'connection',
-    question: 'How strong is your support network of close friends or family?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I have deep, meaningful relationships in my life',
+    options: likertScale,
   },
   {
     id: 'cn-2',
     section: 'pillar',
     pillar: 'connection',
-    question: 'How comfortable are you being vulnerable with others?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I am comfortable being vulnerable and authentic with others',
+    options: likertScale,
   },
   {
     id: 'cn-3',
     section: 'pillar',
     pillar: 'connection',
-    question: 'How would you rate your communication skills in relationships?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
-  },
-  {
-    id: 'cn-4',
-    section: 'pillar',
-    pillar: 'connection',
-    question: 'How often do you take on leadership roles?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
-  },
-  {
-    id: 'cn-5',
-    section: 'pillar',
-    pillar: 'connection',
-    question: 'How satisfied are you with the quality of your relationships?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I naturally step into leadership roles when needed',
+    options: likertScale,
   },
 
-  // Mission & Mastery (4)
+  // Mission & Mastery (3)
   {
     id: 'ms-1',
     section: 'pillar',
     pillar: 'mission',
-    question: 'How clear are you on your professional or life mission?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I have a clear sense of my life mission or calling',
+    options: likertScale,
   },
   {
     id: 'ms-2',
     section: 'pillar',
     pillar: 'mission',
-    question: 'How often do you work on developing mastery in your craft or skill?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'I am actively developing mastery in my craft or profession',
+    options: likertScale,
   },
   {
     id: 'ms-3',
     section: 'pillar',
     pillar: 'mission',
-    question: 'How aligned is your daily work with your long-term goals?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
-  },
-  {
-    id: 'ms-4',
-    section: 'pillar',
-    pillar: 'mission',
-    question: 'How productive do you feel in pursuing meaningful work?',
-    options: [
-      { value: 1, label: 'Not true at all' },
-      { value: 2, label: 'Rarely true' },
-      { value: 3, label: 'Sometimes true' },
-      { value: 4, label: 'Moderately true' },
-      { value: 5, label: 'Often true' },
-      { value: 6, label: 'Very true' },
-      { value: 7, label: 'Completely true' },
-    ],
+    question: 'My daily work is aligned with my long-term purpose',
+    options: likertScale,
   },
 ]
 

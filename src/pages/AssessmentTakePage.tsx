@@ -1,48 +1,85 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAlert } from '../components/ui'
 import { ASSESSMENT_QUESTIONS, SECTION_INFO } from '../lib/assessment/questions'
-import { useSubmitAssessment } from '../lib/api/hooks/useAssessments'
+import type { AssessmentQuestion as LocalAssessmentQuestion } from '../lib/assessment/questions'
+import { useSubmitAssessment, useAssessmentQuestions } from '../lib/api/hooks/useAssessments'
+import type { AssessmentQuestion as ApiAssessmentQuestion } from '../lib/api/types'
 import { ChevronLeft, ChevronRight, Check, Loader2 } from 'lucide-react'
 import { cn } from '../lib/utils'
+
+/** Transform API questions to the local AssessmentQuestion format */
+function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): LocalAssessmentQuestion[] {
+  return apiQuestions
+    .sort((a, b) => a.order - b.order)
+    .map((q) => ({
+      id: q.id,
+      section: q.section as LocalAssessmentQuestion['section'],
+      ...(q.pillar ? { pillar: q.pillar as LocalAssessmentQuestion['pillar'] } : {}),
+      question: q.question,
+      options: q.options,
+    }))
+}
 
 export function AssessmentTakePage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
   const returnTo = searchParams.get('returnTo')
+  const _variant = searchParams.get('variant') // 'light' | 'full' | null — reserved for future filtering
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const submitMutation = useSubmitAssessment()
 
-  const totalQuestions = ASSESSMENT_QUESTIONS.length
-  const currentQuestion = ASSESSMENT_QUESTIONS[currentIndex]
+  // Fetch questions from API with hardcoded fallback
+  const { data: apiQuestions, isLoading: isLoadingQuestions } = useAssessmentQuestions(assessmentId)
+
+  const questions: LocalAssessmentQuestion[] = useMemo(() => {
+    if (apiQuestions && apiQuestions.length > 0) {
+      return transformApiQuestions(apiQuestions)
+    }
+    return ASSESSMENT_QUESTIONS
+  }, [apiQuestions])
+
+  const totalQuestions = questions.length
+  const currentQuestion = questions[currentIndex]
   const progress = ((currentIndex + 1) / totalQuestions) * 100
+
+  // Compute section counts from the active questions array
+  const sectionCounts = useMemo(() => {
+    const bg = questions.filter((q) => q.section === 'background').length
+    const arch = questions.filter((q) => q.section === 'archetype').length
+    const pil = questions.filter((q) => q.section === 'pillar').length
+    return { background: bg, archetype: arch, pillar: pil }
+  }, [questions])
 
   // Determine current section
   const getCurrentSection = useCallback(() => {
-    if (currentIndex < SECTION_INFO.background.questionCount) {
+    if (currentIndex < sectionCounts.background) {
       return 'background'
-    } else if (currentIndex < SECTION_INFO.background.questionCount + SECTION_INFO.archetype.questionCount) {
+    } else if (currentIndex < sectionCounts.background + sectionCounts.archetype) {
       return 'archetype'
     }
     return 'pillar'
-  }, [currentIndex])
+  }, [currentIndex, sectionCounts])
 
   const currentSection = getCurrentSection()
-  const sectionInfo = SECTION_INFO[currentSection]
+  const sectionInfo = {
+    ...SECTION_INFO[currentSection],
+    questionCount: sectionCounts[currentSection],
+  }
 
   // Get question number within section
   const getQuestionInSection = () => {
     if (currentSection === 'background') {
       return currentIndex + 1
     } else if (currentSection === 'archetype') {
-      return currentIndex - SECTION_INFO.background.questionCount + 1
+      return currentIndex - sectionCounts.background + 1
     }
-    return currentIndex - SECTION_INFO.background.questionCount - SECTION_INFO.archetype.questionCount + 1
+    return currentIndex - sectionCounts.background - sectionCounts.archetype + 1
   }
 
   const handleAnswer = (value: number) => {
@@ -97,6 +134,18 @@ export function AssessmentTakePage() {
 
   const isAnswered = answers[currentQuestion.id] !== undefined
   const isLastQuestion = currentIndex === totalQuestions - 1
+
+  // Show a brief loading state while questions are being fetched
+  if (isLoadingQuestions) {
+    return (
+      <MainLayout>
+        <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-24 gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+          <p className="text-sm text-kalkvit/60">Loading assessment questions...</p>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout>
@@ -220,7 +269,7 @@ export function AssessmentTakePage() {
 
         {/* Quick Jump (Optional) */}
         <div className="mt-8 flex flex-wrap gap-1 justify-center">
-          {ASSESSMENT_QUESTIONS.map((_, index) => (
+          {questions.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
@@ -228,7 +277,7 @@ export function AssessmentTakePage() {
                 'w-3 h-3 rounded-full transition-all',
                 index === currentIndex
                   ? 'bg-koppar scale-125'
-                  : answers[ASSESSMENT_QUESTIONS[index].id] !== undefined
+                  : answers[questions[index].id] !== undefined
                     ? 'bg-skogsgron/60 hover:bg-skogsgron'
                     : 'bg-white/20 hover:bg-white/40'
               )}
