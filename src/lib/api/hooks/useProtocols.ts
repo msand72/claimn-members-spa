@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type PaginatedResponse, type PaginationParams } from '../client'
+import { api, type PaginationParams } from '../client'
 import type {
   ActiveProtocol,
   StartProtocolRequest,
@@ -47,13 +47,17 @@ export interface ActiveProtocolsParams extends PaginationParams {
 export function useActiveProtocols(params?: ActiveProtocolsParams) {
   return useQuery({
     queryKey: protocolKeys.active(params),
-    queryFn: () =>
-      api.get<PaginatedResponse<ActiveProtocol>>('/members/protocols', {
+    queryFn: async () => {
+      const res = await api.get<any>('/members/protocols', {
         page: params?.page,
         limit: params?.limit,
         sort: params?.sort,
         status: params?.status,
-      }),
+      })
+      // Normalize: API may return { data: [...] } or bare array
+      const data: ActiveProtocol[] = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : []
+      return data
+    },
   })
 }
 
@@ -61,7 +65,12 @@ export function useActiveProtocols(params?: ActiveProtocolsParams) {
 export function useProtocolLibrary() {
   return useQuery({
     queryKey: protocolKeys.library(),
-    queryFn: () => api.get<ProtocolTemplate[]>('/members/protocols/library'),
+    queryFn: async () => {
+      const res = await api.get<any>('/members/protocols/library')
+      if (Array.isArray(res)) return res as ProtocolTemplate[]
+      if (res && Array.isArray(res.data)) return res.data as ProtocolTemplate[]
+      return [] as ProtocolTemplate[]
+    },
   })
 }
 
@@ -87,8 +96,20 @@ export function useActiveProtocol(id: string) {
 export function useActiveProtocolBySlug(slug: string) {
   return useQuery({
     queryKey: [...protocolKeys.all, 'active-by-slug', slug] as const,
-    queryFn: () => api.get<ActiveProtocol>(`/members/protocols/active/${slug}`),
+    queryFn: async () => {
+      try {
+        return await api.get<ActiveProtocol>(`/members/protocols/active/${slug}`)
+      } catch (err: any) {
+        // 404 means user hasn't started this protocol — not a real error
+        if (err?.status === 404) return null
+        throw err
+      }
+    },
     enabled: !!slug,
+    retry: (failureCount, error: any) => {
+      if (error?.status === 404) return false
+      return failureCount < 3
+    },
   })
 }
 

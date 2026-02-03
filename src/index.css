@@ -94,6 +94,11 @@ body {
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
+  .glass-dropdown {
+    @apply bg-white/[0.18] backdrop-blur-[32px] border border-white/[0.2];
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
   .glass-accent {
     @apply backdrop-blur-[24px];
     background: linear-gradient(135deg, rgba(184, 115, 51, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
@@ -110,6 +115,11 @@ body {
   .light .glass-elevated {
     @apply bg-white/90 backdrop-blur-[24px] border border-black/[0.1];
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
+  }
+
+  .light .glass-dropdown {
+    @apply bg-[#2a2520]/95 backdrop-blur-[32px] border border-white/[0.15];
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
   }
 
   .light .glass-accent {

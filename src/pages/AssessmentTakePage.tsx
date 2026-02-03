@@ -28,7 +28,7 @@ export function AssessmentTakePage() {
   const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
   const returnTo = searchParams.get('returnTo')
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, number>>({})
+  const [answers, setAnswers] = useState<Record<string, number | string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const submitMutation = useSubmitAssessment()
@@ -107,12 +107,23 @@ export function AssessmentTakePage() {
   const handleSubmit = () => {
     setSubmitError(null)
 
+    // Map indices back to option values for backend scoring
+    const submissionAnswers: Record<string, number> = {}
+    for (const [questionId, selectedIndex] of Object.entries(answers)) {
+      const q = questions.find((qq) => qq.id === questionId)
+      if (q && q.options[selectedIndex as number]) {
+        submissionAnswers[questionId] = q.options[selectedIndex as number].value
+      } else {
+        submissionAnswers[questionId] = selectedIndex as number
+      }
+    }
+
     // Always store in sessionStorage as fallback
-    sessionStorage.setItem('assessmentAnswers', JSON.stringify(answers))
+    sessionStorage.setItem('assessmentAnswers', JSON.stringify(submissionAnswers))
 
     // Submit to API
     submitMutation.mutate(
-      { assessmentId, data: { answers } },
+      { assessmentId, data: { answers: submissionAnswers } },
       {
         onSuccess: (result) => {
           const resultsUrl = returnTo || `/assessment/results?id=${result.id}`
@@ -210,34 +221,38 @@ export function AssessmentTakePage() {
           </h2>
 
           <div className="space-y-3">
-            {currentQuestion.options.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => handleAnswer(option.value)}
-                className={cn(
-                  'w-full text-left p-4 rounded-xl border transition-all',
-                  answers[currentQuestion.id] === option.value
-                    ? 'border-koppar bg-koppar/10 text-kalkvit'
-                    : 'border-white/10 bg-white/[0.04] text-kalkvit/80 hover:border-koppar/30 hover:bg-white/[0.06]'
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
-                      answers[currentQuestion.id] === option.value
-                        ? 'border-koppar bg-koppar'
-                        : 'border-kalkvit/30'
-                    )}
-                  >
-                    {answers[currentQuestion.id] === option.value && (
-                      <Check className="w-3 h-3 text-kalkvit" />
-                    )}
+            {currentQuestion.options.map((option, idx) => {
+              const optionKey = idx
+              const isSelected = answers[currentQuestion.id] === optionKey
+              return (
+                <button
+                  key={optionKey}
+                  onClick={() => handleAnswer(optionKey)}
+                  className={cn(
+                    'w-full text-left p-4 rounded-xl border transition-all',
+                    isSelected
+                      ? 'border-koppar bg-koppar/10 text-kalkvit'
+                      : 'border-white/10 bg-white/[0.04] text-kalkvit/80 hover:border-koppar/30 hover:bg-white/[0.06]'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
+                        isSelected
+                          ? 'border-koppar bg-koppar'
+                          : 'border-kalkvit/30'
+                      )}
+                    >
+                      {isSelected && (
+                        <Check className="w-3 h-3 text-kalkvit" />
+                      )}
+                    </div>
+                    <span className="text-sm">{option.label}</span>
                   </div>
-                  <span className="text-sm">{option.label}</span>
-                </div>
-              </button>
-            ))}
+                </button>
+              )
+            })}
           </div>
         </GlassCard>
 

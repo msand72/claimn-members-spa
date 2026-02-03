@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { api, type PaginatedResponse, type PaginationParams } from '../client'
+import { api, type PaginationParams } from '../client'
 import type { Resource, CoachingResource } from '../types'
 
 // Query keys
@@ -26,8 +26,8 @@ export interface ResourcesParams extends PaginationParams {
 export function useResources(params?: ResourcesParams) {
   return useQuery({
     queryKey: resourceKeys.list(params),
-    queryFn: () =>
-      api.get<PaginatedResponse<Resource>>('/members/resources', {
+    queryFn: async () => {
+      const res = await api.get<any>('/members/resources', {
         page: params?.page,
         limit: params?.limit,
         sort: params?.sort,
@@ -35,7 +35,12 @@ export function useResources(params?: ResourcesParams) {
         type: params?.type,
         search: params?.search,
         is_featured: params?.is_featured,
-      }),
+      })
+      // Normalize: API may return { data: [...] } or bare array
+      if (Array.isArray(res)) return res as Resource[]
+      if (res && Array.isArray(res.data)) return res.data as Resource[]
+      return [] as Resource[]
+    },
   })
 }
 
@@ -52,8 +57,8 @@ export function useResource(id: string) {
 export function useCoachingResources(params?: ResourcesParams) {
   return useQuery({
     queryKey: resourceKeys.coaching(params),
-    queryFn: () =>
-      api.get<PaginatedResponse<CoachingResource>>('/members/coaching/resources', {
+    queryFn: async () => {
+      const res = await api.get<any>('/members/coaching/resources', {
         page: params?.page,
         limit: params?.limit,
         sort: params?.sort,
@@ -61,6 +66,10 @@ export function useCoachingResources(params?: ResourcesParams) {
         type: params?.type,
         search: params?.search,
         is_featured: params?.is_featured,
-      }),
+      })
+      if (Array.isArray(res)) return res as CoachingResource[]
+      if (res && Array.isArray(res.data)) return res.data as CoachingResource[]
+      return [] as CoachingResource[]
+    },
   })
 }

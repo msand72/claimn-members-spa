@@ -234,7 +234,26 @@ export function MessagesPage() {
     const otherPerson = isRequester ? connection.recipient : connection.requester
     const otherPersonId = isRequester ? connection.recipient_id : connection.requester_id
 
-    if (!otherPerson) return
+    if (!otherPerson) {
+      // Fallback: build participant from available data
+      const fallbackName = getConnectionDisplayName(connection)
+      const syntheticConversation: Conversation = {
+        id: `new-${otherPersonId}`,
+        participant_id: otherPersonId,
+        participant: {
+          user_id: otherPersonId,
+          display_name: fallbackName,
+          avatar_url: null,
+        },
+        last_message: null,
+        unread_count: 0,
+        updated_at: new Date().toISOString(),
+      }
+      setSelectedConversation(syntheticConversation)
+      setShowNewConversationModal(false)
+      setConnectionSearchQuery('')
+      return
+    }
 
     // Check if a conversation already exists with this person
     const existing = conversations.find(
@@ -428,7 +447,7 @@ export function MessagesPage() {
                       <MoreVertical className="w-5 h-5" />
                     </button>
                     {showHeaderMenu && (
-                      <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl glass-elevated border border-white/10 py-1 shadow-lg">
+                      <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl glass-dropdown py-1 shadow-lg">
                         <button
                           onClick={() => {
                             if (selectedConversation) {
@@ -614,8 +633,11 @@ export function MessagesPage() {
               return (
                 <button
                   key={conn.id}
-                  onClick={() => handleStartConversation(conn)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.06] transition-colors text-left"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleStartConversation(conn)
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.06] transition-colors text-left cursor-pointer"
                 >
                   <GlassAvatar initials={getInitials(displayName)} size="md" />
                   <div className="flex-1 min-w-0">

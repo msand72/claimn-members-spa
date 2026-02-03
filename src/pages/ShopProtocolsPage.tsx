@@ -153,7 +153,7 @@ export function ShopProtocolsPage() {
   const protocolLibrary: ProtocolTemplate[] = Array.isArray(libraryData) ? libraryData
     : Array.isArray((libraryData as unknown as { data: ProtocolTemplate[] })?.data) ? (libraryData as unknown as { data: ProtocolTemplate[] }).data
     : []
-  const activeProtocols = Array.isArray(activeProtocolsData?.data) ? activeProtocolsData.data : []
+  const activeProtocols = Array.isArray(activeProtocolsData) ? activeProtocolsData : []
   const activeProtocolSlugs = new Set(activeProtocols.map((ap) => ap.protocol_slug))
 
   // Map API protocols to display format

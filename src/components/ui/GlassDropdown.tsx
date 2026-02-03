@@ -103,7 +103,7 @@ export function GlassDropdown({
           role="listbox"
           className={cn(
             'absolute z-[100] w-full mt-2',
-            'glass-elevated rounded-xl border border-white/[0.15]',
+            'glass-dropdown rounded-xl',
             'py-2 shadow-xl',
             'animate-in fade-in slide-in-from-top-2 duration-150',
             menuClassName
@@ -191,7 +191,7 @@ export function GlassMenu({
           className={cn(
             'absolute z-[100] mt-2 min-w-[160px]',
             align === 'right' ? 'right-0' : 'left-0',
-            'glass-elevated rounded-xl border border-white/[0.15]',
+            'glass-dropdown rounded-xl',
             'py-1 shadow-xl',
             'animate-in fade-in slide-in-from-top-2 duration-150'
           )}

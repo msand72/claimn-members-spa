@@ -109,7 +109,7 @@ function StepperBar({
           </button>
 
           {showMore && (
-            <div className="absolute top-full right-0 mt-1 py-1 min-w-[160px] rounded-xl bg-charcoal/95 backdrop-blur-xl border border-white/15 shadow-2xl z-[100]">
+            <div className="absolute top-full right-0 mt-1 py-1 min-w-[160px] rounded-xl glass-dropdown shadow-2xl z-[100]">
               {moreItems.map((item) => (
                 <NavLink
                   key={item.to}

@@ -81,7 +81,11 @@ class ApiClient {
       }
 
       return await response.json()
-    } catch (error) {
+    } catch (error: any) {
+      const status = error?.status || 'unknown'
+      const code = error?.error?.code || 'UNKNOWN'
+      const message = error?.error?.message || (error instanceof Error ? error.message : 'Unknown error')
+      console.error(`[API ${options.method || 'GET'} ${cleanEndpoint}] ${status} ${code}: ${message}`)
       throw error
     }
   }
