@@ -8,6 +8,7 @@ import { useSubmitAssessment, useAssessmentQuestions } from '../lib/api/hooks/us
 import type {
   AssessmentQuestion as ApiAssessmentQuestion,
   ArchetypeId,
+  PillarId,
 } from '../lib/api/types'
 import { ChevronLeft, ChevronRight, Check, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
@@ -204,7 +205,7 @@ export function AssessmentTakePage() {
 
     // Build structured submit request
     const archetypeResponses: { questionKey: string; archetype: ArchetypeId }[] = []
-    const pillarResponses: { questionKey: string; pillar: string; value: number }[] = []
+    const pillarResponses: { questionKey: string; pillar: PillarId; value: number }[] = []
 
     for (const q of questions) {
       const selectedIndex = answers[q.id]
@@ -225,7 +226,7 @@ export function AssessmentTakePage() {
         if (value !== undefined) {
           pillarResponses.push({
             questionKey: q._questionKey,
-            pillar: q._pillarCategory,
+            pillar: q._pillarCategory as PillarId,
             value,
           })
         }

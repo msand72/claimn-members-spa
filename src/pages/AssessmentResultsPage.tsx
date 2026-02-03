@@ -238,7 +238,6 @@ export function AssessmentResultsPage() {
 
   const {
     primaryArchetype,
-    secondaryArchetype,
     primaryPercentage,
     archetypeScores,
     pillarScores,
