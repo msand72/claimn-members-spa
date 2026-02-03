@@ -1,83 +1,42 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Menu, X, LogOut } from 'lucide-react'
+import { Menu, X, LogOut, Home, User, CreditCard, TrendingUp, Users, Sparkles, GraduationCap, ShoppingBag, Library } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../contexts/AuthContext'
-import {
-  Users,
-  Calendar,
-  ShoppingBag,
-  CreditCard,
-  FolderOpen,
-  Award,
-  GraduationCap,
-  Globe,
-  Sparkles,
-  BarChart3,
-  CheckSquare,
-  BookOpen,
-  Flag,
-  UsersRound,
-  ClipboardCheck,
-} from 'lucide-react'
 import { ThemeToggle } from '../ui/ThemeToggle'
+import { useCurrentSection, SECTION_KEYS, SECTION_NAV } from './sectionNav'
 
-interface NavItem {
-  to: string
-  icon: React.ElementType
-  label: string
+const SECTION_ICONS: Record<string, React.ElementType> = {
+  growth: TrendingUp,
+  community: Users,
+  coaching: Sparkles,
+  programs: GraduationCap,
+  shop: ShoppingBag,
 }
 
-// Secondary navigation items (not in bottom nav)
-const menuItems: NavItem[] = [
-  { to: '/connections', icon: Users, label: 'Connections' },
-  { to: '/network', icon: Globe, label: 'Network' },
-  { to: '/circles', icon: Award, label: 'Circles' },
-  { to: '/programs', icon: GraduationCap, label: 'Programs' },
-  { to: '/experts', icon: Sparkles, label: 'Experts' },
-  { to: '/book-session', icon: Calendar, label: 'Book Session' },
-]
+const SECTION_LABELS: Record<string, string> = {
+  growth: 'My Growth',
+  community: 'Community',
+  coaching: 'Coaching',
+  programs: 'Programs',
+  shop: 'Shop',
+}
 
-const transformationItems: NavItem[] = [
-  { to: '/kpis', icon: BarChart3, label: 'KPIs' },
-  { to: '/action-items', icon: CheckSquare, label: 'Action Items' },
-  { to: '/protocols', icon: BookOpen, label: 'Protocols' },
-  { to: '/milestones', icon: Flag, label: 'Milestones' },
-  { to: '/accountability', icon: UsersRound, label: 'Accountability' },
-  { to: '/assessment', icon: ClipboardCheck, label: 'Assessment' },
-]
-
-const utilityItems: NavItem[] = [
-  { to: '/shop', icon: ShoppingBag, label: 'Shop' },
-  { to: '/resources', icon: FolderOpen, label: 'Resources' },
+const accountLinks = [
+  { to: '/profile', icon: User, label: 'Profile' },
   { to: '/billing', icon: CreditCard, label: 'Billing' },
+  { to: '/resources', icon: Library, label: 'Resources' },
 ]
 
-function MenuNavLink({ to, icon: Icon, label, onClick }: NavItem & { onClick: () => void }) {
-  return (
-    <NavLink
-      to={to}
-      onClick={onClick}
-      className={({ isActive }) =>
-        cn(
-          'flex items-center gap-3 px-4 py-3 rounded-xl',
-          'text-sm font-medium transition-all duration-200',
-          isActive
-            ? 'bg-koppar/20 text-koppar'
-            : 'text-kalkvit/70 hover:bg-white/[0.06] hover:text-kalkvit'
-        )
-      }
-    >
-      <Icon className="w-5 h-5" />
-      {label}
-    </NavLink>
-  )
-}
+const linkClasses = 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200'
+const activeClasses = 'bg-koppar/20 text-koppar'
+const inactiveClasses = 'text-kalkvit/70 hover:bg-white/[0.06] hover:text-kalkvit'
 
 export function MobileHeader() {
   const [isOpen, setIsOpen] = useState(false)
   const { signOut } = useAuth()
   const navigate = useNavigate()
+  const section = useCurrentSection()
 
   const closeMenu = () => setIsOpen(false)
 
@@ -124,32 +83,56 @@ export function MobileHeader() {
         )}
       >
         <div className="p-4 pt-16 pb-24 space-y-4">
-          {/* Community & Connection */}
+          {/* Section Links */}
           <div className="space-y-1">
-            <p className="px-4 py-2 text-xs font-semibold text-kalkvit/40 uppercase tracking-wider">
-              Community
-            </p>
-            {menuItems.map(item => (
-              <MenuNavLink key={item.to} {...item} onClick={closeMenu} />
-            ))}
+            <NavLink
+              to="/"
+              end
+              onClick={closeMenu}
+              className={cn(
+                linkClasses,
+                section?.key === 'growth' && location.pathname === '/'
+                  ? activeClasses
+                  : inactiveClasses
+              )}
+            >
+              <Home className="w-5 h-5" />
+              Dashboard
+            </NavLink>
+            {SECTION_KEYS.map((key) => {
+              const Icon = SECTION_ICONS[key]
+              const label = SECTION_LABELS[key]
+              const nav = SECTION_NAV[key]
+              const isActive = section?.key === key
+
+              return (
+                <NavLink
+                  key={key}
+                  to={nav.basePath}
+                  onClick={closeMenu}
+                  className={cn(linkClasses, isActive ? activeClasses : inactiveClasses)}
+                >
+                  <Icon className="w-5 h-5" />
+                  {label}
+                </NavLink>
+              )
+            })}
           </div>
 
-          {/* Transformation */}
-          <div className="pt-4 border-t border-white/10">
-            <p className="px-4 py-2 text-xs font-semibold text-kalkvit/40 uppercase tracking-wider">
-              Transformation
-            </p>
-            <div className="space-y-1">
-              {transformationItems.map(item => (
-                <MenuNavLink key={item.to} {...item} onClick={closeMenu} />
-              ))}
-            </div>
-          </div>
-
-          {/* Utility */}
+          {/* Account Links */}
           <div className="pt-4 border-t border-white/10 space-y-1">
-            {utilityItems.map(item => (
-              <MenuNavLink key={item.to} {...item} onClick={closeMenu} />
+            {accountLinks.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  cn(linkClasses, isActive ? activeClasses : inactiveClasses)
+                }
+              >
+                <Icon className="w-5 h-5" />
+                {label}
+              </NavLink>
             ))}
           </div>
 

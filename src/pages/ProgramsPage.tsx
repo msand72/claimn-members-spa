@@ -76,7 +76,7 @@ function ProgramCard({
         </span>
         <span className="flex items-center gap-1">
           <Users className="w-4 h-4" />
-          {program.enrolled_count.toLocaleString()}
+          {(program.enrolled_count ?? 0).toLocaleString()}
         </span>
       </div>
 

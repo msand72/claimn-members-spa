@@ -4,12 +4,16 @@ import { MobileHeader } from './MobileHeader'
 import { MobileBottomNav } from './MobileBottomNav'
 import { BackgroundPattern } from '../ui/BackgroundPattern'
 import { ThemeToggle } from '../ui/ThemeToggle'
+import { useCurrentSection } from './sectionNav'
+import { SectionTopBar } from './SectionTopBar'
 
 interface MainLayoutProps {
   children: ReactNode
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
+  const section = useCurrentSection()
+
   return (
     <div className="min-h-screen bg-glass-dark dark:bg-glass-dark light:bg-kalkvit transition-colors duration-300 overflow-x-hidden">
       <BackgroundPattern />
@@ -33,6 +37,13 @@ export function MainLayout({ children }: MainLayoutProps) {
       {/* Main Content - with left margin for fixed sidebar on desktop */}
       <main className="relative z-10 min-h-screen pt-14 pb-20 lg:pt-0 lg:pb-0 lg:ml-64 overflow-x-hidden">
         <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-full">
+          {section && (
+            <SectionTopBar
+              items={section.items}
+              moreItems={section.moreItems}
+              mode={section.mode}
+            />
+          )}
           {children}
         </div>
       </main>
