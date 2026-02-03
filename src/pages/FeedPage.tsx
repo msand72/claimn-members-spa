@@ -68,7 +68,11 @@ function PostCard({ post }: { post: FeedPost }) {
   const { data: commentsData, isLoading: commentsLoading } = usePostComments(
     showComments ? post.id : ''
   )
-  const comments: FeedComment[] = Array.isArray(commentsData) ? commentsData : []
+  const comments: FeedComment[] = Array.isArray(commentsData)
+    ? commentsData
+    : Array.isArray((commentsData as any)?.data)
+      ? (commentsData as any).data
+      : []
 
   const handleLike = () => {
     if (post.is_liked) {
