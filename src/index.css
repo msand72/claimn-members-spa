@@ -118,8 +118,8 @@ body {
   }
 
   .light .glass-dropdown {
-    @apply bg-[#2a2520]/95 backdrop-blur-[32px] border border-white/[0.15];
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+    @apply bg-white/95 backdrop-blur-[32px] border border-black/[0.1];
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
   }
 
   .light .glass-accent {

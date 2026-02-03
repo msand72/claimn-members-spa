@@ -68,12 +68,13 @@ export function MessagesPage() {
     error: conversationsError,
   } = useConversations({ limit: 50 })
 
-  // Fetch messages for selected conversation
+  // Fetch messages for selected conversation (skip for synthetic new- conversations)
+  const isRealConversation = !!selectedConversation?.id && !selectedConversation.id.startsWith('new-')
   const {
     data: messagesData,
     isLoading: messagesLoading,
     error: messagesError,
-  } = useConversationMessages(selectedConversation?.id || '', { limit: 100 })
+  } = useConversationMessages(isRealConversation ? selectedConversation.id : '', { limit: 100 })
 
   const sendMessage = useSendMessage()
   const markRead = useMarkConversationRead()

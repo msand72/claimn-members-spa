@@ -38,15 +38,15 @@ export function OnboardingWelcomePage() {
       })
     }
     // Advance onboarding step
-    await updateOnboarding.mutateAsync({ current_step: 'assessment' })
-    navigate('/onboarding/assessment')
+    await updateOnboarding.mutateAsync({ current_step: 'challenge' })
+    navigate('/onboarding/challenge')
   }
 
   const handleSkip = async () => {
     await updateOnboarding.mutateAsync({
-      current_step: 'assessment',
+      current_step: 'challenge',
     })
-    navigate('/onboarding/assessment')
+    navigate('/onboarding/challenge')
   }
 
   return (

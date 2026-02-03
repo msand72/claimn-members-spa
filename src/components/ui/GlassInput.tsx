@@ -108,7 +108,7 @@ export const GlassSelect = forwardRef<HTMLSelectElement, GlassSelectProps>(
           {...props}
         >
           {options.map(opt => (
-            <option key={opt.value} value={opt.value} className="bg-glass-dark text-kalkvit">
+            <option key={opt.value} value={opt.value} className="bg-charcoal text-kalkvit">
               {opt.label}
             </option>
           ))}

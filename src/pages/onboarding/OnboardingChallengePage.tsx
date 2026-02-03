@@ -57,14 +57,14 @@ export function OnboardingChallengePage() {
   const handleContinue = async () => {
     if (!selected) return
     await updateOnboarding.mutateAsync({
-      current_step: 'path',
+      current_step: 'assessment',
       primary_challenge: selected,
     })
-    navigate('/onboarding/path')
+    navigate('/onboarding/assessment')
   }
 
   return (
-    <OnboardingLayout step={4} totalSteps={5}>
+    <OnboardingLayout step={2} totalSteps={5}>
       <div className="text-center mb-8">
         <h1 className="font-display text-3xl md:text-4xl font-bold text-kalkvit mb-3">
           What's your primary challenge?

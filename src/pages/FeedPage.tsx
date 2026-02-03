@@ -294,6 +294,7 @@ export function FeedPage() {
   const [postContent, setPostContent] = useState('')
   const [activeTab, setActiveTab] = useState('all')
   const [selectedGroupId, setSelectedGroupId] = useState<string>('')
+  const [postError, setPostError] = useState<string | null>(null)
 
   const { data: myGroups = [] } = useMyInterestGroups(user?.id)
   const { data: allGroups = [] } = useAllInterestGroups()
@@ -344,6 +345,7 @@ export function FeedPage() {
 
   const handlePost = () => {
     if (postContent.trim()) {
+      setPostError(null)
       createPost.mutate({
         content: postContent,
         interest_group_id: selectedGroupId || undefined,
@@ -351,7 +353,11 @@ export function FeedPage() {
         onSuccess: () => {
           setPostContent('')
           setSelectedGroupId('')
-        }
+        },
+        onError: (err) => {
+          const message = err instanceof Error ? err.message : 'Failed to create post'
+          setPostError(message)
+        },
       })
     }
   }
@@ -443,6 +449,9 @@ export function FeedPage() {
                   {createPost.isPending ? 'Posting...' : 'Post'}
                 </GlassButton>
               </div>
+              {postError && (
+                <p className="text-sm text-tegelrod mt-2">{postError}</p>
+              )}
             </div>
           </div>
         </GlassCard>

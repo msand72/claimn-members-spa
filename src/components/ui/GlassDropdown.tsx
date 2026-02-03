@@ -63,7 +63,7 @@ export function GlassDropdown({
   }
 
   return (
-    <div ref={dropdownRef} className={cn('relative z-20', className)}>
+    <div ref={dropdownRef} className={cn('relative z-50', className)}>
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}

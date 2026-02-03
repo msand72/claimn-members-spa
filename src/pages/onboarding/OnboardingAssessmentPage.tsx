@@ -4,7 +4,7 @@ import { GlassCard, GlassButton } from '../../components/ui'
 import { ClipboardCheck, ArrowRight } from 'lucide-react'
 
 /**
- * Step 2: Assessment bridge page.
+ * Step 3: Assessment bridge page.
  * Explains the assessment, then links to the existing assessment flow.
  * On completion, the assessment page redirects back to /onboarding/results.
  */
@@ -17,7 +17,7 @@ export function OnboardingAssessmentPage() {
   }
 
   return (
-    <OnboardingLayout step={2} totalSteps={5}>
+    <OnboardingLayout step={3} totalSteps={5}>
       <div className="text-center mb-8">
         <div className="w-20 h-20 rounded-2xl bg-koppar/10 flex items-center justify-center mx-auto mb-6">
           <ClipboardCheck className="w-10 h-10 text-koppar" />

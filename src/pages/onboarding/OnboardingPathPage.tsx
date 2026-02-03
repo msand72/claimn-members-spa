@@ -14,7 +14,11 @@ export function OnboardingPathPage() {
   const updateOnboarding = useUpdateOnboarding()
 
   const handleComplete = async () => {
-    await updateOnboarding.mutateAsync({ current_step: 'complete' })
+    try {
+      await updateOnboarding.mutateAsync({ current_step: 'complete' })
+    } catch {
+      // Don't block navigation if onboarding update fails
+    }
     navigate('/')
   }
 
