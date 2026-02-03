@@ -108,6 +108,10 @@ export function MessagesPage() {
     }
   }, [selectedConversation?.id])
 
+  // DEBUG: Log raw API responses to identify field name mismatches
+  if (conversationsData) console.log('[DEBUG conversations raw]', JSON.stringify(conversationsData, null, 2).slice(0, 2000))
+  if (connectionsData) console.log('[DEBUG connections raw]', JSON.stringify(connectionsData, null, 2).slice(0, 2000))
+
   const conversations = Array.isArray(conversationsData?.data) ? conversationsData.data : []
   const messages = Array.isArray(messagesData?.data) ? messagesData.data : []
   // Build a list of connected members from the connections endpoint.
