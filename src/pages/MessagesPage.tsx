@@ -113,8 +113,8 @@ export function MessagesPage() {
   // Normalize raw conversation objects from API into the Conversation shape the UI expects.
   // API returns: { conversation_id, other_user_id, other_user_name, other_user_avatar, last_message (string), last_message_at, unread_count }
   // UI expects: { id, participant_id, participant: { user_id, display_name, avatar_url }, last_message: { content, sent_at, ... }, unread_count, updated_at }
-  const rawConversations = Array.isArray(conversationsData?.data) ? conversationsData.data : []
-  const conversations: Conversation[] = rawConversations.map((raw: Record<string, unknown>) => ({
+  const rawConversations: Record<string, unknown>[] = Array.isArray(conversationsData?.data) ? conversationsData.data as unknown as Record<string, unknown>[] : []
+  const conversations: Conversation[] = rawConversations.map((raw) => ({
     id: (raw.conversation_id as string) || (raw.id as string) || (raw.other_user_id as string) || '',
     participant_id: (raw.other_user_id as string) || (raw.participant_id as string) || '',
     participant: raw.participant
@@ -137,8 +137,8 @@ export function MessagesPage() {
 
   // Build connected members from connections API.
   // API uses 'addressee_id' (not 'recipient_id') and provides 'is_requester' convenience flag.
-  const rawConnections = Array.isArray(connectionsData?.data) ? connectionsData.data : []
-  const connectedMembers = rawConnections.map((conn: Record<string, unknown>) => {
+  const rawConnections: Record<string, unknown>[] = Array.isArray(connectionsData?.data) ? connectionsData.data as unknown as Record<string, unknown>[] : []
+  const connectedMembers = rawConnections.map((conn) => {
     const isRequester = conn.is_requester === true || conn.requester_id === user?.id
     const otherId = isRequester
       ? ((conn.addressee_id as string) || (conn.recipient_id as string) || '')
