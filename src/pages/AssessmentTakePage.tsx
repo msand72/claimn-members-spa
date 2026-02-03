@@ -87,7 +87,7 @@ function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): EnrichedQ
         // Pillar: use API options if they have numeric values, otherwise default Likert
         if (q.options && q.options.length > 0 && typeof q.options[0].value === 'number') {
           options = q.options.map((opt) => ({
-            value: opt.value ?? 0,
+            value: Number(opt.value) || 0,
             label: opt.label ?? opt.option_text ?? '',
           }))
         } else {
