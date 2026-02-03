@@ -147,7 +147,13 @@ export function MessagesPage() {
     }
   })
 
-  const messages = Array.isArray(messagesData?.data) ? messagesData.data : []
+  // Normalize messages: backend may return 'body' instead of 'content'
+  const rawMessages = Array.isArray(messagesData?.data) ? messagesData.data : []
+  const messages = rawMessages.map((msg: any) => ({
+    ...msg,
+    content: msg.content || msg.body || '',
+  }))
+  console.log('[DEBUG MessagesPage] Messages count:', messages.length, messages.length > 0 ? 'first msg keys: ' + Object.keys(messages[0]).join(', ') : '')
 
   // Build connected members from connections API.
   // API uses 'addressee_id' (not 'recipient_id') and provides 'is_requester' convenience flag.
@@ -189,15 +195,49 @@ export function MessagesPage() {
     }
   }, [targetUserId, conversationsLoading, connectionsLoading, conversations, connectedMembers])
 
+  // Apply optimistic last_message updates to the conversation list.
+  // When the user sends a message, the sidebar should immediately show
+  // the new message text and "Just now" timestamp — before the API confirms.
+  const latestOptimistic = optimisticMessages.length > 0 ? optimisticMessages[optimisticMessages.length - 1] : null
+  const conversationsWithOptimistic = conversations.map((conv) => {
+    // If this is the selected conversation and we have optimistic messages, update its preview
+    if (selectedConversation && conv.participant_id === selectedConversation.participant_id && latestOptimistic) {
+      return {
+        ...conv,
+        last_message: {
+          content: latestOptimistic.content,
+          sent_at: latestOptimistic.created_at,
+          is_read: true,
+          sender_id: latestOptimistic.sender_id,
+        },
+        updated_at: latestOptimistic.created_at,
+      }
+    }
+    return conv
+  })
+
   // Include the synthetic conversation in the list if it's not already there
   const allConversations = (() => {
     if (
       selectedConversation?.id?.startsWith('new-') &&
-      !conversations.some((c) => c.participant_id === selectedConversation.participant_id)
+      !conversationsWithOptimistic.some((c) => c.participant_id === selectedConversation.participant_id)
     ) {
-      return [selectedConversation, ...conversations]
+      // If there are optimistic messages, show the latest one in the synthetic conversation too
+      const syntheticWithOptimistic = latestOptimistic
+        ? {
+            ...selectedConversation,
+            last_message: {
+              content: latestOptimistic.content,
+              sent_at: latestOptimistic.created_at,
+              is_read: true,
+              sender_id: latestOptimistic.sender_id,
+            },
+            updated_at: latestOptimistic.created_at,
+          }
+        : selectedConversation
+      return [syntheticWithOptimistic, ...conversationsWithOptimistic]
     }
-    return conversations
+    return conversationsWithOptimistic
   })()
 
   // Filter conversations by search
@@ -266,11 +306,24 @@ export function MessagesPage() {
           setOptimisticMessages((prev) =>
             prev.filter((msg) => msg._optimisticId !== optimisticId)
           )
+          // If this was a synthetic "new-" conversation, transition to a real one.
+          // After query invalidation, the conversations list will contain the real entry.
+          // Update selectedConversation to use the participant_id as the real conversation key
+          // (the backend uses user IDs as conversation IDs).
+          if (selectedConversation.id.startsWith('new-')) {
+            console.log('[DEBUG MessagesPage] Transitioning synthetic conversation to real, participant_id:', selectedConversation.participant_id)
+            setSelectedConversation({
+              ...selectedConversation,
+              id: selectedConversation.participant_id,
+            })
+          }
         },
         onError: () => {
-          // Remove optimistic message and show error toast
+          // Mark optimistic message as failed (keep it visible so the user sees it failed)
           setOptimisticMessages((prev) =>
-            prev.filter((msg) => msg._optimisticId !== optimisticId)
+            prev.map((msg) =>
+              msg._optimisticId === optimisticId ? { ...msg, status: 'failed' as const } : msg
+            )
           )
           setToast({ variant: 'error', message: 'Failed to send message. Please try again.' })
         },
