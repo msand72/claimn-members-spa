@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
   GlassCard,
@@ -11,8 +11,18 @@ import {
   GlassSelect,
 } from '../components/ui'
 import { PILLARS, GOAL_STATUSES, KPI_TYPES, TRACKING_FREQUENCIES } from '../lib/constants'
-import { useGoal, useUpdateGoal, useDeleteGoal, useLogKPI, useCreateKPI } from '../lib/api/hooks'
-import type { KPI } from '../lib/api/types'
+import {
+  useGoal,
+  useUpdateGoal,
+  useDeleteGoal,
+  useLogKPI,
+  useCreateKPI,
+  useActionItems,
+  useCreateActionItem,
+  useToggleActionItem,
+  useDeleteActionItem,
+} from '../lib/api/hooks'
+import type { KPI, ActionItem } from '../lib/api/types'
 import {
   ChevronLeft,
   Target,
@@ -25,6 +35,10 @@ import {
   MoreHorizontal,
   Loader2,
   AlertCircle,
+  Square,
+  CheckSquare,
+  ListTodo,
+  X,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { AskExpertButton } from '../components/AskExpertButton'
@@ -40,6 +54,12 @@ export function GoalDetailPage() {
   const logKPI = useLogKPI()
   const createKPI = useCreateKPI()
 
+  // Action items (subtasks) for this goal
+  const { data: actionItemsData } = useActionItems({ goal_id: id || '', status: undefined })
+  const createActionItem = useCreateActionItem()
+  const toggleActionItem = useToggleActionItem()
+  const deleteActionItem = useDeleteActionItem()
+
   const [showLogModal, setShowLogModal] = useState(false)
   const [selectedKpi, setSelectedKpi] = useState<KPI | null>(null)
   const [logValue, setLogValue] = useState('')
@@ -49,6 +69,8 @@ export function GoalDetailPage() {
   const [showAddKpiModal, setShowAddKpiModal] = useState(false)
   const [newKpi, setNewKpi] = useState({ kpiType: '', targetValue: '', frequency: 'daily' })
   const [actionError, setActionError] = useState<string | null>(null)
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
+  const [isAddingSubtask, setIsAddingSubtask] = useState(false)
 
   if (isLoading) {
     return (
@@ -90,8 +112,39 @@ export function GoalDetailPage() {
   // Get KPIs from goal
   const kpis = goal.kpis || []
 
-  // Calculate overall progress (from goal or average of KPIs)
-  const overallProgress = goal.progress
+  // Get subtasks (action items linked to this goal)
+  const subtasks: ActionItem[] = useMemo(() => {
+    if (!actionItemsData) return []
+    const raw = actionItemsData as any
+    if (Array.isArray(raw)) return raw
+    if (raw && Array.isArray(raw.data)) return raw.data
+    return []
+  }, [actionItemsData])
+
+  const completedSubtasks = subtasks.filter((s) => s.status === 'completed').length
+  const totalSubtasks = subtasks.length
+
+  // Calculate progress from actual drivers (subtasks + KPIs)
+  const hasDrivers = kpis.length > 0 || totalSubtasks > 0
+  const calculatedProgress = useMemo(() => {
+    if (!hasDrivers) return goal.progress // fallback to API value
+    const parts: number[] = []
+    // Subtask progress
+    if (totalSubtasks > 0) {
+      parts.push((completedSubtasks / totalSubtasks) * 100)
+    }
+    // KPI progress
+    if (kpis.length > 0) {
+      const avgKpi = kpis.reduce(
+        (sum, k) => sum + Math.min((k.current_value / k.target_value) * 100, 100),
+        0
+      ) / kpis.length
+      parts.push(avgKpi)
+    }
+    return parts.length > 0 ? Math.round(parts.reduce((a, b) => a + b, 0) / parts.length) : 0
+  }, [hasDrivers, goal.progress, totalSubtasks, completedSubtasks, kpis])
+
+  const overallProgress = calculatedProgress
 
   const handleLogKpi = (kpi: KPI) => {
     setSelectedKpi(kpi)
@@ -167,6 +220,43 @@ export function GoalDetailPage() {
     setIsEditing(false)
     setEditTitle('')
     setEditDescription('')
+  }
+
+  const handleAddSubtask = async () => {
+    if (!newSubtaskTitle.trim() || !id) return
+    setActionError(null)
+    try {
+      await createActionItem.mutateAsync({
+        title: newSubtaskTitle.trim(),
+        goal_id: id,
+        priority: 'medium',
+      })
+      setNewSubtaskTitle('')
+      setIsAddingSubtask(false)
+    } catch (_err) {
+      setActionError('Failed to add subtask. Please try again.')
+    }
+  }
+
+  const handleToggleSubtask = async (item: ActionItem) => {
+    setActionError(null)
+    try {
+      await toggleActionItem.mutateAsync({
+        id: item.id,
+        completed: item.status !== 'completed',
+      })
+    } catch (_err) {
+      setActionError('Failed to update subtask. Please try again.')
+    }
+  }
+
+  const handleDeleteSubtask = async (itemId: string) => {
+    setActionError(null)
+    try {
+      await deleteActionItem.mutateAsync(itemId)
+    } catch (_err) {
+      setActionError('Failed to delete subtask. Please try again.')
+    }
   }
 
   const handleCreateKpi = async () => {
@@ -275,16 +365,20 @@ export function GoalDetailPage() {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <GlassCard variant="elevated" className="text-center py-4">
-            <TrendingUp className="w-6 h-6 text-koppar mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{overallProgress}%</p>
-            <p className="text-xs text-kalkvit/50">Overall Progress</p>
-          </GlassCard>
+        <div className={cn('grid gap-4 mb-8', hasDrivers ? 'grid-cols-3' : 'grid-cols-2')}>
+          {hasDrivers && (
+            <GlassCard variant="elevated" className="text-center py-4">
+              <TrendingUp className="w-6 h-6 text-koppar mx-auto mb-2" />
+              <p className="font-display text-2xl font-bold text-kalkvit">{overallProgress}%</p>
+              <p className="text-xs text-kalkvit/50">Overall Progress</p>
+            </GlassCard>
+          )}
           <GlassCard variant="base" className="text-center py-4">
-            <Target className="w-6 h-6 text-koppar mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{kpis.length}</p>
-            <p className="text-xs text-kalkvit/50">KPIs Tracked</p>
+            <ListTodo className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <p className="font-display text-2xl font-bold text-kalkvit">
+              {totalSubtasks > 0 ? `${completedSubtasks}/${totalSubtasks}` : '0'}
+            </p>
+            <p className="text-xs text-kalkvit/50">Subtasks</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
             <Calendar className="w-6 h-6 text-koppar mx-auto mb-2" />
@@ -295,23 +389,141 @@ export function GoalDetailPage() {
           </GlassCard>
         </div>
 
-        {/* Overall Progress Card */}
-        <GlassCard variant="elevated" className="mb-8">
+        {/* Overall Progress Card — only show when there are actual drivers */}
+        {hasDrivers ? (
+          <GlassCard variant="elevated" className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-kalkvit">Progress Overview</h3>
+              <span className="text-2xl font-bold text-koppar">{overallProgress}%</span>
+            </div>
+            <div className="h-4 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all',
+                  overallProgress >= 100 ? 'bg-skogsgron' : 'bg-gradient-to-r from-koppar to-brandAmber'
+                )}
+                style={{ width: `${Math.min(overallProgress, 100)}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-2 text-xs text-kalkvit/50">
+              <span>Started {new Date(goal.created_at).toLocaleDateString()}</span>
+              {goal.target_date && <span>Target: {new Date(goal.target_date).toLocaleDateString()}</span>}
+            </div>
+          </GlassCard>
+        ) : (
+          <GlassCard variant="base" className="mb-8 text-center py-6">
+            <Target className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
+            <p className="text-sm text-kalkvit/60 mb-1">No progress tracking yet</p>
+            <p className="text-xs text-kalkvit/40">Add subtasks or KPIs below to track your progress</p>
+          </GlassCard>
+        )}
+
+        {/* Subtasks */}
+        <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-kalkvit">Progress Overview</h3>
-            <span className="text-2xl font-bold text-koppar">{overallProgress}%</span>
+            <h3 className="font-semibold text-kalkvit">Subtasks</h3>
+            {!isAddingSubtask && (
+              <GlassButton variant="ghost" className="text-sm" onClick={() => setIsAddingSubtask(true)}>
+                <Plus className="w-4 h-4" />
+                Add Subtask
+              </GlassButton>
+            )}
           </div>
-          <div className="h-4 bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-koppar to-brandAmber rounded-full transition-all"
-              style={{ width: `${overallProgress}%` }}
-            />
-          </div>
-          <div className="flex items-center justify-between mt-2 text-xs text-kalkvit/50">
-            <span>Started {new Date(goal.created_at).toLocaleDateString()}</span>
-            {goal.target_date && <span>Target: {new Date(goal.target_date).toLocaleDateString()}</span>}
-          </div>
-        </GlassCard>
+
+          {/* Inline add subtask */}
+          {isAddingSubtask && (
+            <div className="flex items-center gap-2 mb-3">
+              <GlassInput
+                placeholder="What needs to be done?"
+                value={newSubtaskTitle}
+                onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddSubtask()
+                  if (e.key === 'Escape') { setIsAddingSubtask(false); setNewSubtaskTitle('') }
+                }}
+                className="flex-1"
+                autoFocus
+              />
+              <GlassButton
+                variant="primary"
+                onClick={handleAddSubtask}
+                disabled={!newSubtaskTitle.trim() || createActionItem.isPending}
+                className="px-3 py-2"
+              >
+                {createActionItem.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              </GlassButton>
+              <GlassButton
+                variant="ghost"
+                onClick={() => { setIsAddingSubtask(false); setNewSubtaskTitle('') }}
+                className="px-3 py-2"
+              >
+                <X className="w-4 h-4" />
+              </GlassButton>
+            </div>
+          )}
+
+          {subtasks.length === 0 && !isAddingSubtask ? (
+            <GlassCard variant="base" className="text-center py-6">
+              <ListTodo className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
+              <p className="text-kalkvit/50 text-sm mb-2">No subtasks yet</p>
+              <GlassButton
+                variant="ghost"
+                className="text-sm text-koppar"
+                onClick={() => setIsAddingSubtask(true)}
+              >
+                <Plus className="w-4 h-4" />
+                Add your first subtask
+              </GlassButton>
+            </GlassCard>
+          ) : (
+            <div className="space-y-1">
+              {subtasks.map((item) => (
+                <div
+                  key={item.id}
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors group',
+                    'bg-white/[0.04] hover:bg-white/[0.06]'
+                  )}
+                >
+                  <button
+                    onClick={() => handleToggleSubtask(item)}
+                    className="flex-shrink-0 text-kalkvit/60 hover:text-koppar transition-colors"
+                  >
+                    {item.status === 'completed' ? (
+                      <CheckSquare className="w-5 h-5 text-skogsgron" />
+                    ) : (
+                      <Square className="w-5 h-5" />
+                    )}
+                  </button>
+                  <span
+                    className={cn(
+                      'flex-1 text-sm',
+                      item.status === 'completed'
+                        ? 'text-kalkvit/40 line-through'
+                        : 'text-kalkvit'
+                    )}
+                  >
+                    {item.title}
+                  </span>
+                  {item.priority === 'high' && (
+                    <span className="text-xs text-tegelrod/70 font-medium">High</span>
+                  )}
+                  <button
+                    onClick={() => handleDeleteSubtask(item.id)}
+                    className="opacity-0 group-hover:opacity-100 text-kalkvit/30 hover:text-tegelrod transition-all flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              {totalSubtasks > 0 && (
+                <p className="text-xs text-kalkvit/40 pt-2 px-1">
+                  {completedSubtasks} of {totalSubtasks} completed
+                </p>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* KPIs */}
         <div className="mb-8">
@@ -324,10 +536,10 @@ export function GoalDetailPage() {
           </div>
 
           {kpis.length === 0 ? (
-            <GlassCard variant="base" className="text-center py-8">
-              <Target className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
+            <GlassCard variant="base" className="text-center py-6">
+              <Target className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
               <p className="text-kalkvit/50 text-sm">No KPIs added yet</p>
-              <p className="text-kalkvit/40 text-xs mt-1">Add KPIs to track your progress</p>
+              <p className="text-kalkvit/40 text-xs mt-1">Add KPIs to measure specific metrics for this goal</p>
             </GlassCard>
           ) : (
             <div className="space-y-4">

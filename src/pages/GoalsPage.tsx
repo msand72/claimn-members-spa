@@ -13,7 +13,7 @@ import {
 } from '../components/ui'
 import { PILLARS, PILLAR_IDS, GOAL_STATUSES } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
-import { useGoals, useCreateGoal } from '../lib/api/hooks'
+import { useGoals, useCreateGoal, useUpdateGoal } from '../lib/api/hooks'
 import type { Goal, CreateGoalRequest } from '../lib/api/types'
 import {
   Target,
@@ -26,16 +26,19 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  ListTodo,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-function GoalCard({ goal }: { goal: Goal }) {
+function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) => void }) {
   const pillar = goal.pillar_id ? PILLARS[goal.pillar_id] : null
   const statusInfo = GOAL_STATUSES.find((s) => s.id === goal.status)
+  const hasKpis = goal.kpis && goal.kpis.length > 0
+  const hasProgress = hasKpis || goal.progress > 0
 
   return (
-    <Link to={`/goals/${goal.id}`}>
-      <GlassCard variant="base" className="hover:border-koppar/30 transition-colors cursor-pointer">
+    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+      <Link to={`/goals/${goal.id}`} className="block">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             {pillar && (
@@ -53,26 +56,38 @@ function GoalCard({ goal }: { goal: Goal }) {
         </div>
 
         <h3 className="font-semibold text-kalkvit mb-2">{goal.title}</h3>
-        <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{goal.description}</p>
+        {goal.description && (
+          <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{goal.description}</p>
+        )}
 
-        {/* Progress Bar */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-kalkvit/60">Progress</span>
-            <span className="text-koppar font-medium">{goal.progress}%</span>
+        {/* Progress Bar — only show when there's something driving it */}
+        {hasProgress ? (
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-kalkvit/60">Progress</span>
+              <span className="text-koppar font-medium">{goal.progress}%</span>
+            </div>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all',
+                  goal.progress >= 100 ? 'bg-skogsgron' : 'bg-koppar'
+                )}
+                style={{ width: `${Math.min(goal.progress, 100)}%` }}
+              />
+            </div>
           </div>
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-koppar rounded-full transition-all"
-              style={{ width: `${goal.progress}%` }}
-            />
+        ) : (
+          <div className="flex items-center gap-2 mb-4 text-xs text-kalkvit/40">
+            <ListTodo className="w-3.5 h-3.5" />
+            <span>Add subtasks or KPIs to track progress</span>
           </div>
-        </div>
+        )}
 
         {/* KPIs */}
-        {goal.kpis && goal.kpis.length > 0 && (
+        {hasKpis && (
           <div className="space-y-2 mb-4">
-            {goal.kpis.slice(0, 2).map((kpi) => (
+            {goal.kpis!.slice(0, 2).map((kpi) => (
               <div
                 key={kpi.id}
                 className="flex items-center justify-between text-xs p-2 rounded-lg bg-white/[0.04]"
@@ -86,19 +101,38 @@ function GoalCard({ goal }: { goal: Goal }) {
             ))}
           </div>
         )}
+      </Link>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-white/10">
+      {/* Footer with quick actions */}
+      <div className="flex items-center justify-between pt-3 border-t border-white/10">
+        <div className="flex items-center gap-2">
           {goal.target_date && (
             <span className="text-xs text-kalkvit/50 flex items-center gap-1">
               <Calendar className="w-3 h-3" />
               {new Date(goal.target_date).toLocaleDateString()}
             </span>
           )}
-          <ChevronRight className="w-4 h-4 text-kalkvit/30" />
         </div>
-      </GlassCard>
-    </Link>
+        <div className="flex items-center gap-2">
+          {goal.status === 'active' && onMarkDone && (
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onMarkDone(goal.id)
+              }}
+              className="flex items-center gap-1 text-xs text-skogsgron/70 hover:text-skogsgron transition-colors px-2 py-1 rounded-lg hover:bg-skogsgron/10"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Done
+            </button>
+          )}
+          <Link to={`/goals/${goal.id}`}>
+            <ChevronRight className="w-4 h-4 text-kalkvit/30" />
+          </Link>
+        </div>
+      </div>
+    </GlassCard>
   )
 }
 
@@ -118,8 +152,17 @@ export function GoalsPage() {
     status: filter === 'all' ? undefined : filter,
   })
   const createGoal = useCreateGoal()
+  const updateGoal = useUpdateGoal()
 
   const goals = Array.isArray(goalsData?.data) ? goalsData.data : []
+
+  const handleMarkDone = async (goalId: string) => {
+    try {
+      await updateGoal.mutateAsync({ id: goalId, data: { status: 'completed' } })
+    } catch {
+      // Silently fail — user can retry from detail page
+    }
+  }
 
   const activeGoals = goals.filter((g) => g.status === 'active').length
   const completedGoals = goals.filter((g) => g.status === 'completed').length
@@ -230,7 +273,7 @@ export function GoalsPage() {
         {!isLoading && !error && goals.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {goals.map((goal) => (
-              <GoalCard key={goal.id} goal={goal} />
+              <GoalCard key={goal.id} goal={goal} onMarkDone={handleMarkDone} />
             ))}
           </div>
         )}
