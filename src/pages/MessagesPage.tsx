@@ -10,9 +10,9 @@ import {
   useConversationMessages,
   useSendMessage,
   useMarkConversationRead,
-  useConnections,
+  useNetwork,
   type Conversation,
-  type Connection,
+  type NetworkMember,
 } from '../lib/api'
 
 // Optimistic message type (displayed before API confirms)
@@ -79,11 +79,11 @@ export function MessagesPage() {
   const sendMessage = useSendMessage()
   const markRead = useMarkConversationRead()
 
-  // Fetch accepted connections for "New Conversation" modal
+  // Fetch connected network members for "New Conversation" modal
   const {
-    data: connectionsData,
-    isLoading: connectionsLoading,
-  } = useConnections({ status: 'accepted', limit: 100 })
+    data: networkData,
+    isLoading: networkLoading,
+  } = useNetwork({ limit: 100 })
 
   const [showHeaderMenu, setShowHeaderMenu] = useState(false)
   const headerMenuRef = useRef<HTMLDivElement>(null)
@@ -110,12 +110,14 @@ export function MessagesPage() {
 
   const conversations = Array.isArray(conversationsData?.data) ? conversationsData.data : []
   const messages = Array.isArray(messagesData?.data) ? messagesData.data : []
-  const connections: Connection[] = Array.isArray(connectionsData?.data) ? connectionsData.data : []
+  const networkMembers: NetworkMember[] = Array.isArray(networkData?.data) ? networkData.data : []
+  // Only show connected members in the "New Conversation" modal
+  const connectedMembers = networkMembers.filter((m) => m.connection_status === 'connected')
 
   // Auto-select conversation when navigating with ?user= param
   const targetUserId = searchParams.get('user')
   useEffect(() => {
-    if (!targetUserId || conversationsLoading || connectionsLoading) return
+    if (!targetUserId || conversationsLoading || networkLoading) return
     // Already selected this user
     if (selectedConversation?.participant_id === targetUserId) return
 
@@ -127,16 +129,13 @@ export function MessagesPage() {
       return
     }
 
-    // Try to find connection and create synthetic conversation
-    const conn = connections.find((c) => {
-      const otherId = c.requester_id === user?.id ? c.recipient_id : c.requester_id
-      return otherId === targetUserId
-    })
-    if (conn) {
-      handleStartConversation(conn)
+    // Try to find member in network and create synthetic conversation
+    const member = connectedMembers.find((m) => m.user_id === targetUserId)
+    if (member) {
+      handleStartConversationWithMember(member)
       setSearchParams({}, { replace: true })
     }
-  }, [targetUserId, conversationsLoading, connectionsLoading, conversations, connections])
+  }, [targetUserId, conversationsLoading, networkLoading, conversations, connectedMembers])
 
   // Include the synthetic conversation in the list if it's not already there
   const allConversations = (() => {
@@ -154,11 +153,10 @@ export function MessagesPage() {
     conv.participant?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
   )
 
-  // Filter connections for the new conversation modal
-  const filteredConnections = connections.filter((conn) => {
-    const name = conn.requester?.display_name || conn.recipient?.display_name || ''
-    return name.toLowerCase().includes(connectionSearchQuery.toLowerCase())
-  })
+  // Filter connected members for the new conversation modal
+  const filteredMembers = connectedMembers.filter((member) =>
+    member.display_name.toLowerCase().includes(connectionSearchQuery.toLowerCase())
+  )
 
   // Auto-scroll to the latest message when messages change or optimistic messages are added
   const scrollToBottom = useCallback(() => {
@@ -239,53 +237,26 @@ export function MessagesPage() {
     setOptimisticMessages([])
   }
 
-  // Start a new conversation with a connection
-  const handleStartConversation = (connection: Connection) => {
-    // Determine the other person in the connection
-    const isRequester = connection.requester_id === user?.id
-    const otherPerson = isRequester ? connection.recipient : connection.requester
-    const otherPersonId = isRequester ? connection.recipient_id : connection.requester_id
-
-    if (!otherPerson) {
-      // Fallback: build participant from available data
-      const fallbackName = getConnectionDisplayName(connection)
-      const syntheticConversation: Conversation = {
-        id: `new-${otherPersonId}`,
-        participant_id: otherPersonId,
-        participant: {
-          user_id: otherPersonId,
-          display_name: fallbackName,
-          avatar_url: null,
-        },
-        last_message: null,
-        unread_count: 0,
-        updated_at: new Date().toISOString(),
-      }
-      setSelectedConversation(syntheticConversation)
-      setShowNewConversationModal(false)
-      setConnectionSearchQuery('')
-      return
-    }
-
+  // Start a new conversation with a network member
+  const handleStartConversationWithMember = (member: NetworkMember) => {
     // Check if a conversation already exists with this person
     const existing = conversations.find(
-      (conv) => conv.participant_id === otherPersonId
+      (conv) => conv.participant_id === member.user_id
     )
 
     if (existing) {
-      // Select the existing conversation
       setSelectedConversation(existing)
     } else {
       // Create a synthetic conversation to allow the user to send the first message.
       // Once they send a message, the API will create the real conversation and
       // query invalidation will populate it.
       const syntheticConversation: Conversation = {
-        id: `new-${otherPersonId}`,
-        participant_id: otherPersonId,
+        id: `new-${member.user_id}`,
+        participant_id: member.user_id,
         participant: {
-          user_id: otherPerson.user_id,
-          display_name: otherPerson.display_name,
-          avatar_url: otherPerson.avatar_url,
+          user_id: member.user_id,
+          display_name: member.display_name,
+          avatar_url: member.avatar_url,
         },
         last_message: null,
         unread_count: 0,
@@ -306,12 +277,6 @@ export function MessagesPage() {
       .join('')
       .slice(0, 2)
       .toUpperCase()
-  }
-
-  // Helper to get display name from a connection (the other person)
-  const getConnectionDisplayName = (conn: Connection) => {
-    const isRequester = conn.requester_id === user?.id
-    return (isRequester ? conn.recipient?.display_name : conn.requester?.display_name) || 'Unknown'
   }
 
   return (
@@ -622,15 +587,15 @@ export function MessagesPage() {
             />
           </div>
 
-          {/* Connections list */}
+          {/* Members list */}
           <div className="max-h-[300px] overflow-y-auto -mx-1 px-1 space-y-1">
-            {connectionsLoading && (
+            {networkLoading && (
               <div className="flex justify-center py-6">
                 <Loader2 className="w-6 h-6 text-koppar animate-spin" />
               </div>
             )}
 
-            {!connectionsLoading && filteredConnections.length === 0 && (
+            {!networkLoading && filteredMembers.length === 0 && (
               <div className="text-center py-6">
                 <p className="text-kalkvit/50 text-sm">
                   {connectionSearchQuery
@@ -640,25 +605,22 @@ export function MessagesPage() {
               </div>
             )}
 
-            {!connectionsLoading && filteredConnections.map((conn) => {
-              const displayName = getConnectionDisplayName(conn)
-              return (
-                <button
-                  key={conn.id}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleStartConversation(conn)
-                  }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.06] transition-colors text-left cursor-pointer"
-                >
-                  <GlassAvatar initials={getInitials(displayName)} size="md" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-kalkvit truncate">{displayName}</p>
-                    <p className="text-xs text-kalkvit/50">Connected</p>
-                  </div>
-                </button>
-              )
-            })}
+            {!networkLoading && filteredMembers.map((member) => (
+              <button
+                key={member.user_id}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleStartConversationWithMember(member)
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.06] transition-colors text-left cursor-pointer"
+              >
+                <GlassAvatar initials={getInitials(member.display_name)} src={member.avatar_url} size="md" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-kalkvit truncate">{member.display_name}</p>
+                  <p className="text-xs text-kalkvit/50">Connected</p>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 
