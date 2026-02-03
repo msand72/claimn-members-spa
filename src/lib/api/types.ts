@@ -613,10 +613,11 @@ export interface AssessmentQuestion {
 
 export interface AssessmentOption {
   id?: string
-  option_key?: string
+  option_value?: string
   option_text?: string
-  value?: number
+  value?: string | number
   label?: string
+  sort_order?: number
 }
 
 // Pillar score as stored in DB (JSONB shape)
@@ -627,13 +628,8 @@ export interface PillarScore {
 }
 
 // Archetype scores as stored in DB (JSONB shape)
-export interface ArchetypeScores {
-  achiever: number
-  optimizer: number
-  networker: number
-  grinder: number
-  philosopher: number
-}
+// Keys are archetype names as stored in DB (e.g. "The Achiever", "The Optimizer")
+export type ArchetypeScores = Record<string, number>
 
 // Integration insight from scoring engine
 export interface AssessmentInsight {
@@ -690,7 +686,7 @@ export interface AssessmentResult {
 // Structured submit format matching backend scoring engine
 export interface ArchetypeResponse {
   questionKey: string
-  archetype: ArchetypeId
+  archetype: string // Full archetype name from option_value (e.g. "The Achiever")
 }
 
 export interface PillarResponse {

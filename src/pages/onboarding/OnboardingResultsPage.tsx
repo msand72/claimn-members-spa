@@ -124,15 +124,18 @@ export function OnboardingResultsPage() {
         }
       }
 
-      // Primary archetype display
-      const primaryKey = apiResult.primary_archetype
-      const secondaryKey = apiResult.secondary_archetype
-      const primaryArchetype = primaryKey
-        ? ARCHETYPE_DISPLAY[primaryKey] ?? primaryKey
-        : apiResult.archetypes?.[0] ?? null
-      const secondaryArchetype = secondaryKey
-        ? ARCHETYPE_DISPLAY[secondaryKey] ?? secondaryKey
-        : apiResult.archetypes?.[1] ?? null
+      // Primary archetype display — normalize DB keys ("The Achiever" → "achiever") for lookup
+      const rawPrimary = apiResult.primary_archetype ?? apiResult.archetypes?.[0] ?? null
+      const rawSecondary = apiResult.secondary_archetype ?? apiResult.archetypes?.[1] ?? null
+      const normalizeKey = (k: string) => k.replace(/^The\s+/i, '').toLowerCase()
+      const primaryNorm = rawPrimary ? normalizeKey(rawPrimary) : null
+      const secondaryNorm = rawSecondary ? normalizeKey(rawSecondary) : null
+      const primaryArchetype = primaryNorm
+        ? ARCHETYPE_DISPLAY[primaryNorm] ?? rawPrimary
+        : null
+      const secondaryArchetype = secondaryNorm
+        ? ARCHETYPE_DISPLAY[secondaryNorm] ?? rawSecondary
+        : null
 
       // Overall score from pillar percentages
       const pillarValues = Object.values(pillarScores)

@@ -7,7 +7,6 @@ import type { AssessmentQuestion as LocalAssessmentQuestion } from '../lib/asses
 import { useSubmitAssessment, useAssessmentQuestions } from '../lib/api/hooks/useAssessments'
 import type {
   AssessmentQuestion as ApiAssessmentQuestion,
-  ArchetypeId,
   PillarId,
 } from '../lib/api/types'
 import { ChevronLeft, ChevronRight, Check, Loader2, AlertCircle } from 'lucide-react'
@@ -38,7 +37,7 @@ interface EnrichedQuestion extends LocalAssessmentQuestion {
   _questionKey: string
   _questionType: 'archetype' | 'pillar' | 'background'
   _pillarCategory?: string
-  _optionKeys?: string[] // archetype option_key values
+  _optionKeys?: string[] // archetype option_value strings (e.g. "The Achiever")
   _backgroundOptions?: { value: string; text: string }[] // background select options
   _isTextInput?: boolean // background question with no options
 }
@@ -64,10 +63,8 @@ function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): EnrichedQ
         // They may also come as { value, text } or { option_key, option_text }
         if (q.options && q.options.length > 0) {
           backgroundOptions = q.options.map((opt) => ({
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            value: (opt as any).value?.toString() ?? opt.option_key ?? opt.option_text ?? '',
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            text: (opt as any).text ?? opt.option_text ?? opt.label ?? (opt as any).value?.toString() ?? '',
+            value: opt.option_value ?? opt.value?.toString() ?? opt.option_text ?? '',
+            text: opt.option_text ?? opt.label ?? opt.option_value ?? opt.value?.toString() ?? '',
           }))
           // Create numeric index options for the radio button renderer (fallback)
           options = backgroundOptions.map((opt, idx) => ({
@@ -85,7 +82,7 @@ function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): EnrichedQ
           value: idx,
           label: opt.option_text ?? opt.label ?? `Option ${idx + 1}`,
         }))
-        optionKeys = q.options.map((opt, i) => opt.option_key ?? String(opt.value ?? i))
+        optionKeys = q.options.map((opt, i) => opt.option_value ?? String(opt.value ?? i))
       } else if (questionType === 'pillar') {
         // Pillar: use API options if they have numeric values, otherwise default Likert
         if (q.options && q.options.length > 0 && typeof q.options[0].value === 'number') {
@@ -284,7 +281,7 @@ export function AssessmentTakePage() {
     setSubmitError(null)
 
     // Build structured submit request
-    const archetypeResponses: { questionKey: string; archetype: ArchetypeId }[] = []
+    const archetypeResponses: { questionKey: string; archetype: string }[] = []
     const pillarResponses: { questionKey: string; pillar: PillarId; value: number }[] = []
     const backgroundData: Record<string, string> = {}
 
@@ -316,7 +313,7 @@ export function AssessmentTakePage() {
         if (archetypeKey) {
           archetypeResponses.push({
             questionKey: q._questionKey,
-            archetype: archetypeKey as ArchetypeId,
+            archetype: archetypeKey,
           })
         }
       } else if (q._questionType === 'pillar' && q._pillarCategory) {

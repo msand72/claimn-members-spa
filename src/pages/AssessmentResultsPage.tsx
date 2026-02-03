@@ -797,13 +797,18 @@ export function AssessmentResultsPage() {
 // Helper: Derive results from API AssessmentResult
 // =====================================================
 
+/** Normalize an archetype key from DB format ("The Achiever") to lowercase ("achiever") */
+function normalizeArchetypeKey(key: string): string {
+  return key.replace(/^The\s+/i, '').toLowerCase()
+}
+
 function deriveFromApiResult(apiResult: {
   id?: string
   primary_archetype?: string
   secondary_archetype?: string | null
   archetype_scores?: ArchetypeScores | Record<string, number>
   pillar_scores?: Record<string, PillarScore | number>
-  consistency_score?: number
+  consistency_score?: number | string
   micro_insights?: AssessmentInsight[]
   integration_insights?: AssessmentInsight[]
   // Legacy
@@ -811,16 +816,19 @@ function deriveFromApiResult(apiResult: {
   overall_score?: number
   insights?: { micro: Record<PillarId, string>; integration: string[] }
 }): DerivedResults {
-  // Archetype
-  const primaryArchetype = apiResult.primary_archetype
-    ?? (apiResult.archetypes?.[0] ?? 'achiever').replace('The ', '').toLowerCase()
-  const secondaryArchetype = apiResult.secondary_archetype
-    ?? (apiResult.archetypes?.[1] ? apiResult.archetypes[1].replace('The ', '').toLowerCase() : null)
+  // Archetype — always normalize to lowercase key for display lookups
+  const rawPrimary = apiResult.primary_archetype ?? apiResult.archetypes?.[0] ?? 'achiever'
+  const primaryArchetype = normalizeArchetypeKey(rawPrimary)
+  const rawSecondary = apiResult.secondary_archetype ?? apiResult.archetypes?.[1] ?? null
+  const secondaryArchetype = rawSecondary ? normalizeArchetypeKey(rawSecondary) : null
 
-  // Archetype scores
-  const archetypeScores: Record<string, number> = apiResult.archetype_scores
-    ? { ...apiResult.archetype_scores }
-    : {}
+  // Archetype scores — normalize keys from DB format ("The Achiever" → "achiever")
+  const archetypeScores: Record<string, number> = {}
+  if (apiResult.archetype_scores) {
+    for (const [key, val] of Object.entries(apiResult.archetype_scores)) {
+      archetypeScores[normalizeArchetypeKey(key)] = val
+    }
+  }
 
   const primaryScore = archetypeScores[primaryArchetype] ?? 0
   const secondaryScore = secondaryArchetype ? (archetypeScores[secondaryArchetype] ?? 0) : 0
@@ -849,8 +857,10 @@ function deriveFromApiResult(apiResult: {
     }
   }
 
-  // Consistency
-  const consistencyScore = apiResult.consistency_score ?? 0
+  // Consistency — may come as string from DB
+  const consistencyScore = typeof apiResult.consistency_score === 'string'
+    ? parseFloat(apiResult.consistency_score) || 0
+    : apiResult.consistency_score ?? 0
 
   // Insights
   let microInsights: AssessmentInsight[] = apiResult.micro_insights ?? []
