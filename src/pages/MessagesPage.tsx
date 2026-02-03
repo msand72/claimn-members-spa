@@ -101,9 +101,9 @@ export function MessagesPage() {
     }
   }, [showHeaderMenu])
 
-  // Mark conversation as read when selected
+  // Mark conversation as read when selected (skip synthetic conversations)
   useEffect(() => {
-    if (selectedConversation?.id && selectedConversation.unread_count > 0) {
+    if (selectedConversation?.id && !selectedConversation.id.startsWith('new-') && selectedConversation.unread_count > 0) {
       markRead.mutate(selectedConversation.id)
     }
   }, [selectedConversation?.id])
@@ -138,8 +138,20 @@ export function MessagesPage() {
     }
   }, [targetUserId, conversationsLoading, connectionsLoading, conversations, connections])
 
+  // Include the synthetic conversation in the list if it's not already there
+  const allConversations = (() => {
+    if (
+      selectedConversation &&
+      selectedConversation.id.startsWith('new-') &&
+      !conversations.some((c) => c.participant_id === selectedConversation.participant_id)
+    ) {
+      return [selectedConversation, ...conversations]
+    }
+    return conversations
+  })()
+
   // Filter conversations by search
-  const filteredConversations = conversations.filter((conv) =>
+  const filteredConversations = allConversations.filter((conv) =>
     conv.participant?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false
   )
 
