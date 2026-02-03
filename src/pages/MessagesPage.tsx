@@ -72,6 +72,7 @@ export function MessagesPage() {
   // since conversation_id can be empty from the backend
   const isRealConversation = !!selectedConversation?.id && !selectedConversation.id.startsWith('new-')
   const conversationKey = isRealConversation ? (selectedConversation.id || selectedConversation.participant_id) : ''
+  console.log('[DEBUG MessagesPage] Selected conversation:', selectedConversation?.id, 'participant_id:', selectedConversation?.participant_id, 'isReal:', isRealConversation, 'conversationKey:', conversationKey)
   const {
     data: messagesData,
     isLoading: messagesLoading,
@@ -113,25 +114,38 @@ export function MessagesPage() {
   // Normalize raw conversation objects from API into the Conversation shape the UI expects.
   // API returns: { conversation_id, other_user_id, other_user_name, other_user_avatar, last_message (string), last_message_at, unread_count }
   // UI expects: { id, participant_id, participant: { user_id, display_name, avatar_url }, last_message: { content, sent_at, ... }, unread_count, updated_at }
+  //
+  // IMPORTANT: conversation_id from the API is often empty string "".
+  // We use other_user_id as the conversation identifier in that case, since the
+  // useConversationMessages hook handles 404 fallback to user-based lookup.
   const rawConversations: Record<string, unknown>[] = Array.isArray(conversationsData?.data) ? conversationsData.data as unknown as Record<string, unknown>[] : []
-  const conversations: Conversation[] = rawConversations.map((raw) => ({
-    id: (raw.conversation_id as string) || (raw.id as string) || (raw.other_user_id as string) || '',
-    participant_id: (raw.other_user_id as string) || (raw.participant_id as string) || '',
-    participant: raw.participant
-      ? raw.participant as Conversation['participant']
-      : {
-          user_id: (raw.other_user_id as string) || '',
-          display_name: (raw.other_user_name as string) || 'Unknown',
-          avatar_url: (raw.other_user_avatar as string) || null,
-        },
-    last_message: raw.last_message && typeof raw.last_message === 'object'
-      ? raw.last_message as Conversation['last_message']
-      : typeof raw.last_message === 'string'
-        ? { content: raw.last_message, sent_at: (raw.last_message_at as string) || '', is_read: true, sender_id: '' }
-        : null,
-    unread_count: (raw.unread_count as number) || 0,
-    updated_at: (raw.last_message_at as string) || (raw.updated_at as string) || (raw.created_at as string) || '',
-  }))
+  console.log('[DEBUG MessagesPage] Raw conversations count:', rawConversations.length, 'first raw:', JSON.stringify(rawConversations[0], null, 2)?.slice(0, 1000))
+  const conversations: Conversation[] = rawConversations.map((raw) => {
+    // Prefer real conversation_id, fall back to other_user_id
+    const conversationId = (raw.conversation_id as string) || (raw.id as string) || ''
+    const otherUserId = (raw.other_user_id as string) || (raw.participant_id as string) || ''
+    // Use real conversation_id if available, otherwise other_user_id as the lookup key
+    const effectiveId = conversationId || otherUserId
+    console.log('[DEBUG MessagesPage] Normalizing conversation: conversation_id=', raw.conversation_id, 'other_user_id=', raw.other_user_id, 'effectiveId=', effectiveId)
+    return {
+      id: effectiveId,
+      participant_id: otherUserId,
+      participant: raw.participant
+        ? raw.participant as Conversation['participant']
+        : {
+            user_id: (raw.other_user_id as string) || '',
+            display_name: (raw.other_user_name as string) || 'Unknown',
+            avatar_url: (raw.other_user_avatar as string) || null,
+          },
+      last_message: raw.last_message && typeof raw.last_message === 'object'
+        ? raw.last_message as Conversation['last_message']
+        : typeof raw.last_message === 'string'
+          ? { content: raw.last_message, sent_at: (raw.last_message_at as string) || '', is_read: true, sender_id: '' }
+          : null,
+      unread_count: (raw.unread_count as number) || 0,
+      updated_at: (raw.last_message_at as string) || (raw.updated_at as string) || (raw.created_at as string) || '',
+    }
+  })
 
   const messages = Array.isArray(messagesData?.data) ? messagesData.data : []
 
