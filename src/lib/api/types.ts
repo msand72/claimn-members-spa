@@ -598,7 +598,7 @@ export interface AssessmentQuestion {
   id: string
   question_key: string
   question_text: string
-  question_type: 'archetype' | 'pillar'
+  question_type: 'archetype' | 'pillar' | 'background'
   pillar_category?: PillarId
   is_reverse_scored?: boolean
   sort_order: number
@@ -702,6 +702,7 @@ export interface PillarResponse {
 export interface SubmitAssessmentRequest {
   archetypeResponses: ArchetypeResponse[]
   pillarResponses: PillarResponse[]
+  backgroundData?: Record<string, string>
 }
 
 // Legacy flat submit format (kept for fallback)

@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassAlert } from '../components/ui'
+import { GlassCard, GlassButton, GlassAlert, GlassInput, GlassSelect } from '../components/ui'
 import { SECTION_INFO } from '../lib/assessment/questions'
 import type { AssessmentQuestion as LocalAssessmentQuestion } from '../lib/assessment/questions'
 import { useSubmitAssessment, useAssessmentQuestions } from '../lib/api/hooks/useAssessments'
@@ -31,12 +31,16 @@ const DEFAULT_LIKERT_OPTIONS = [
  * _questionKey and _questionType are carried from the API for submission.
  * _pillarCategory identifies the pillar for pillar-type questions.
  * _optionKeys maps option indices to archetype keys for archetype questions.
+ * _backgroundOptions stores the original string-value options for background questions.
+ * _isTextInput is true for background questions with no options (free text).
  */
 interface EnrichedQuestion extends LocalAssessmentQuestion {
   _questionKey: string
   _questionType: 'archetype' | 'pillar' | 'background'
   _pillarCategory?: string
   _optionKeys?: string[] // archetype option_key values
+  _backgroundOptions?: { value: string; text: string }[] // background select options
+  _isTextInput?: boolean // background question with no options
 }
 
 /** Transform API questions to the local format, enriched with submit metadata */
@@ -49,25 +53,51 @@ function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): EnrichedQ
       const questionKey = q.question_key ?? q.id
       const pillarCategory = q.pillar_category ?? q.pillar
 
-      // Build display options
-      let options: { value: number; label: string }[]
+      // Build display options based on question type
+      let options: { value: number; label: string }[] = []
       let optionKeys: string[] | undefined
+      let backgroundOptions: { value: string; text: string }[] | undefined
+      let isTextInput = false
 
-      if (questionType === 'archetype' && q.options && q.options.length > 0) {
+      if (questionType === 'background') {
+        // Background questions: options have string values (e.g. "18-24", "Entry Level")
+        // They may also come as { value, text } or { option_key, option_text }
+        if (q.options && q.options.length > 0) {
+          backgroundOptions = q.options.map((opt) => ({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            value: (opt as any).value?.toString() ?? opt.option_key ?? opt.option_text ?? '',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            text: (opt as any).text ?? opt.option_text ?? opt.label ?? (opt as any).value?.toString() ?? '',
+          }))
+          // Create numeric index options for the radio button renderer (fallback)
+          options = backgroundOptions.map((opt, idx) => ({
+            value: idx,
+            label: opt.text,
+          }))
+        } else {
+          // No options = text input question (e.g. biggest_challenge, email)
+          isTextInput = true
+          options = []
+        }
+      } else if (questionType === 'archetype' && q.options && q.options.length > 0) {
         // Archetype: each option maps to an archetype key
         options = q.options.map((opt, idx) => ({
           value: idx,
           label: opt.option_text ?? opt.label ?? `Option ${idx + 1}`,
         }))
         optionKeys = q.options.map((opt, i) => opt.option_key ?? String(opt.value ?? i))
-      } else if (q.options && q.options.length > 0 && q.options[0].value !== undefined) {
-        // Pillar with explicit options from API
-        options = q.options.map((opt) => ({
-          value: opt.value ?? 0,
-          label: opt.label ?? opt.option_text ?? '',
-        }))
+      } else if (questionType === 'pillar') {
+        // Pillar: use API options if they have numeric values, otherwise default Likert
+        if (q.options && q.options.length > 0 && typeof q.options[0].value === 'number') {
+          options = q.options.map((opt) => ({
+            value: opt.value ?? 0,
+            label: opt.label ?? opt.option_text ?? '',
+          }))
+        } else {
+          options = DEFAULT_LIKERT_OPTIONS
+        }
       } else {
-        // Default 7-point Likert
+        // Unknown type fallback
         options = DEFAULT_LIKERT_OPTIONS
       }
 
@@ -81,6 +111,8 @@ function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): EnrichedQ
         _questionType: questionType as EnrichedQuestion['_questionType'],
         _pillarCategory: pillarCategory,
         _optionKeys: optionKeys,
+        _backgroundOptions: backgroundOptions,
+        _isTextInput: isTextInput,
       }
     })
 }
@@ -91,7 +123,10 @@ export function AssessmentTakePage() {
   const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
   const returnTo = searchParams.get('returnTo')
   const [currentIndex, setCurrentIndex] = useState(0)
+  // answers stores: number (option index) for radio questions, or -1 as sentinel for text/select
   const [answers, setAnswers] = useState<Record<string, number>>({})
+  // textAnswers stores string values for background text inputs and selects
+  const [textAnswers, setTextAnswers] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [restoredFromStorage, setRestoredFromStorage] = useState(false)
 
@@ -114,8 +149,9 @@ export function AssessmentTakePage() {
       const stored = sessionStorage.getItem(PROGRESS_KEY)
       if (stored) {
         const parsed = JSON.parse(stored)
-        if (parsed.assessmentId === assessmentId && parsed.answers) {
-          setAnswers(parsed.answers)
+        if (parsed.assessmentId === assessmentId) {
+          if (parsed.answers) setAnswers(parsed.answers)
+          if (parsed.textAnswers) setTextAnswers(parsed.textAnswers)
           if (typeof parsed.currentIndex === 'number' && parsed.currentIndex < questions.length) {
             setCurrentIndex(parsed.currentIndex)
           }
@@ -129,16 +165,18 @@ export function AssessmentTakePage() {
 
   // Persist progress to sessionStorage on each answer change
   useEffect(() => {
-    if (!restoredFromStorage || Object.keys(answers).length === 0) return
+    if (!restoredFromStorage) return
+    const hasAnswers = Object.keys(answers).length > 0 || Object.keys(textAnswers).length > 0
+    if (!hasAnswers) return
     try {
       sessionStorage.setItem(
         PROGRESS_KEY,
-        JSON.stringify({ assessmentId, answers, currentIndex })
+        JSON.stringify({ assessmentId, answers, textAnswers, currentIndex })
       )
     } catch {
       // Storage full — ignore
     }
-  }, [answers, currentIndex, assessmentId, restoredFromStorage])
+  }, [answers, textAnswers, currentIndex, assessmentId, restoredFromStorage])
 
   const totalQuestions = questions.length
   const currentQuestion = questions[currentIndex] as EnrichedQuestion | undefined
@@ -186,6 +224,48 @@ export function AssessmentTakePage() {
     }))
   }
 
+  const handleTextAnswer = (value: string) => {
+    if (!currentQuestion) return
+    setTextAnswers((prev) => ({
+      ...prev,
+      [currentQuestion.id]: value,
+    }))
+    // Also mark as answered in the numeric answers map (sentinel value)
+    if (value) {
+      setAnswers((prev) => ({
+        ...prev,
+        [currentQuestion.id]: -1, // sentinel: "answered via text/select"
+      }))
+    } else {
+      // Remove if empty
+      setAnswers((prev) => {
+        const next = { ...prev }
+        delete next[currentQuestion.id]
+        return next
+      })
+    }
+  }
+
+  const handleSelectAnswer = (value: string) => {
+    if (!currentQuestion) return
+    setTextAnswers((prev) => ({
+      ...prev,
+      [currentQuestion.id]: value,
+    }))
+    if (value) {
+      setAnswers((prev) => ({
+        ...prev,
+        [currentQuestion.id]: -1, // sentinel
+      }))
+    } else {
+      setAnswers((prev) => {
+        const next = { ...prev }
+        delete next[currentQuestion.id]
+        return next
+      })
+    }
+  }
+
   const handleNext = () => {
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex((prev) => prev + 1)
@@ -206,12 +286,31 @@ export function AssessmentTakePage() {
     // Build structured submit request
     const archetypeResponses: { questionKey: string; archetype: ArchetypeId }[] = []
     const pillarResponses: { questionKey: string; pillar: PillarId; value: number }[] = []
+    const backgroundData: Record<string, string> = {}
 
     for (const q of questions) {
       const selectedIndex = answers[q.id]
       if (selectedIndex === undefined) continue
 
-      if (q._questionType === 'archetype') {
+      if (q._questionType === 'background') {
+        // Background: get the string value
+        const textVal = textAnswers[q.id]
+        if (textVal) {
+          // Map question keys to backend-expected field names
+          const key = q._questionKey
+          if (key === 'user_email') {
+            backgroundData.email = textVal
+          } else if (key === 'user_age_range') {
+            backgroundData.ageRange = textVal
+          } else if (key === 'user_professional_level') {
+            backgroundData.professionalLevel = textVal
+          } else if (key === 'user_biggest_challenge') {
+            backgroundData.biggestChallenge = textVal
+          } else {
+            backgroundData[key] = textVal
+          }
+        }
+      } else if (q._questionType === 'archetype') {
         // Resolve option index to archetype key
         const archetypeKey = q._optionKeys?.[selectedIndex]
         if (archetypeKey) {
@@ -234,12 +333,13 @@ export function AssessmentTakePage() {
     }
 
     // Also store flat answers in sessionStorage as fallback for client-side scoring
-    const flatAnswers: Record<string, number> = {}
+    const flatAnswers: Record<string, number | string> = {}
     for (const [questionId, selectedIndex] of Object.entries(answers)) {
       const q = questions.find((qq) => qq.id === questionId)
       if (q) {
-        if (q._questionType === 'archetype' && q._optionKeys) {
-          // Store archetype key string for client-side scoring
+        if (q._questionType === 'background') {
+          flatAnswers[questionId] = textAnswers[questionId] ?? ''
+        } else if (q._questionType === 'archetype' && q._optionKeys) {
           flatAnswers[questionId] = selectedIndex
         } else {
           flatAnswers[questionId] = q.options[selectedIndex]?.value ?? selectedIndex
@@ -252,7 +352,7 @@ export function AssessmentTakePage() {
     submitMutation.mutate(
       {
         assessmentId,
-        data: { archetypeResponses, pillarResponses },
+        data: { archetypeResponses, pillarResponses, backgroundData },
       },
       {
         onSuccess: (result) => {
@@ -319,6 +419,78 @@ export function AssessmentTakePage() {
     )
   }
 
+  // Render the appropriate input for the current question type
+  const renderQuestionInput = () => {
+    if (!currentQuestion) return null
+
+    // Background: text input (no options)
+    if (currentQuestion._isTextInput) {
+      return (
+        <GlassInput
+          value={textAnswers[currentQuestion.id] ?? ''}
+          onChange={(e) => handleTextAnswer(e.target.value)}
+          placeholder="Your answer..."
+          className="w-full"
+        />
+      )
+    }
+
+    // Background: select dropdown (has _backgroundOptions)
+    if (currentQuestion._questionType === 'background' && currentQuestion._backgroundOptions) {
+      return (
+        <GlassSelect
+          value={textAnswers[currentQuestion.id] ?? ''}
+          onChange={(e) => handleSelectAnswer(e.target.value)}
+          className="w-full"
+        >
+          <option value="">Select...</option>
+          {currentQuestion._backgroundOptions.map((opt, idx) => (
+            <option key={idx} value={opt.value}>
+              {opt.text}
+            </option>
+          ))}
+        </GlassSelect>
+      )
+    }
+
+    // Archetype + Pillar: radio-style buttons
+    return (
+      <div className="space-y-3">
+        {currentQuestion.options.map((option, idx) => {
+          const isSelected = answers[currentQuestion.id] === idx
+          return (
+            <button
+              key={idx}
+              onClick={() => handleAnswer(idx)}
+              className={cn(
+                'w-full text-left p-4 rounded-xl border transition-all',
+                isSelected
+                  ? 'border-koppar bg-koppar/10 text-kalkvit'
+                  : 'border-white/10 bg-white/[0.04] text-kalkvit/80 hover:border-koppar/30 hover:bg-white/[0.06]'
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
+                    isSelected
+                      ? 'border-koppar bg-koppar'
+                      : 'border-kalkvit/30'
+                  )}
+                >
+                  {isSelected && (
+                    <Check className="w-3 h-3 text-kalkvit" />
+                  )}
+                </div>
+                <span className="text-sm">{option.label}</span>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <MainLayout>
       <div className="max-w-2xl mx-auto">
@@ -351,40 +523,7 @@ export function AssessmentTakePage() {
           <h2 className="font-serif text-xl font-semibold text-kalkvit mb-6">
             {currentQuestion.question}
           </h2>
-
-          <div className="space-y-3">
-            {currentQuestion.options.map((option, idx) => {
-              const isSelected = answers[currentQuestion.id] === idx
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleAnswer(idx)}
-                  className={cn(
-                    'w-full text-left p-4 rounded-xl border transition-all',
-                    isSelected
-                      ? 'border-koppar bg-koppar/10 text-kalkvit'
-                      : 'border-white/10 bg-white/[0.04] text-kalkvit/80 hover:border-koppar/30 hover:bg-white/[0.06]'
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
-                        isSelected
-                          ? 'border-koppar bg-koppar'
-                          : 'border-kalkvit/30'
-                      )}
-                    >
-                      {isSelected && (
-                        <Check className="w-3 h-3 text-kalkvit" />
-                      )}
-                    </div>
-                    <span className="text-sm">{option.label}</span>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
+          {renderQuestionInput()}
         </GlassCard>
 
         {/* Submit Error */}
