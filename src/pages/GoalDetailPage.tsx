@@ -72,6 +72,49 @@ export function GoalDetailPage() {
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [isAddingSubtask, setIsAddingSubtask] = useState(false)
 
+  // Debug logging for goal API response
+  console.log('[DEBUG GoalDetailPage] id:', id, 'isLoading:', isLoading, 'error:', error, 'goal:', goal ? JSON.stringify(goal, null, 2).slice(0, 1500) : 'null')
+  console.log('[DEBUG GoalDetailPage] actionItemsData:', actionItemsData ? JSON.stringify(actionItemsData, null, 2).slice(0, 1000) : 'null')
+
+  // IMPORTANT: All hooks (useMemo, useCallback, etc.) must be called BEFORE any early returns.
+  // React requires hooks to be called in the same order every render.
+
+  // Get KPIs from goal (safe for null goal)
+  const kpis = goal?.kpis || []
+
+  // Get subtasks (action items linked to this goal)
+  const subtasks: ActionItem[] = useMemo(() => {
+    if (!actionItemsData) return []
+    const raw = actionItemsData as any
+    if (Array.isArray(raw)) return raw
+    if (raw && Array.isArray(raw.data)) return raw.data
+    return []
+  }, [actionItemsData])
+
+  const completedSubtasks = subtasks.filter((s) => s.status === 'completed').length
+  const totalSubtasks = subtasks.length
+
+  // Calculate progress from actual drivers (subtasks + KPIs)
+  const hasDrivers = kpis.length > 0 || totalSubtasks > 0
+  const calculatedProgress = useMemo(() => {
+    if (!hasDrivers) return goal?.progress ?? 0 // fallback to API value
+    const parts: number[] = []
+    // Subtask progress
+    if (totalSubtasks > 0) {
+      parts.push((completedSubtasks / totalSubtasks) * 100)
+    }
+    // KPI progress
+    if (kpis.length > 0) {
+      const avgKpi = kpis.reduce(
+        (sum, k) => sum + Math.min((k.current_value / k.target_value) * 100, 100),
+        0
+      ) / kpis.length
+      parts.push(avgKpi)
+    }
+    return parts.length > 0 ? Math.round(parts.reduce((a, b) => a + b, 0) / parts.length) : 0
+  }, [hasDrivers, goal?.progress, totalSubtasks, completedSubtasks, kpis])
+
+  // Early returns AFTER all hooks
   if (isLoading) {
     return (
       <MainLayout>
@@ -108,41 +151,6 @@ export function GoalDetailPage() {
         (new Date(goal.target_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
       )
     : null
-
-  // Get KPIs from goal
-  const kpis = goal.kpis || []
-
-  // Get subtasks (action items linked to this goal)
-  const subtasks: ActionItem[] = useMemo(() => {
-    if (!actionItemsData) return []
-    const raw = actionItemsData as any
-    if (Array.isArray(raw)) return raw
-    if (raw && Array.isArray(raw.data)) return raw.data
-    return []
-  }, [actionItemsData])
-
-  const completedSubtasks = subtasks.filter((s) => s.status === 'completed').length
-  const totalSubtasks = subtasks.length
-
-  // Calculate progress from actual drivers (subtasks + KPIs)
-  const hasDrivers = kpis.length > 0 || totalSubtasks > 0
-  const calculatedProgress = useMemo(() => {
-    if (!hasDrivers) return goal.progress // fallback to API value
-    const parts: number[] = []
-    // Subtask progress
-    if (totalSubtasks > 0) {
-      parts.push((completedSubtasks / totalSubtasks) * 100)
-    }
-    // KPI progress
-    if (kpis.length > 0) {
-      const avgKpi = kpis.reduce(
-        (sum, k) => sum + Math.min((k.current_value / k.target_value) * 100, 100),
-        0
-      ) / kpis.length
-      parts.push(avgKpi)
-    }
-    return parts.length > 0 ? Math.round(parts.reduce((a, b) => a + b, 0) / parts.length) : 0
-  }, [hasDrivers, goal.progress, totalSubtasks, completedSubtasks, kpis])
 
   const overallProgress = calculatedProgress
 
