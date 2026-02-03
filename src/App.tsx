@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
+import { PageErrorBoundary } from './components/PageErrorBoundary'
 import { LoadingSpinner } from './components/LoadingSpinner'
 
 // Auto-reload on stale chunk errors after deploy
@@ -113,7 +114,11 @@ const queryClient = new QueryClient({
 })
 
 function Protected({ children }: { children: React.ReactNode }) {
-  return <ProtectedRoute>{children}</ProtectedRoute>
+  return (
+    <ProtectedRoute>
+      <PageErrorBoundary>{children}</PageErrorBoundary>
+    </ProtectedRoute>
+  )
 }
 
 function SuspenseLayout() {

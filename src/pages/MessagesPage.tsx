@@ -111,8 +111,15 @@ export function MessagesPage() {
   const conversations = Array.isArray(conversationsData?.data) ? conversationsData.data : []
   const messages = Array.isArray(messagesData?.data) ? messagesData.data : []
   const networkMembers: NetworkMember[] = Array.isArray(networkData?.data) ? networkData.data : []
-  // Only show connected members in the "New Conversation" modal
-  const connectedMembers = networkMembers.filter((m) => m.connection_status === 'connected')
+  // Show connected members in the "New Conversation" modal.
+  // Accept 'connected' or 'accepted' (backend uses both conventions).
+  // If no members have a status, show all (the endpoint may not populate this field).
+  const connectedMembers = (() => {
+    const withStatus = networkMembers.filter(
+      (m) => m.connection_status === 'connected' || m.connection_status === 'accepted'
+    )
+    return withStatus.length > 0 ? withStatus : networkMembers
+  })()
 
   // Auto-select conversation when navigating with ?user= param
   const targetUserId = searchParams.get('user')

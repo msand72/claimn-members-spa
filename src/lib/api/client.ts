@@ -5,6 +5,79 @@ const API_PREFIX = '/api/v2'
 
 export const API_URL = `${API_BASE_URL}${API_PREFIX}`
 
+// ---------------------------------------------------------------------------
+// API Response Logger — logs actual response shapes in development so
+// mismatches between TypeScript types and backend reality are visible
+// in the console instead of causing silent UI bugs.
+// ---------------------------------------------------------------------------
+const IS_DEV = import.meta.env.DEV
+
+function describeShape(obj: unknown): string {
+  if (obj === null) return 'null'
+  if (obj === undefined) return 'undefined'
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) return '[]'
+    return `[${describeShape(obj[0])} x${obj.length}]`
+  }
+  if (typeof obj === 'object') {
+    const keys = Object.keys(obj as Record<string, unknown>)
+    if (keys.length === 0) return '{}'
+    const entries = keys.slice(0, 8).map((k) => {
+      const v = (obj as Record<string, unknown>)[k]
+      if (v === null) return `${k}:null`
+      if (v === undefined) return `${k}:undef`
+      if (Array.isArray(v)) return `${k}:[${v.length}]`
+      if (typeof v === 'object') return `${k}:{…}`
+      return `${k}:${typeof v}`
+    })
+    if (keys.length > 8) entries.push(`+${keys.length - 8}`)
+    return `{${entries.join(', ')}}`
+  }
+  return typeof obj
+}
+
+function logResponse(method: string, endpoint: string, data: unknown) {
+  if (!IS_DEV) return
+  console.debug(`[API ${method} ${endpoint}]`, describeShape(data))
+}
+
+// ---------------------------------------------------------------------------
+// Safe data extraction helpers — used by hooks to safely pull data from
+// API responses regardless of wrapper format.
+// ---------------------------------------------------------------------------
+
+/** Extract an array from a paginated or bare response. Never throws. */
+export function safeArray<T>(response: unknown): T[] {
+  if (!response) return []
+  if (Array.isArray(response)) return response as T[]
+  if (typeof response === 'object' && response !== null) {
+    const obj = response as Record<string, unknown>
+    if (Array.isArray(obj.data)) return obj.data as T[]
+    if (Array.isArray(obj.items)) return obj.items as T[]
+    if (Array.isArray(obj.results)) return obj.results as T[]
+  }
+  return []
+}
+
+/** Extract pagination meta, with sensible defaults. */
+export function safePagination(response: unknown): PaginationMeta {
+  const defaults: PaginationMeta = {
+    page: 1, limit: 20, total: 0, total_pages: 1, has_next: false, has_prev: false,
+  }
+  if (!response || typeof response !== 'object') return defaults
+  const obj = response as Record<string, unknown>
+  const p = obj.pagination ?? obj.meta ?? obj.paging
+  if (p && typeof p === 'object') return { ...defaults, ...(p as Partial<PaginationMeta>) }
+  return defaults
+}
+
+/** Safely read a string field, returning fallback if missing/empty. */
+export function safeString(obj: unknown, key: string, fallback = ''): string {
+  if (!obj || typeof obj !== 'object') return fallback
+  const val = (obj as Record<string, unknown>)[key]
+  return typeof val === 'string' && val.length > 0 ? val : fallback
+}
+
 // Error type from backend
 export interface ApiError {
   error: {
@@ -56,6 +129,7 @@ class ApiClient {
     // Strip trailing slashes to avoid 404s from Go backend
     const cleanEndpoint = endpoint.replace(/\/+$/, '')
     const url = `${API_URL}${cleanEndpoint}`
+    const method = options.method || 'GET'
 
     try {
       const response = await fetch(url, {
@@ -80,12 +154,14 @@ class ApiClient {
         return {} as T
       }
 
-      return await response.json()
+      const data = await response.json()
+      logResponse(method, cleanEndpoint, data)
+      return data
     } catch (error: any) {
       const status = error?.status || 'unknown'
       const code = error?.error?.code || 'UNKNOWN'
       const message = error?.error?.message || (error instanceof Error ? error.message : 'Unknown error')
-      console.error(`[API ${options.method || 'GET'} ${cleanEndpoint}] ${status} ${code}: ${message}`)
+      console.error(`[API ${method} ${cleanEndpoint}] ${status} ${code}: ${message}`)
       throw error
     }
   }
