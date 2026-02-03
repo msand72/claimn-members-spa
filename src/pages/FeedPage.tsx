@@ -343,12 +343,16 @@ export function FeedPage() {
     .slice(0, 2)
     .toUpperCase()
 
+  // Determine the group to post to: if viewing a specific group tab, use that; otherwise use dropdown
+  const isSpecificGroupTab = activeTab !== 'all' && activeTab !== 'my-groups'
+  const postGroupId = isSpecificGroupTab ? activeTab : selectedGroupId
+
   const handlePost = () => {
     if (postContent.trim()) {
       setPostError(null)
       createPost.mutate({
         content: postContent,
-        interest_group_id: selectedGroupId || undefined,
+        interest_group_id: postGroupId || undefined,
       }, {
         onSuccess: () => {
           setPostContent('')
@@ -430,7 +434,12 @@ export function FeedPage() {
                   <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit">
                     <Image className="w-5 h-5" />
                   </button>
-                  {realGroups.length > 0 && (
+                  {isSpecificGroupTab ? (
+                    <span className="text-sm text-koppar flex items-center gap-1.5">
+                      <Users className="w-4 h-4" />
+                      {effectiveGroups.find((g) => g.id === activeTab)?.name || 'Group'}
+                    </span>
+                  ) : realGroups.length > 0 ? (
                     <GlassDropdown
                       items={groupOptions}
                       value={selectedGroupId}
@@ -438,7 +447,7 @@ export function FeedPage() {
                       placeholder="Post to group (optional)"
                       className="min-w-[200px]"
                     />
-                  )}
+                  ) : null}
                 </div>
                 <GlassButton
                   variant="primary"
