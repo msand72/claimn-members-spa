@@ -15,7 +15,7 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
 }
 
 const SECTION_LABELS: Record<string, string> = {
-  growth: 'My Growth',
+  growth: 'My Journey',
   community: 'Community',
   coaching: 'Coaching',
   programs: 'Programs',

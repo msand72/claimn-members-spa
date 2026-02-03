@@ -45,7 +45,7 @@ export interface SectionConfig {
 
 export const SECTION_NAV: Record<string, SectionConfig> = {
   growth: {
-    label: 'My Growth',
+    label: 'My Journey',
     icon: TrendingUp,
     basePath: '/goals',
     mode: 'stepper',

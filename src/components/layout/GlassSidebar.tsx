@@ -5,7 +5,6 @@ import { GlassAvatar } from '../ui/GlassAvatar'
 import { JourneyWidget } from '../journey/JourneyWidget'
 import { SECTION_NAV, SECTION_KEYS, useCurrentSection } from './sectionNav'
 import {
-  Home,
   User,
   CreditCard,
   LogOut,
@@ -66,23 +65,8 @@ export function GlassSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto">
-        {/* Dashboard */}
-        <Link
-          to="/"
-          className={cn(
-            'flex items-center gap-3 px-4 py-3 rounded-xl',
-            'text-sm font-medium transition-all duration-200',
-            currentSection?.key === 'growth'
-              ? 'bg-koppar/20 text-koppar border-l-4 border-koppar -ml-1 pl-3'
-              : 'text-kalkvit/70 hover:bg-white/[0.06] hover:text-kalkvit'
-          )}
-        >
-          <Home className="w-5 h-5" />
-          Dashboard
-        </Link>
-
         {/* Section Links */}
-        {SECTION_KEYS.filter((key) => key !== 'growth').map((key) => {
+        {SECTION_KEYS.map((key) => {
           const section = SECTION_NAV[key]
           const isActive = currentSection?.key === key
           const Icon = section.icon
