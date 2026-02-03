@@ -10,9 +10,9 @@ import {
   useConversationMessages,
   useSendMessage,
   useMarkConversationRead,
-  useNetwork,
+  useConnections,
   type Conversation,
-  type NetworkMember,
+  type Connection,
 } from '../lib/api'
 
 // Optimistic message type (displayed before API confirms)
@@ -79,11 +79,11 @@ export function MessagesPage() {
   const sendMessage = useSendMessage()
   const markRead = useMarkConversationRead()
 
-  // Fetch connected network members for "New Conversation" modal
+  // Fetch accepted connections for "New Conversation" modal
   const {
-    data: networkData,
-    isLoading: networkLoading,
-  } = useNetwork({ limit: 100 })
+    data: connectionsData,
+    isLoading: connectionsLoading,
+  } = useConnections({ status: 'accepted', limit: 100 })
 
   const [showHeaderMenu, setShowHeaderMenu] = useState(false)
   const headerMenuRef = useRef<HTMLDivElement>(null)
@@ -110,21 +110,25 @@ export function MessagesPage() {
 
   const conversations = Array.isArray(conversationsData?.data) ? conversationsData.data : []
   const messages = Array.isArray(messagesData?.data) ? messagesData.data : []
-  const networkMembers: NetworkMember[] = Array.isArray(networkData?.data) ? networkData.data : []
-  // Show connected members in the "New Conversation" modal.
-  // Accept 'connected' or 'accepted' (backend uses both conventions).
-  // If no members have a status, show all (the endpoint may not populate this field).
-  const connectedMembers = (() => {
-    const withStatus = networkMembers.filter(
-      (m) => m.connection_status === 'connected' || (m.connection_status as string) === 'accepted'
-    )
-    return withStatus.length > 0 ? withStatus : networkMembers
-  })()
+  // Build a list of connected members from the connections endpoint.
+  // Each Connection has requester_id/recipient_id, plus optional populated requester/recipient objects.
+  const connections: Connection[] = Array.isArray(connectionsData?.data) ? connectionsData.data : []
+  const connectedMembers = connections.map((conn) => {
+    const isRequester = conn.requester_id === user?.id
+    const otherId = isRequester ? conn.recipient_id : conn.requester_id
+    const otherProfile = isRequester ? conn.recipient : conn.requester
+    return {
+      user_id: otherId,
+      display_name: otherProfile?.display_name || 'Member',
+      avatar_url: otherProfile?.avatar_url || null,
+      archetype: otherProfile?.archetype || null,
+    }
+  })
 
   // Auto-select conversation when navigating with ?user= param
   const targetUserId = searchParams.get('user')
   useEffect(() => {
-    if (!targetUserId || conversationsLoading || networkLoading) return
+    if (!targetUserId || conversationsLoading || connectionsLoading) return
     // Already selected this user
     if (selectedConversation?.participant_id === targetUserId) return
 
@@ -142,7 +146,7 @@ export function MessagesPage() {
       handleStartConversationWithMember(member)
       setSearchParams({}, { replace: true })
     }
-  }, [targetUserId, conversationsLoading, networkLoading, conversations, connectedMembers])
+  }, [targetUserId, conversationsLoading, connectionsLoading, conversations, connectedMembers])
 
   // Include the synthetic conversation in the list if it's not already there
   const allConversations = (() => {
@@ -244,8 +248,8 @@ export function MessagesPage() {
     setOptimisticMessages([])
   }
 
-  // Start a new conversation with a network member
-  const handleStartConversationWithMember = (member: NetworkMember) => {
+  // Start a new conversation with a connected member
+  const handleStartConversationWithMember = (member: { user_id: string; display_name: string; avatar_url: string | null }) => {
     // Check if a conversation already exists with this person
     const existing = conversations.find(
       (conv) => conv.participant_id === member.user_id
@@ -596,13 +600,13 @@ export function MessagesPage() {
 
           {/* Members list */}
           <div className="max-h-[300px] overflow-y-auto -mx-1 px-1 space-y-1">
-            {networkLoading && (
+            {connectionsLoading && (
               <div className="flex justify-center py-6">
                 <Loader2 className="w-6 h-6 text-koppar animate-spin" />
               </div>
             )}
 
-            {!networkLoading && filteredMembers.length === 0 && (
+            {!connectionsLoading && filteredMembers.length === 0 && (
               <div className="text-center py-6">
                 <p className="text-kalkvit/50 text-sm">
                   {connectionSearchQuery
@@ -612,7 +616,7 @@ export function MessagesPage() {
               </div>
             )}
 
-            {!networkLoading && filteredMembers.map((member) => (
+            {!connectionsLoading && filteredMembers.map((member) => (
               <button
                 key={member.user_id}
                 onClick={(e) => {
