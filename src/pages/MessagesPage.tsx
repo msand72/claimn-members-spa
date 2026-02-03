@@ -116,7 +116,7 @@ export function MessagesPage() {
   // If no members have a status, show all (the endpoint may not populate this field).
   const connectedMembers = (() => {
     const withStatus = networkMembers.filter(
-      (m) => m.connection_status === 'connected' || m.connection_status === 'accepted'
+      (m) => m.connection_status === 'connected' || (m.connection_status as string) === 'accepted'
     )
     return withStatus.length > 0 ? withStatus : networkMembers
   })()
