@@ -383,14 +383,18 @@ export function FeedPage() {
     })),
   ]
 
-  // Create group dropdown options for posting
-  const groupOptions = [
-    { value: '', label: 'Post to General Feed' },
-    ...effectiveGroups.map((g) => ({
-      value: g.id,
-      label: g.name,
-    })),
-  ]
+  // Real backend groups for posting (not virtual groups from raw interests)
+  const realGroups = myGroups.length > 0
+    ? myGroups
+    : allGroups.length > 0 && memberInterestIds.length > 0
+      ? allGroups.filter((g) => memberInterestIds.includes(g.interest_id))
+      : []
+
+  // Create group dropdown options for posting (only real groups)
+  const groupOptions = realGroups.map((g) => ({
+    value: g.id,
+    label: g.name,
+  }))
 
   return (
     <MainLayout>
@@ -411,7 +415,7 @@ export function FeedPage() {
         </div>
 
         {/* Create Post */}
-        <GlassCard variant="elevated" className="mb-6">
+        <GlassCard variant="elevated" className="mb-6 relative z-10">
           <div className="flex gap-4">
             <GlassAvatar initials={initials} size="lg" />
             <div className="flex-1">
@@ -426,13 +430,13 @@ export function FeedPage() {
                   <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit">
                     <Image className="w-5 h-5" />
                   </button>
-                  {effectiveGroups.length > 0 && (
+                  {realGroups.length > 0 && (
                     <GlassDropdown
                       items={groupOptions}
                       value={selectedGroupId}
-                      onChange={setSelectedGroupId}
-                      placeholder="Select group"
-                      className="min-w-[180px]"
+                      onChange={(val) => setSelectedGroupId(val === selectedGroupId ? '' : val)}
+                      placeholder="Post to group (optional)"
+                      className="min-w-[200px]"
                     />
                   )}
                 </div>
