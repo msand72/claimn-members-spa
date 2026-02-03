@@ -45,13 +45,13 @@ export function calculateConsistencyScore(archetypeScores: ArchetypeScores): num
   const max = Math.max(...scores)
   const min = Math.min(...scores)
   const range = max - min
-  const maxPossibleRange = 6
+  const maxPossibleRange = 4
 
   const consistency = 1 - range / maxPossibleRange
   return Math.round(consistency * 100) / 100
 }
 
-// Calculate pillar score from responses
+// Calculate pillar score from responses (1-5 Likert scale)
 export function calculatePillarScore(responses: number[]): PillarScore {
   if (responses.length === 0) {
     return { raw: 0, level: 'low', percentage: 0 }
@@ -61,15 +61,15 @@ export function calculatePillarScore(responses: number[]): PillarScore {
   const raw = Math.round((sum / responses.length) * 10) / 10
 
   let level: 'low' | 'moderate' | 'high'
-  if (raw <= 3.5) {
+  if (raw <= 2.5) {
     level = 'low'
-  } else if (raw <= 5.5) {
+  } else if (raw <= 3.5) {
     level = 'moderate'
   } else {
     level = 'high'
   }
 
-  const percentage = Math.round(((raw - 1) / 6) * 100)
+  const percentage = Math.round(((raw - 1) / 4) * 100) // Convert 1-5 to 0-100
 
   return { raw, level, percentage }
 }
@@ -218,11 +218,11 @@ export function generateIntegrationInsights(
   const gap = highestPillar[1].raw - lowestPillar[1].raw
 
   // High-Low Gap Analysis
-  if (gap >= 2.5 && highestPillar[1].raw >= 5.0 && lowestPillar[1].raw <= 4.0) {
+  if (gap >= 1.5 && highestPillar[1].raw >= 3.5 && lowestPillar[1].raw <= 3.0) {
     insights.push({
       type: 'pillar_synergy',
       title: 'Pillar Gap Analysis',
-      insight: `Your strength in ${PILLARS[highestPillar[0] as PillarId].name} (${highestPillar[1].raw}/7) can be leveraged to develop ${PILLARS[lowestPillar[0] as PillarId].name} (${lowestPillar[1].raw}/7). Apply the same systematic approach that created your strength.`,
+      insight: `Your strength in ${PILLARS[highestPillar[0] as PillarId].name} (${highestPillar[1].raw}/5) can be leveraged to develop ${PILLARS[lowestPillar[0] as PillarId].name} (${lowestPillar[1].raw}/5). Apply the same systematic approach that created your strength.`,
       priority: 'high',
     })
   }
@@ -238,7 +238,8 @@ export function generateIntegrationInsights(
 
   // Archetype dominance analysis
   const primaryScore = archetypeScores[primary] || 0
-  const primaryPercent = Math.round((primaryScore / 6) * 100)
+  const totalArchetypeQuestions = Object.values(archetypeScores).reduce((a, b) => a + b, 0) || 1
+  const primaryPercent = Math.round((primaryScore / totalArchetypeQuestions) * 100)
 
   if (primaryPercent >= 70) {
     insights.push({
@@ -275,13 +276,13 @@ export function calculatePillarScores(
     }
   }
 
-  // Calculate percentage for each pillar (1-7 Likert scale to 0-100)
+  // Calculate percentage for each pillar (1-5 Likert scale to 0-100)
   const scores: Record<PillarId, number> = {} as Record<PillarId, number>
   for (const [pillarId, pillarAnswerList] of Object.entries(pillarAnswers)) {
     if (pillarAnswerList.length > 0) {
       const sum = pillarAnswerList.reduce((a, b) => a + b, 0)
       const avg = sum / pillarAnswerList.length
-      scores[pillarId as PillarId] = Math.round(((avg - 1) / 6) * 100) // Convert 1-7 to 0-100
+      scores[pillarId as PillarId] = Math.round(((avg - 1) / 4) * 100) // Convert 1-5 to 0-100
     } else {
       scores[pillarId as PillarId] = 0 // No answered questions for this pillar
     }

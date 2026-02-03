@@ -26,7 +26,7 @@ export function OnboardingResultsPage() {
     )
   }
 
-  const archetype = result?.archetypes?.[0] || 'Your Archetype'
+  const archetype = result?.archetypes?.[0] || null
   const pillarScores = (result?.pillar_scores || {}) as Record<string, number>
 
   // Sort pillars by score for display
@@ -46,7 +46,11 @@ export function OnboardingResultsPage() {
           <Sparkles className="w-10 h-10 text-koppar" />
         </div>
         <h1 className="font-display text-3xl md:text-4xl font-bold text-kalkvit mb-3">
-          You are <span className="text-koppar">{archetype}</span>
+          {archetype ? (
+            <>You are <span className="text-koppar">{archetype}</span></>
+          ) : (
+            'Your Assessment Results'
+          )}
         </h1>
         <p className="text-kalkvit/60 text-lg max-w-lg mx-auto">
           Here's how you scored across the Five Pillars.
@@ -56,11 +60,13 @@ export function OnboardingResultsPage() {
 
       <GlassCard variant="elevated" className="!p-6 md:!p-8 mb-6">
         {/* Archetype badge */}
-        <div className="flex justify-center mb-6">
-          <GlassBadge variant="koppar" className="text-base px-4 py-1.5">
-            {archetype}
-          </GlassBadge>
-        </div>
+        {archetype && (
+          <div className="flex justify-center mb-6">
+            <GlassBadge variant="koppar" className="text-base px-4 py-1.5">
+              {archetype}
+            </GlassBadge>
+          </div>
+        )}
 
         {/* Pillar scores as bars */}
         <div className="space-y-4">
