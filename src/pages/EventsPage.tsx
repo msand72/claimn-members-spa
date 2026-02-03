@@ -124,14 +124,16 @@ function EventCard({ event }: { event: ClaimnEvent }) {
         </div>
 
         {/* Facilitator */}
-        <div className="flex items-center gap-2 mb-4">
-          <GlassAvatar
-            src={event.facilitator.avatar_url}
-            alt={event.facilitator.name}
-            size="sm"
-          />
-          <span className="text-sm text-kalkvit/70">{event.facilitator.name}</span>
-        </div>
+        {event.facilitator && (
+          <div className="flex items-center gap-2 mb-4">
+            <GlassAvatar
+              src={event.facilitator.avatar_url}
+              alt={event.facilitator.name}
+              size="sm"
+            />
+            <span className="text-sm text-kalkvit/70">{event.facilitator.name}</span>
+          </div>
+        )}
 
         {/* Capacity */}
         <div className="mt-auto">
