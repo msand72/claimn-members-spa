@@ -51,7 +51,11 @@ export function useSendMessage() {
 
   return useMutation({
     mutationFn: (data: SendMessageRequest) =>
-      api.post<Message>('/members/messages', data),
+      api.post<Message>('/members/messages', {
+        recipient_id: data.recipient_id,
+        body: data.content, // Backend expects 'body', not 'content'
+        ...(data.image_url ? { image_url: data.image_url } : {}),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: messageKeys.all })
     },
