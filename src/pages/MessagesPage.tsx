@@ -12,7 +12,6 @@ import {
   useMarkConversationRead,
   useConnections,
   type Conversation,
-  type Connection,
 } from '../lib/api'
 
 // Optimistic message type (displayed before API confirms)
@@ -69,12 +68,15 @@ export function MessagesPage() {
   } = useConversations({ limit: 50 })
 
   // Fetch messages for selected conversation (skip for synthetic new- conversations)
+  // Use participant_id as conversation key — the API may use user-to-user addressing
+  // since conversation_id can be empty from the backend
   const isRealConversation = !!selectedConversation?.id && !selectedConversation.id.startsWith('new-')
+  const conversationKey = isRealConversation ? (selectedConversation.id || selectedConversation.participant_id) : ''
   const {
     data: messagesData,
     isLoading: messagesLoading,
     error: messagesError,
-  } = useConversationMessages(isRealConversation ? selectedConversation.id : '', { limit: 100 })
+  } = useConversationMessages(conversationKey, { limit: 100 })
 
   const sendMessage = useSendMessage()
   const markRead = useMarkConversationRead()
@@ -108,24 +110,45 @@ export function MessagesPage() {
     }
   }, [selectedConversation?.id])
 
-  // DEBUG: Log raw API responses to identify field name mismatches
-  if (conversationsData) console.log('[DEBUG conversations raw]', JSON.stringify(conversationsData, null, 2).slice(0, 2000))
-  if (connectionsData) console.log('[DEBUG connections raw]', JSON.stringify(connectionsData, null, 2).slice(0, 2000))
+  // Normalize raw conversation objects from API into the Conversation shape the UI expects.
+  // API returns: { conversation_id, other_user_id, other_user_name, other_user_avatar, last_message (string), last_message_at, unread_count }
+  // UI expects: { id, participant_id, participant: { user_id, display_name, avatar_url }, last_message: { content, sent_at, ... }, unread_count, updated_at }
+  const rawConversations = Array.isArray(conversationsData?.data) ? conversationsData.data : []
+  const conversations: Conversation[] = rawConversations.map((raw: Record<string, unknown>) => ({
+    id: (raw.conversation_id as string) || (raw.id as string) || (raw.other_user_id as string) || '',
+    participant_id: (raw.other_user_id as string) || (raw.participant_id as string) || '',
+    participant: raw.participant
+      ? raw.participant as Conversation['participant']
+      : {
+          user_id: (raw.other_user_id as string) || '',
+          display_name: (raw.other_user_name as string) || 'Unknown',
+          avatar_url: (raw.other_user_avatar as string) || null,
+        },
+    last_message: raw.last_message && typeof raw.last_message === 'object'
+      ? raw.last_message as Conversation['last_message']
+      : typeof raw.last_message === 'string'
+        ? { content: raw.last_message, sent_at: (raw.last_message_at as string) || '', is_read: true, sender_id: '' }
+        : null,
+    unread_count: (raw.unread_count as number) || 0,
+    updated_at: (raw.last_message_at as string) || (raw.updated_at as string) || (raw.created_at as string) || '',
+  }))
 
-  const conversations = Array.isArray(conversationsData?.data) ? conversationsData.data : []
   const messages = Array.isArray(messagesData?.data) ? messagesData.data : []
-  // Build a list of connected members from the connections endpoint.
-  // Each Connection has requester_id/recipient_id, plus optional populated requester/recipient objects.
-  const connections: Connection[] = Array.isArray(connectionsData?.data) ? connectionsData.data : []
-  const connectedMembers = connections.map((conn) => {
-    const isRequester = conn.requester_id === user?.id
-    const otherId = isRequester ? conn.recipient_id : conn.requester_id
-    const otherProfile = isRequester ? conn.recipient : conn.requester
+
+  // Build connected members from connections API.
+  // API uses 'addressee_id' (not 'recipient_id') and provides 'is_requester' convenience flag.
+  const rawConnections = Array.isArray(connectionsData?.data) ? connectionsData.data : []
+  const connectedMembers = rawConnections.map((conn: Record<string, unknown>) => {
+    const isRequester = conn.is_requester === true || conn.requester_id === user?.id
+    const otherId = isRequester
+      ? ((conn.addressee_id as string) || (conn.recipient_id as string) || '')
+      : (conn.requester_id as string) || ''
+    const otherProfile = (isRequester ? conn.recipient : conn.requester) as Record<string, unknown> | undefined
     return {
-      user_id: otherId,
-      display_name: otherProfile?.display_name || 'Member',
-      avatar_url: otherProfile?.avatar_url || null,
-      archetype: otherProfile?.archetype || null,
+      user_id: (otherProfile?.user_id as string) || otherId,
+      display_name: (otherProfile?.display_name as string) || 'Member',
+      avatar_url: (otherProfile?.avatar_url as string) || null,
+      archetype: (otherProfile?.archetype as string) || null,
     }
   })
 

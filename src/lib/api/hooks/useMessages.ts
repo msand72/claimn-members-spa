@@ -53,7 +53,9 @@ export function useSendMessage() {
     mutationFn: (data: SendMessageRequest) =>
       api.post<Message>('/members/messages', {
         recipient_id: data.recipient_id,
+        addressee_id: data.recipient_id, // Backend may use 'addressee_id' like connections
         body: data.content, // Backend expects 'body', not 'content'
+        content: data.content, // Send both in case backend uses either
         ...(data.image_url ? { image_url: data.image_url } : {}),
       }),
     onSuccess: () => {
