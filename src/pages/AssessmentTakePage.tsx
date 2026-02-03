@@ -9,6 +9,15 @@ import type { AssessmentQuestion as ApiAssessmentQuestion } from '../lib/api/typ
 import { ChevronLeft, ChevronRight, Check, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
+/** Default Likert scale for pillar questions that have no options from the API */
+const DEFAULT_LIKERT_OPTIONS = [
+  { value: 1, label: 'Strongly Disagree' },
+  { value: 2, label: 'Disagree' },
+  { value: 3, label: 'Neutral' },
+  { value: 4, label: 'Agree' },
+  { value: 5, label: 'Strongly Agree' },
+]
+
 /** Transform API questions to the local AssessmentQuestion format */
 function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): LocalAssessmentQuestion[] {
   return apiQuestions
@@ -18,7 +27,7 @@ function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): LocalAsse
       section: q.section as LocalAssessmentQuestion['section'],
       ...(q.pillar ? { pillar: q.pillar as LocalAssessmentQuestion['pillar'] } : {}),
       question: q.question,
-      options: q.options,
+      options: q.options && q.options.length > 0 ? q.options : DEFAULT_LIKERT_OPTIONS,
     }))
 }
 
