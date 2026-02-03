@@ -139,7 +139,7 @@ function StepperBar({
 
 export function SectionTopBar({ items, moreItems, mode = 'tabs' }: SectionTopBarProps) {
   return (
-    <div className="relative z-20 border-b border-white/10 bg-white/[0.02] px-3 sm:px-4 md:px-6 lg:px-8">
+    <div className="relative z-20 glass-base border-t-0 rounded-none px-3 sm:px-4 md:px-6 lg:px-8">
       <div className="flex justify-center">
         {mode === 'stepper' ? (
           <StepperBar items={items} moreItems={moreItems} />
