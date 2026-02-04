@@ -49,7 +49,7 @@ export function ShopSuccessPage() {
           <div className="w-24 h-24 rounded-full bg-tegelrod/20 mx-auto flex items-center justify-center mb-6">
             <AlertTriangle className="w-12 h-12 text-tegelrod" />
           </div>
-          <h1 className="font-display text-3xl font-bold text-kalkvit mb-4">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-4">
             Verification Failed
           </h1>
           <p className="text-kalkvit/60 mb-6">

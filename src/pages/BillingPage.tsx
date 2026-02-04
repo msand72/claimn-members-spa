@@ -118,7 +118,7 @@ export function BillingPage() {
     <MainLayout>
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Billing</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Billing</h1>
           <p className="text-kalkvit/60">Manage your subscription and payment methods</p>
         </div>
 

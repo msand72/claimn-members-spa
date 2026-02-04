@@ -292,7 +292,7 @@ export function ProtocolDetailPage() {
                 </GlassBadge>
               )}
             </div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">
               {protocol.name}
             </h1>
             <p className="text-kalkvit/60">{protocol.description}</p>
@@ -361,7 +361,7 @@ export function ProtocolDetailPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
               <div>
                 <p className="font-display text-xl font-bold text-kalkvit">
                   Week {currentWeek}

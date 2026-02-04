@@ -63,7 +63,7 @@ function KPICard({ kpi, onLog }: { kpi: KPI; onLog: (kpi: KPI) => void }) {
 
       {/* Current vs Target */}
       <div className="flex items-baseline gap-2 mb-3">
-        <span className="font-display text-3xl font-bold text-kalkvit">
+        <span className="font-display text-2xl sm:text-3xl font-bold text-kalkvit">
           {kpi.current_value}
         </span>
         <span className="text-kalkvit/40">/ {kpi.target_value} {kpi.unit}</span>
@@ -211,7 +211,7 @@ export function KPIsPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">KPI Tracking</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">KPI Tracking</h1>
             <p className="text-kalkvit/60">Monitor your key performance indicators and track progress</p>
           </div>
           <GlassButton variant="primary" onClick={() => setShowCreateModal(true)}>

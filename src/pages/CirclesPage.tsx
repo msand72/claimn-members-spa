@@ -114,9 +114,9 @@ export function CirclesPage() {
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Circles</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Circles</h1>
             <p className="text-kalkvit/60">Join focused groups and connect with like-minded members</p>
           </div>
           <GlassCard variant="accent" leftBorder={false} className="px-6 py-3">

@@ -107,7 +107,7 @@ export function ShopPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Shop</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Shop</h1>
             <p className="text-kalkvit/60">Protocols, courses, and resources to accelerate your growth</p>
           </div>
           <Link to="/shop/upgrade">

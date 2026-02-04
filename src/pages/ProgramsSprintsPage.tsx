@@ -242,9 +242,9 @@ export function ProgramsSprintsPage() {
           Back to Programs
         </Link>
 
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Sprints</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Sprints</h1>
             <p className="text-kalkvit/60">
               Intensive group challenges to accelerate your growth
             </p>
@@ -252,21 +252,21 @@ export function ProgramsSprintsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-skogsgron">
+            <p className="text-2xl sm:text-3xl font-display font-bold text-skogsgron">
               {isLoading ? '-' : activeCount}
             </p>
             <p className="text-sm text-kalkvit/60">Active Sprints</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-koppar">
+            <p className="text-2xl sm:text-3xl font-display font-bold text-koppar">
               {isLoading ? '-' : upcomingCount}
             </p>
             <p className="text-sm text-kalkvit/60">Upcoming</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-kalkvit">
+            <p className="text-2xl sm:text-3xl font-display font-bold text-kalkvit">
               {isLoading ? '-' : completedCount}
             </p>
             <p className="text-sm text-kalkvit/60">Completed</p>

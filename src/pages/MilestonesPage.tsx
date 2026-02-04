@@ -215,7 +215,7 @@ export function MilestonesPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
             <div>
-              <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">6-Month Milestones</h1>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">6-Month Milestones</h1>
               <p className="text-kalkvit/60">
                 Key milestones assigned by your expert to track your transformation journey
               </p>
@@ -272,7 +272,7 @@ export function MilestonesPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">6-Month Milestones</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">6-Month Milestones</h1>
             <p className="text-kalkvit/60">
               Key milestones assigned by your expert to track your transformation journey
             </p>

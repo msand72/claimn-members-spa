@@ -242,7 +242,7 @@ export function ShopProtocolDetailPage() {
                 )}
               </div>
 
-              <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">
                 {protocol.title}
               </h1>
               <p className="text-lg text-koppar mb-4">{protocol.tagline}</p>

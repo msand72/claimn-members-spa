@@ -233,7 +233,7 @@ export function BookSessionPage() {
     <MainLayout>
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Book a Session</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Book a Session</h1>
           <p className="text-kalkvit/60">Schedule a 1-on-1 coaching session with our experts</p>
         </div>
 

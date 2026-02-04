@@ -199,9 +199,9 @@ export function ProgramsPage() {
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Programs</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Programs</h1>
             <p className="text-kalkvit/60">Structured learning paths to accelerate your growth</p>
           </div>
           <div className="flex gap-4">

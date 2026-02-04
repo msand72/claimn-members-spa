@@ -230,7 +230,7 @@ export function ProtocolsPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">
               Protocols
             </h1>
             <p className="text-kalkvit/60">
@@ -240,7 +240,7 @@ export function ProtocolsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
             <Flame className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">

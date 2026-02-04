@@ -73,7 +73,7 @@ export function InterestGroupsPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Interest Groups</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Interest Groups</h1>
             <p className="text-kalkvit/60">Connect with members who share your interests</p>
           </div>
           <GlassCard variant="accent" leftBorder={false} className="px-6 py-3 text-center">

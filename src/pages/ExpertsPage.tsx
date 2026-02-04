@@ -149,9 +149,9 @@ export function ExpertsPage() {
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Expert Coaches</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Expert Coaches</h1>
             <p className="text-kalkvit/60">Connect with world-class coaches and mentors</p>
           </div>
           <GlassCard variant="accent" leftBorder={false} className="px-6 py-3">

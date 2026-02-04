@@ -299,26 +299,26 @@ export function ProgramsReviewsPage() {
         </Link>
 
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Peer Reviews</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Peer Reviews</h1>
           <p className="text-kalkvit/60">Give and receive feedback from your program peers</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-koppar">
+            <p className="text-2xl sm:text-3xl font-display font-bold text-koppar">
               {isLoading ? '-' : pendingCount}
             </p>
             <p className="text-sm text-kalkvit/60">Pending</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-skogsgron">
+            <p className="text-2xl sm:text-3xl font-display font-bold text-skogsgron">
               {isLoading ? '-' : receivedCount}
             </p>
             <p className="text-sm text-kalkvit/60">Received</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center">
-            <p className="text-3xl font-display font-bold text-kalkvit">
+            <p className="text-2xl sm:text-3xl font-display font-bold text-kalkvit">
               {isLoading ? '-' : givenCount}
             </p>
             <p className="text-sm text-kalkvit/60">Given</p>

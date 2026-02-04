@@ -114,7 +114,7 @@ export function ResourcesPage() {
     <MainLayout>
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Resources</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Resources</h1>
           <p className="text-kalkvit/60">Guides, videos, and templates to support your journey</p>
         </div>
 

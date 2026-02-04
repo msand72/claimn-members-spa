@@ -340,7 +340,7 @@ export function GoalDetailPage() {
               </div>
             ) : (
               <>
-                <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">{goal.title}</h1>
+                <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">{goal.title}</h1>
                 <p className="text-kalkvit/60">{goal.description}</p>
               </>
             )}

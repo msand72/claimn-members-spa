@@ -125,7 +125,7 @@ export function AccountabilityPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
             <div>
-              <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Accountability</h1>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Accountability</h1>
               <p className="text-kalkvit/60">Stay connected with your accountability partners</p>
             </div>
           </div>
@@ -206,7 +206,7 @@ export function AccountabilityPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-kalkvit mb-2">Accountability</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Accountability</h1>
             <p className="text-kalkvit/60">Stay connected with your accountability partners</p>
           </div>
           <GlassButton variant="primary" onClick={() => setShowCheckInModal(true)}>
