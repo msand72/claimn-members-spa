@@ -102,17 +102,23 @@ export function JourneyDashboardPage() {
   }
 
   // Build goal progress chart data
-  const goalChartData = goals.slice(0, 5).map((g) => ({
-    name: g.title.length > 12 ? g.title.slice(0, 12) + '...' : g.title,
-    progress: g.progress ?? 0,
-  }))
+  const goalChartData = goals.slice(0, 5).map((g) => {
+    const title = g.title ?? 'Goal'
+    return {
+      name: title.length > 12 ? title.slice(0, 12) + '...' : title,
+      progress: g.progress ?? 0,
+    }
+  })
 
   // Build KPI chart data (current vs target)
-  const kpiChartData = kpis.slice(0, 6).map((k) => ({
-    name: k.name.length > 10 ? k.name.slice(0, 10) + '...' : k.name,
-    current: k.current_value ?? 0,
-    target: k.target_value ?? 100,
-  }))
+  const kpiChartData = kpis.slice(0, 6).map((k) => {
+    const name = k.name ?? 'KPI'
+    return {
+      name: name.length > 10 ? name.slice(0, 10) + '...' : name,
+      current: k.current_value ?? 0,
+      target: k.target_value ?? 100,
+    }
+  })
 
   // Build pillar radar data from goals distribution
   const pillarGoalCounts: Record<string, number> = {}
@@ -121,7 +127,7 @@ export function JourneyDashboardPage() {
     pillarGoalCounts[pid] = (pillarGoalCounts[pid] ?? 0) + 1
   }
   const radarData = Object.entries(PILLARS).map(([id, pillar]) => ({
-    pillar: pillar.name.split(' ')[0],
+    pillar: (pillar.name ?? '').split(' ')[0] || id,
     goals: pillarGoalCounts[id] ?? 0,
   }))
 
