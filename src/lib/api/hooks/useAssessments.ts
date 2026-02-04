@@ -74,7 +74,7 @@ export function useAssessmentResults(assessmentId: string) {
       )
       return normalizeAssessmentResult(result)
     },
-    enabled: !!assessmentId,
+    enabled: !!assessmentId && assessmentId !== 'undefined',
   })
 }
 

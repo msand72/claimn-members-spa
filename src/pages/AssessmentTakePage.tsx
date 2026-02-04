@@ -355,7 +355,7 @@ export function AssessmentTakePage() {
         onSuccess: (result) => {
           // Clear progress on successful submit
           sessionStorage.removeItem(PROGRESS_KEY)
-          const resultsUrl = returnTo || `/assessment/results?id=${result.id}`
+          const resultsUrl = returnTo || (result.id ? `/assessment/results?id=${result.id}` : '/assessment/results')
           navigate(resultsUrl)
         },
         onError: () => {

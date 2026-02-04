@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { ChevronUp, Eye } from 'lucide-react'
+import { ChevronUp } from 'lucide-react'
 import { useJourney } from '../../lib/api/hooks/useJourney'
 
 const STORAGE_KEY = 'journey_widget_expanded'
@@ -147,14 +146,6 @@ export function JourneyWidget() {
         </p>
       )}
 
-      {/* View Journey Link */}
-      <Link
-        to="/"
-        className="flex items-center gap-1.5 text-[11px] font-medium text-koppar hover:text-koppar/80 transition-colors"
-      >
-        <Eye className="w-3.5 h-3.5" />
-        View Journey
-      </Link>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
 import {
+  LayoutDashboard,
   TrendingUp,
   Users,
   Sparkles,
@@ -13,7 +14,6 @@ import {
   Flag,
   BarChart3,
   UsersRound,
-  Compass,
   Newspaper,
   MessageCircle,
   Globe,
@@ -44,8 +44,16 @@ export interface SectionConfig {
 }
 
 export const SECTION_NAV: Record<string, SectionConfig> = {
+  dashboard: {
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    basePath: '/',
+    mode: 'tabs',
+    items: [],
+    allPaths: ['/'],
+  },
   growth: {
-    label: 'My Journey',
+    label: 'My Plan',
     icon: TrendingUp,
     basePath: '/goals',
     mode: 'stepper',
@@ -59,9 +67,8 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     moreItems: [
       { to: '/kpis', label: 'KPIs', icon: BarChart3 },
       { to: '/accountability', label: 'Accountability', icon: UsersRound },
-      { to: '/', label: 'Journey', icon: Compass },
     ],
-    allPaths: ['/', '/goals', '/kpis', '/action-items', '/protocols', '/milestones', '/accountability', '/assessment'],
+    allPaths: ['/goals', '/kpis', '/action-items', '/protocols', '/milestones', '/accountability', '/assessment'],
   },
   community: {
     label: 'Community',
@@ -121,7 +128,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
 }
 
 // Ordered keys for sidebar rendering
-export const SECTION_KEYS = ['growth', 'community', 'coaching', 'programs', 'shop'] as const
+export const SECTION_KEYS = ['dashboard', 'growth', 'community', 'coaching', 'programs', 'shop'] as const
 
 export function useCurrentSection(): (SectionConfig & { key: string }) | null {
   const { pathname } = useLocation()
