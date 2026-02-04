@@ -282,8 +282,8 @@ export function JourneyDashboardPage() {
               {kpiChartData.length > 0 && (
                 <GlassCard className="col-span-1">
                   <h4 className="text-sm font-medium text-kalkvit/60 mb-3">KPI Tracking</h4>
-                  <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                  <div className="h-48" style={{ minWidth: 0, minHeight: 192 }}>
+                    <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={kpiChartData} margin={{ left: 0, right: 8 }}>
                         <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -300,8 +300,8 @@ export function JourneyDashboardPage() {
               <GlassCard className="col-span-1">
                 <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Pillar Scores</h4>
                 {hasRadarData ? (
-                  <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                  <div className="h-48" style={{ minWidth: 0, minHeight: 192 }}>
+                    <ResponsiveContainer width="100%" height="100%">
                       <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
                         <PolarGrid stroke={gridColor} />
                         <PolarAngleAxis dataKey="pillar" tick={{ fill: tickColor, fontSize: 10 }} />
