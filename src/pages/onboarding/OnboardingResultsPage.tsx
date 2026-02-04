@@ -60,9 +60,13 @@ export function OnboardingResultsPage() {
   const { data: apiQuestions } = useAssessmentQuestions('five-pillars')
   const updateOnboarding = useUpdateOnboarding()
 
+  console.log('[OnboardingResults] apiResult:', JSON.stringify(apiResult, null, 2))
+  console.log('[OnboardingResults] isLoading:', isLoading)
+
   // Derive results from API or fall back to sessionStorage client-side scoring
   const results: DerivedResults | null = useMemo(() => {
     if (apiResult) {
+      console.log('[OnboardingResults] Deriving from apiResult, pillar_scores:', apiResult.pillar_scores, 'primary_archetype:', apiResult.primary_archetype)
       // New format: pillar_scores has { raw, level, percentage } objects
       const pillarScores: Record<PillarId, number> = {} as Record<PillarId, number>
       const microInsights: Record<PillarId, string> = {} as Record<PillarId, string>

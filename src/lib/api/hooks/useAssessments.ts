@@ -86,10 +86,16 @@ export function useLatestAssessmentResult() {
       const result = await api.get<AssessmentResult | AssessmentResult[]>(
         '/members/assessments/results/latest'
       )
+      console.log('[useLatestAssessmentResult] Raw response:', JSON.stringify(result, null, 2))
       // Handle both single object and array (take first) responses
       const single = Array.isArray(result) ? result[0] : result
-      if (!single) return undefined
-      return normalizeAssessmentResult(single)
+      if (!single) {
+        console.log('[useLatestAssessmentResult] No result found')
+        return undefined
+      }
+      const normalized = normalizeAssessmentResult(single)
+      console.log('[useLatestAssessmentResult] Normalized:', JSON.stringify(normalized, null, 2))
+      return normalized
     },
   })
 }
@@ -118,15 +124,20 @@ export function useSubmitAssessment() {
       assessmentId: string
       data: SubmitAssessmentRequest
     }) => {
+      console.log('[useSubmitAssessment] Submitting to', `/members/assessments/${assessmentId}/submit`, 'data:', JSON.stringify(data))
       const response = await api.post<{ success: boolean; results: AssessmentResult } | AssessmentResult>(
         `/members/assessments/${assessmentId}/submit`,
         data
       )
+      console.log('[useSubmitAssessment] Raw response:', JSON.stringify(response, null, 2))
 
       // Handle both { success, results } wrapper and flat result
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (response as any).results ?? response
-      return normalizeAssessmentResult(result as AssessmentResult)
+      console.log('[useSubmitAssessment] Extracted result:', JSON.stringify(result, null, 2))
+      const normalized = normalizeAssessmentResult(result as AssessmentResult)
+      console.log('[useSubmitAssessment] Normalized result:', JSON.stringify(normalized, null, 2))
+      return normalized
     },
     onSuccess: (_, { assessmentId }) => {
       queryClient.invalidateQueries({ queryKey: assessmentKeys.all })

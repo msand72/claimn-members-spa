@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassAlert, GlassInput, GlassSelect } from '../components/ui'
+import { GlassCard, GlassButton, GlassAlert, GlassInput } from '../components/ui'
 import { SECTION_INFO } from '../lib/assessment/questions'
 import type { AssessmentQuestion as LocalAssessmentQuestion } from '../lib/assessment/questions'
 import { useSubmitAssessment, useAssessmentQuestions } from '../lib/api/hooks/useAssessments'
@@ -329,6 +329,15 @@ export function AssessmentTakePage() {
       }
     }
 
+    console.log('[AssessmentTake] Submit payload:', {
+      assessmentId,
+      archetypeResponses,
+      pillarResponses,
+      backgroundData,
+      totalQuestions: questions.length,
+      answeredCount: Object.keys(answers).length,
+    })
+
     // Also store flat answers in sessionStorage as fallback for client-side scoring
     const flatAnswers: Record<string, number | string> = {}
     for (const [questionId, selectedIndex] of Object.entries(answers)) {
@@ -353,12 +362,15 @@ export function AssessmentTakePage() {
       },
       {
         onSuccess: (result) => {
+          console.log('[AssessmentTake] Submit success, result:', JSON.stringify(result, null, 2))
           // Clear progress on successful submit
           sessionStorage.removeItem(PROGRESS_KEY)
           const resultsUrl = returnTo || (result.id ? `/assessment/results?id=${result.id}` : '/assessment/results')
+          console.log('[AssessmentTake] Navigating to:', resultsUrl)
           navigate(resultsUrl)
         },
-        onError: () => {
+        onError: (error) => {
+          console.error('[AssessmentTake] Submit error:', error)
           setSubmitError(
             'Could not save to server. Your results are available locally — you can continue or retry.'
           )
@@ -432,21 +444,43 @@ export function AssessmentTakePage() {
       )
     }
 
-    // Background: select dropdown (has _backgroundOptions)
+    // Background: radio-style buttons (has _backgroundOptions)
     if (currentQuestion._questionType === 'background' && currentQuestion._backgroundOptions) {
+      const selectedValue = textAnswers[currentQuestion.id] ?? ''
       return (
-        <GlassSelect
-          value={textAnswers[currentQuestion.id] ?? ''}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleSelectAnswer(e.target.value)}
-          className="w-full"
-          options={[
-            { value: '', label: 'Select...' },
-            ...currentQuestion._backgroundOptions.map((opt) => ({
-              value: opt.value,
-              label: opt.text,
-            })),
-          ]}
-        />
+        <div className="space-y-3">
+          {currentQuestion._backgroundOptions.map((opt) => {
+            const isSelected = selectedValue === opt.value
+            return (
+              <button
+                key={opt.value}
+                onClick={() => handleSelectAnswer(opt.value)}
+                className={cn(
+                  'w-full text-left p-4 rounded-xl border transition-all',
+                  isSelected
+                    ? 'border-koppar bg-koppar/10 text-kalkvit'
+                    : 'border-white/10 bg-white/[0.04] text-kalkvit/80 hover:border-koppar/30 hover:bg-white/[0.06]'
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
+                      isSelected
+                        ? 'border-koppar bg-koppar'
+                        : 'border-kalkvit/30'
+                    )}
+                  >
+                    {isSelected && (
+                      <Check className="w-3 h-3 text-kalkvit" />
+                    )}
+                  </div>
+                  <span className="text-sm">{opt.text}</span>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       )
     }
 
