@@ -11,6 +11,7 @@ import {
   useActiveProtocols,
   useEnrolledPrograms,
   useFeed,
+  useLatestAssessmentResult,
 } from '../lib/api/hooks'
 import { PILLARS } from '../lib/constants'
 import type { Goal, KPI } from '../lib/api/types'
@@ -55,6 +56,7 @@ export function JourneyDashboardPage() {
   const { data: protocolsData } = useActiveProtocols({ status: 'active' })
   const { data: enrolledData } = useEnrolledPrograms({ limit: 5 })
   const { data: feedData } = useFeed({ limit: 3 })
+  const { data: assessmentResult } = useLatestAssessmentResult()
 
   const goals: Goal[] = Array.isArray(goalsData?.data) ? goalsData.data : []
   const kpis: KPI[] = Array.isArray(kpisData?.data) ? kpisData.data : []
@@ -135,17 +137,13 @@ export function JourneyDashboardPage() {
     }
   })
 
-  // Build pillar radar data from goals distribution
-  const pillarGoalCounts: Record<string, number> = {}
-  for (const g of goals) {
-    const pid = g.pillar_id ?? 'unassigned'
-    pillarGoalCounts[pid] = (pillarGoalCounts[pid] ?? 0) + 1
-  }
+  // Build pillar radar data from assessment pillar scores
+  const pillarScores = assessmentResult?.pillar_scores as Record<string, { raw?: number; percentage?: number }> | undefined
   const radarData = Object.entries(PILLARS).map(([id, pillar]) => ({
     pillar: (pillar.name ?? '').split(' ')[0] || id,
-    goals: pillarGoalCounts[id] ?? 0,
+    score: pillarScores?.[id]?.percentage ?? (pillarScores?.[id]?.raw ? Math.round((pillarScores[id].raw! / 7) * 100) : 0),
   }))
-  const hasRadarData = radarData.some((d) => d.goals > 0)
+  const hasRadarData = radarData.some((d) => d.score > 0)
 
   // Theme-aware chart colors
   const tickColor = isLight ? '#1C1C1E' : '#F5F0E8'
@@ -235,7 +233,7 @@ export function JourneyDashboardPage() {
         {/* ============================================= */}
         {/* 3. Stats Dashboard — Goals & KPIs Graphs */}
         {/* ============================================= */}
-        {(goalChartData.length > 0 || kpiChartData.length > 0) && (
+        {(goalChartData.length > 0 || kpiChartData.length > 0 || hasRadarData) && (
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display text-xl font-semibold text-kalkvit flex items-center gap-2">
@@ -298,38 +296,36 @@ export function JourneyDashboardPage() {
                 </GlassCard>
               )}
 
-              {/* Pillar Distribution Radar */}
-              {goals.length > 0 && (
-                <GlassCard className="col-span-1">
-                  <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Pillar Focus</h4>
-                  {hasRadarData ? (
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-                          <PolarGrid stroke={gridColor} />
-                          <PolarAngleAxis dataKey="pillar" tick={{ fill: tickColor, fontSize: 10 }} />
-                          <Radar
-                            dataKey="goals"
-                            stroke="#B87333"
-                            fill="#B87333"
-                            fillOpacity={0.25}
-                          />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  ) : (
-                    <div className="h-48 flex flex-col items-center justify-center">
-                      <Compass className="w-8 h-8 text-kalkvit/15 mb-2" />
-                      <p className="text-kalkvit/40 text-xs text-center">
-                        No pillar distribution yet
-                      </p>
-                      <p className="text-kalkvit/25 text-xs text-center mt-0.5">
-                        Assign pillars to goals to see focus areas
-                      </p>
-                    </div>
-                  )}
-                </GlassCard>
-              )}
+              {/* Pillar Scores Radar */}
+              <GlassCard className="col-span-1">
+                <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Pillar Scores</h4>
+                {hasRadarData ? (
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                        <PolarGrid stroke={gridColor} />
+                        <PolarAngleAxis dataKey="pillar" tick={{ fill: tickColor, fontSize: 10 }} />
+                        <Radar
+                          dataKey="score"
+                          stroke="#B87333"
+                          fill="#B87333"
+                          fillOpacity={0.25}
+                        />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-48 flex flex-col items-center justify-center">
+                    <Compass className="w-8 h-8 text-kalkvit/15 mb-2" />
+                    <p className="text-kalkvit/40 text-xs text-center">
+                      No pillar scores yet
+                    </p>
+                    <p className="text-kalkvit/25 text-xs text-center mt-0.5">
+                      Complete the assessment to see your pillar profile
+                    </p>
+                  </div>
+                )}
+              </GlassCard>
             </div>
           </div>
         )}
