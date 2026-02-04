@@ -40,13 +40,8 @@ export function useSendConnectionRequest() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateConnectionRequest) => {
-      console.log('[useSendConnectionRequest] payload:', JSON.stringify(data))
-      return api.post<Connection>('/members/connections', data)
-    },
-    onError: (error) => {
-      console.error('[useSendConnectionRequest] error:', error)
-    },
+    mutationFn: (data: CreateConnectionRequest) =>
+      api.post<Connection>('/members/connections', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: connectionKeys.all })
     },

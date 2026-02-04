@@ -92,7 +92,7 @@ export interface Connection {
 }
 
 export interface CreateConnectionRequest {
-  addressee_user_id: string
+  addressee_id: string
   message?: string
 }
 

@@ -60,10 +60,8 @@ function MemberCard({ member }: { member: NetworkMember }) {
   const rejectConnection = useRejectConnection()
 
   const handleConnect = () => {
-    console.log('[NetworkPage] handleConnect', { user_id: member.user_id, connection_status: member.connection_status, member })
     if (member.connection_status === 'none') {
-      console.log('[NetworkPage] sending connection request', { addressee_user_id: member.user_id })
-      sendConnection.mutate({ addressee_user_id: member.user_id })
+      sendConnection.mutate({ addressee_id: member.user_id })
     }
   }
 

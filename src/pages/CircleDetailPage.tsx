@@ -19,7 +19,6 @@ import type { CirclePost, CircleMember, FeedComment } from '../lib/api/types'
 import {
   Users,
   MessageCircle,
-  Settings,
   ArrowLeft,
   Heart,
   Send,
@@ -370,11 +369,6 @@ export function CircleDetailPage() {
               >
                 {notifications ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
               </GlassButton>
-              {circle.is_admin && (
-                <GlassButton variant="ghost" className="p-2">
-                  <Settings className="w-5 h-5" />
-                </GlassButton>
-              )}
               <GlassButton
                 variant={circle.is_member ? 'secondary' : 'primary'}
                 onClick={handleJoinLeave}
