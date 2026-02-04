@@ -254,8 +254,8 @@ export function JourneyDashboardPage() {
                 <GlassCard className="col-span-1">
                   <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Goal Progress</h4>
                   {hasGoalProgress ? (
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                    <div className="h-48" style={{ minWidth: 0, minHeight: 192 }}>
+                      <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={goalChartData} layout="vertical" margin={{ left: 0, right: 16 }}>
                           <XAxis type="number" domain={[0, 100]} tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
                           <YAxis type="category" dataKey="name" tick={{ fill: tickColor, fontSize: 11 }} width={80} axisLine={false} tickLine={false} />

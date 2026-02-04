@@ -375,6 +375,13 @@ export function MessagesPage() {
         const compressedFile = blobToFile(compressed, `msg-${Date.now()}.jpg`, 'image/jpeg')
         const result = await api.uploadFile('/members/messages/upload', compressedFile, 'image')
         imageUrl = result.url
+        // Replace the blob preview URL with the server URL so the image persists
+        setOptimisticMessages((prev) =>
+          prev.map((msg) =>
+            msg._optimisticId === optimisticId ? { ...msg, image_url: imageUrl! } : msg
+          )
+        )
+        URL.revokeObjectURL(imageToUpload.preview)
       } catch {
         setOptimisticMessages((prev) =>
           prev.map((msg) =>
@@ -382,12 +389,10 @@ export function MessagesPage() {
           )
         )
         setToast({ variant: 'error', message: 'Failed to upload image.' })
-        setIsUploading(false)
         URL.revokeObjectURL(imageToUpload.preview)
         return
       } finally {
         setIsUploading(false)
-        URL.revokeObjectURL(imageToUpload.preview)
       }
     }
 
