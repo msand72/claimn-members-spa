@@ -563,7 +563,7 @@ export function JourneyDashboardPage() {
             </div>
 
             {/* Community stats row */}
-            <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
               <GlassCard className="text-center py-3">
                 <Users className="w-5 h-5 text-koppar mx-auto mb-1" />
                 <div className="font-display text-xl font-bold text-kalkvit">

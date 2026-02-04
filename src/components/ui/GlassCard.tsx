@@ -26,7 +26,7 @@ export function GlassCard({
     <div
       className={cn(
         variantClasses[variant],
-        'rounded-[20px] p-6 transition-all duration-200',
+        'rounded-[20px] p-4 md:p-6 transition-all duration-200',
         leftBorder && 'border-l-4 border-l-koppar',
         className
       )}

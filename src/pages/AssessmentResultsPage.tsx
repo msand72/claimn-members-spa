@@ -314,7 +314,7 @@ export function AssessmentResultsPage() {
           </div>
 
           {/* Quick stat cards */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="text-center p-3 rounded-xl bg-white/[0.04] border border-white/10">
               <p className="text-2xl font-bold text-koppar">{primaryPercentage || overallScore}%</p>
               <p className="text-xs text-kalkvit/50 mt-1">Primary Archetype</p>

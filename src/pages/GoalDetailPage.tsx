@@ -391,7 +391,7 @@ export function GoalDetailPage() {
         )}
 
         {/* Stats */}
-        <div className={cn('grid gap-4 mb-8', hasDrivers ? 'grid-cols-3' : 'grid-cols-2')}>
+        <div className={cn('grid gap-4 mb-8', hasDrivers ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2')}>
           {hasDrivers && (
             <GlassCard variant="elevated" className="text-center py-4">
               <TrendingUp className="w-6 h-6 text-koppar mx-auto mb-2" />

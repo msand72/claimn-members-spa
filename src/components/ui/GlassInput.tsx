@@ -56,7 +56,7 @@ export const GlassTextarea = forwardRef<HTMLTextAreaElement, GlassTextareaProps>
         <textarea
           ref={ref}
           className={cn(
-            'w-full px-4 py-3 rounded-xl min-h-[120px] resize-y',
+            'w-full px-4 py-3 rounded-xl min-h-[80px] sm:min-h-[120px] resize-y',
             'bg-white/[0.08] backdrop-blur-[12px]',
             'border border-white/[0.15]',
             'text-kalkvit placeholder:text-kalkvit/40',

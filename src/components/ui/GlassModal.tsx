@@ -89,7 +89,7 @@ export function GlassModal({
           'relative w-full',
           sizeClasses[size],
           'glass-elevated rounded-2xl border border-white/[0.15]',
-          'p-6 shadow-2xl',
+          'p-4 sm:p-6 shadow-2xl',
           'animate-in fade-in zoom-in-95 duration-200',
           className
         )}
@@ -101,7 +101,7 @@ export function GlassModal({
               {title && (
                 <h2
                   id="modal-title"
-                  className="font-display text-xl font-bold text-kalkvit"
+                  className="font-display text-lg sm:text-xl font-bold text-kalkvit"
                 >
                   {title}
                 </h2>
@@ -146,7 +146,7 @@ export function GlassModalFooter({
   return (
     <div
       className={cn(
-        'flex items-center justify-end gap-3 mt-6 pt-4 border-t border-white/10',
+        'flex items-center justify-end gap-3 flex-wrap mt-6 pt-4 border-t border-white/10',
         className
       )}
     >

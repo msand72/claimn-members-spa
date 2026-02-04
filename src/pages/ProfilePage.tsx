@@ -211,7 +211,7 @@ export function ProfilePage() {
           <>
             {/* Profile Header */}
             <GlassCard variant="elevated" className="mb-6">
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3 md:gap-6">
                 <div className="relative">
                   <GlassAvatar initials={initials} size="xl" />
                   {uploadAvatar.isPending && (
