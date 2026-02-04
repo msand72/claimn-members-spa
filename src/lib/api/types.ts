@@ -664,7 +664,6 @@ export interface AssessmentInsight {
 export interface AssessmentResult {
   id: string
   assessment_id: string
-  user_id?: string
   primary_archetype: string
   secondary_archetype: string | null
   archetype_scores: ArchetypeScores
@@ -672,7 +671,7 @@ export interface AssessmentResult {
   consistency_score: number
   micro_insights: AssessmentInsight[]
   integration_insights: AssessmentInsight[]
-  created_at: string
+  calculated_at: string
   // Legacy fields for backward compatibility during migration
   archetypes?: string[]
   overall_score?: number

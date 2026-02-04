@@ -455,22 +455,22 @@ export function AssessmentResultsPage() {
               </div>
             )}
 
-            {/* Growth Edges */}
-            {getContent(contentMap, `${primaryArchetype}_growth_edges`) && (
+            {/* Growth Edges (DB key: {archetype}_weaknesses) */}
+            {getContent(contentMap, `${primaryArchetype}_weaknesses`) && (
               <div>
                 <h4 className="font-medium text-koppar mb-2">Growth Edges</h4>
                 <p className="text-kalkvit/70 text-sm">
-                  {getContent(contentMap, `${primaryArchetype}_growth_edges`)}
+                  {getContent(contentMap, `${primaryArchetype}_weaknesses`)}
                 </p>
               </div>
             )}
 
-            {/* Key Insight */}
-            {getContent(contentMap, `${primaryArchetype}_key_insight`) && (
+            {/* Description (DB key: {archetype}_description) */}
+            {getContent(contentMap, `${primaryArchetype}_description`) && (
               <div className="p-4 rounded-xl bg-koppar/5 border border-koppar/20">
                 <h4 className="font-medium text-koppar mb-2">Key Insight</h4>
                 <p className="text-kalkvit/80 text-sm">
-                  {getContent(contentMap, `${primaryArchetype}_key_insight`)}
+                  {getContent(contentMap, `${primaryArchetype}_description`)}
                 </p>
               </div>
             )}
@@ -621,7 +621,7 @@ export function AssessmentResultsPage() {
                       <p className="text-xs text-kalkvit/50 mt-0.5">
                         {getContent(
                           contentMap,
-                          `${primaryArchetype}_${pillarId}_${level}_action`,
+                          `${primaryArchetype}_low_${pillarId}`,
                           `Focus on structured development in ${pillar.name.toLowerCase()} to build momentum.`
                         )}
                       </p>
@@ -655,7 +655,7 @@ export function AssessmentResultsPage() {
               <p className="text-sm text-kalkvit/60 ml-4">
                 {getContent(
                   contentMap,
-                  `${primaryArchetype}_action_30d`,
+                  `${primaryArchetype}_action_30days`,
                   `Start with your growth area: ${weakestPillar ? PILLARS[weakestPillar].name : 'lowest-scoring pillar'}. Build one daily habit aligned with this pillar.`
                 )}
               </p>
@@ -670,7 +670,7 @@ export function AssessmentResultsPage() {
               <p className="text-sm text-kalkvit/60 ml-4">
                 {getContent(
                   contentMap,
-                  `${primaryArchetype}_action_90d`,
+                  `${primaryArchetype}_action_90days`,
                   'Expand your practice across multiple pillars. Begin integrating your archetype strengths with targeted development protocols.'
                 )}
               </p>
@@ -685,7 +685,7 @@ export function AssessmentResultsPage() {
               <p className="text-sm text-kalkvit/60 ml-4">
                 {getContent(
                   contentMap,
-                  `${primaryArchetype}_action_6m`,
+                  `${primaryArchetype}_action_longterm`,
                   'Achieve balanced development across all five pillars. Leverage your archetype to mentor others and contribute to the community.'
                 )}
               </p>

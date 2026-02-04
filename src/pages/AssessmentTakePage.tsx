@@ -290,22 +290,10 @@ export function AssessmentTakePage() {
       if (selectedIndex === undefined) continue
 
       if (q._questionType === 'background') {
-        // Background: get the string value
+        // Background: get the string value, use original question_key so backend can match question_id
         const textVal = textAnswers[q.id]
         if (textVal) {
-          // Map question keys to backend-expected field names
-          const key = q._questionKey
-          if (key === 'user_email') {
-            backgroundData.email = textVal
-          } else if (key === 'user_age_range') {
-            backgroundData.ageRange = textVal
-          } else if (key === 'user_professional_level') {
-            backgroundData.professionalLevel = textVal
-          } else if (key === 'user_biggest_challenge') {
-            backgroundData.biggestChallenge = textVal
-          } else {
-            backgroundData[key] = textVal
-          }
+          backgroundData[q._questionKey] = textVal
         }
       } else if (q._questionType === 'archetype') {
         // Resolve option index to archetype key
@@ -365,7 +353,7 @@ export function AssessmentTakePage() {
           console.log('[AssessmentTake] Submit success, result:', JSON.stringify(result, null, 2))
           // Clear progress on successful submit
           sessionStorage.removeItem(PROGRESS_KEY)
-          const resultsUrl = returnTo || (result.id ? `/assessment/results?id=${result.id}` : '/assessment/results')
+          const resultsUrl = returnTo || '/assessment/results'
           console.log('[AssessmentTake] Navigating to:', resultsUrl)
           navigate(resultsUrl)
         },
