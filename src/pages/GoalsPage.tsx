@@ -65,7 +65,7 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
           <div className="mb-4">
             <div className="flex items-center justify-between text-xs mb-1">
               <span className="text-kalkvit/60">Progress</span>
-              <span className="text-koppar font-medium">{goal.progress}%</span>
+              <span className="text-koppar font-medium">{goal.progress ?? 0}%</span>
             </div>
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <div
@@ -95,7 +95,8 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
                 <span className="text-kalkvit/70">{kpi.name}</span>
                 <span className="text-kalkvit">
                   {kpi.current_value}
-                  <span className="text-kalkvit/40">/{kpi.target_value}</span> {kpi.unit}
+                  <span className="text-kalkvit/40">/{kpi.target_value}</span>
+                  {kpi.unit && kpi.unit !== 'scale_1_10' && ` ${kpi.unit}`}
                 </span>
               </div>
             ))}
