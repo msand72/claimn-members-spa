@@ -108,7 +108,7 @@ function SuggestionCard({ member }: SuggestionCardProps) {
         <GlassButton
           variant="primary"
           className="w-full justify-center"
-          onClick={() => sendConnection.mutate({ recipient_id: member.user_id })}
+          onClick={() => sendConnection.mutate({ addressee_user_id: member.user_id })}
           disabled={sendConnection.isPending}
         >
           {sendConnection.isPending ? (
