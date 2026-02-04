@@ -3,15 +3,6 @@ import { useAuth } from '../contexts/AuthContext'
 import { useOnboardingState } from '../lib/api/hooks/useOnboarding'
 import { Loader2 } from 'lucide-react'
 
-const ONBOARDING_STEP_ROUTES: Record<string, string> = {
-  welcome: '/onboarding/welcome',
-  profile: '/onboarding/welcome',
-  challenge: '/onboarding/challenge',
-  assessment: '/onboarding/assessment',
-  results: '/onboarding/results',
-  path: '/onboarding/path',
-}
-
 interface ProtectedRouteProps {
   children: React.ReactNode
 }
@@ -35,25 +26,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   const isOnboardingRoute = location.pathname.startsWith('/onboarding')
-  const onboardingStep = onboarding?.step
-  const onboardingComplete = onboardingStep === 'complete' || !!onboarding?.completed_at
+  const onboardingComplete = onboarding?.step === 'complete' || !!onboarding?.completed_at
 
-  // Completed users: redirect away from onboarding pages
+  // Completed users: redirect away from onboarding pages (prevent re-entering)
   if (onboardingComplete && isOnboardingRoute) {
     return <Navigate to="/" replace />
-  }
-
-  // Incomplete users: redirect to correct onboarding step
-  if (!onboardingComplete && !isOnboardingRoute) {
-    // Allow the assessment take page — onboarding redirects here for the assessment
-    if (location.pathname === '/assessment/take') {
-      return <>{children}</>
-    }
-
-    const targetRoute = onboardingStep
-      ? ONBOARDING_STEP_ROUTES[onboardingStep] ?? '/onboarding/welcome'
-      : '/onboarding/welcome'
-    return <Navigate to={targetRoute} replace />
   }
 
   return <>{children}</>
