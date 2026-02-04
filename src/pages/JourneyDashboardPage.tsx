@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassStatsCard, GlassAvatar, GlassBadge } from '../components/ui'
 import {
@@ -44,6 +45,8 @@ import {
 } from 'lucide-react'
 
 export function JourneyDashboardPage() {
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const { user } = useAuth()
   const { data: profile, isLoading: profileLoading, isError: profileError } = useCurrentProfile()
   const { data: stats, isLoading: statsLoading, isError: statsError } = useDashboardStats()
@@ -144,11 +147,14 @@ export function JourneyDashboardPage() {
   }))
   const hasRadarData = radarData.some((d) => d.goals > 0)
 
+  // Theme-aware chart colors
+  const tickColor = isLight ? '#1C1C1E' : '#F5F0E8'
+  const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'
   const chartTooltipStyle = {
-    backgroundColor: 'rgba(30, 30, 30, 0.95)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    backgroundColor: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(30, 30, 30, 0.95)',
+    border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.1)',
     borderRadius: '8px',
-    color: '#F5F0E8',
+    color: isLight ? '#1C1C1E' : '#F5F0E8',
     fontSize: '12px',
   }
 
@@ -253,8 +259,8 @@ export function JourneyDashboardPage() {
                     <div className="h-48">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={goalChartData} layout="vertical" margin={{ left: 0, right: 16 }}>
-                          <XAxis type="number" domain={[0, 100]} tick={{ fill: '#F5F0E8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                          <YAxis type="category" dataKey="name" tick={{ fill: '#F5F0E8', fontSize: 11 }} width={80} axisLine={false} tickLine={false} />
+                          <XAxis type="number" domain={[0, 100]} tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
+                          <YAxis type="category" dataKey="name" tick={{ fill: tickColor, fontSize: 11 }} width={80} axisLine={false} tickLine={false} />
                           <Tooltip contentStyle={chartTooltipStyle} formatter={(v) => [`${v}%`, 'Progress']} />
                           <Bar dataKey="progress" fill="#B87333" radius={[0, 4, 4, 0]} barSize={16} />
                         </BarChart>
@@ -281,11 +287,11 @@ export function JourneyDashboardPage() {
                   <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={kpiChartData} margin={{ left: 0, right: 8 }}>
-                        <XAxis dataKey="name" tick={{ fill: '#F5F0E8', fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: '#F5F0E8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="name" tick={{ fill: tickColor, fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: tickColor, fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip contentStyle={chartTooltipStyle} />
                         <Bar dataKey="current" fill="#B87333" radius={[4, 4, 0, 0]} barSize={12} name="Current" />
-                        <Bar dataKey="target" fill="rgba(184, 115, 51, 0.25)" radius={[4, 4, 0, 0]} barSize={12} name="Target" />
+                        <Bar dataKey="target" fill={isLight ? 'rgba(184, 115, 51, 0.2)' : 'rgba(184, 115, 51, 0.25)'} radius={[4, 4, 0, 0]} barSize={12} name="Target" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -300,8 +306,8 @@ export function JourneyDashboardPage() {
                     <div className="h-48">
                       <ResponsiveContainer width="100%" height="100%">
                         <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-                          <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                          <PolarAngleAxis dataKey="pillar" tick={{ fill: '#F5F0E8', fontSize: 10 }} />
+                          <PolarGrid stroke={gridColor} />
+                          <PolarAngleAxis dataKey="pillar" tick={{ fill: tickColor, fontSize: 10 }} />
                           <Radar
                             dataKey="goals"
                             stroke="#B87333"
