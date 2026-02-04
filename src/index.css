@@ -428,6 +428,34 @@ body {
   color: #F9F7F4 !important;
 }
 
+/* Keep mobile drawer dark even in light theme */
+.light .mobile-drawer.glass-elevated {
+  background: rgba(28, 28, 30, 0.95) !important;
+  backdrop-filter: blur(24px) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.light .mobile-drawer .hover\:bg-white\/\[0\.06\]:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.light .mobile-drawer .bg-koppar\/20 {
+  background: rgba(184, 115, 51, 0.2) !important;
+}
+
+.light .mobile-drawer .hover\:bg-tegelrod\/10:hover {
+  background: rgba(180, 60, 50, 0.1) !important;
+}
+
+.light .mobile-drawer .hover\:text-tegelrod:hover {
+  color: #e05a47 !important;
+}
+
+.light .mobile-drawer .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
 /* Scrollbar hide utility for horizontal scroll areas */
 .scrollbar-hide {
   -ms-overflow-style: none;
