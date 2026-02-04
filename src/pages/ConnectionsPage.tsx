@@ -152,12 +152,13 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
   }, [showMenu])
 
   // Determine which user is the "other" person
-  const otherUser = connection.requester_id === currentUserId
+  const otherUser = (connection.is_requester === true || connection.requester_id === currentUserId)
     ? connection.recipient
     : connection.requester
 
-  const otherUserId = connection.requester_id === currentUserId
-    ? connection.recipient_id
+  const isRequester = connection.is_requester === true || connection.requester_id === currentUserId
+  const otherUserId = isRequester
+    ? (connection.addressee_id || connection.recipient_id)
     : connection.requester_id
 
   const displayName = otherUser?.display_name || 'Unknown'
@@ -171,7 +172,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
   const location = [otherUser?.city, otherUser?.country].filter(Boolean).join(', ')
   const isConnected = connection.status === 'accepted'
   const isPending = connection.status === 'pending'
-  const isIncoming = isPending && connection.recipient_id === currentUserId
+  const isIncoming = isPending && (connection.addressee_id || connection.recipient_id) === currentUserId
 
   return (
     <GlassCard variant="base" className="p-6 md:p-8 overflow-hidden flex flex-col">

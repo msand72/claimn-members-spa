@@ -81,6 +81,8 @@ export interface Connection {
   id: string
   requester_id: string
   recipient_id: string
+  addressee_id?: string // API may return this instead of recipient_id
+  is_requester?: boolean // Convenience flag from API
   status: ConnectionStatus
   created_at: string
   updated_at: string
