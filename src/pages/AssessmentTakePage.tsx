@@ -10,6 +10,7 @@ import type {
 } from '../lib/api/types'
 import { Check, Loader2, AlertCircle, ChevronUp } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useTheme } from '../contexts/ThemeContext'
 import { PILLARS } from '../lib/constants'
 
 const PROGRESS_KEY = 'claimn_assessment_progress'
@@ -126,6 +127,8 @@ function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): EnrichedQ
 
 export function AssessmentTakePage() {
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
   const [searchParams] = useSearchParams()
   const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
   const returnTo = searchParams.get('returnTo')
@@ -365,7 +368,12 @@ export function AssessmentTakePage() {
     <MainLayout>
       <div className="max-w-3xl mx-auto">
         {/* Sticky Progress Bar */}
-        <div className="sticky top-0 z-20 -mx-4 px-4 pt-2 pb-4 bg-gradient-to-b from-charcoal via-charcoal/95 to-transparent">
+        <div className={cn(
+          'sticky top-0 z-20 -mx-4 px-4 pt-2 pb-4 bg-gradient-to-b',
+          isLight
+            ? 'from-[#f5f0e8] via-[#f5f0e8]/95 to-transparent'
+            : 'from-charcoal via-charcoal/95 to-transparent'
+        )}>
           <GlassCard variant="base" className="!p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="font-display text-sm font-semibold text-kalkvit">
@@ -375,7 +383,10 @@ export function AssessmentTakePage() {
                 {answeredCount} / {totalQuestions} questions
               </span>
             </div>
-            <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
+            <div className={cn(
+              'w-full rounded-full h-2.5 overflow-hidden',
+              isLight ? 'bg-black/10' : 'bg-white/10'
+            )}>
               <div
                 className="bg-gradient-to-r from-koppar to-jordbrun h-full transition-all duration-500 ease-out rounded-full"
                 style={{ width: `${progress}%` }}
@@ -419,11 +430,14 @@ export function AssessmentTakePage() {
                       <select
                         value={textAnswers[q.id] ?? ''}
                         onChange={(e) => handleSelectAnswer(q.id, e.target.value)}
-                        className="w-full px-4 py-3 bg-white/[0.06] border border-white/10 rounded-xl text-kalkvit focus:border-koppar/50 focus:outline-none transition-colors appearance-none cursor-pointer"
+                        className={cn(
+                        'w-full px-4 py-3 border rounded-xl text-kalkvit focus:border-koppar/50 focus:outline-none transition-colors appearance-none cursor-pointer',
+                        isLight ? 'bg-white border-black/10' : 'bg-white/[0.06] border-white/10'
+                      )}
                       >
-                        <option value="" className="bg-charcoal text-kalkvit">Select...</option>
+                        <option value="" className={isLight ? 'bg-white text-charcoal' : 'bg-charcoal text-kalkvit'}>Select...</option>
                         {q._backgroundOptions.map((opt) => (
-                          <option key={opt.value} value={opt.value} className="bg-charcoal text-kalkvit">
+                          <option key={opt.value} value={opt.value} className={isLight ? 'bg-white text-charcoal' : 'bg-charcoal text-kalkvit'}>
                             {opt.text}
                           </option>
                         ))}
