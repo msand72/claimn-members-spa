@@ -30,19 +30,14 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expertI
           <GlassAvatar initials={initials} size="xl" />
         )}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-kalkvit">{expert.name}</h3>
-                {expert.is_top_rated && <GlassBadge variant="koppar">Top Rated</GlassBadge>}
-              </div>
-              <p className="text-sm text-koppar">{expert.title}</p>
-            </div>
-            <div className="text-right">
-              <p className="font-display text-xl font-bold text-kalkvit">${expert.hourly_rate}</p>
-              <p className="text-xs text-kalkvit/50">/hour</p>
-            </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-kalkvit truncate">{expert.name}</h3>
+            {expert.is_top_rated && <GlassBadge variant="koppar">Top Rated</GlassBadge>}
+            <span className="ml-auto font-display text-lg font-bold text-kalkvit whitespace-nowrap">
+              ${expert.hourly_rate}<span className="text-xs font-normal text-kalkvit/50"> /hour</span>
+            </span>
           </div>
+          <p className="text-sm text-koppar truncate">{expert.title}</p>
         </div>
       </div>
 
@@ -75,16 +70,16 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expertI
         <span>{expert.total_sessions} sessions</span>
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-white/10">
-        <span className="text-xs text-skogsgron">
+      <div className="flex items-center justify-between gap-2 pt-4 border-t border-white/10">
+        <span className="text-xs text-skogsgron truncate">
           {expert.availability || 'Contact for availability'}
         </span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <GlassButton variant="ghost" className="p-2" onClick={() => onMessage(expert.id)}>
             <MessageCircle className="w-4 h-4" />
           </GlassButton>
           <Link to={`/book-session?expert=${expert.id}`}>
-            <GlassButton variant="primary">
+            <GlassButton variant="primary" className="whitespace-nowrap">
               <Calendar className="w-4 h-4" />
               Book Session
             </GlassButton>
@@ -203,7 +198,7 @@ export function ExpertsPage() {
               <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
                 {activeFilter === 'All' && searchQuery === '' ? 'All Experts' : 'Results'}
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {sortedExperts.map((expert) => (
                   <ExpertCard key={expert.id} expert={expert} onMessage={handleMessage} />
                 ))}
