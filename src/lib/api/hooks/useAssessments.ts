@@ -86,17 +86,13 @@ export function useLatestAssessmentResult() {
       const result = await api.get<AssessmentResult | AssessmentResult[]>(
         '/members/assessments/results/latest'
       )
-      console.log('[useLatestAssessmentResult] Raw response:', JSON.stringify(result, null, 2))
       // Handle both single object and array (take first) responses
       const single = Array.isArray(result) ? result[0] : result
       // Backend returns empty {} when no results found
       if (!single || (typeof single === 'object' && !single.id && !single.primary_archetype && !single.assessment_id)) {
-        console.log('[useLatestAssessmentResult] No result found (empty or missing key fields)')
         return undefined
       }
-      const normalized = normalizeAssessmentResult(single)
-      console.log('[useLatestAssessmentResult] Normalized:', JSON.stringify(normalized, null, 2))
-      return normalized
+      return normalizeAssessmentResult(single)
     },
   })
 }
@@ -125,20 +121,15 @@ export function useSubmitAssessment() {
       assessmentId: string
       data: SubmitAssessmentRequest
     }) => {
-      console.log('[useSubmitAssessment] Submitting to', `/members/assessments/${assessmentId}/submit`, 'data:', JSON.stringify(data))
       const response = await api.post<{ success: boolean; results: AssessmentResult } | AssessmentResult>(
         `/members/assessments/${assessmentId}/submit`,
         data
       )
-      console.log('[useSubmitAssessment] Raw response:', JSON.stringify(response, null, 2))
 
       // Handle both { success, results } wrapper and flat result
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (response as any).results ?? response
-      console.log('[useSubmitAssessment] Extracted result:', JSON.stringify(result, null, 2))
-      const normalized = normalizeAssessmentResult(result as AssessmentResult)
-      console.log('[useSubmitAssessment] Normalized result:', JSON.stringify(normalized, null, 2))
-      return normalized
+      return normalizeAssessmentResult(result as AssessmentResult)
     },
     onSuccess: (_, { assessmentId }) => {
       queryClient.invalidateQueries({ queryKey: assessmentKeys.all })
@@ -171,7 +162,6 @@ function normalizeAssessmentResult(result: AssessmentResult): AssessmentResult {
 
   // Handle camelCase submit response: { resultId, primary, pillarScores, ... }
   if (raw.primary || raw.resultId || raw.pillarScores) {
-    console.log('[normalizeAssessmentResult] Mapping camelCase submit response to snake_case')
     result.id = raw.resultId ?? raw.id ?? result.id
     result.assessment_id = raw.assessmentId ?? raw.assessment_id ?? result.assessment_id
     result.primary_archetype = raw.primary ?? raw.primary_archetype ?? result.primary_archetype

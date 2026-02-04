@@ -1,108 +1,86 @@
-import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassStatsCard, GlassBadge } from '../components/ui'
-import { useCurrentProfile } from '../lib/api/hooks'
-import { useJourney } from '../lib/api/hooks/useJourney'
-import { PILLARS, type PillarId } from '../lib/constants'
-import { RecommendedProtocol } from '../components/journey/RecommendedProtocol'
-import { ActiveProtocolCard } from '../components/journey/ActiveProtocolCard'
+import { GlassCard, GlassButton, GlassStatsCard, GlassAvatar, GlassBadge } from '../components/ui'
 import {
-  Loader2,
-  AlertTriangle,
+  useCurrentProfile,
+  useDashboardStats,
+  useGoals,
+  useKPIs,
+  useActiveProtocols,
+  useEnrolledPrograms,
+  useFeed,
+} from '../lib/api/hooks'
+import { PILLARS } from '../lib/constants'
+import type { Goal, KPI } from '../lib/api/types'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  Radar,
+} from 'recharts'
+import {
   Target,
   Flame,
+  Trophy,
+  Clock,
+  Compass,
+  Loader2,
+  AlertTriangle,
+  ArrowRight,
+  Users,
+  MessageCircle,
   Newspaper,
   Calendar,
-  ArrowRight,
-  CheckCircle2,
-  Circle,
-  X,
-  Compass,
-  Zap,
-  Clock,
-  Users,
+  BookOpen,
+  BarChart3,
+  TrendingUp,
 } from 'lucide-react'
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-const DISMISSED_PROMPTS_KEY = 'dismissed_prompts'
-const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000
-
-function getDismissedPrompts(): Record<string, number> {
-  try {
-    return JSON.parse(localStorage.getItem(DISMISSED_PROMPTS_KEY) || '{}')
-  } catch {
-    return {}
-  }
-}
-
-function dismissPrompt(key: string) {
-  const current = getDismissedPrompts()
-  current[key] = Date.now()
-  localStorage.setItem(DISMISSED_PROMPTS_KEY, JSON.stringify(current))
-}
-
-function isPromptDismissed(key: string): boolean {
-  const dismissed = getDismissedPrompts()
-  const ts = dismissed[key]
-  if (!ts) return false
-  return Date.now() - ts < TWENTY_FOUR_HOURS
-}
-
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function JourneyDashboardPage() {
   const { user } = useAuth()
-  const { data: profile } = useCurrentProfile()
-  const { data: journey, isLoading, isError } = useJourney()
+  const { data: profile, isLoading: profileLoading, isError: profileError } = useCurrentProfile()
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useDashboardStats()
+  const { data: goalsData } = useGoals({ status: 'active', limit: 5 })
+  const { data: kpisData } = useKPIs({ limit: 10 })
+  const { data: protocolsData } = useActiveProtocols({ status: 'active' })
+  const { data: enrolledData } = useEnrolledPrograms({ limit: 5 })
+  const { data: feedData } = useFeed({ limit: 3 })
 
-  // Dismissed smart prompts (re-render trigger)
-  const [, setDismissedTick] = useState(0)
+  const goals: Goal[] = Array.isArray(goalsData?.data) ? goalsData.data : []
+  const kpis: KPI[] = Array.isArray(kpisData?.data) ? kpisData.data : []
+  const protocols = Array.isArray(protocolsData) ? protocolsData : []
+  const enrolledPrograms = Array.isArray(enrolledData?.data) ? enrolledData.data : []
+  const recentPosts = Array.isArray(feedData?.data) ? feedData.data : []
 
-  const handleDismissPrompt = useCallback((key: string) => {
-    dismissPrompt(key)
-    setDismissedTick((t) => t + 1)
-  }, [])
-
-  // Derived data
   const displayName =
     profile?.display_name || user?.display_name || user?.email?.split('@')[0] || 'Member'
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 
-  const focusPillarId = journey?.focus?.current_pillar as PillarId | null
-  const focusPillar = focusPillarId && focusPillarId in PILLARS ? PILLARS[focusPillarId] : null
-
-  const protocols = journey?.active_protocols ?? []
-  const protocol = protocols.length > 0 ? protocols[0] : null
-  const sessions = journey?.upcoming_sessions ?? []
-  const milestones = journey?.milestones ?? []
-  const smartPrompts = (journey?.smart_prompts ?? []).filter(
-    (p) => !isPromptDismissed(`${p.type}:${p.action_url}`)
+  const createdAt = (user as Record<string, unknown>)?.created_at
+    ? new Date((user as Record<string, unknown>).created_at as string)
+    : new Date()
+  const daysSinceJoining = Math.floor(
+    (new Date().getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
   )
 
-  // Extract a recommended protocol slug from smart prompts (e.g. action_url = "/protocols/my-protocol")
-  const recommendedProtocolSlug = useMemo(() => {
-    if (protocol) return null // already have an active protocol
-    for (const prompt of journey?.smart_prompts ?? []) {
-      const match = prompt.action_url.match(/^\/protocols\/([a-z0-9-]+)$/)
-      if (match) return match[1]
-    }
-    return null
-  }, [protocol, journey?.smart_prompts])
+  const primaryPillarId = profile?.pillar_focus?.[0] as keyof typeof PILLARS | undefined
+  const pillarFocus = primaryPillarId && primaryPillarId in PILLARS ? PILLARS[primaryPillarId] : null
 
-  // Find the next incomplete protocol_step task for today (tasks not in backend journey response)
-  const nextProtocolTask = null
+  const isInitialLoading = profileLoading && statsLoading
 
-  // -----------------------------------------------------------------------
-  // Loading state
-  // -----------------------------------------------------------------------
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center py-24">
@@ -112,329 +90,534 @@ export function JourneyDashboardPage() {
     )
   }
 
-  // -----------------------------------------------------------------------
-  // Error state
-  // -----------------------------------------------------------------------
-  if (isError) {
+  if (profileError && statsError) {
     return (
       <MainLayout>
         <div className="flex flex-col items-center justify-center py-24 gap-4">
           <AlertTriangle className="w-8 h-8 text-tegelrod" />
-          <p className="text-kalkvit/70">Failed to load your journey data.</p>
+          <p className="text-kalkvit/70">Failed to load dashboard data.</p>
         </div>
       </MainLayout>
     )
   }
 
-  // -----------------------------------------------------------------------
-  // Render
-  // -----------------------------------------------------------------------
+  // Build goal progress chart data
+  const goalChartData = goals.slice(0, 5).map((g) => ({
+    name: g.title.length > 12 ? g.title.slice(0, 12) + '...' : g.title,
+    progress: g.progress ?? 0,
+  }))
+
+  // Build KPI chart data (current vs target)
+  const kpiChartData = kpis.slice(0, 6).map((k) => ({
+    name: k.name.length > 10 ? k.name.slice(0, 10) + '...' : k.name,
+    current: k.current_value ?? 0,
+    target: k.target_value ?? 100,
+  }))
+
+  // Build pillar radar data from goals distribution
+  const pillarGoalCounts: Record<string, number> = {}
+  for (const g of goals) {
+    const pid = g.pillar_id ?? 'unassigned'
+    pillarGoalCounts[pid] = (pillarGoalCounts[pid] ?? 0) + 1
+  }
+  const radarData = Object.entries(PILLARS).map(([id, pillar]) => ({
+    pillar: pillar.name.split(' ')[0],
+    goals: pillarGoalCounts[id] ?? 0,
+  }))
+
+  const chartTooltipStyle = {
+    backgroundColor: 'rgba(30, 30, 30, 0.95)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '8px',
+    color: '#F5F0E8',
+    fontSize: '12px',
+  }
+
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto">
-        {/* ================================================================
-            1. Journey Hero
-            ================================================================ */}
+        {/* ============================================= */}
+        {/* 1. Welcome Hero */}
+        {/* ============================================= */}
         <GlassCard variant="elevated" className="mb-8">
           <div className="bg-gradient-to-br from-charcoal to-jordbrun rounded-2xl p-4 md:p-8">
-            <div className="flex flex-col gap-4 md:gap-6">
-              {/* Focus pillar + greeting */}
-              <div>
+            <div className="flex items-start gap-4 md:gap-6">
+              <GlassAvatar
+                initials={initials}
+                size="xl"
+                className="w-16 h-16 md:w-24 md:h-24 text-2xl md:text-4xl hidden sm:flex"
+              />
+              <div className="flex-1">
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-kalkvit mb-1">
-                  {displayName}&rsquo;s Journey
+                  Welcome back, {displayName}
                 </h1>
-                {focusPillar && (
-                  <div className="flex items-center gap-2 mt-2">
+                <div className="flex flex-wrap items-center gap-3 mt-2">
+                  {profile?.archetype && (
+                    <GlassBadge variant="koppar">{profile.archetype}</GlassBadge>
+                  )}
+                  <span className="text-kalkvit/60 text-sm flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    Day {daysSinceJoining} of your journey
+                  </span>
+                </div>
+                {pillarFocus && (
+                  <div className="mt-3 flex items-center gap-2">
                     <Compass className="w-4 h-4 text-koppar" />
                     <span className="text-kalkvit/70 text-sm">
-                      Focus: <span className="text-koppar font-medium">{focusPillar.name}</span>
+                      Focus: <span className="text-koppar">{pillarFocus.name}</span>
                     </span>
                   </div>
                 )}
               </div>
-
-              {/* Active protocol progress (compact inline preview) */}
-              {protocol && (
-                <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-kalkvit font-medium text-sm">{protocol.title}</span>
-                    <span className="text-koppar text-sm font-semibold">
-                      {protocol.progress_pct}%
-                    </span>
-                  </div>
-                  <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-koppar rounded-full transition-all duration-500"
-                      style={{ width: `${protocol.progress_pct}%` }}
-                    />
-                  </div>
-                  <p className="text-kalkvit/50 text-xs mt-2">
-                    Step {protocol.current_step} of {protocol.total_steps}
-                  </p>
-                </div>
-              )}
-
-              {/* KPI streaks summary */}
-              {(journey?.kpi_streaks ?? []).length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <GlassStatsCard
-                    icon={Flame}
-                    label="Active Streaks"
-                    value={String((journey?.kpi_streaks ?? []).length)}
-                    trend="--"
-                    trendLabel="tracked"
-                  />
-                </div>
-              )}
             </div>
           </div>
         </GlassCard>
 
-        {/* ================================================================
-            1b. Active Protocol Card / Recommended Protocol
-            ================================================================ */}
-        {protocols.length > 0 && (
-          <div className="mb-8 space-y-4">
-            {protocols.map((p) => (
-              <ActiveProtocolCard key={p.id} protocol={p} nextTask={nextProtocolTask} />
-            ))}
-          </div>
-        )}
-        {protocols.length === 0 && recommendedProtocolSlug && (
+        {/* ============================================= */}
+        {/* 2. Stats Overview */}
+        {/* ============================================= */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <GlassStatsCard
+            icon={Target}
+            label="Active Goals"
+            value={statsLoading ? '...' : String(stats?.goals_active ?? goals.length)}
+            trend={stats?.goals_completed ? `+${stats.goals_completed}` : undefined}
+            trendLabel="completed"
+          />
+          <GlassStatsCard
+            icon={Flame}
+            label="Current Streak"
+            value={statsLoading ? '...' : String(stats?.current_streak ?? 0)}
+            trend={undefined}
+            trendLabel="days"
+          />
+          <GlassStatsCard
+            icon={BarChart3}
+            label="Tracking"
+            value={statsLoading ? '...' : String(kpis.length)}
+            trend={undefined}
+            trendLabel="KPIs"
+          />
+          <GlassStatsCard
+            icon={Trophy}
+            label="Days Active"
+            value={statsLoading ? '...' : String(stats?.days_since_joined ?? daysSinceJoining)}
+            trend={undefined}
+            trendLabel="journey"
+          />
+        </div>
+
+        {/* ============================================= */}
+        {/* 3. Stats Dashboard — Goals & KPIs Graphs */}
+        {/* ============================================= */}
+        {(goalChartData.length > 0 || kpiChartData.length > 0) && (
           <div className="mb-8">
-            <RecommendedProtocol protocolSlug={recommendedProtocolSlug} />
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-xl font-semibold text-kalkvit flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-koppar" />
+                Stats Dashboard
+              </h2>
+              <Link
+                to="/kpis"
+                className="text-koppar text-sm hover:underline flex items-center gap-1"
+              >
+                All KPIs <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Goal Progress Bar Chart */}
+              {goalChartData.length > 0 && (
+                <GlassCard className="col-span-1">
+                  <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Goal Progress</h4>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={goalChartData} layout="vertical" margin={{ left: 0, right: 16 }}>
+                        <XAxis type="number" domain={[0, 100]} tick={{ fill: '#F5F0E8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis type="category" dataKey="name" tick={{ fill: '#F5F0E8', fontSize: 11 }} width={80} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={chartTooltipStyle} formatter={(v) => [`${v}%`, 'Progress']} />
+                        <Bar dataKey="progress" fill="#B87333" radius={[0, 4, 4, 0]} barSize={16} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </GlassCard>
+              )}
+
+              {/* KPI Current vs Target */}
+              {kpiChartData.length > 0 && (
+                <GlassCard className="col-span-1">
+                  <h4 className="text-sm font-medium text-kalkvit/60 mb-3">KPI Tracking</h4>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={kpiChartData} margin={{ left: 0, right: 8 }}>
+                        <XAxis dataKey="name" tick={{ fill: '#F5F0E8', fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#F5F0E8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={chartTooltipStyle} />
+                        <Bar dataKey="current" fill="#B87333" radius={[4, 4, 0, 0]} barSize={12} name="Current" />
+                        <Bar dataKey="target" fill="rgba(184, 115, 51, 0.25)" radius={[4, 4, 0, 0]} barSize={12} name="Target" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </GlassCard>
+              )}
+
+              {/* Pillar Distribution Radar */}
+              {goals.length > 0 && (
+                <GlassCard className="col-span-1">
+                  <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Pillar Focus</h4>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                        <PolarGrid stroke="rgba(255,255,255,0.08)" />
+                        <PolarAngleAxis dataKey="pillar" tick={{ fill: '#F5F0E8', fontSize: 10 }} />
+                        <Radar
+                          dataKey="goals"
+                          stroke="#B87333"
+                          fill="#B87333"
+                          fillOpacity={0.25}
+                        />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </GlassCard>
+              )}
+            </div>
           </div>
         )}
 
-        {/* ================================================================
-            2. Smart Prompts
-            ================================================================ */}
-        {smartPrompts.length > 0 && (
-          <div className="space-y-3 mb-8">
-            {smartPrompts.map((prompt) => {
-              const promptKey = `${prompt.type}:${prompt.action_url}`
-              return (
-                <div
-                  key={promptKey}
-                  className="relative flex items-center justify-between gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/[0.08]"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Zap className="w-5 h-5 flex-shrink-0 text-koppar" />
-                    <span className="text-sm text-kalkvit/60">
-                      {prompt.message}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {prompt.action_url.startsWith('http') ? (
-                      <a href={prompt.action_url} target="_blank" rel="noopener noreferrer">
-                        <GlassButton variant="primary" className="text-xs px-3 py-1">
-                          Go <ArrowRight className="w-3 h-3 ml-1" />
-                        </GlassButton>
-                      </a>
-                    ) : (
-                      <Link to={prompt.action_url}>
-                        <GlassButton variant="primary" className="text-xs px-3 py-1">
-                          Go <ArrowRight className="w-3 h-3 ml-1" />
-                        </GlassButton>
-                      </Link>
-                    )}
-                    <button
-                      onClick={() => handleDismissPrompt(promptKey)}
-                      className="text-kalkvit/30 hover:text-kalkvit/60 transition-colors"
-                      aria-label="Dismiss prompt"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
+        {/* ============================================= */}
+        {/* 4. My Plan — Goals + Action Summary */}
+        {/* ============================================= */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-xl font-semibold text-kalkvit flex items-center gap-2">
+              <Target className="w-5 h-5 text-koppar" />
+              My Plan
+            </h2>
+            <Link
+              to="/goals"
+              className="text-koppar text-sm hover:underline flex items-center gap-1"
+            >
+              View all <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-        )}
 
-        {/* ================================================================
-            3. Today's Tasks + 4. Progress Timeline (two-column)
-            ================================================================ */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Goals */}
-          <GlassCard>
-            <h3 className="font-display text-xl font-semibold text-kalkvit mb-4">
-              Goals
-            </h3>
-            {(journey?.goals ?? []).length === 0 ? (
+          {goals.length === 0 ? (
+            <GlassCard>
               <div className="text-center py-8">
                 <Target className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
-                <p className="text-kalkvit/50 text-sm">No active goals</p>
-                <p className="text-kalkvit/30 text-xs mt-1">
-                  Set goals from the Goals page to track your progress
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-kalkvit/60 text-sm">
-                  {(journey?.goals ?? []).length} active goal{(journey?.goals ?? []).length !== 1 ? 's' : ''}
+                <p className="text-kalkvit/50 text-sm">No active goals yet</p>
+                <p className="text-kalkvit/30 text-xs mt-1 mb-4">
+                  Set goals to start tracking your transformation
                 </p>
                 <Link to="/goals">
-                  <GlassButton variant="primary" className="text-xs px-3 py-1">
-                    View Goals <ArrowRight className="w-3 h-3 ml-1" />
+                  <GlassButton variant="primary">
+                    <Target className="w-4 h-4" />
+                    Set Goals
                   </GlassButton>
                 </Link>
               </div>
-            )}
-          </GlassCard>
-
-          {/* Progress Timeline */}
-          <GlassCard>
-            <h3 className="font-display text-xl font-semibold text-kalkvit mb-4">
-              Progress Timeline
-            </h3>
-            {milestones.length === 0 ? (
-              <div className="text-center py-8">
-                <Target className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
-                <p className="text-kalkvit/50 text-sm">No milestones yet</p>
-                <p className="text-kalkvit/30 text-xs mt-1">
-                  Milestones will appear as you progress
-                </p>
-              </div>
-            ) : (
-              <div className="relative pl-6">
-                {/* Vertical line */}
-                <div className="absolute left-[11px] top-2 bottom-2 w-px bg-white/[0.08]" />
-                <div className="space-y-4">
-                  {milestones.map((milestone, idx) => {
-                    const isCompleted = milestone.completed_at !== null
-                    return (
-                      <div key={`${milestone.type}-${idx}`} className="relative flex items-start gap-3">
-                        {/* Dot / check */}
-                        <div className="absolute -left-6 mt-0.5">
-                          {isCompleted ? (
-                            <CheckCircle2 className="w-5 h-5 text-green-500" />
-                          ) : (
-                            <Circle className="w-5 h-5 text-kalkvit/20" />
-                          )}
-                        </div>
+            </GlassCard>
+          ) : (
+            <div className="space-y-3">
+              {goals.map((goal) => {
+                const pillar =
+                  goal.pillar_id && goal.pillar_id in PILLARS
+                    ? PILLARS[goal.pillar_id as keyof typeof PILLARS]
+                    : null
+                return (
+                  <Link key={goal.id} to={`/goals/${goal.id}`} className="block">
+                    <GlassCard className="hover:border-koppar/30 transition-colors">
+                      <div className="flex items-center gap-4">
                         <div className="flex-1 min-w-0">
-                          <span
-                            className={`text-sm font-medium ${
-                              isCompleted ? 'text-kalkvit' : 'text-kalkvit/50'
-                            }`}
-                          >
-                            {milestone.label}
-                          </span>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-kalkvit/30 text-xs">{milestone.type}</span>
-                            {isCompleted && milestone.completed_at && (
-                              <span className="text-green-500/70 text-xs">
-                                {new Date(milestone.completed_at).toLocaleDateString(undefined, {
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
-                              </span>
-                            )}
-                            {!isCompleted && (
-                              <span className="text-kalkvit/20 text-xs">Upcoming</span>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-kalkvit font-medium text-sm truncate">
+                              {goal.title}
+                            </span>
+                            {pillar && (
+                              <GlassBadge variant="default">
+                                {pillar.name.split(' ')[0]}
+                              </GlassBadge>
                             )}
                           </div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-koppar rounded-full transition-all"
+                                style={{ width: `${goal.progress ?? 0}%` }}
+                              />
+                            </div>
+                            <span className="text-koppar text-xs font-semibold whitespace-nowrap">
+                              {goal.progress ?? 0}%
+                            </span>
+                          </div>
+                          {goal.kpis && goal.kpis.length > 0 && (
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <BarChart3 className="w-3 h-3 text-kalkvit/40" />
+                              <span className="text-kalkvit/40 text-xs">
+                                {goal.kpis.length} KPI{goal.kpis.length !== 1 ? 's' : ''} tracked
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </GlassCard>
+                    </GlassCard>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
 
-        {/* ================================================================
-            5. Upcoming Sessions + 6. Quick Actions (two-column)
-            ================================================================ */}
+        {/* ============================================= */}
+        {/* 5. Active Protocols */}
+        {/* ============================================= */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-xl font-semibold text-kalkvit flex items-center gap-2">
+              <Flame className="w-5 h-5 text-koppar" />
+              Active Protocols
+            </h2>
+            <Link
+              to="/protocols"
+              className="text-koppar text-sm hover:underline flex items-center gap-1"
+            >
+              View all <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {protocols.length === 0 ? (
+            <GlassCard>
+              <div className="text-center py-6">
+                <Flame className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
+                <p className="text-kalkvit/50 text-sm">No active protocols</p>
+                <p className="text-kalkvit/30 text-xs mt-1 mb-4">
+                  Start a protocol to build daily habits
+                </p>
+                <Link to="/protocols">
+                  <GlassButton variant="secondary">
+                    <Flame className="w-4 h-4" />
+                    Browse Protocols
+                  </GlassButton>
+                </Link>
+              </div>
+            </GlassCard>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {protocols.map((p) => (
+                <Link key={p.id} to={`/protocols/${p.protocol_slug}`}>
+                  <GlassCard className="hover:border-koppar/30 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-kalkvit font-medium text-sm">{p.protocol_name}</span>
+                      <GlassBadge variant={p.status === 'active' ? 'koppar' : 'default'}>
+                        {p.status}
+                      </GlassBadge>
+                    </div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-koppar rounded-full transition-all"
+                          style={{ width: `${p.progress_percentage ?? 0}%` }}
+                        />
+                      </div>
+                      <span className="text-koppar text-xs font-semibold">
+                        {p.progress_percentage ?? 0}%
+                      </span>
+                    </div>
+                    <p className="text-kalkvit/40 text-xs">
+                      Week {p.current_week} &middot; Started{' '}
+                      {new Date(p.started_at).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </GlassCard>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ============================================= */}
+        {/* 6. Programs + Community (two-column) */}
+        {/* ============================================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Upcoming Sessions */}
-          <GlassCard>
+          {/* Enrolled Programs */}
+          <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-xl font-semibold text-kalkvit">
-                Upcoming Sessions
-              </h3>
+              <h2 className="font-display text-xl font-semibold text-kalkvit flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-koppar" />
+                Programs
+              </h2>
               <Link
-                to="/coaching/sessions"
+                to="/programs"
                 className="text-koppar text-sm hover:underline flex items-center gap-1"
               >
                 View all <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            {sessions.length === 0 ? (
-              <div className="text-center py-8">
-                <Calendar className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
-                <p className="text-kalkvit/50 text-sm">No sessions scheduled</p>
-                <p className="text-kalkvit/30 text-xs mt-1">
-                  Book a coaching session to keep your momentum going
-                </p>
-              </div>
+
+            {enrolledPrograms.length === 0 ? (
+              <GlassCard>
+                <div className="text-center py-6">
+                  <BookOpen className="w-12 h-12 text-kalkvit/20 mx-auto mb-3" />
+                  <p className="text-kalkvit/50 text-sm">No enrolled programs</p>
+                  <p className="text-kalkvit/30 text-xs mt-1 mb-4">
+                    Explore structured learning paths
+                  </p>
+                  <Link to="/programs">
+                    <GlassButton variant="secondary">
+                      <BookOpen className="w-4 h-4" />
+                      Browse Programs
+                    </GlassButton>
+                  </Link>
+                </div>
+              </GlassCard>
             ) : (
               <div className="space-y-3">
-                {sessions.map((session) => (
-                  <Link
-                    key={session.id}
-                    to="/coaching/sessions"
-                    className="block p-4 bg-white/[0.03] rounded-xl border border-white/[0.08] hover:border-koppar/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <Users className="w-5 h-5 text-koppar" />
-                      <span className="text-kalkvit font-medium">{session.expert_name}</span>
-                    </div>
-                    <div className="flex items-center gap-2 ml-8">
-                      <Clock className="w-3.5 h-3.5 text-kalkvit/40" />
-                      <span className="text-kalkvit/60 text-sm">
-                        {new Date(session.start_time).toLocaleDateString(undefined, {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                {enrolledPrograms.map((ep) => (
+                  <GlassCard key={ep.id}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-kalkvit font-medium text-sm truncate">
+                        {ep.program?.name ?? 'Program'}
                       </span>
-                      <span className="text-kalkvit/40">&middot;</span>
-                      <GlassBadge variant="default">{session.type}</GlassBadge>
+                      <GlassBadge variant={ep.status === 'enrolled' ? 'koppar' : 'default'}>
+                        {ep.status}
+                      </GlassBadge>
                     </div>
-                  </Link>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-koppar rounded-full transition-all"
+                          style={{ width: `${ep.progress ?? 0}%` }}
+                        />
+                      </div>
+                      <span className="text-koppar text-xs font-semibold">
+                        {ep.progress ?? 0}%
+                      </span>
+                    </div>
+                  </GlassCard>
                 ))}
               </div>
             )}
-          </GlassCard>
+          </div>
 
-          {/* Quick Actions */}
-          <GlassCard>
-            <h3 className="font-display text-xl font-semibold text-kalkvit mb-4">
-              Quick Actions
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              <Link to="/goals">
-                <GlassButton variant="primary">
-                  <Target className="w-4 h-4" />
-                  Set Goals
-                </GlassButton>
-              </Link>
-              <Link to="/protocols">
-                <GlassButton variant="secondary">
-                  <Flame className="w-4 h-4" />
-                  Protocols
-                </GlassButton>
-              </Link>
-              <Link to="/feed">
-                <GlassButton variant="secondary">
-                  <Newspaper className="w-4 h-4" />
-                  Feed
-                </GlassButton>
-              </Link>
-              <Link to="/book-session">
-                <GlassButton variant="secondary">
-                  <Calendar className="w-4 h-4" />
-                  Book Session
-                </GlassButton>
+          {/* Community Overview */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-xl font-semibold text-kalkvit flex items-center gap-2">
+                <Users className="w-5 h-5 text-koppar" />
+                Community
+              </h2>
+              <Link
+                to="/feed"
+                className="text-koppar text-sm hover:underline flex items-center gap-1"
+              >
+                View feed <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-          </GlassCard>
+
+            {/* Community stats row */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <GlassCard className="text-center py-3">
+                <Users className="w-5 h-5 text-koppar mx-auto mb-1" />
+                <div className="font-display text-xl font-bold text-kalkvit">
+                  {statsLoading ? '...' : (stats?.connections_count ?? 0)}
+                </div>
+                <div className="text-kalkvit/50 text-xs">Connections</div>
+              </GlassCard>
+              <GlassCard className="text-center py-3">
+                <Newspaper className="w-5 h-5 text-koppar mx-auto mb-1" />
+                <div className="font-display text-xl font-bold text-kalkvit">
+                  {statsLoading ? '...' : (stats?.posts_count ?? 0)}
+                </div>
+                <div className="text-kalkvit/50 text-xs">Posts</div>
+              </GlassCard>
+              <GlassCard className="text-center py-3">
+                <MessageCircle className="w-5 h-5 text-koppar mx-auto mb-1" />
+                <div className="font-display text-xl font-bold text-kalkvit">
+                  {statsLoading ? '...' : (stats?.unread_messages ?? 0)}
+                </div>
+                <div className="text-kalkvit/50 text-xs">Unread</div>
+              </GlassCard>
+            </div>
+
+            {/* Recent activity */}
+            {recentPosts.length > 0 ? (
+              <GlassCard>
+                <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Recent Activity</h4>
+                <div className="space-y-2">
+                  {recentPosts.map((post) => (
+                    <div
+                      key={post.id}
+                      className="flex items-center gap-3 p-2 bg-white/[0.02] rounded-lg"
+                    >
+                      <div className="w-2 h-2 bg-koppar rounded-full flex-shrink-0" />
+                      <span className="text-kalkvit/70 text-xs line-clamp-1 flex-1">
+                        <span className="text-kalkvit/90 font-medium">
+                          {post.author?.display_name ?? 'Member'}
+                        </span>
+                        : {post.content}
+                      </span>
+                      <span className="text-kalkvit/30 text-xs whitespace-nowrap">
+                        {new Date(post.created_at).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </GlassCard>
+            ) : (
+              <GlassCard>
+                <div className="text-center py-4">
+                  <Newspaper className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
+                  <p className="text-kalkvit/50 text-xs">No recent activity</p>
+                </div>
+              </GlassCard>
+            )}
+          </div>
         </div>
+
+        {/* ============================================= */}
+        {/* 7. Quick Actions */}
+        {/* ============================================= */}
+        <GlassCard className="mb-8">
+          <h3 className="font-display text-lg font-semibold text-kalkvit mb-4">Quick Actions</h3>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/goals">
+              <GlassButton variant="primary">
+                <Target className="w-4 h-4" />
+                Set Goals
+              </GlassButton>
+            </Link>
+            <Link to="/protocols">
+              <GlassButton variant="secondary">
+                <Flame className="w-4 h-4" />
+                Protocols
+              </GlassButton>
+            </Link>
+            <Link to="/feed">
+              <GlassButton variant="secondary">
+                <Newspaper className="w-4 h-4" />
+                Feed
+              </GlassButton>
+            </Link>
+            <Link to="/book-session">
+              <GlassButton variant="secondary">
+                <Calendar className="w-4 h-4" />
+                Book Session
+              </GlassButton>
+            </Link>
+            <Link to="/programs">
+              <GlassButton variant="secondary">
+                <BookOpen className="w-4 h-4" />
+                Programs
+              </GlassButton>
+            </Link>
+          </div>
+        </GlassCard>
       </div>
     </MainLayout>
   )

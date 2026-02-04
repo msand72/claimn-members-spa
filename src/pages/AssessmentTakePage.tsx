@@ -317,15 +317,6 @@ export function AssessmentTakePage() {
       }
     }
 
-    console.log('[AssessmentTake] Submit payload:', {
-      assessmentId,
-      archetypeResponses,
-      pillarResponses,
-      backgroundData,
-      totalQuestions: questions.length,
-      answeredCount: Object.keys(answers).length,
-    })
-
     // Also store flat answers in sessionStorage as fallback for client-side scoring
     const flatAnswers: Record<string, number | string> = {}
     for (const [questionId, selectedIndex] of Object.entries(answers)) {
@@ -349,16 +340,12 @@ export function AssessmentTakePage() {
         data: { archetypeResponses, pillarResponses, backgroundData },
       },
       {
-        onSuccess: (result) => {
-          console.log('[AssessmentTake] Submit success, result:', JSON.stringify(result, null, 2))
-          // Clear progress on successful submit
+        onSuccess: () => {
           sessionStorage.removeItem(PROGRESS_KEY)
           const resultsUrl = returnTo || '/assessment/results'
-          console.log('[AssessmentTake] Navigating to:', resultsUrl)
           navigate(resultsUrl)
         },
-        onError: (error) => {
-          console.error('[AssessmentTake] Submit error:', error)
+        onError: () => {
           setSubmitError(
             'Could not save to server. Your results are available locally — you can continue or retry.'
           )
