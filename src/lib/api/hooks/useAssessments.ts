@@ -89,8 +89,9 @@ export function useLatestAssessmentResult() {
       console.log('[useLatestAssessmentResult] Raw response:', JSON.stringify(result, null, 2))
       // Handle both single object and array (take first) responses
       const single = Array.isArray(result) ? result[0] : result
-      if (!single) {
-        console.log('[useLatestAssessmentResult] No result found')
+      // Backend returns empty {} when no results found
+      if (!single || (typeof single === 'object' && !single.id && !single.primary_archetype && !single.assessment_id)) {
+        console.log('[useLatestAssessmentResult] No result found (empty or missing key fields)')
         return undefined
       }
       const normalized = normalizeAssessmentResult(single)
@@ -152,26 +153,41 @@ export function useSubmitAssessment() {
 // =====================================================
 
 /**
- * Normalize an AssessmentResult to handle both old and new API response shapes
- * during the migration period. Once the backend is fully updated, the legacy
- * branch can be removed.
+ * Normalize an AssessmentResult to handle multiple API response shapes:
+ * 1. Snake_case (from GET endpoints / DB) — primary_archetype, pillar_scores
+ * 2. CamelCase (from POST submit response) — primary, pillarScores, resultId
+ * 3. Legacy (old format) — archetypes array
  */
 function normalizeAssessmentResult(result: AssessmentResult): AssessmentResult {
   if (!result) return result
 
-  // If result already has new-format fields, return as-is
+  // If result already has new-format snake_case fields, return as-is
   if (result.primary_archetype && result.pillar_scores) {
     return result
   }
 
-  // Legacy format compatibility: map old fields to new structure
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const legacy = result as any
+  const raw = result as any
 
-  if (legacy.archetypes && !result.primary_archetype) {
-    // Old format had archetypes as ["The Achiever", "The Optimizer"]
-    const primaryDisplay = legacy.archetypes[0] ?? ''
-    const secondaryDisplay = legacy.archetypes[1] ?? null
+  // Handle camelCase submit response: { resultId, primary, pillarScores, ... }
+  if (raw.primary || raw.resultId || raw.pillarScores) {
+    console.log('[normalizeAssessmentResult] Mapping camelCase submit response to snake_case')
+    result.id = raw.resultId ?? raw.id ?? result.id
+    result.assessment_id = raw.assessmentId ?? raw.assessment_id ?? result.assessment_id
+    result.primary_archetype = raw.primary ?? raw.primary_archetype ?? result.primary_archetype
+    result.secondary_archetype = raw.secondary ?? raw.secondary_archetype ?? result.secondary_archetype ?? null
+    result.archetype_scores = raw.archetypeScores ?? raw.archetype_scores ?? result.archetype_scores
+    result.pillar_scores = raw.pillarScores ?? raw.pillar_scores ?? result.pillar_scores
+    result.consistency_score = raw.consistencyScore ?? raw.consistency_score ?? result.consistency_score ?? 0
+    result.micro_insights = raw.microInsights ?? raw.micro_insights ?? result.micro_insights ?? []
+    result.integration_insights = raw.integrationInsights ?? raw.integration_insights ?? result.integration_insights ?? []
+    return result
+  }
+
+  // Legacy format compatibility: map old archetypes array to new structure
+  if (raw.archetypes && !result.primary_archetype) {
+    const primaryDisplay = raw.archetypes[0] ?? ''
+    const secondaryDisplay = raw.archetypes[1] ?? null
     result.primary_archetype = primaryDisplay.replace('The ', '').toLowerCase()
     result.secondary_archetype = secondaryDisplay
       ? secondaryDisplay.replace('The ', '').toLowerCase()

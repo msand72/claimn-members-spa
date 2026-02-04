@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassToast } from '../components/ui'
 import { PILLARS } from '../lib/constants'
@@ -12,7 +12,6 @@ import {
   generateSimpleIntegrationInsights,
 } from '../lib/assessment/scoring'
 import {
-  useAssessmentResults,
   useLatestAssessmentResult,
   useAssessmentQuestions,
   useAssessmentContent,
@@ -104,19 +103,16 @@ function getContent(
 
 export function AssessmentResultsPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const resultId = searchParams.get('id')
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'info' | 'warning' | 'error' } | null>(null)
 
-  // Fetch from API
-  const apiResultById = useAssessmentResults(resultId ?? '')
+  // Fetch from API — always use latestResult since useAssessmentResults
+  // expects an assessmentId (assessments.id) but we have a resultId (assessment_results.id)
   const latestResult = useLatestAssessmentResult()
   const { data: apiQuestions } = useAssessmentQuestions('five-pillars')
   const { data: contentMap } = useAssessmentContent()
 
-  // Pick whichever API source is relevant
-  const apiResult = resultId ? apiResultById.data : latestResult.data
-  const apiLoading = resultId ? apiResultById.isLoading : latestResult.isLoading
+  const apiResult = latestResult.data
+  const apiLoading = latestResult.isLoading
 
   // Derive normalized results
   const results: DerivedResults | null = useMemo(() => {

@@ -139,7 +139,7 @@ function getPillarInsight(archetype: Archetype, pillar: PillarId, level: string)
   const pillarName = PILLARS[pillar].name
 
   const archetypeInsights: Record<string, Record<string, Record<string, string>>> = {
-    'The Achiever': {
+    achiever: {
       identity: {
         low: 'As an Achiever, your drive for results is strong, but clarity on your core values will help direct that energy more purposefully.',
         moderate:
