@@ -94,6 +94,11 @@ export function JourneyWidget() {
   const journey = data
   const firstProtocol = journey.active_protocols?.[0]
   const progressPct = firstProtocol?.progress_pct ?? 0
+  const hasFocus = !!journey.focus?.current_pillar
+  const hasProtocols = journey.active_protocols.length > 0
+
+  // Hide widget entirely when there's nothing to show
+  if (!hasFocus && !hasProtocols) return null
 
   if (!expanded) {
     return (
