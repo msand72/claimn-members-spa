@@ -3,7 +3,9 @@ import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge, GlassButton, GlassModal, GlassModalFooter, GlassToast } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, Send, MoreVertical, ArrowLeft, Loader2, MessageCircle, Plus } from 'lucide-react'
+import { Search, Send, MoreVertical, ArrowLeft, Loader2, MessageCircle, Plus, ImagePlus, X } from 'lucide-react'
+import { api } from '../lib/api/client'
+import { validateImageFile, compressMessageImage, blobToFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
 import {
   useConversations,
@@ -18,6 +20,7 @@ import {
 interface OptimisticMessage {
   _optimisticId: string
   content: string
+  image_url?: string | null
   sender_id: string
   created_at: string
   status: 'sending' | 'sent' | 'failed'
@@ -55,6 +58,9 @@ export function MessagesPage() {
   const [toast, setToast] = useState<{ variant: 'error' | 'success'; message: string } | null>(null)
   const [showNewConversationModal, setShowNewConversationModal] = useState(false)
   const [connectionSearchQuery, setConnectionSearchQuery] = useState('')
+  const [pendingImage, setPendingImage] = useState<{ file: File; preview: string } | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const imageInputRef = useRef<HTMLInputElement>(null)
 
   // Ref for auto-scrolling to latest message
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -155,6 +161,7 @@ export function MessagesPage() {
   type UnifiedMessage = {
     id: string
     content: string
+    image_url?: string | null
     sender_id: string
     created_at: string
     _optimistic?: boolean
@@ -164,6 +171,7 @@ export function MessagesPage() {
     ...[...messages].reverse().map((msg: any) => ({
       id: msg.id as string,
       content: msg.content as string,
+      image_url: (msg.image_url as string | null) ?? null,
       sender_id: msg.sender_id as string,
       created_at: msg.created_at as string,
     })),
@@ -177,6 +185,7 @@ export function MessagesPage() {
       .map((opt) => ({
         id: opt._optimisticId,
         content: opt.content,
+        image_url: opt.image_url ?? null,
         sender_id: opt.sender_id,
         created_at: opt.created_at,
         _optimistic: true as const,
@@ -310,8 +319,33 @@ export function MessagesPage() {
     }
   }, [toast])
 
-  const handleSendMessage = () => {
-    if (!messageInput.trim() || !selectedConversation) return
+  // Image picker handler
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const error = validateImageFile(file)
+    if (error) {
+      setToast({ variant: 'error', message: error })
+      return
+    }
+
+    const preview = URL.createObjectURL(file)
+    setPendingImage({ file, preview })
+
+    // Reset input so the same file can be re-selected
+    if (imageInputRef.current) imageInputRef.current.value = ''
+  }
+
+  const clearPendingImage = () => {
+    if (pendingImage) {
+      URL.revokeObjectURL(pendingImage.preview)
+      setPendingImage(null)
+    }
+  }
+
+  const handleSendMessage = async () => {
+    if ((!messageInput.trim() && !pendingImage) || !selectedConversation) return
 
     const content = messageInput.trim()
     const optimisticId = `optimistic-${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -319,7 +353,8 @@ export function MessagesPage() {
     // Add optimistic message to local state immediately
     const optimistic: OptimisticMessage = {
       _optimisticId: optimisticId,
-      content,
+      content: content || (pendingImage ? '📷 Image' : ''),
+      image_url: pendingImage?.preview ?? null,
       sender_id: user?.id || '',
       created_at: new Date().toISOString(),
       status: 'sending',
@@ -328,25 +363,47 @@ export function MessagesPage() {
 
     // Clear input immediately for snappy UX
     setMessageInput('')
+    const imageToUpload = pendingImage
+    setPendingImage(null)
+
+    // Upload image if present
+    let imageUrl: string | undefined
+    if (imageToUpload) {
+      try {
+        setIsUploading(true)
+        const compressed = await compressMessageImage(imageToUpload.file)
+        const compressedFile = blobToFile(compressed, `msg-${Date.now()}.jpg`, 'image/jpeg')
+        const result = await api.uploadFile('/members/messages/upload', compressedFile, 'image')
+        imageUrl = result.url
+      } catch {
+        setOptimisticMessages((prev) =>
+          prev.map((msg) =>
+            msg._optimisticId === optimisticId ? { ...msg, status: 'failed' as const } : msg
+          )
+        )
+        setToast({ variant: 'error', message: 'Failed to upload image.' })
+        setIsUploading(false)
+        URL.revokeObjectURL(imageToUpload.preview)
+        return
+      } finally {
+        setIsUploading(false)
+        URL.revokeObjectURL(imageToUpload.preview)
+      }
+    }
 
     sendMessage.mutate(
       {
         recipient_id: selectedConversation.participant_id,
-        content,
+        content: content || '',
+        ...(imageUrl ? { image_url: imageUrl } : {}),
       },
       {
         onSuccess: () => {
-          // Mark optimistic message as 'sent' — it stays visible until the refetch
-          // brings the real message, at which point deduplication removes it.
           setOptimisticMessages((prev) =>
             prev.map((msg) =>
               msg._optimisticId === optimisticId ? { ...msg, status: 'sent' as const } : msg
             )
           )
-          // If this was a synthetic "new-" conversation, transition to a real one.
-          // After query invalidation, the conversations list will contain the real entry.
-          // Update selectedConversation to use the participant_id as the real conversation key
-          // (the backend uses user IDs as conversation IDs).
           if (selectedConversation.id.startsWith('new-')) {
             setSelectedConversation({
               ...selectedConversation,
@@ -355,7 +412,6 @@ export function MessagesPage() {
           }
         },
         onError: () => {
-          // Mark optimistic message as failed (keep it visible so the user sees it failed)
           setOptimisticMessages((prev) =>
             prev.map((msg) =>
               msg._optimisticId === optimisticId ? { ...msg, status: 'failed' as const } : msg
@@ -631,7 +687,15 @@ export function MessagesPage() {
                               : 'bg-white/[0.08] text-kalkvit rounded-bl-sm'
                           )}
                         >
-                          <p className="text-sm">{msg.content}</p>
+                          {msg.image_url && (
+                            <img
+                              src={msg.image_url}
+                              alt=""
+                              className="rounded-lg max-w-full max-h-60 object-cover mb-1 cursor-pointer"
+                              onClick={() => window.open(msg.image_url!, '_blank')}
+                            />
+                          )}
+                          {msg.content && <p className="text-sm">{msg.content}</p>}
                           {isFailed ? (
                             <p className="text-xs text-tegelrod mt-1 italic">Failed to send</p>
                           ) : (
@@ -656,7 +720,38 @@ export function MessagesPage() {
 
                 {/* Message Input */}
                 <div className="p-3 lg:p-4 border-t border-white/10">
+                  {/* Image preview */}
+                  {pendingImage && (
+                    <div className="mb-2 relative inline-block">
+                      <img
+                        src={pendingImage.preview}
+                        alt="Preview"
+                        className="h-20 rounded-lg object-cover border border-white/10"
+                      />
+                      <button
+                        onClick={clearPendingImage}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-tegelrod rounded-full flex items-center justify-center"
+                      >
+                        <X className="w-3 h-3 text-kalkvit" />
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 lg:gap-3">
+                    {/* Hidden file input */}
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="hidden"
+                      onChange={handleImageSelect}
+                    />
+                    <button
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="p-3 rounded-xl transition-all flex-shrink-0 bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit hover:bg-white/[0.1]"
+                    >
+                      <ImagePlus className="w-5 h-5" />
+                    </button>
                     <GlassInput
                       placeholder="Type a message..."
                       className="flex-1"
@@ -666,15 +761,19 @@ export function MessagesPage() {
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={!messageInput.trim()}
+                      disabled={(!messageInput.trim() && !pendingImage) || isUploading}
                       className={cn(
                         'p-3 rounded-xl transition-all flex-shrink-0',
-                        messageInput.trim()
+                        (messageInput.trim() || pendingImage) && !isUploading
                           ? 'bg-koppar text-kalkvit hover:bg-koppar/80'
                           : 'bg-white/[0.06] text-kalkvit/30 cursor-not-allowed'
                       )}
                     >
-                      <Send className="w-5 h-5" />
+                      {isUploading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Send className="w-5 h-5" />
+                      )}
                     </button>
                   </div>
                 </div>

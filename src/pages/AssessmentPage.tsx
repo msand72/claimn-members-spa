@@ -13,6 +13,7 @@ import {
   Compass,
   ArrowRight,
   Sparkles,
+  Loader2,
 } from 'lucide-react'
 
 const pillarIcons = {
@@ -26,8 +27,19 @@ const pillarIcons = {
 export function AssessmentPage() {
   const { data: latestResult, isLoading } = useLatestAssessmentResult()
 
+  // Show loading while checking for existing results
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+        </div>
+      </MainLayout>
+    )
+  }
+
   // If user already has results, redirect to results page
-  if (!isLoading && latestResult) {
+  if (latestResult) {
     return <Navigate to="/assessment/results" replace />
   }
 
