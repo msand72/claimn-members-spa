@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
 import { PILLARS, ARCHETYPES } from '../lib/constants'
+import { useLatestAssessmentResult } from '../lib/api/hooks/useAssessments'
 import {
   ClipboardCheck,
   Clock,
@@ -23,6 +24,13 @@ const pillarIcons = {
 }
 
 export function AssessmentPage() {
+  const { data: latestResult, isLoading } = useLatestAssessmentResult()
+
+  // If user already has results, redirect to results page
+  if (!isLoading && latestResult) {
+    return <Navigate to="/assessment/results" replace />
+  }
+
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto">
