@@ -233,6 +233,9 @@ export function GoalsPage() {
           </GlassCard>
         </div>
 
+        {/* Section heading */}
+        <h2 className="font-display text-xl font-bold text-kalkvit mb-4">My Goals</h2>
+
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-6">
           {(['all', 'active', 'completed'] as const).map((f) => (
