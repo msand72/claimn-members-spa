@@ -13,6 +13,45 @@ export const API_URL = `${API_BASE_URL}${API_PREFIX}`
 // Enable logging in dev, or on production via localStorage: localStorage.setItem('api_debug', '1')
 const IS_DEV = import.meta.env.DEV || (typeof localStorage !== 'undefined' && localStorage.getItem('api_debug') === '1')
 
+// ---------------------------------------------------------------------------
+// Persistent API error log — errors are stored in window.__apiErrors so they
+// can be inspected even after they scroll out of the console.
+// Usage: type `__apiErrors` in the browser console to see all captured errors.
+// ---------------------------------------------------------------------------
+interface ApiErrorEntry {
+  timestamp: string
+  method: string
+  endpoint: string
+  status: string | number
+  code: string
+  message: string
+}
+
+declare global {
+  interface Window {
+    __apiErrors: ApiErrorEntry[]
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.__apiErrors = window.__apiErrors || []
+}
+
+function logApiError(method: string, endpoint: string, status: string | number, code: string, message: string) {
+  const entry: ApiErrorEntry = {
+    timestamp: new Date().toISOString(),
+    method,
+    endpoint,
+    status,
+    code,
+    message,
+  }
+  if (typeof window !== 'undefined') {
+    window.__apiErrors.push(entry)
+  }
+  console.error(`[API ${method} ${endpoint}] ${status} ${code}: ${message}`)
+}
+
 function describeShape(obj: unknown): string {
   if (obj === null) return 'null'
   if (obj === undefined) return 'undefined'
@@ -162,7 +201,7 @@ class ApiClient {
       const status = error?.status || 'unknown'
       const code = error?.error?.code || 'UNKNOWN'
       const message = error?.error?.message || (error instanceof Error ? error.message : 'Unknown error')
-      console.error(`[API ${method} ${cleanEndpoint}] ${status} ${code}: ${message}`)
+      logApiError(method, cleanEndpoint, status, code, message)
       throw error
     }
   }
