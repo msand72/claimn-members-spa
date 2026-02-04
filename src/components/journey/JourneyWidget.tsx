@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { ChevronUp, ChevronDown } from 'lucide-react'
-import { useJourney, useUpdateJourneyFocus } from '../../lib/api/hooks/useJourney'
+import { ChevronUp } from 'lucide-react'
+import { useJourney } from '../../lib/api/hooks/useJourney'
 import { PILLARS } from '../../lib/constants'
 
 const STORAGE_KEY = 'journey_widget_expanded'
@@ -82,9 +82,7 @@ function WidgetSkeleton() {
 
 export function JourneyWidget() {
   const { data, isLoading, isError } = useJourney()
-  const updateFocus = useUpdateJourneyFocus()
   const [expanded, setExpanded] = useState(getStoredExpanded)
-  const [showPillarPicker, setShowPillarPicker] = useState(false)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(expanded))
@@ -128,41 +126,11 @@ export function JourneyWidget() {
       </div>
 
       {/* Focus Pillar */}
-      <div className="relative mb-2">
-        <button
-          onClick={() => setShowPillarPicker(!showPillarPicker)}
-          className="flex items-center gap-1 text-xs font-medium text-kalkvit/70 hover:text-kalkvit transition-colors"
-        >
-          <span>
-            {journey.focus?.current_pillar
-              ? PILLARS[journey.focus.current_pillar as keyof typeof PILLARS]?.name ?? journey.focus.current_pillar
-              : 'No focus set'}
-          </span>
-          <ChevronDown className={`w-3 h-3 transition-transform ${showPillarPicker ? 'rotate-180' : ''}`} />
-        </button>
-
-        {showPillarPicker && (
-          <div className="absolute z-50 top-full left-0 mt-1 w-48 bg-charcoal/95 backdrop-blur-md border border-white/10 rounded-lg shadow-xl py-1">
-            {Object.entries(PILLARS).map(([id, pillar]) => (
-              <button
-                key={id}
-                onClick={() => {
-                  updateFocus.mutate(id)
-                  setShowPillarPicker(false)
-                }}
-                disabled={updateFocus.isPending}
-                className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                  journey.focus?.current_pillar === id
-                    ? 'text-koppar font-semibold bg-white/[0.06]'
-                    : 'text-kalkvit/70 hover:text-kalkvit hover:bg-white/[0.04]'
-                }`}
-              >
-                {pillar.name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {journey.focus?.current_pillar && (
+        <p className="text-xs font-medium text-kalkvit/70 mb-2">
+          {PILLARS[journey.focus.current_pillar as keyof typeof PILLARS]?.name ?? journey.focus.current_pillar}
+        </p>
+      )}
 
       {/* Active Protocol */}
       {firstProtocol && (
