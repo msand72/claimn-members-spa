@@ -766,7 +766,7 @@ export function AssessmentResultsPage() {
             <Share2 className="w-4 h-4" />
             Share Results
           </GlassButton>
-          <Link to="/assessment">
+          <Link to="/assessment/take">
             <GlassButton variant="ghost">
               <RefreshCw className="w-4 h-4" />
               Retake Assessment
