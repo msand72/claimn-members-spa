@@ -22,7 +22,9 @@ import {
   type FeedPost,
   type FeedComment,
 } from '../lib/api'
-import { Heart, MessageCircle, Share2, MoreHorizontal, Image, Send, Users, Loader2, Check, Flag } from 'lucide-react'
+import { api } from '../lib/api/client'
+import { Heart, MessageCircle, Share2, MoreHorizontal, ImagePlus, Send, Users, Loader2, Check, Flag, X } from 'lucide-react'
+import { compressMessageImage, validateImageFile, blobToFile } from '../lib/image-utils'
 
 // Helper to format time ago
 function formatTimeAgo(dateStr: string): string {
@@ -296,6 +298,34 @@ export function FeedPage() {
   const [selectedGroupId, setSelectedGroupId] = useState<string>('')
   const [postError, setPostError] = useState<string | null>(null)
 
+  // Image upload state
+  const [pendingImage, setPendingImage] = useState<{ file: File; preview: string } | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    // Reset input so same file can be re-selected
+    e.target.value = ''
+
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      setPostError(validationError)
+      return
+    }
+
+    const preview = URL.createObjectURL(file)
+    setPendingImage({ file, preview })
+  }
+
+  const clearPendingImage = () => {
+    if (pendingImage?.preview) {
+      URL.revokeObjectURL(pendingImage.preview)
+    }
+    setPendingImage(null)
+  }
+
   const { data: myGroups = [] } = useMyInterestGroups(user?.id)
   const { data: allGroups = [] } = useAllInterestGroups()
   const { data: memberInterestIds = [] } = useMemberInterests(user?.id)
@@ -347,23 +377,43 @@ export function FeedPage() {
   const isSpecificGroupTab = activeTab !== 'all' && activeTab !== 'my-groups'
   const postGroupId = isSpecificGroupTab ? activeTab : selectedGroupId
 
-  const handlePost = () => {
-    if (postContent.trim()) {
-      setPostError(null)
-      createPost.mutate({
-        content: postContent,
-        interest_group_id: postGroupId || undefined,
-      }, {
-        onSuccess: () => {
-          setPostContent('')
-          setSelectedGroupId('')
-        },
-        onError: (err) => {
-          const message = err instanceof Error ? err.message : 'Failed to create post'
-          setPostError(message)
-        },
-      })
+  const handlePost = async () => {
+    if (!postContent.trim() && !pendingImage) return
+
+    setPostError(null)
+    let imageUrl: string | undefined
+
+    // Upload image if present
+    if (pendingImage) {
+      setIsUploading(true)
+      try {
+        const compressed = await compressMessageImage(pendingImage.file)
+        const compressedFile = blobToFile(compressed, `feed-${Date.now()}.jpg`, 'image/jpeg')
+        const result = await api.uploadFile('/members/feed/upload', compressedFile, 'image')
+        imageUrl = result.url
+      } catch {
+        setPostError('Failed to upload image. Please try again.')
+        setIsUploading(false)
+        return
+      }
+      setIsUploading(false)
     }
+
+    createPost.mutate({
+      content: postContent || (imageUrl ? '[Image]' : ''),
+      image_url: imageUrl,
+      interest_group_id: postGroupId || undefined,
+    }, {
+      onSuccess: () => {
+        setPostContent('')
+        setSelectedGroupId('')
+        clearPendingImage()
+      },
+      onError: (err) => {
+        const message = err instanceof Error ? err.message : 'Failed to create post'
+        setPostError(message)
+      },
+    })
   }
 
   // Get posts from API response, filter by active tab
@@ -429,10 +479,38 @@ export function FeedPage() {
                 onChange={(e) => setPostContent(e.target.value)}
                 className="mb-4 min-h-[100px]"
               />
+              {/* Image preview */}
+              {pendingImage && (
+                <div className="relative inline-block mb-3">
+                  <img
+                    src={pendingImage.preview}
+                    alt="Upload preview"
+                    className="max-h-40 rounded-lg object-cover border border-white/10"
+                  />
+                  <button
+                    onClick={clearPendingImage}
+                    className="absolute -top-2 -right-2 p-1 rounded-full bg-charcoal border border-white/20 text-kalkvit/70 hover:text-kalkvit hover:bg-charcoal/90 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <button className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit">
-                    <Image className="w-5 h-5" />
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => imageInputRef.current?.click()}
+                    className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit"
+                    title="Add image"
+                  >
+                    <ImagePlus className="w-5 h-5" />
                   </button>
                   {isSpecificGroupTab ? (
                     <span className="text-sm text-koppar flex items-center gap-1.5">
@@ -452,14 +530,16 @@ export function FeedPage() {
                 <GlassButton
                   variant="primary"
                   onClick={handlePost}
-                  disabled={!postContent.trim() || createPost.isPending}
+                  disabled={(!postContent.trim() && !pendingImage) || createPost.isPending || isUploading}
                 >
-                  {createPost.isPending ? (
+                  {isUploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : createPost.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Send className="w-4 h-4" />
                   )}
-                  {createPost.isPending ? 'Posting...' : 'Post'}
+                  {isUploading ? 'Uploading...' : createPost.isPending ? 'Posting...' : 'Post'}
                 </GlassButton>
               </div>
               {postError && (
