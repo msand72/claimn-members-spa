@@ -102,13 +102,25 @@ export function JourneyDashboardPage() {
   }
 
   // Build goal progress chart data
+  // Compute progress from KPIs if the raw progress field is 0/null
   const goalChartData = goals.slice(0, 5).map((g) => {
     const title = g.title ?? 'Goal'
+    let progress = g.progress ?? 0
+    // If progress is 0 but goal has KPIs, derive progress from KPI completion
+    if (progress === 0 && g.kpis && g.kpis.length > 0) {
+      const kpiProgress = g.kpis.reduce((sum, k) => {
+        const target = k.target_value || 1
+        const pct = Math.min((k.current_value ?? 0) / target * 100, 100)
+        return sum + pct
+      }, 0)
+      progress = Math.round(kpiProgress / g.kpis.length)
+    }
     return {
       name: title.length > 12 ? title.slice(0, 12) + '...' : title,
-      progress: g.progress ?? 0,
+      progress,
     }
   })
+  const hasGoalProgress = goalChartData.some((g) => g.progress > 0)
 
   // Build KPI chart data (current vs target)
   const kpiChartData = kpis.slice(0, 6).map((k) => {
@@ -130,6 +142,7 @@ export function JourneyDashboardPage() {
     pillar: (pillar.name ?? '').split(' ')[0] || id,
     goals: pillarGoalCounts[id] ?? 0,
   }))
+  const hasRadarData = radarData.some((d) => d.goals > 0)
 
   const chartTooltipStyle = {
     backgroundColor: 'rgba(30, 30, 30, 0.95)',
@@ -236,16 +249,28 @@ export function JourneyDashboardPage() {
               {goalChartData.length > 0 && (
                 <GlassCard className="col-span-1">
                   <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Goal Progress</h4>
-                  <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={goalChartData} layout="vertical" margin={{ left: 0, right: 16 }}>
-                        <XAxis type="number" domain={[0, 100]} tick={{ fill: '#F5F0E8', fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis type="category" dataKey="name" tick={{ fill: '#F5F0E8', fontSize: 11 }} width={80} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={chartTooltipStyle} formatter={(v) => [`${v}%`, 'Progress']} />
-                        <Bar dataKey="progress" fill="#B87333" radius={[0, 4, 4, 0]} barSize={16} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {hasGoalProgress ? (
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={goalChartData} layout="vertical" margin={{ left: 0, right: 16 }}>
+                          <XAxis type="number" domain={[0, 100]} tick={{ fill: '#F5F0E8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                          <YAxis type="category" dataKey="name" tick={{ fill: '#F5F0E8', fontSize: 11 }} width={80} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={chartTooltipStyle} formatter={(v) => [`${v}%`, 'Progress']} />
+                          <Bar dataKey="progress" fill="#B87333" radius={[0, 4, 4, 0]} barSize={16} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="h-48 flex flex-col items-center justify-center">
+                      <Target className="w-8 h-8 text-kalkvit/15 mb-2" />
+                      <p className="text-kalkvit/40 text-xs text-center">
+                        {goals.length} goal{goals.length !== 1 ? 's' : ''} created
+                      </p>
+                      <p className="text-kalkvit/25 text-xs text-center mt-0.5">
+                        Log KPIs to see progress
+                      </p>
+                    </div>
+                  )}
                 </GlassCard>
               )}
 
@@ -271,20 +296,32 @@ export function JourneyDashboardPage() {
               {goals.length > 0 && (
                 <GlassCard className="col-span-1">
                   <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Pillar Focus</h4>
-                  <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-                        <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                        <PolarAngleAxis dataKey="pillar" tick={{ fill: '#F5F0E8', fontSize: 10 }} />
-                        <Radar
-                          dataKey="goals"
-                          stroke="#B87333"
-                          fill="#B87333"
-                          fillOpacity={0.25}
-                        />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {hasRadarData ? (
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                          <PolarGrid stroke="rgba(255,255,255,0.08)" />
+                          <PolarAngleAxis dataKey="pillar" tick={{ fill: '#F5F0E8', fontSize: 10 }} />
+                          <Radar
+                            dataKey="goals"
+                            stroke="#B87333"
+                            fill="#B87333"
+                            fillOpacity={0.25}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="h-48 flex flex-col items-center justify-center">
+                      <Compass className="w-8 h-8 text-kalkvit/15 mb-2" />
+                      <p className="text-kalkvit/40 text-xs text-center">
+                        No pillar distribution yet
+                      </p>
+                      <p className="text-kalkvit/25 text-xs text-center mt-0.5">
+                        Assign pillars to goals to see focus areas
+                      </p>
+                    </div>
+                  )}
                 </GlassCard>
               )}
             </div>
