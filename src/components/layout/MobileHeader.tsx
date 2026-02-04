@@ -15,7 +15,7 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
 }
 
 const SECTION_LABELS: Record<string, string> = {
-  growth: 'My Journey',
+  growth: 'My Plan',
   community: 'Community',
   coaching: 'Coaching',
   programs: 'Programs',
@@ -99,7 +99,7 @@ export function MobileHeader() {
               <Home className="w-5 h-5" />
               Dashboard
             </NavLink>
-            {SECTION_KEYS.map((key) => {
+            {SECTION_KEYS.filter((key) => key !== 'dashboard').map((key) => {
               const Icon = SECTION_ICONS[key]
               const label = SECTION_LABELS[key]
               const nav = SECTION_NAV[key]
