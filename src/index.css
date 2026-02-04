@@ -399,6 +399,11 @@ body {
   --tw-ring-color: rgba(0, 0, 0, 0.1) !important;
 }
 
+/* Mobile menu drawer - dark theme: 80% opacity background */
+.mobile-drawer.glass-elevated {
+  background: rgba(28, 28, 30, 0.80) !important;
+}
+
 /* Mobile menu drawer - keep dark styling even in light mode */
 .light .mobile-drawer .text-kalkvit {
   color: #F9F7F4 !important;

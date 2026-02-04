@@ -35,7 +35,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       </div>
 
       {/* Main Content - with left margin for fixed sidebar on desktop */}
-      <main className="relative z-10 min-h-screen pt-[60px] pb-20 lg:pt-0 lg:pb-0 lg:ml-64">
+      <main className="relative z-10 min-h-screen pt-[66px] pb-20 lg:pt-0 lg:pb-0 lg:ml-64">
         {section && (
           <SectionTopBar
             items={section.items}
