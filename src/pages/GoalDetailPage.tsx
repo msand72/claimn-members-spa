@@ -9,6 +9,7 @@ import {
   GlassModal,
   GlassModalFooter,
   GlassSelect,
+  GlassMenu,
 } from '../components/ui'
 import { PILLARS, GOAL_STATUSES, KPI_TYPES, TRACKING_FREQUENCIES } from '../lib/constants'
 import {
@@ -348,9 +349,30 @@ export function GoalDetailPage() {
             <GlassButton variant="ghost" className="p-2" onClick={handleStartEdit}>
               <Edit2 className="w-4 h-4" />
             </GlassButton>
-            <GlassButton variant="ghost" className="p-2">
-              <MoreHorizontal className="w-4 h-4" />
-            </GlassButton>
+            <GlassMenu
+              trigger={
+                <GlassButton variant="ghost" className="p-2">
+                  <MoreHorizontal className="w-4 h-4" />
+                </GlassButton>
+              }
+              items={[
+                ...(goal.status !== 'completed'
+                  ? [{
+                      label: 'Mark Complete',
+                      icon: <CheckCircle2 className="w-4 h-4" />,
+                      onClick: handleMarkComplete,
+                      disabled: updateGoal.isPending,
+                    }]
+                  : []),
+                {
+                  label: 'Delete Goal',
+                  icon: <Trash2 className="w-4 h-4" />,
+                  onClick: handleDeleteGoal,
+                  disabled: deleteGoal.isPending,
+                  danger: true,
+                },
+              ]}
+            />
           </div>
         </div>
 
