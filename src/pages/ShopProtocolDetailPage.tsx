@@ -61,7 +61,7 @@ function WeekCard({ week, index, isPurchased }: { week: ProtocolWeek; index: num
         <div className="px-4 pb-4 border-t border-white/10">
           <p className="text-sm text-kalkvit/60 pt-3 mb-3">{week.description}</p>
           <div className="pt-2 space-y-2">
-            {week.tasks.map((task, i) => (
+            {week.tasks.map((task) => (
               <div
                 key={task.id}
                 className="flex items-center justify-between p-2 rounded-lg hover:bg-white/[0.03]"
