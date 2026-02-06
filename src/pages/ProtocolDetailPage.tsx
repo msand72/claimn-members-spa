@@ -480,6 +480,7 @@ function ProgressTracker({
 export function ProtocolDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const [actionError, setActionError] = useState<string | null>(null)
+  const [justStarted, setJustStarted] = useState(false)
 
   // API hooks
   const {
@@ -518,6 +519,7 @@ export function ProtocolDetailPage() {
         pillar: protocol?.pillar,
         duration_weeks: protocol?.duration_weeks,
       })
+      setJustStarted(true)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
       setActionError(`Failed to start protocol: ${msg}`)
@@ -710,13 +712,29 @@ export function ProtocolDetailPage() {
         {/* Stats Cards Row */}
         <StatsCardsRow stats={stats} />
 
+        {/* Success banner after starting */}
+        {justStarted && (
+          <div className="mb-6 flex items-center gap-3 rounded-xl bg-skogsgron/10 border border-skogsgron/20 px-4 py-3 text-sm text-skogsgron">
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+            <span className="flex-1">
+              Protocol started! Your progress is now being tracked below.
+            </span>
+            <button
+              onClick={() => setJustStarted(false)}
+              className="text-skogsgron/60 hover:text-skogsgron"
+            >
+              &times;
+            </button>
+          </div>
+        )}
+
         {/* Progress Card (if started) */}
         {hasStarted && activeProtocol && (
           <ProgressTracker
             activeProtocol={activeProtocol}
             totalTasks={totalTasks}
             completedTasksCount={completedTasksCount}
-            totalWeeks={weeks.length}
+            totalWeeks={protocol.duration_weeks || weeks.length}
             onPause={handlePause}
             onResume={handleResume}
             isPausing={pauseMutation.isPending}
