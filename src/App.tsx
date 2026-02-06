@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { RequireTier } from './components/RequireTier'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
 import { PageErrorBoundary } from './components/PageErrorBoundary'
 import { LoadingSpinner } from './components/LoadingSpinner'
@@ -91,6 +92,7 @@ const GoalDetailPage = lazyWithRetry(() => import('./pages/GoalDetailPage'))
 const ActionItemsPage = lazyWithRetry(() => import('./pages/ActionItemsPage'))
 const ProtocolsPage = lazyWithRetry(() => import('./pages/ProtocolsPage'))
 const ProtocolDetailPage = lazyWithRetry(() => import('./pages/ProtocolDetailPage'))
+const MyProtocolsPage = lazyWithRetry(() => import('./pages/MyProtocolsPage'))
 const InterestGroupsPage = lazyWithRetry(() => import('./pages/InterestGroupsPage'))
 const KPIsPage = lazyWithRetry(() => import('./pages/KPIsPage'))
 const MilestonesPage = lazyWithRetry(() => import('./pages/MilestonesPage'))
@@ -117,6 +119,17 @@ function Protected({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
       <PageErrorBoundary>{children}</PageErrorBoundary>
+    </ProtectedRoute>
+  )
+}
+
+/** Premium routes require coaching tier or higher (transformation features) */
+function PremiumProtected({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <PageErrorBoundary>
+        <RequireTier minTier="coaching">{children}</RequireTier>
+      </PageErrorBoundary>
     </ProtectedRoute>
   )
 }
@@ -182,19 +195,24 @@ const router = createBrowserRouter([
       // Protected routes - Expert Sessions
       { path: '/expert-sessions', element: <Protected><ExpertSessionsPage /></Protected> },
 
-      // Protected routes - Transformation Tracking
+      // Protected routes - Assessment (all tiers)
       { path: '/assessment', element: <Protected><AssessmentPage /></Protected> },
       { path: '/assessment/take', element: <Protected><AssessmentTakePage /></Protected> },
       { path: '/assessment/results', element: <Protected><AssessmentResultsPage /></Protected> },
-      { path: '/goals', element: <Protected><GoalsPage /></Protected> },
-      { path: '/goals/:id', element: <Protected><GoalDetailPage /></Protected> },
-      { path: '/action-items', element: <Protected><ActionItemsPage /></Protected> },
-      { path: '/protocols', element: <Protected><ProtocolsPage /></Protected> },
-      { path: '/protocols/:slug', element: <Protected><ProtocolDetailPage /></Protected> },
+
+      // Protected routes - Transformation Tracking (coaching tier required)
+      { path: '/goals', element: <PremiumProtected><GoalsPage /></PremiumProtected> },
+      { path: '/goals/:id', element: <PremiumProtected><GoalDetailPage /></PremiumProtected> },
+      { path: '/action-items', element: <PremiumProtected><ActionItemsPage /></PremiumProtected> },
+      { path: '/protocols', element: <PremiumProtected><ProtocolsPage /></PremiumProtected> },
+      { path: '/protocols/:slug', element: <PremiumProtected><ProtocolDetailPage /></PremiumProtected> },
+      { path: '/my-protocols', element: <PremiumProtected><MyProtocolsPage /></PremiumProtected> },
+      { path: '/kpis', element: <PremiumProtected><KPIsPage /></PremiumProtected> },
+      { path: '/milestones', element: <PremiumProtected><MilestonesPage /></PremiumProtected> },
+      { path: '/accountability', element: <PremiumProtected><AccountabilityPage /></PremiumProtected> },
+
+      // Protected routes - Interest Groups (all tiers for now)
       { path: '/interest-groups', element: <Protected><InterestGroupsPage /></Protected> },
-      { path: '/kpis', element: <Protected><KPIsPage /></Protected> },
-      { path: '/milestones', element: <Protected><MilestonesPage /></Protected> },
-      { path: '/accountability', element: <Protected><AccountabilityPage /></Protected> },
 
       // Protected routes - Shop
       { path: '/shop/protocols', element: <Protected><ShopProtocolsPage /></Protected> },

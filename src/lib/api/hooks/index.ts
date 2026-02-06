@@ -102,6 +102,14 @@ export {
 // Protocols
 export {
   protocolKeys,
+  // New hooks per requirements
+  useProtocols,
+  useProtocol,
+  useProtocolsByPillar,
+  useFeaturedProtocols,
+  useMyActiveProtocols,
+  useLogProtocolProgress,
+  // Legacy hooks (backward compatibility)
   useActiveProtocols,
   useProtocolLibrary,
   useProtocolTemplate,
@@ -112,9 +120,16 @@ export {
   usePauseProtocol,
   useResumeProtocol,
   useAbandonProtocol,
+  // Types
   type ProtocolTemplate,
   type ProtocolWeek,
   type ProtocolTask,
+  type ProtocolSection,
+  type ImplementationStep,
+  type ImplementationGuide,
+  type ProtocolStat,
+  type ProtocolsByPillar,
+  type LogProtocolProgressRequest,
   type ActiveProtocolsParams,
 } from './useProtocols'
 
@@ -239,3 +254,61 @@ export {
   type NotificationsResponse,
   type NotificationsParams,
 } from './useNotifications'
+
+// Onboarding
+export {
+  onboardingKeys,
+  useOnboardingState,
+  useUpdateOnboarding,
+  type OnboardingStep,
+  type PrimaryChallenge,
+  type OnboardingState,
+} from './useOnboarding'
+
+// Journey
+export {
+  journeyKeys,
+  useJourney,
+  useUpdateJourneyFocus,
+  type JourneyData,
+  type JourneyMilestone,
+  type SmartPrompt,
+  type JourneyProtocol,
+  type JourneySession,
+  type JourneyFocus,
+} from './useJourney'
+
+// Interests
+export {
+  interestKeys,
+  useInterests,
+  useMyInterests,
+  useUpdateMyInterests,
+  useInterestGroups,
+  useMyInterestGroups,
+  useInterestGroup,
+  useJoinInterestGroup,
+  useLeaveInterestGroup,
+  type Interest,
+} from './useInterests'
+
+// Journal
+export {
+  journalKeys,
+  useJournalEntries,
+  useJournalEntry,
+  useCreateJournalEntry,
+  useUpdateJournalEntry,
+  useDeleteJournalEntry,
+  type JournalEntry,
+  type JournalEntriesParams,
+} from './useJournal'
+
+// Subscription
+export {
+  subscriptionKeys,
+  useSubscription,
+  meetsTierRequirement,
+  type SubscriptionTier,
+  type SubscriptionInfo,
+} from './useSubscription'
