@@ -55,10 +55,9 @@ export function useAssessmentQuestions(assessmentId: string) {
         `/members/assessments/${assessmentId}/questions`
       )
       // Handle both wrapped { questions: [...] } and flat [...] response shapes
-      const questions = Array.isArray(result)
-        ? result
-        : (result as { questions: AssessmentQuestion[] }).questions ?? []
-      return questions
+      if (Array.isArray(result)) return result
+      const wrapped = result as { questions?: unknown }
+      return Array.isArray(wrapped?.questions) ? wrapped.questions as AssessmentQuestion[] : []
     },
     enabled: !!assessmentId,
   })
@@ -175,9 +174,9 @@ function normalizeAssessmentResult(result: AssessmentResult): AssessmentResult {
   }
 
   // Legacy format compatibility: map old archetypes array to new structure
-  if (raw.archetypes && !result.primary_archetype) {
-    const primaryDisplay = raw.archetypes[0] ?? ''
-    const secondaryDisplay = raw.archetypes[1] ?? null
+  if (Array.isArray(raw.archetypes) && raw.archetypes.length > 0 && !result.primary_archetype) {
+    const primaryDisplay = String(raw.archetypes[0] ?? '')
+    const secondaryDisplay = raw.archetypes[1] ? String(raw.archetypes[1]) : null
     result.primary_archetype = primaryDisplay.replace('The ', '').toLowerCase()
     result.secondary_archetype = secondaryDisplay
       ? secondaryDisplay.replace('The ', '').toLowerCase()

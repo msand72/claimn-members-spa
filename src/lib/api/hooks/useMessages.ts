@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type PaginatedResponse, type PaginationParams } from '../client'
+import { api, is404Error, type PaginatedResponse, type PaginationParams } from '../client'
 import type { Conversation, Message, SendMessageRequest } from '../types'
 
 // Query keys
@@ -46,10 +46,9 @@ export function useConversationMessages(
           }
         )
       } catch (error: unknown) {
-        const err = error as { status?: number; message?: string }
         // If 404, the conversationId might actually be a user ID (backend returns empty conversation_id).
         // Try fetching with user-based query parameter instead.
-        if (err?.status === 404) {
+        if (is404Error(error)) {
           try {
             return await api.get<PaginatedResponse<Message>>(
               `/members/messages`,

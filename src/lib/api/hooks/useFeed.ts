@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
-import { api, type PaginatedResponse, type PaginationParams } from '../client'
+import { api, safeArray, type PaginatedResponse, type PaginationParams } from '../client'
 import type { FeedPost, CreatePostRequest, FeedComment, CreateCommentRequest } from '../types'
 
 // Query keys
@@ -36,8 +36,10 @@ export function useInfiniteFeed(params?: { interest_group_id?: string; limit?: n
         interest_group_id: params?.interest_group_id,
       }),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.pagination.has_next ? lastPage.pagination.page + 1 : undefined,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage?.pagination
+      return pagination?.has_next && pagination?.page ? pagination.page + 1 : undefined
+    },
   })
 }
 
@@ -97,11 +99,8 @@ export function usePostComments(postId: string) {
   return useQuery({
     queryKey: feedKeys.comments(postId),
     queryFn: async () => {
-      const res = await api.get<any>(`/members/feed/${postId}/comments`)
-      // Backend may return bare array or { data: [...] } wrapper
-      if (Array.isArray(res)) return res as FeedComment[]
-      if (res && Array.isArray(res.data)) return res.data as FeedComment[]
-      return [] as FeedComment[]
+      const res = await api.get<FeedComment[] | { data: FeedComment[] }>(`/members/feed/${postId}/comments`)
+      return safeArray<FeedComment>(res)
     },
     enabled: !!postId,
   })

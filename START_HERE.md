@@ -4,6 +4,17 @@
 
 ---
 
+## 🚫 CRITICAL: Agent Separation Policy
+
+**Frontend and backend are handled by SEPARATE agents.**
+
+- **This repo (claimn-members-spa):** Frontend agent ONLY
+- **server-infra repo:** Backend agent ONLY — do NOT modify unless explicitly told to
+
+If you need backend changes, document the requirements and let the backend agent handle it. Never push to server-infra.
+
+---
+
 ## LEARNINGS FROM MEMBERS SPA BUILD
 
 ### Critical Lessons Learned

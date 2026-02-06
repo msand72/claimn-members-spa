@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { api } from '../client'
+import { api, unwrapData, safeArray } from '../client'
 import type { PillarId } from '../../constants'
 
 export interface AccountabilityMember {
@@ -40,11 +40,7 @@ export function useAccountabilityGroup() {
     queryKey: accountabilityKeys.group(),
     queryFn: async () => {
       const res = await api.get<AccountabilityGroup | { data: AccountabilityGroup }>('/members/accountability/my')
-      // Unwrap { data: ... } wrapper if present
-      const group = (res && typeof res === 'object' && 'data' in res && (res as Record<string, unknown>).data && typeof (res as Record<string, unknown>).data === 'object')
-        ? (res as { data: AccountabilityGroup }).data
-        : res as AccountabilityGroup
-      return group
+      return unwrapData<AccountabilityGroup>(res)
     },
   })
 }
@@ -54,11 +50,8 @@ export function useAccountabilityMembers() {
     queryKey: accountabilityKeys.members(),
     queryFn: async () => {
       const res = await api.get<{ members: AccountabilityMember[] } | { data: { members: AccountabilityMember[] } }>('/members/accountability/my/members')
-      // Unwrap { data: ... } wrapper if present
-      const payload = (res && typeof res === 'object' && 'data' in res && (res as Record<string, unknown>).data && typeof (res as Record<string, unknown>).data === 'object')
-        ? (res as { data: { members: AccountabilityMember[] } }).data
-        : res as { members: AccountabilityMember[] }
-      return Array.isArray(payload.members) ? payload.members : []
+      const payload = unwrapData<{ members: AccountabilityMember[] }>(res)
+      return safeArray<AccountabilityMember>(payload?.members)
     },
   })
 }

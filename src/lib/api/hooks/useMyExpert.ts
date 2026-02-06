@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { api } from '../client'
+import { api, is404Error } from '../client'
 
 export interface MyExpertData {
   expert: {
@@ -26,11 +26,6 @@ export function useMyExpert() {
     queryKey: myExpertKeys.data(),
     queryFn: () => api.get<MyExpertData>('/members/my-expert'),
     // Don't retry on 404 — means no expert assigned
-    retry: (failureCount, error) => {
-      if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
-        return false
-      }
-      return failureCount < 1
-    },
+    retry: (failureCount, error) => !is404Error(error) && failureCount < 1,
   })
 }

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../client'
+import { api, is404Error } from '../client'
 
 export type OnboardingStep = 'welcome' | 'profile' | 'assessment' | 'results' | 'challenge' | 'path' | 'complete'
 
@@ -23,12 +23,7 @@ export function useOnboardingState() {
     queryKey: onboardingKeys.state(),
     queryFn: () => api.get<OnboardingState>('/members/onboarding'),
     // Don't retry on 404 — means onboarding not started yet
-    retry: (failureCount, error) => {
-      if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
-        return false
-      }
-      return failureCount < 1
-    },
+    retry: (failureCount, error) => !is404Error(error) && failureCount < 1,
   })
 }
 
