@@ -149,9 +149,16 @@ export function ShopProtocolDetailPage() {
   const pillarId = protocol.pillar as PillarId
   const pillar = PILLARS[pillarId]
 
-  // Calculate stats from weeks
+  // Get protocol sections and implementation steps from new schema
+  const sections = Array.isArray(protocol.protocol_sections) ? protocol.protocol_sections : []
+  const implementationSteps = Array.isArray(protocol.implementation_steps) ? protocol.implementation_steps : []
+  const durationWeeks = protocol.duration_weeks || 8
+
+  // Calculate stats from sections (fallback to weeks for legacy data)
   const weeks = Array.isArray(protocol.weeks) ? protocol.weeks : []
-  const totalTasks = weeks.reduce((sum, week) => sum + (Array.isArray(week.tasks) ? week.tasks.length : 0), 0)
+  const totalTasks = weeks.length > 0
+    ? weeks.reduce((sum, week) => sum + (Array.isArray(week.tasks) ? week.tasks.length : 0), 0)
+    : sections.reduce((sum, section) => sum + (Array.isArray(section.items) ? section.items.length : 0), 0)
 
   // Calculate progress if user has started
   const completedTasks = activeProtocol?.completed_tasks || {}
@@ -186,18 +193,18 @@ export function ShopProtocolDetailPage() {
               </div>
 
               <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">
-                {protocol.name}
+                {protocol.title}
               </h1>
-              <p className="text-lg text-koppar mb-4">{protocol.stat}</p>
+              <p className="text-lg text-koppar mb-4">{protocol.headline_stat || protocol.subtitle}</p>
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-kalkvit/60 mb-6">
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {protocol.timeline}
+                  {durationWeeks} week{durationWeeks !== 1 ? 's' : ''}
                 </span>
                 <span className="flex items-center gap-1">
                   <FileText className="w-4 h-4" />
-                  {weeks.length} weeks
+                  {sections.length || implementationSteps.length} sections
                 </span>
                 <span className="flex items-center gap-1">
                   <Target className="w-4 h-4" />
@@ -232,7 +239,7 @@ export function ShopProtocolDetailPage() {
               <ul className="space-y-3">
                 <li className="flex items-start gap-3 text-kalkvit/70">
                   <CheckCircle className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
-                  {protocol.stat}
+                  {protocol.headline_stat || protocol.subtitle}
                 </li>
                 <li className="flex items-start gap-3 text-kalkvit/70">
                   <CheckCircle className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
@@ -240,7 +247,7 @@ export function ShopProtocolDetailPage() {
                 </li>
                 <li className="flex items-start gap-3 text-kalkvit/70">
                   <CheckCircle className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
-                  Structured weekly progression over {weeks.length} weeks
+                  Structured weekly progression over {durationWeeks} weeks
                 </li>
                 <li className="flex items-start gap-3 text-kalkvit/70">
                   <CheckCircle className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
@@ -249,7 +256,66 @@ export function ShopProtocolDetailPage() {
               </ul>
             </GlassCard>
 
-            {/* Curriculum */}
+            {/* Scientific Foundation */}
+            {protocol.scientific_foundation && (
+              <GlassCard variant="base">
+                <h2 className="font-semibold text-kalkvit mb-4">Scientific Foundation</h2>
+                <p className="text-kalkvit/70 mb-4">{protocol.scientific_foundation}</p>
+                {protocol.scientific_citations && protocol.scientific_citations.length > 0 && (
+                  <div className="text-xs text-kalkvit/50 space-y-1">
+                    {protocol.scientific_citations.map((citation, i) => (
+                      <p key={i}>• {citation}</p>
+                    ))}
+                  </div>
+                )}
+              </GlassCard>
+            )}
+
+            {/* Protocol Sections */}
+            {sections.length > 0 && (
+              <GlassCard variant="base">
+                <h2 className="font-semibold text-kalkvit mb-4">Protocol Overview</h2>
+                <div className="space-y-4">
+                  {sections.map((section: { title: string; icon?: string; items?: string[] }, i: number) => (
+                    <div key={i} className="border border-white/10 rounded-xl p-4">
+                      <h4 className="font-medium text-kalkvit mb-2">{section.title}</h4>
+                      {section.items && section.items.length > 0 && (
+                        <ul className="space-y-1">
+                          {section.items.map((item: string, j: number) => (
+                            <li key={j} className="flex items-start gap-2 text-sm text-kalkvit/70">
+                              <Target className="w-4 h-4 text-koppar flex-shrink-0 mt-0.5" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </GlassCard>
+            )}
+
+            {/* Implementation Timeline */}
+            {implementationSteps.length > 0 && (
+              <GlassCard variant="base">
+                <h2 className="font-semibold text-kalkvit mb-4">Implementation Timeline</h2>
+                <div className="space-y-3">
+                  {implementationSteps.map((step: { period?: string; title: string; desc?: string }, i: number) => (
+                    <div key={i} className="flex gap-4 p-3 border border-white/10 rounded-xl">
+                      <div className="w-10 h-10 rounded-full bg-koppar/20 text-koppar flex items-center justify-center text-sm font-medium flex-shrink-0">
+                        {step.period || i + 1}
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-kalkvit">{step.title}</h4>
+                        {step.desc && <p className="text-sm text-kalkvit/60">{step.desc}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </GlassCard>
+            )}
+
+            {/* Legacy Curriculum (for old week-based protocols) */}
             {weeks.length > 0 && (
               <GlassCard variant="base">
                 <h2 className="font-semibold text-kalkvit mb-4">Curriculum</h2>

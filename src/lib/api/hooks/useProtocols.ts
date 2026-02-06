@@ -9,22 +9,28 @@ import type {
 // Protocol template from library (read-only)
 export interface ProtocolTemplate {
   slug: string
-  name: string
+  title: string
   pillar: string
+  category?: string
   description: string
-  timeline: string
-  stat: string
   headline_stat?: string
   subtitle?: string
-  scientific_foundation?: string
-  weeks: ProtocolWeek[]
-  sections?: ProtocolSection[]
-  implementation_timeline?: ImplementationStep[]
-  implementation_guides?: ImplementationGuide[]
-  stats?: ProtocolStat[]
+  duration_weeks?: number
   is_featured?: boolean
+  keywords?: string[]
+  stats?: ProtocolStat[]
+  scientific_foundation?: string
+  scientific_citations?: string[]
+  protocol_sections?: ProtocolSection[]
+  implementation_steps?: ImplementationStep[]
+  implementation_guides?: ImplementationGuide[]
   created_at?: string
   updated_at?: string
+  // Computed/legacy fields for backwards compatibility
+  name?: string // alias for title
+  stat?: string // alias for headline_stat
+  timeline?: string // computed from duration_weeks
+  weeks?: ProtocolWeek[] // legacy structure
 }
 
 export interface ProtocolWeek {

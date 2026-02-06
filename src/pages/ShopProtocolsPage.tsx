@@ -33,20 +33,27 @@ function mapProtocolTemplateToProtocol(
   const pillarId = template.pillar as PillarId
   const pillarName = PILLARS[pillarId]?.name || template.pillar
 
-  // Calculate modules from weeks
-  const moduleCount = template.weeks?.reduce((sum, week) => sum + (week.tasks?.length || 0), 0) || 0
+  // Calculate modules from protocol sections or legacy weeks
+  const sections = template.protocol_sections || []
+  const moduleCount = sections.length > 0
+    ? sections.reduce((sum, section) => sum + (section.items?.length || 0), 0)
+    : template.weeks?.reduce((sum, week) => sum + (week.tasks?.length || 0), 0) || 0
+
+  // Compute duration string from duration_weeks
+  const durationWeeks = template.duration_weeks || 8
+  const duration = `${durationWeeks} week${durationWeeks !== 1 ? 's' : ''}`
 
   return {
     id: template.slug,
     slug: template.slug,
-    title: template.name,
+    title: template.title,
     description: template.description,
     category: pillarName,
-    duration: template.timeline,
+    duration,
     price: 0, // Protocols are free in the current system
     isPurchased: isActive,
     isNew: false, // Not available from API
-    modules: moduleCount || template.weeks?.length || 0,
+    modules: moduleCount || sections.length || template.weeks?.length || 0,
     difficulty: 'beginner', // Not available from API - default to beginner
   }
 }

@@ -599,9 +599,9 @@ export function ProtocolDetailPage() {
 
   // Get additional protocol data
   const stats = Array.isArray(protocol.stats) ? protocol.stats : []
-  const sections = Array.isArray(protocol.sections) ? protocol.sections : []
-  const implementationTimeline = Array.isArray(protocol.implementation_timeline)
-    ? protocol.implementation_timeline
+  const sections = Array.isArray(protocol.protocol_sections) ? protocol.protocol_sections : []
+  const implementationTimeline = Array.isArray(protocol.implementation_steps)
+    ? protocol.implementation_steps
     : []
   const implementationGuides = Array.isArray(protocol.implementation_guides)
     ? protocol.implementation_guides
