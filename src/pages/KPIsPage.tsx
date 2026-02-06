@@ -10,7 +10,7 @@ import {
   GlassSelect,
 } from '../components/ui'
 import { KPI_TYPES, TRACKING_FREQUENCIES, PILLARS, PILLAR_IDS } from '../lib/constants'
-import { useKPIs, useLogKPI, useCreateKPI, useGoals } from '../lib/api/hooks'
+import { useKPIs, useLogKPI, useCreateKPI, useDeleteKPI, useGoals } from '../lib/api/hooks'
 import type { KPI } from '../lib/api/types'
 import {
   TrendingUp,
@@ -24,6 +24,7 @@ import {
   Target,
   Loader2,
   AlertCircle,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -42,7 +43,17 @@ const getKpiIcon = (kpiType: string) => {
   }
 }
 
-function KPICard({ kpi, onLog }: { kpi: KPI; onLog: (kpi: KPI) => void }) {
+function KPICard({
+  kpi,
+  onLog,
+  onDelete,
+  isDeleting,
+}: {
+  kpi: KPI
+  onLog: (kpi: KPI) => void
+  onDelete: (id: string) => void
+  isDeleting: boolean
+}) {
   const Icon = getKpiIcon(kpi.type)
   const progress = Math.min(100, (kpi.current_value / kpi.target_value) * 100)
   const isOnTarget = kpi.current_value >= kpi.target_value
@@ -92,10 +103,29 @@ function KPICard({ kpi, onLog }: { kpi: KPI; onLog: (kpi: KPI) => void }) {
         <GlassBadge variant="default" className="text-xs capitalize">
           {kpi.type}
         </GlassBadge>
-        <GlassButton variant="ghost" onClick={() => onLog(kpi)}>
-          Log Progress
-          <ChevronRight className="w-4 h-4" />
-        </GlassButton>
+        <div className="flex items-center gap-1">
+          <GlassButton variant="ghost" onClick={() => onLog(kpi)}>
+            Log Progress
+            <ChevronRight className="w-4 h-4" />
+          </GlassButton>
+          <button
+            onClick={() => onDelete(kpi.id)}
+            disabled={isDeleting}
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              isDeleting
+                ? 'text-kalkvit/20 cursor-wait'
+                : 'text-kalkvit/40 hover:text-tegelrod hover:bg-tegelrod/10'
+            )}
+            title="Delete KPI"
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </button>
+        </div>
       </div>
     </GlassCard>
   )
@@ -116,11 +146,13 @@ export function KPIsPage() {
   })
 
   const [actionError, setActionError] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // API hooks
   const { data: kpisData, isLoading, error } = useKPIs()
   const logKPI = useLogKPI()
   const createKPI = useCreateKPI()
+  const deleteKPI = useDeleteKPI()
   const { data: goalsData } = useGoals()
 
   const kpis = Array.isArray(kpisData?.data) ? kpisData.data : []
@@ -146,6 +178,20 @@ export function KPIsPage() {
       setLogValue('')
     } catch (_err) {
       setActionError('Failed to log KPI value. Please try again.')
+    }
+  }
+
+  const handleDeleteKpi = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this KPI? This cannot be undone.')) return
+
+    setDeletingId(id)
+    setActionError(null)
+    try {
+      await deleteKPI.mutateAsync(id)
+    } catch (_err) {
+      setActionError('Failed to delete KPI. Please try again.')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -289,7 +335,13 @@ export function KPIsPage() {
         {!isLoading && !error && filteredKPIs.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredKPIs.map((kpi) => (
-              <KPICard key={kpi.id} kpi={kpi} onLog={handleLogKpi} />
+              <KPICard
+                key={kpi.id}
+                kpi={kpi}
+                onLog={handleLogKpi}
+                onDelete={handleDeleteKpi}
+                isDeleting={deletingId === kpi.id}
+              />
             ))}
           </div>
         )}

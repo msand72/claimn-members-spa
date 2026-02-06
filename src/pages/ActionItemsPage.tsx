@@ -15,9 +15,11 @@ import type { PillarId, ActionItemPriority } from '../lib/constants'
 import {
   useActionItems,
   useCreateActionItem,
+  useUpdateActionItem,
   useToggleActionItem,
+  useDeleteActionItem,
 } from '../lib/api/hooks'
-import type { ActionItem, CreateActionItemRequest } from '../lib/api/types'
+import type { ActionItem, CreateActionItemRequest, UpdateActionItemRequest } from '../lib/api/types'
 import {
   CheckSquare,
   Plus,
@@ -28,17 +30,25 @@ import {
   User,
   Calendar,
   Loader2,
+  Edit2,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 function ActionItemCard({
   item,
   onToggle,
+  onEdit,
+  onDelete,
   isToggling,
+  isDeleting,
 }: {
   item: ActionItem
   onToggle: (id: string, completed: boolean) => void
+  onEdit: (item: ActionItem) => void
+  onDelete: (id: string) => void
   isToggling: boolean
+  isDeleting: boolean
 }) {
   const pillarId = item.description?.match(/pillar:(\w+)/)?.[1] as PillarId | undefined
   const pillar = pillarId ? PILLARS[pillarId] : null
@@ -107,20 +117,48 @@ function ActionItemCard({
             <p className="text-sm text-kalkvit/60 mb-3">{item.description}</p>
           )}
 
-          <div className="flex items-center gap-4 text-xs text-kalkvit/50">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              Created {new Date(item.created_at).toLocaleDateString()}
-            </span>
-            {item.due_date && (
-              <span
-                className={cn('flex items-center gap-1', isOverdue && 'text-tegelrod')}
-              >
-                {isOverdue && <AlertTriangle className="w-3 h-3" />}
-                <Clock className="w-3 h-3" />
-                Due {new Date(item.due_date).toLocaleDateString()}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4 text-xs text-kalkvit/50">
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                Created {new Date(item.created_at).toLocaleDateString()}
               </span>
-            )}
+              {item.due_date && (
+                <span
+                  className={cn('flex items-center gap-1', isOverdue && 'text-tegelrod')}
+                >
+                  {isOverdue && <AlertTriangle className="w-3 h-3" />}
+                  <Clock className="w-3 h-3" />
+                  Due {new Date(item.due_date).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onEdit(item)}
+                className="p-1.5 rounded-lg text-kalkvit/40 hover:text-koppar hover:bg-white/[0.06] transition-colors"
+                title="Edit"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => onDelete(item.id)}
+                disabled={isDeleting}
+                className={cn(
+                  'p-1.5 rounded-lg transition-colors',
+                  isDeleting
+                    ? 'text-kalkvit/20 cursor-wait'
+                    : 'text-kalkvit/40 hover:text-tegelrod hover:bg-tegelrod/10'
+                )}
+                title="Delete"
+              >
+                {isDeleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -130,6 +168,8 @@ function ActionItemCard({
 
 export function ActionItemsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingItem, setEditingItem] = useState<ActionItem | null>(null)
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all')
   const [newItem, setNewItem] = useState<{
     title: string
@@ -144,12 +184,26 @@ export function ActionItemsPage() {
     dueDate: '',
     priority: 'medium',
   })
+  const [editForm, setEditForm] = useState<{
+    title: string
+    description: string
+    dueDate: string
+    priority: ActionItemPriority
+  }>({
+    title: '',
+    description: '',
+    dueDate: '',
+    priority: 'medium',
+  })
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // API hooks
   const { data: actionItemsData, isLoading, error } = useActionItems()
   const createMutation = useCreateActionItem()
+  const updateMutation = useUpdateActionItem()
   const toggleMutation = useToggleActionItem()
+  const deleteMutation = useDeleteActionItem()
 
   const items = Array.isArray(actionItemsData?.data) ? actionItemsData.data : []
 
@@ -159,6 +213,48 @@ export function ActionItemsPage() {
       await toggleMutation.mutateAsync({ id, completed })
     } finally {
       setTogglingId(null)
+    }
+  }
+
+  const handleOpenEdit = (item: ActionItem) => {
+    setEditingItem(item)
+    setEditForm({
+      title: item.title,
+      description: item.description || '',
+      dueDate: item.due_date ? item.due_date.split('T')[0] : '',
+      priority: item.priority,
+    })
+    setShowEditModal(true)
+  }
+
+  const handleEdit = async () => {
+    if (!editingItem || !editForm.title.trim()) return
+
+    try {
+      await updateMutation.mutateAsync({
+        id: editingItem.id,
+        data: {
+          title: editForm.title,
+          description: editForm.description || undefined,
+          priority: editForm.priority,
+          due_date: editForm.dueDate || undefined,
+        } as UpdateActionItemRequest,
+      })
+      setShowEditModal(false)
+      setEditingItem(null)
+    } catch {
+      // Error handled by mutation
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this action item?')) return
+
+    setDeletingId(id)
+    try {
+      await deleteMutation.mutateAsync(id)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -310,7 +406,10 @@ export function ActionItemsPage() {
                 key={item.id}
                 item={item}
                 onToggle={handleToggle}
+                onEdit={handleOpenEdit}
+                onDelete={handleDelete}
                 isToggling={togglingId === item.id}
+                isDeleting={deletingId === item.id}
               />
             ))}
           </div>
@@ -386,6 +485,63 @@ export function ActionItemsPage() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 'Add Item'
+              )}
+            </GlassButton>
+          </GlassModalFooter>
+        </GlassModal>
+
+        {/* Edit Modal */}
+        <GlassModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title="Edit Action Item"
+        >
+          <div className="space-y-4">
+            <GlassInput
+              label="Title"
+              placeholder="What needs to be done?"
+              value={editForm.title}
+              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+            />
+            <GlassTextarea
+              label="Description"
+              placeholder="Add more details..."
+              value={editForm.description}
+              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <GlassSelect
+                label="Priority"
+                options={priorityOptions}
+                value={editForm.priority}
+                onChange={(e) =>
+                  setEditForm({
+                    ...editForm,
+                    priority: e.target.value as ActionItemPriority,
+                  })
+                }
+              />
+              <GlassInput
+                label="Due Date"
+                type="date"
+                value={editForm.dueDate}
+                onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
+              />
+            </div>
+          </div>
+          <GlassModalFooter>
+            <GlassButton variant="ghost" onClick={() => setShowEditModal(false)}>
+              Cancel
+            </GlassButton>
+            <GlassButton
+              variant="primary"
+              onClick={handleEdit}
+              disabled={!editForm.title.trim() || updateMutation.isPending}
+            >
+              {updateMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Save Changes'
               )}
             </GlassButton>
           </GlassModalFooter>
