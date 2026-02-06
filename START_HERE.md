@@ -372,5 +372,92 @@ Before starting admin pages development:
 
 ---
 
-*Last updated: 2026-01-27*
+## Supabase CLI & Database Management
+
+### Required Environment Variables
+
+Add these to `.env.local`:
+
+```bash
+# Supabase Access Token (for CLI operations)
+# Get from: https://supabase.com/dashboard/account/tokens
+SUPABASE_ACCESS_TOKEN=sbp_7f6be5d6713f792e97a0c74a339efdc9e6db39a7
+```
+
+### Installing & Using Supabase CLI
+
+The Supabase CLI is installed via npm. Use `npx` to run it:
+
+```bash
+npx supabase --version
+```
+
+### Linking to a Supabase Project
+
+```bash
+# Set access token in environment
+export SUPABASE_ACCESS_TOKEN=sbp_7f6be5d6713f792e97a0c74a339efdc9e6db39a7
+
+# List available projects
+npx supabase projects list
+
+# Link to Web database (primary for Members SPA)
+npx supabase link --project-ref onzzadpetfvpfbpfylmt  # Web database
+```
+
+### Running Migrations
+
+Migrations are stored in `claimn-web/supabase/migrations/` directory (not in this repo).
+
+```bash
+cd C:\Users\maxsa\Documents\projects\claimn-web
+
+# Set access token
+export SUPABASE_ACCESS_TOKEN=sbp_7f6be5d6713f792e97a0c74a339efdc9e6db39a7
+
+# Link to Web database
+npx supabase link --project-ref onzzadpetfvpfbpfylmt
+
+# Push all pending migrations
+npx supabase db push
+```
+
+**IMPORTANT:** The CLI may fail if local migrations don't match remote history. Use:
+```bash
+# Repair migration history
+npx supabase migration repair --status reverted <timestamp>
+
+# Pull remote schema
+npx supabase db pull
+```
+
+### Running SQL Directly via Management API
+
+If the CLI has issues, use the Supabase Management API:
+
+```bash
+# Query table structure
+curl -s -X POST "https://api.supabase.com/v1/projects/onzzadpetfvpfbpfylmt/database/query" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "SELECT column_name FROM information_schema.columns WHERE table_name = '\''your_table'\'' ORDER BY ordinal_position"}'
+
+# Run DDL (CREATE TABLE, ALTER TABLE, etc.)
+curl -s -X POST "https://api.supabase.com/v1/projects/onzzadpetfvpfbpfylmt/database/query" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "ALTER TABLE your_table ADD COLUMN IF NOT EXISTS new_column TEXT"}'
+```
+
+### Project References Quick Reference
+
+| Database | Project Ref | Region |
+|----------|-------------|--------|
+| Web | `onzzadpetfvpfbpfylmt` | eu-north-1 (Stockholm) |
+| Agent | `ymchipjpncqvhiaxxdnm` | eu-north-1 (Stockholm) |
+| CMS | `nyuzlgpipemixwoiwdvu` | eu-west-1 (Ireland) |
+
+---
+
+*Last updated: 2026-02-06*
 *Learnings compiled from members-spa development session*
