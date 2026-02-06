@@ -73,17 +73,23 @@ function StatsCardsRow({ stats }: { stats: ProtocolStat[] }) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-      {stats.map((stat, index) => (
-        <GlassCard key={index} variant="base" className="text-center py-4">
-          <p className="font-display text-2xl font-bold text-koppar mb-1">
-            {stat.value}
-          </p>
-          <p className="text-sm text-kalkvit/80">{stat.label}</p>
-          {stat.description && (
-            <p className="text-xs text-kalkvit/50 mt-1">{stat.description}</p>
-          )}
-        </GlassCard>
-      ))}
+      {stats.map((s, index) => {
+        const value = s.value || s.stat
+        const label = s.label || s.title
+        const desc = s.description || s.desc
+        if (!value && !label) return null
+        return (
+          <GlassCard key={index} variant="base" className="text-center py-4">
+            <p className="font-display text-2xl font-bold text-koppar mb-1">
+              {value}
+            </p>
+            <p className="text-sm text-kalkvit/80">{label}</p>
+            {desc && (
+              <p className="text-xs text-kalkvit/50 mt-1">{desc}</p>
+            )}
+          </GlassCard>
+        )
+      })}
     </div>
   )
 }
@@ -661,7 +667,7 @@ export function ProtocolDetailPage() {
                 )}
               </div>
               <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">
-                {protocol.name}
+                {protocol.title}
               </h1>
               {protocol.subtitle && (
                 <p className="text-lg text-kalkvit/70 mb-2">{protocol.subtitle}</p>
@@ -680,11 +686,11 @@ export function ProtocolDetailPage() {
           <div className="flex items-center gap-6 text-sm text-kalkvit/50">
             <span className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              {protocol.timeline || 'Multi-week program'}
+              {protocol.duration_weeks ? `${protocol.duration_weeks} weeks` : 'Multi-week program'}
             </span>
             <span className="flex items-center gap-2">
               <Target className="w-4 h-4" />
-              {weeks.length} weeks
+              {protocol.duration_weeks || weeks.length} weeks
             </span>
             <span className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
@@ -696,7 +702,7 @@ export function ProtocolDetailPage() {
         {/* Ask Expert */}
         <div className="mb-6">
           <AskExpertButton
-            context={`Protocol: ${protocol.name}`}
+            context={`Protocol: ${protocol.title}`}
             protocolSlug={slug}
           />
         </div>

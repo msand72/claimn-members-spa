@@ -66,9 +66,13 @@ export interface ImplementationGuide {
 }
 
 export interface ProtocolStat {
-  label: string
-  value: string
+  label?: string
+  value?: string
   description?: string
+  // DB seed format uses these keys
+  stat?: string
+  title?: string
+  desc?: string
 }
 
 // Protocols grouped by pillar response
