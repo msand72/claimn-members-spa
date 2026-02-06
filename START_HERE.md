@@ -392,7 +392,7 @@ Add these to `.env.local`:
 ```bash
 # Supabase Access Token (for CLI operations)
 # Get from: https://supabase.com/dashboard/account/tokens
-SUPABASE_ACCESS_TOKEN=<YOUR_SUPABASE_ACCESS_TOKEN>
+SUPABASE_CLI_ACCESS_TOKEN=<YOUR_SUPABASE_CLI_ACCESS_TOKEN>
 ```
 
 ### Installing & Using Supabase CLI
@@ -407,7 +407,7 @@ npx supabase --version
 
 ```bash
 # Set access token in environment
-export SUPABASE_ACCESS_TOKEN=<YOUR_SUPABASE_ACCESS_TOKEN>
+export SUPABASE_CLI_ACCESS_TOKEN=<YOUR_SUPABASE_CLI_ACCESS_TOKEN>
 
 # List available projects
 npx supabase projects list
@@ -424,7 +424,7 @@ Migrations are stored in `claimn-web/supabase/migrations/` directory (not in thi
 cd C:\Users\maxsa\Documents\projects\claimn-web
 
 # Set access token
-export SUPABASE_ACCESS_TOKEN=<YOUR_SUPABASE_ACCESS_TOKEN>
+export SUPABASE_CLI_ACCESS_TOKEN=<YOUR_SUPABASE_CLI_ACCESS_TOKEN>
 
 # Link to Web database
 npx supabase link --project-ref onzzadpetfvpfbpfylmt
@@ -449,13 +449,13 @@ If the CLI has issues, use the Supabase Management API:
 ```bash
 # Query table structure
 curl -s -X POST "https://api.supabase.com/v1/projects/onzzadpetfvpfbpfylmt/database/query" \
-  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Authorization: Bearer $SUPABASE_CLI_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"query": "SELECT column_name FROM information_schema.columns WHERE table_name = '\''your_table'\'' ORDER BY ordinal_position"}'
 
 # Run DDL (CREATE TABLE, ALTER TABLE, etc.)
 curl -s -X POST "https://api.supabase.com/v1/projects/onzzadpetfvpfbpfylmt/database/query" \
-  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Authorization: Bearer $SUPABASE_CLI_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"query": "ALTER TABLE your_table ADD COLUMN IF NOT EXISTS new_column TEXT"}'
 ```
