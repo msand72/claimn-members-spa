@@ -375,6 +375,9 @@ export interface ActiveProtocol {
 
 export interface StartProtocolRequest {
   protocol_slug: string
+  protocol_name: string
+  pillar?: string
+  duration_weeks?: number
 }
 
 export interface UpdateProtocolProgressRequest {

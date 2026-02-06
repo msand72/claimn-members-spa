@@ -301,7 +301,11 @@ export function useStartProtocol() {
 
   return useMutation({
     mutationFn: (data: StartProtocolRequest) =>
-      api.post<ActiveProtocol>(`/members/protocols/${data.protocol_slug}/start`, {}),
+      api.post<ActiveProtocol>(`/members/protocols/${data.protocol_slug}/start`, {
+        protocol_name: data.protocol_name,
+        pillar: data.pillar,
+        duration_weeks: data.duration_weeks,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: protocolKeys.all })
     },

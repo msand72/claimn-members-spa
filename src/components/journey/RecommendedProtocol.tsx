@@ -16,7 +16,12 @@ export function RecommendedProtocol({ protocolSlug }: RecommendedProtocolProps) 
 
   const handleStart = () => {
     startProtocol.mutate(
-      { protocol_slug: protocolSlug },
+      {
+        protocol_slug: protocolSlug,
+        protocol_name: template?.title || protocolSlug,
+        pillar: template?.pillar,
+        duration_weeks: template?.duration_weeks,
+      },
       {
         onSuccess: () => {
           setStarted(true)
@@ -52,7 +57,7 @@ export function RecommendedProtocol({ protocolSlug }: RecommendedProtocolProps) 
             Protocol Started!
           </h4>
           <p className="text-kalkvit/60 text-sm max-w-xs">
-            {template.name} has been added to your journey. Good luck!
+            {template.title} has been added to your journey. Good luck!
           </p>
           <Link to={`/protocols/${protocolSlug}`}>
             <GlassButton variant="primary" className="mt-2">
@@ -74,17 +79,17 @@ export function RecommendedProtocol({ protocolSlug }: RecommendedProtocolProps) 
       </div>
 
       <h4 className="font-display text-lg font-semibold text-kalkvit mb-2">
-        {template.name}
+        {template.title}
       </h4>
 
       <div className="flex items-center gap-2 mb-3">
         {pillar && (
           <GlassBadge variant="koppar">{pillar.name}</GlassBadge>
         )}
-        {template.timeline && (
+        {template.duration_weeks && (
           <span className="flex items-center gap-1 text-kalkvit/50 text-xs">
             <Clock className="w-3.5 h-3.5" />
-            {template.timeline}
+            {template.duration_weeks} weeks
           </span>
         )}
       </div>

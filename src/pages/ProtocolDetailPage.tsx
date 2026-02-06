@@ -506,7 +506,12 @@ export function ProtocolDetailPage() {
     if (!slug) return
     setActionError(null)
     try {
-      await startMutation.mutateAsync({ protocol_slug: slug })
+      await startMutation.mutateAsync({
+        protocol_slug: slug,
+        protocol_name: protocol?.title || slug,
+        pillar: protocol?.pillar,
+        duration_weeks: protocol?.duration_weeks,
+      })
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
       setActionError(`Failed to start protocol: ${msg}`)
