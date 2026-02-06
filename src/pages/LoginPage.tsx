@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { GlassCard, GlassButton, BackgroundPattern } from '../components/ui'
-import { LogIn, AlertCircle } from 'lucide-react'
+import { LogIn, AlertCircle, ArrowLeft } from 'lucide-react'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -100,13 +100,22 @@ export function LoginPage() {
             </GlassButton>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-3">
             <Link
               to="/forgot-password"
               className="text-sm text-koppar hover:text-koppar/80 transition-colors"
             >
               Forgot your password?
             </Link>
+            <div>
+              <a
+                href="https://www.claimn.co"
+                className="inline-flex items-center gap-1.5 text-sm text-kalkvit/50 hover:text-kalkvit/70 transition-colors"
+              >
+                <ArrowLeft size={14} />
+                Back to claimn.co
+              </a>
+            </div>
           </div>
         </GlassCard>
       </div>
