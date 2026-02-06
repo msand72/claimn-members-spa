@@ -392,7 +392,7 @@ Add these to `.env.local`:
 ```bash
 # Supabase Access Token (for CLI operations)
 # Get from: https://supabase.com/dashboard/account/tokens
-SUPABASE_ACCESS_TOKEN=sbp_7f6be5d6713f792e97a0c74a339efdc9e6db39a7
+SUPABASE_ACCESS_TOKEN=<YOUR_SUPABASE_ACCESS_TOKEN>
 ```
 
 ### Installing & Using Supabase CLI
@@ -407,7 +407,7 @@ npx supabase --version
 
 ```bash
 # Set access token in environment
-export SUPABASE_ACCESS_TOKEN=sbp_7f6be5d6713f792e97a0c74a339efdc9e6db39a7
+export SUPABASE_ACCESS_TOKEN=<YOUR_SUPABASE_ACCESS_TOKEN>
 
 # List available projects
 npx supabase projects list
@@ -424,7 +424,7 @@ Migrations are stored in `claimn-web/supabase/migrations/` directory (not in thi
 cd C:\Users\maxsa\Documents\projects\claimn-web
 
 # Set access token
-export SUPABASE_ACCESS_TOKEN=sbp_7f6be5d6713f792e97a0c74a339efdc9e6db39a7
+export SUPABASE_ACCESS_TOKEN=<YOUR_SUPABASE_ACCESS_TOKEN>
 
 # Link to Web database
 npx supabase link --project-ref onzzadpetfvpfbpfylmt
