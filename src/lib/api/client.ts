@@ -118,6 +118,26 @@ export function safeString(obj: unknown, key: string, fallback = ''): string {
   return typeof val === 'string' && val.length > 0 ? val : fallback
 }
 
+/** Unwrap a single object from { data: T } wrapper. Returns null if not found. */
+export function unwrapData<T>(response: unknown): T | null {
+  if (!response) return null
+  if (typeof response !== 'object') return null
+  const obj = response as Record<string, unknown>
+  // If it has a 'data' key that's an object (not array), unwrap it
+  if ('data' in obj && obj.data && typeof obj.data === 'object' && !Array.isArray(obj.data)) {
+    return obj.data as T
+  }
+  // Return as-is if it looks like the object we want
+  return response as T
+}
+
+/** Check if an error is a 404 Not Found response. */
+export function is404Error(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const err = error as Record<string, unknown>
+  return err.status === 404 || err.statusCode === 404
+}
+
 // Error type from backend
 export interface ApiError {
   error: {
