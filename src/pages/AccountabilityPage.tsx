@@ -9,101 +9,40 @@ import {
   GlassModalFooter,
   GlassTextarea,
 } from '../components/ui'
-import { PILLARS } from '../lib/constants'
-import type { PillarId } from '../lib/constants'
-import { useAccountabilityGroup } from '../lib/api/hooks'
-import type { AccountabilityMember as ApiAccountabilityMember } from '../lib/api/hooks'
-import { useAuth } from '../contexts/AuthContext'
+import { useAccountabilityGroup, useLeaveAccountabilityGroup } from '../lib/api/hooks'
 import {
   Users,
-  User,
   MessageCircle,
   Calendar,
-  Trophy,
   Target,
   CheckCircle2,
-  Clock,
   Send,
-  Flame,
   ArrowRight,
   Loader2,
   Info,
+  LogOut,
 } from 'lucide-react'
-import { cn } from '../lib/utils'
-
-function MemberCard({ member, isCurrentUser }: { member: ApiAccountabilityMember; isCurrentUser: boolean }) {
-  return (
-    <GlassCard
-      variant={isCurrentUser ? 'accent' : 'base'}
-      className={cn('relative', isCurrentUser && 'border-koppar/30')}
-    >
-      {isCurrentUser && (
-        <GlassBadge variant="koppar" className="absolute -top-2 -right-2 text-xs">
-          You
-        </GlassBadge>
-      )}
-      <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-full bg-koppar/20 flex items-center justify-center text-koppar font-semibold">
-          {member.name.charAt(0)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-kalkvit truncate">{member.name}</h3>
-          <p className="text-sm text-kalkvit/50">{member.archetype}</p>
-          <div className="flex flex-wrap gap-1 mt-2">
-            {member.pillar_focus.map((pillarId: PillarId) => (
-              <GlassBadge key={pillarId} variant="default" className="text-xs">
-                {PILLARS[pillarId].name.split(' ')[0]}
-              </GlassBadge>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/10">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-tegelrod">
-            <Flame className="w-4 h-4" />
-            <span className="font-semibold">{member.current_streak}</span>
-          </div>
-          <p className="text-xs text-kalkvit/50">Streak</p>
-        </div>
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-skogsgron">
-            <CheckCircle2 className="w-4 h-4" />
-            <span className="font-semibold">{member.goals_completed}</span>
-          </div>
-          <p className="text-xs text-kalkvit/50">Goals</p>
-        </div>
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-koppar">
-            <Clock className="w-4 h-4" />
-            <span className="font-semibold text-sm">
-              {new Date(member.last_active).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-            </span>
-          </div>
-          <p className="text-xs text-kalkvit/50">Active</p>
-        </div>
-      </div>
-    </GlassCard>
-  )
-}
 
 export function AccountabilityPage() {
   const [showCheckInModal, setShowCheckInModal] = useState(false)
   const [checkInMessage, setCheckInMessage] = useState('')
   const [checkInNotice, setCheckInNotice] = useState<string | null>(null)
 
-  const { user } = useAuth()
   const { data: group, isLoading, error } = useAccountabilityGroup()
-  const currentUserId = user?.id ?? ''
+  const leaveGroup = useLeaveAccountabilityGroup()
 
   const handleSubmitCheckIn = () => {
-    // Check-in API endpoints not yet implemented
-    // When available: POST /members/accountability/groups/:id/check-ins
+    // Check-in API endpoints not yet implemented in the backend
     setShowCheckInModal(false)
     setCheckInMessage('')
     setCheckInNotice('Check-in feature coming soon. Your message was not sent.')
     setTimeout(() => setCheckInNotice(null), 5000)
+  }
+
+  const handleLeaveGroup = () => {
+    if (!group) return
+    if (!window.confirm('Are you sure you want to leave this accountability group?')) return
+    leaveGroup.mutate(group.id)
   }
 
   if (isLoading) {
@@ -116,8 +55,8 @@ export function AccountabilityPage() {
     )
   }
 
-  // Treat an empty/invalid group (no name, no members) as "no group"
-  const hasValidGroup = group && typeof group === 'object' && ('name' in group) && (group.name || (Array.isArray(group.members) && group.members.length > 0))
+  // Treat an empty/invalid group as "no group"
+  const hasValidGroup = group && typeof group === 'object' && 'name' in group && group.name
 
   if (error || !hasValidGroup) {
     return (
@@ -191,16 +130,6 @@ export function AccountabilityPage() {
     )
   }
 
-  // Calculate group stats
-  const members = Array.isArray(group.members) ? group.members : []
-  const totalGoals = members.reduce((sum, m) => sum + m.goals_completed, 0)
-  const avgStreak = members.length > 0
-    ? Math.round(members.reduce((sum, m) => sum + m.current_streak, 0) / members.length)
-    : 0
-  const daysUntilMeeting = group.next_meeting
-    ? Math.ceil((new Date(group.next_meeting).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : null
-
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto">
@@ -234,82 +163,34 @@ export function AccountabilityPage() {
                 <div className="flex items-center gap-2">
                   <h2 className="font-serif text-xl font-bold text-kalkvit">{group.name}</h2>
                   <GlassBadge variant="koppar" className="text-xs capitalize">
-                    {group.type}
+                    {group.group_type}
                   </GlassBadge>
+                  {group.is_active && (
+                    <GlassBadge variant="default" className="text-xs">
+                      Active
+                    </GlassBadge>
+                  )}
                 </div>
-                {group.program_name && (
-                  <p className="text-sm text-kalkvit/60">{group.program_name}</p>
-                )}
-                {group.facilitator && (
-                  <p className="text-xs text-kalkvit/50 mt-1">
-                    Facilitator: {group.facilitator.name}
-                  </p>
-                )}
+                <p className="text-xs text-kalkvit/50 mt-1">
+                  Joined {new Date(group.created_at).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </p>
               </div>
             </div>
-            {group.next_meeting && (
-              <div className="text-right">
-                <p className="text-xs text-kalkvit/50 mb-1">Next Meeting</p>
-                <p className="font-medium text-kalkvit">
-                  {new Date(group.next_meeting).toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </p>
-                <p className="text-sm text-kalkvit/60">
-                  {new Date(group.next_meeting).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
-              </div>
-            )}
+            <GlassButton
+              variant="ghost"
+              onClick={handleLeaveGroup}
+              disabled={leaveGroup.isPending}
+              className="text-kalkvit/50 hover:text-tegelrod"
+            >
+              <LogOut className="w-4 h-4" />
+              Leave Group
+            </GlassButton>
           </div>
         </GlassCard>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <GlassCard variant="base" className="text-center py-4">
-            <Users className="w-6 h-6 text-koppar mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{members.length}</p>
-            <p className="text-xs text-kalkvit/50">Members</p>
-          </GlassCard>
-          <GlassCard variant="base" className="text-center py-4">
-            <Trophy className="w-6 h-6 text-skogsgron mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{totalGoals}</p>
-            <p className="text-xs text-kalkvit/50">Goals Completed</p>
-          </GlassCard>
-          <GlassCard variant="base" className="text-center py-4">
-            <Flame className="w-6 h-6 text-tegelrod mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{avgStreak}</p>
-            <p className="text-xs text-kalkvit/50">Avg Streak</p>
-          </GlassCard>
-          <GlassCard variant="base" className="text-center py-4">
-            <Calendar className="w-6 h-6 text-koppar mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">
-              {daysUntilMeeting !== null ? daysUntilMeeting : '—'}
-            </p>
-            <p className="text-xs text-kalkvit/50">Days Until Meet</p>
-          </GlassCard>
-        </div>
-
-        {/* Members */}
-        <div>
-          <h3 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-            <User className="w-4 h-4 text-koppar" />
-            Your Partners
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {members.map((member) => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                isCurrentUser={member.id === currentUserId}
-              />
-            ))}
-          </div>
-        </div>
 
         {/* Accountability Guidelines */}
         <GlassCard variant="accent" className="mt-8">

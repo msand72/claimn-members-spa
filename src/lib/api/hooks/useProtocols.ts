@@ -24,6 +24,14 @@ export interface ProtocolTemplate {
   protocol_sections?: ProtocolSection[]
   implementation_steps?: ImplementationStep[]
   implementation_guides?: ImplementationGuide[]
+  // Fields from DB that were previously unused in frontend
+  tracking_methods?: TrackingMethod[]
+  success_metrics?: SuccessMetric[]
+  emergency_protocols?: EmergencyProtocol[]
+  related_protocol_slugs?: string[]
+  prerequisite_protocol_slugs?: string[]
+  hero_image_url?: string
+  hero_background_style?: string
   created_at?: string
   updated_at?: string
   // Computed/legacy fields for backwards compatibility
@@ -31,6 +39,25 @@ export interface ProtocolTemplate {
   stat?: string // alias for headline_stat
   timeline?: string // computed from duration_weeks
   weeks?: ProtocolWeek[] // legacy structure
+}
+
+// JSONB array types - structure inferred from Go handler; no seed data exists yet
+export interface TrackingMethod {
+  title: string
+  description?: string
+  frequency?: string
+}
+
+export interface SuccessMetric {
+  title: string
+  target?: string
+  description?: string
+}
+
+export interface EmergencyProtocol {
+  title: string
+  description?: string
+  steps?: string[]
 }
 
 export interface ProtocolWeek {

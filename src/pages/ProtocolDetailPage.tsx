@@ -16,6 +16,9 @@ import {
   type ImplementationStep,
   type ImplementationGuide,
   type ProtocolStat,
+  type TrackingMethod,
+  type SuccessMetric,
+  type EmergencyProtocol,
 } from '../lib/api/hooks'
 import {
   ChevronLeft,
@@ -94,7 +97,7 @@ function StatsCardsRow({ stats }: { stats: ProtocolStat[] }) {
   )
 }
 
-function ScientificFoundation({ content }: { content: string }) {
+function ScientificFoundation({ content, citations }: { content: string; citations?: string[] }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   if (!content) return null
@@ -128,6 +131,18 @@ function ScientificFoundation({ content }: { content: string }) {
             </>
           )}
         </button>
+      )}
+      {citations && citations.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <p className="text-xs text-kalkvit/40 mb-2">References</p>
+          <div className="space-y-1">
+            {citations.map((citation, i) => (
+              <p key={i} className="text-xs text-kalkvit/50">
+                {citation}
+              </p>
+            ))}
+          </div>
+        </div>
       )}
     </GlassCard>
   )
@@ -252,6 +267,121 @@ function ImplementationGuides({ guides }: { guides: ImplementationGuide[] }) {
               </div>
             )}
           </GlassCard>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TrackingMethodsSection({ methods }: { methods: TrackingMethod[] }) {
+  if (!methods || methods.length === 0) return null
+
+  return (
+    <GlassCard variant="base" className="mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <TrendingUp className="w-5 h-5 text-koppar" />
+        <h2 className="font-display text-lg font-semibold text-kalkvit">
+          How to Track Progress
+        </h2>
+      </div>
+      <div className="space-y-3">
+        {methods.map((method, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <CheckCircle2 className="w-4 h-4 text-skogsgron flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-kalkvit">{method.title}</p>
+              {method.description && (
+                <p className="text-xs text-kalkvit/60 mt-0.5">{method.description}</p>
+              )}
+              {method.frequency && (
+                <p className="text-xs text-koppar mt-0.5">{method.frequency}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </GlassCard>
+  )
+}
+
+function SuccessMetricsSection({ metrics }: { metrics: SuccessMetric[] }) {
+  if (!metrics || metrics.length === 0) return null
+
+  return (
+    <GlassCard variant="base" className="mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <Target className="w-5 h-5 text-koppar" />
+        <h2 className="font-display text-lg font-semibold text-kalkvit">
+          Success Metrics
+        </h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {metrics.map((metric, i) => (
+          <div key={i} className="p-3 rounded-xl bg-white/[0.04] border border-white/10">
+            <p className="text-sm font-medium text-kalkvit">{metric.title}</p>
+            {metric.target && (
+              <p className="text-lg font-bold text-koppar mt-1">{metric.target}</p>
+            )}
+            {metric.description && (
+              <p className="text-xs text-kalkvit/60 mt-1">{metric.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </GlassCard>
+  )
+}
+
+function EmergencyProtocolsSection({ protocols }: { protocols: EmergencyProtocol[] }) {
+  if (!protocols || protocols.length === 0) return null
+
+  return (
+    <GlassCard variant="accent" className="mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <AlertTriangle className="w-5 h-5 text-tegelrod" />
+        <h2 className="font-display text-lg font-semibold text-kalkvit">
+          Emergency Protocols
+        </h2>
+      </div>
+      <div className="space-y-4">
+        {protocols.map((protocol, i) => (
+          <div key={i}>
+            <p className="text-sm font-medium text-kalkvit mb-1">{protocol.title}</p>
+            {protocol.description && (
+              <p className="text-sm text-kalkvit/70">{protocol.description}</p>
+            )}
+            {protocol.steps && protocol.steps.length > 0 && (
+              <ol className="mt-2 space-y-1">
+                {protocol.steps.map((step, j) => (
+                  <li key={j} className="flex items-start gap-2 text-sm text-kalkvit/60">
+                    <span className="text-koppar font-medium">{j + 1}.</span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        ))}
+      </div>
+    </GlassCard>
+  )
+}
+
+function RelatedProtocols({ slugs, label }: { slugs: string[]; label: string }) {
+  if (!slugs || slugs.length === 0) return null
+
+  return (
+    <div className="mb-6">
+      <h3 className="text-sm font-medium text-kalkvit/60 mb-3">{label}</h3>
+      <div className="flex flex-wrap gap-2">
+        {slugs.map((s) => (
+          <Link
+            key={s}
+            to={`/protocols/${s}`}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/[0.06] text-sm text-koppar hover:bg-white/[0.1] transition-colors"
+          >
+            {s.replace(/-/g, ' ')}
+          </Link>
         ))}
       </div>
     </div>
@@ -646,6 +776,42 @@ export function ProtocolDetailPage() {
           </div>
         )}
 
+        {/* Hero Image */}
+        {protocol.hero_image_url && (
+          <div
+            className="relative h-48 sm:h-64 rounded-2xl overflow-hidden mb-8 bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${protocol.hero_image_url})`,
+              ...(protocol.hero_background_style && !protocol.hero_image_url
+                ? { background: protocol.hero_background_style }
+                : {}),
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          </div>
+        )}
+
+        {/* Prerequisite notice */}
+        {protocol.prerequisite_protocol_slugs && protocol.prerequisite_protocol_slugs.length > 0 && (
+          <div className="mb-6 flex items-start gap-3 rounded-xl bg-koppar/10 border border-koppar/20 px-4 py-3 text-sm text-koppar">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Recommended prerequisites</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {protocol.prerequisite_protocol_slugs.map((s) => (
+                  <Link
+                    key={s}
+                    to={`/protocols/${s}`}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-koppar/10 text-xs text-koppar hover:bg-koppar/20 transition-colors"
+                  >
+                    {s.replace(/-/g, ' ')}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Hero Header */}
         <div className="mb-8">
           <div className="flex items-start justify-between mb-4 flex-wrap gap-4">
@@ -743,7 +909,10 @@ export function ProtocolDetailPage() {
         )}
 
         {/* Scientific Foundation */}
-        <ScientificFoundation content={protocol.scientific_foundation || ''} />
+        <ScientificFoundation
+          content={protocol.scientific_foundation || ''}
+          citations={protocol.scientific_citations}
+        />
 
         {/* Protocol Sections */}
         <ProtocolSections sections={sections} />
@@ -753,6 +922,15 @@ export function ProtocolDetailPage() {
 
         {/* Implementation Guides */}
         <ImplementationGuides guides={implementationGuides} />
+
+        {/* Tracking Methods */}
+        <TrackingMethodsSection methods={protocol.tracking_methods || []} />
+
+        {/* Success Metrics */}
+        <SuccessMetricsSection metrics={protocol.success_metrics || []} />
+
+        {/* Emergency Protocols */}
+        <EmergencyProtocolsSection protocols={protocol.emergency_protocols || []} />
 
         {/* Weekly Breakdown */}
         {weeks.length > 0 && (
@@ -770,6 +948,28 @@ export function ProtocolDetailPage() {
                   onToggleTask={handleToggleTask}
                   isUpdating={updatingTaskId}
                 />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Related Protocols */}
+        <RelatedProtocols
+          slugs={protocol.related_protocol_slugs || []}
+          label="Related Protocols"
+        />
+
+        {/* Keywords */}
+        {protocol.keywords && protocol.keywords.length > 0 && (
+          <div className="mb-8">
+            <div className="flex flex-wrap gap-2">
+              {protocol.keywords.map((kw) => (
+                <span
+                  key={kw}
+                  className="px-3 py-1 rounded-full bg-white/[0.06] text-xs text-kalkvit/50"
+                >
+                  {kw}
+                </span>
               ))}
             </div>
           </div>

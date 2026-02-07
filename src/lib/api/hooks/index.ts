@@ -131,6 +131,9 @@ export {
   type ProtocolsByPillar,
   type LogProtocolProgressRequest,
   type ActiveProtocolsParams,
+  type TrackingMethod,
+  type SuccessMetric,
+  type EmergencyProtocol,
 } from './useProtocols'
 
 // Experts & Coaching
@@ -203,7 +206,11 @@ export {
 export {
   accountabilityKeys,
   useAccountabilityGroup,
-  useAccountabilityMembers,
+  useMyAccountabilityGroups,
+  useAllAccountabilityGroups,
+  useAccountabilityGroupDetail,
+  useJoinAccountabilityGroup,
+  useLeaveAccountabilityGroup,
   type AccountabilityGroup,
   type AccountabilityMember,
 } from './useAccountability'

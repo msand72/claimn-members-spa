@@ -1,57 +1,138 @@
-import { useQuery } from '@tanstack/react-query'
-import { api, unwrapData, safeArray } from '../client'
-import type { PillarId } from '../../constants'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { api, safeArray } from '../client'
 
-export interface AccountabilityMember {
-  id: string
-  name: string
-  avatar: string | null
-  archetype: string
-  pillar_focus: PillarId[]
-  current_streak: number
-  goals_completed: number
-  last_active: string
-}
+// ---------------------------------------------------------------------------
+// Types matching actual backend response (accountability_groups table)
+// ---------------------------------------------------------------------------
 
 export interface AccountabilityGroup {
   id: string
   name: string
-  type: 'trio' | 'pair' | 'squad'
-  program_name: string | null
-  facilitator: {
-    id: string
-    name: string
-    avatar: string | null
-  } | null
-  members: AccountabilityMember[]
-  next_meeting: string | null
-  meeting_frequency: string
+  group_type: 'trio' | 'pair'
+  is_active: boolean
+  program_id: string | null
   created_at: string
 }
 
-export const accountabilityKeys = {
-  all: ['accountability'] as const,
-  group: () => [...accountabilityKeys.all, 'group'] as const,
-  members: () => [...accountabilityKeys.all, 'members'] as const,
+// Member data from accountability_group_members + profile enrichment
+// Note: the member-facing GET endpoints do NOT currently return member details.
+// This type is kept for future use when the backend enriches group responses.
+export interface AccountabilityMember {
+  id: string
+  member_id: string
+  display_name: string
+  avatar_url: string | null
 }
 
-export function useAccountabilityGroup() {
+// ---------------------------------------------------------------------------
+// Query keys
+// ---------------------------------------------------------------------------
+
+export const accountabilityKeys = {
+  all: ['accountability'] as const,
+  myGroups: () => [...accountabilityKeys.all, 'my-groups'] as const,
+  allGroups: () => [...accountabilityKeys.all, 'all-groups'] as const,
+  group: (id: string) => [...accountabilityKeys.all, 'group', id] as const,
+}
+
+// ---------------------------------------------------------------------------
+// Queries
+// ---------------------------------------------------------------------------
+
+/**
+ * Get the current user's accountability groups
+ * GET /members/accountability/my → array of groups
+ */
+export function useMyAccountabilityGroups() {
   return useQuery({
-    queryKey: accountabilityKeys.group(),
+    queryKey: accountabilityKeys.myGroups(),
     queryFn: async () => {
-      const res = await api.get<AccountabilityGroup | { data: AccountabilityGroup }>('/members/accountability/my')
-      return unwrapData<AccountabilityGroup>(res)
+      const res = await api.get<AccountabilityGroup[] | { data: AccountabilityGroup[] }>('/members/accountability/my')
+      return safeArray<AccountabilityGroup>(res)
     },
   })
 }
 
-export function useAccountabilityMembers() {
+/**
+ * Convenience hook: get the user's first active accountability group.
+ * Returns null if the user has no groups.
+ * This maintains backward compatibility with the AccountabilityPage.
+ */
+export function useAccountabilityGroup() {
   return useQuery({
-    queryKey: accountabilityKeys.members(),
+    queryKey: accountabilityKeys.myGroups(),
     queryFn: async () => {
-      const res = await api.get<{ members: AccountabilityMember[] } | { data: { members: AccountabilityMember[] } }>('/members/accountability/my/members')
-      const payload = unwrapData<{ members: AccountabilityMember[] }>(res)
-      return safeArray<AccountabilityMember>(payload?.members)
+      const res = await api.get<AccountabilityGroup[] | { data: AccountabilityGroup[] }>('/members/accountability/my')
+      const groups = safeArray<AccountabilityGroup>(res)
+      return groups.find(g => g.is_active) ?? groups[0] ?? null
+    },
+  })
+}
+
+/**
+ * Browse all available accountability groups
+ * GET /members/accountability → paginated list
+ */
+export function useAllAccountabilityGroups() {
+  return useQuery({
+    queryKey: accountabilityKeys.allGroups(),
+    queryFn: async () => {
+      const res = await api.get<AccountabilityGroup[] | { data: AccountabilityGroup[] }>('/members/accountability')
+      return safeArray<AccountabilityGroup>(res)
+    },
+  })
+}
+
+/**
+ * Get a single accountability group by ID
+ * GET /members/accountability/{id}
+ */
+export function useAccountabilityGroupDetail(id: string) {
+  return useQuery({
+    queryKey: accountabilityKeys.group(id),
+    queryFn: async () => {
+      const res = await api.get<AccountabilityGroup | { data: AccountabilityGroup }>(`/members/accountability/${id}`)
+      if (res && typeof res === 'object' && 'data' in res && res.data) {
+        return res.data as AccountabilityGroup
+      }
+      return res as AccountabilityGroup
+    },
+    enabled: !!id,
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Mutations
+// ---------------------------------------------------------------------------
+
+/**
+ * Join an accountability group
+ * POST /members/accountability/{id}/join
+ */
+export function useJoinAccountabilityGroup() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (groupId: string) =>
+      api.post<{ success: boolean }>(`/members/accountability/${groupId}/join`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: accountabilityKeys.all })
+    },
+  })
+}
+
+/**
+ * Leave an accountability group
+ * DELETE /members/accountability/{id}/leave
+ */
+export function useLeaveAccountabilityGroup() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (groupId: string) =>
+      api.delete<{ success: boolean }>(`/members/accountability/${groupId}/leave`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: accountabilityKeys.all })
     },
   })
 }
