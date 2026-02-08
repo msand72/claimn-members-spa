@@ -2,7 +2,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../contexts/AuthContext'
 import { GlassAvatar } from '../ui/GlassAvatar'
-import { JourneyWidget } from '../journey/JourneyWidget'
+
 import { SECTION_NAV, SECTION_KEYS, useCurrentSection } from './sectionNav'
 import {
   User,
@@ -60,8 +60,6 @@ export function GlassSidebar() {
         </div>
       </div>
 
-      {/* Journey Widget */}
-      <JourneyWidget />
 
       {/* Navigation */}
       <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto">

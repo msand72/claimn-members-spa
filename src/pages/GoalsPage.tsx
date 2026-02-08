@@ -180,7 +180,7 @@ export function GoalsPage() {
   const activeGoals = goals.filter((g) => g.status === 'active').length
   const completedGoals = goals.filter((g) => g.status === 'completed').length
   const totalProgress = goals.length > 0
-    ? Math.round(goals.reduce((sum, g) => sum + g.progress, 0) / goals.length)
+    ? Math.round(goals.reduce((sum, g) => sum + (g.progress || 0), 0) / goals.length)
     : 0
 
   const pillarOptions = [
