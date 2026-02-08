@@ -13,8 +13,9 @@ import {
 } from '../components/ui'
 import { PILLARS, PILLAR_IDS, GOAL_STATUSES } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
-import { useGoals, useCreateGoal, useUpdateGoal } from '../lib/api/hooks'
+import { useGoals, useCreateGoal, useUpdateGoal, useMyActiveProtocols } from '../lib/api/hooks'
 import type { Goal, CreateGoalRequest } from '../lib/api/types'
+import { getProtocolSlugFromGoal, addProtocolTag, stripProtocolTag } from '../lib/protocol-plan'
 import {
   Target,
   Plus,
@@ -27,6 +28,7 @@ import {
   AlertCircle,
   Loader2,
   ListTodo,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -35,15 +37,23 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
   const statusInfo = GOAL_STATUSES.find((s) => s.id === goal.status)
   const hasKpis = goal.kpis && goal.kpis.length > 0
   const hasProgress = hasKpis || goal.progress > 0
+  const protocolSlug = getProtocolSlugFromGoal(goal.description)
+  const cleanDescription = stripProtocolTag(goal.description)
 
   return (
     <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
       <Link to={`/goals/${goal.id}`} className="block">
         <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {pillar && (
               <GlassBadge variant="koppar" className="text-xs">
                 {pillar.name}
+              </GlassBadge>
+            )}
+            {protocolSlug && (
+              <GlassBadge variant="default" className="text-xs flex items-center gap-1">
+                <BookOpen className="w-3 h-3" />
+                Protocol
               </GlassBadge>
             )}
           </div>
@@ -56,8 +66,8 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
         </div>
 
         <h3 className="font-semibold text-kalkvit mb-2">{goal.title}</h3>
-        {goal.description && (
-          <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{goal.description}</p>
+        {cleanDescription && (
+          <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{cleanDescription}</p>
         )}
 
         {/* Progress Bar — only show when there's something driving it */}
@@ -147,6 +157,7 @@ export function GoalsPage() {
     pillar_id: undefined,
     target_date: '',
   })
+  const [selectedProtocolSlug, setSelectedProtocolSlug] = useState('')
 
   // API hooks
   const { data: goalsData, isLoading, error } = useGoals({
@@ -154,6 +165,7 @@ export function GoalsPage() {
   })
   const createGoal = useCreateGoal()
   const updateGoal = useUpdateGoal()
+  const { data: activeProtocols } = useMyActiveProtocols()
 
   const goals = Array.isArray(goalsData?.data) ? goalsData.data : []
 
@@ -180,15 +192,24 @@ export function GoalsPage() {
     if (!newGoal.title.trim()) return
     setCreateError(null)
 
+    // Embed protocol tag in description if a protocol is selected
+    let description = newGoal.description || undefined
+    if (selectedProtocolSlug && description) {
+      description = addProtocolTag(description, selectedProtocolSlug)
+    } else if (selectedProtocolSlug) {
+      description = `[protocol:${selectedProtocolSlug}]`
+    }
+
     try {
       await createGoal.mutateAsync({
         title: newGoal.title,
-        description: newGoal.description || undefined,
+        description,
         pillar_id: newGoal.pillar_id || undefined,
         target_date: newGoal.target_date || undefined,
       })
       setShowCreateModal(false)
       setNewGoal({ title: '', description: '', pillar_id: undefined, target_date: '' })
+      setSelectedProtocolSlug('')
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'An unexpected error occurred'
@@ -233,6 +254,43 @@ export function GoalsPage() {
             <p className="text-xs text-kalkvit/50">Day Streak</p>
           </GlassCard>
         </div>
+
+        {/* Active Protocols */}
+        {activeProtocols && activeProtocols.length > 0 && (
+          <div className="mb-8">
+            <h2 className="font-display text-xl font-bold text-kalkvit mb-4 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-koppar" />
+              Active Protocols
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {activeProtocols.map((ap) => (
+                <Link key={ap.id} to={`/protocols/${ap.protocol_slug}`}>
+                  <GlassCard variant="base" className="hover:border-koppar/30 transition-colors !py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-koppar/10 flex items-center justify-center flex-shrink-0">
+                        <BookOpen className="w-4 h-4 text-koppar" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-kalkvit truncate">{ap.protocol_name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-koppar rounded-full"
+                              style={{ width: `${ap.progress_percentage || 0}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-kalkvit/50">
+                            {ap.progress_percentage || 0}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </GlassCard>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Section heading */}
         <h2 className="font-display text-xl font-bold text-kalkvit mb-4">My Goals</h2>
@@ -360,6 +418,20 @@ export function GoalsPage() {
               value={newGoal.target_date || ''}
               onChange={(e) => setNewGoal({ ...newGoal, target_date: e.target.value })}
             />
+            {activeProtocols && activeProtocols.length > 0 && (
+              <GlassSelect
+                label="Link to Protocol (optional)"
+                options={[
+                  { value: '', label: 'No protocol' },
+                  ...activeProtocols.map((ap) => ({
+                    value: ap.protocol_slug,
+                    label: ap.protocol_name,
+                  })),
+                ]}
+                value={selectedProtocolSlug}
+                onChange={(e) => setSelectedProtocolSlug(e.target.value)}
+              />
+            )}
           </div>
           {createError && (
             <div className="mt-4 flex items-center gap-2 rounded-xl bg-tegelrod/10 border border-tegelrod/20 px-4 py-3 text-sm text-tegelrod">

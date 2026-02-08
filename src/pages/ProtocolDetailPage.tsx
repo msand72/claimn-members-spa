@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
@@ -11,6 +11,9 @@ import {
   usePauseProtocol,
   useResumeProtocol,
   useUpdateProtocolProgress,
+  useGoals,
+  useCreateGoal,
+  useCreateActionItem,
   type ProtocolWeek,
   type ProtocolSection,
   type ImplementationStep,
@@ -46,6 +49,9 @@ import {
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { AskExpertButton } from '../components/AskExpertButton'
+import { PlanBuilder } from '../components/PlanBuilder'
+import { generatePlanFromProtocol, getProtocolSlugFromGoal } from '../lib/protocol-plan'
+import type { SuggestedGoal } from '../lib/protocol-plan'
 
 // Icon mapping for sections
 const SECTION_ICONS: Record<string, React.ElementType> = {
@@ -611,6 +617,9 @@ export function ProtocolDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const [actionError, setActionError] = useState<string | null>(null)
   const [justStarted, setJustStarted] = useState(false)
+  const [showPlanBuilder, setShowPlanBuilder] = useState(false)
+  const [planError, setPlanError] = useState<string | null>(null)
+  const [isCreatingPlan, setIsCreatingPlan] = useState(false)
 
   // API hooks
   const {
@@ -628,8 +637,17 @@ export function ProtocolDetailPage() {
   const pauseMutation = usePauseProtocol()
   const resumeMutation = useResumeProtocol()
   const progressMutation = useUpdateProtocolProgress()
-  // Note: useLogProtocolProgress is available for weekly progress logging
-  // but currently task-level progress uses useUpdateProtocolProgress
+  const createGoal = useCreateGoal()
+  const createActionItem = useCreateActionItem()
+
+  // Fetch goals to find ones linked to this protocol
+  const { data: goalsData } = useGoals()
+  const linkedGoals = useMemo(() => {
+    if (!goalsData || !slug) return []
+    const goals = Array.isArray(goalsData) ? goalsData : goalsData?.data
+    if (!Array.isArray(goals)) return []
+    return goals.filter((g) => getProtocolSlugFromGoal(g.description) === slug)
+  }, [goalsData, slug])
 
   const isLoading = isLoadingProtocol || isLoadingActive
   const error = protocolError
@@ -639,20 +657,58 @@ export function ProtocolDetailPage() {
     ? (progressMutation.variables?.data.task_id ?? null)
     : null
 
-  const handleStart = async () => {
-    if (!slug) return
-    setActionError(null)
+  // Generate suggested plan from protocol template
+  const suggestedPlan = useMemo(() => {
+    if (!protocol) return []
+    return generatePlanFromProtocol(protocol)
+  }, [protocol])
+
+  const handleStartClick = () => {
+    setPlanError(null)
+    setShowPlanBuilder(true)
+  }
+
+  const handleConfirmPlan = async (goals: SuggestedGoal[]) => {
+    if (!slug || !protocol) return
+    setIsCreatingPlan(true)
+    setPlanError(null)
+
     try {
+      // 1. Create goals and their action items
+      for (const goal of goals) {
+        const createdGoal = await createGoal.mutateAsync({
+          title: goal.title,
+          description: goal.description,
+          pillar_id: goal.pillar_id,
+          target_date: goal.target_date,
+        })
+
+        // Create action items for this goal
+        for (const item of goal.actionItems) {
+          await createActionItem.mutateAsync({
+            title: item.title,
+            description: item.description,
+            goal_id: createdGoal.id,
+            priority: item.priority,
+          })
+        }
+      }
+
+      // 2. Start the protocol
       await startMutation.mutateAsync({
         protocol_slug: slug,
-        protocol_name: protocol?.title || slug,
-        pillar: protocol?.pillar,
-        duration_weeks: protocol?.duration_weeks,
+        protocol_name: protocol.title || slug,
+        pillar: protocol.pillar,
+        duration_weeks: protocol.duration_weeks,
       })
+
+      setShowPlanBuilder(false)
       setJustStarted(true)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
-      setActionError(`Failed to start protocol: ${msg}`)
+      setPlanError(`Failed to create plan: ${msg}`)
+    } finally {
+      setIsCreatingPlan(false)
     }
   }
 
@@ -975,28 +1031,74 @@ export function ProtocolDetailPage() {
           </div>
         )}
 
+        {/* Linked Goals (visible when protocol is active) */}
+        {hasStarted && linkedGoals.length > 0 && (
+          <div className="mb-8">
+            <h2 className="font-display text-lg font-semibold text-kalkvit mb-4">
+              Your Goals for This Protocol
+            </h2>
+            <div className="space-y-3">
+              {linkedGoals.map((goal) => (
+                <Link key={goal.id} to={`/goals/${goal.id}`}>
+                  <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Target className="w-5 h-5 text-koppar flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-kalkvit truncate">{goal.title}</p>
+                          <p className="text-xs text-kalkvit/50">
+                            {goal.status === 'completed' ? 'Completed' : `${goal.progress || 0}% progress`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                        {goal.status === 'completed' ? (
+                          <CheckCircle2 className="w-5 h-5 text-skogsgron" />
+                        ) : (
+                          <div className="w-12 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-koppar rounded-full"
+                              style={{ width: `${Math.min(goal.progress || 0, 100)}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </GlassCard>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Button */}
         {!hasStarted && (
           <div className="text-center py-8">
             <GlassButton
               variant="primary"
               className="px-8 py-3"
-              onClick={handleStart}
-              disabled={startMutation.isPending}
+              onClick={handleStartClick}
             >
-              {startMutation.isPending ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <Play className="w-5 h-5" />
-                  Start This Protocol
-                </>
-              )}
+              <Play className="w-5 h-5" />
+              Start This Protocol
             </GlassButton>
             <p className="text-kalkvit/50 text-sm mt-3">
               Begin your transformation journey with this evidence-based protocol
             </p>
           </div>
+        )}
+
+        {/* Plan Builder Modal */}
+        {protocol && (
+          <PlanBuilder
+            isOpen={showPlanBuilder}
+            onClose={() => setShowPlanBuilder(false)}
+            protocolTitle={protocol.title}
+            suggestedGoals={suggestedPlan}
+            onConfirm={handleConfirmPlan}
+            isSubmitting={isCreatingPlan}
+            error={planError}
+          />
         )}
       </div>
     </MainLayout>

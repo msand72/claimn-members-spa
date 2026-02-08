@@ -22,6 +22,7 @@ import {
   useCreateActionItem,
   useToggleActionItem,
   useDeleteActionItem,
+  useProtocol,
 } from '../lib/api/hooks'
 import type { KPI, ActionItem } from '../lib/api/types'
 import {
@@ -40,9 +41,11 @@ import {
   CheckSquare,
   ListTodo,
   X,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { AskExpertButton } from '../components/AskExpertButton'
+import { getProtocolSlugFromGoal, stripProtocolTag } from '../lib/protocol-plan'
 
 export function GoalDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -110,6 +113,17 @@ export function GoalDetailPage() {
     }
     return parts.length > 0 ? Math.round(parts.reduce((a, b) => a + b, 0) / parts.length) : 0
   }, [hasDrivers, goal?.progress, totalSubtasks, completedSubtasks, kpis])
+
+  // Detect linked protocol from goal description
+  const linkedProtocolSlug = useMemo(
+    () => getProtocolSlugFromGoal(goal?.description ?? null),
+    [goal?.description],
+  )
+  const { data: linkedProtocol } = useProtocol(linkedProtocolSlug || '')
+  const displayDescription = useMemo(
+    () => stripProtocolTag(goal?.description ?? null),
+    [goal?.description],
+  )
 
   // Early returns AFTER all hooks
   if (isLoading) {
@@ -341,7 +355,7 @@ export function GoalDetailPage() {
             ) : (
               <>
                 <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">{goal.title}</h1>
-                <p className="text-kalkvit/60">{goal.description}</p>
+                <p className="text-kalkvit/60">{displayDescription}</p>
               </>
             )}
           </div>
@@ -382,6 +396,23 @@ export function GoalDetailPage() {
             context={`Goal: ${goal.title}`}
           />
         </div>
+
+        {/* Linked Protocol */}
+        {linkedProtocolSlug && (
+          <Link
+            to={`/protocols/${linkedProtocolSlug}`}
+            className="mb-6 flex items-center gap-3 rounded-xl bg-koppar/10 border border-koppar/20 px-4 py-3 hover:bg-koppar/15 transition-colors block"
+          >
+            <BookOpen className="w-5 h-5 text-koppar flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-koppar">
+                {linkedProtocol?.title || linkedProtocolSlug.replace(/-/g, ' ')}
+              </p>
+              <p className="text-xs text-kalkvit/50">Linked protocol</p>
+            </div>
+            <ChevronLeft className="w-4 h-4 text-koppar rotate-180 flex-shrink-0" />
+          </Link>
+        )}
 
         {/* Action Error */}
         {actionError && (
