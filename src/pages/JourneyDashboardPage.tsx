@@ -251,7 +251,7 @@ export function JourneyDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Goal Progress Bar Chart */}
               {goalChartData.length > 0 && (
-                <GlassCard className="col-span-1">
+                <GlassCard className="col-span-1 min-w-0 overflow-hidden">
                   <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Goal Progress</h4>
                   {hasGoalProgress ? (
                     <div className="h-48" style={{ minWidth: 0, minHeight: 192 }}>
@@ -280,7 +280,7 @@ export function JourneyDashboardPage() {
 
               {/* KPI Current vs Target */}
               {kpiChartData.length > 0 && (
-                <GlassCard className="col-span-1">
+                <GlassCard className="col-span-1 min-w-0 overflow-hidden">
                   <h4 className="text-sm font-medium text-kalkvit/60 mb-3">KPI Tracking</h4>
                   <div className="h-48" style={{ minWidth: 0, minHeight: 192 }}>
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -297,7 +297,7 @@ export function JourneyDashboardPage() {
               )}
 
               {/* Pillar Scores Radar */}
-              <GlassCard className="col-span-1">
+              <GlassCard className="col-span-1 min-w-0 overflow-hidden">
                 <h4 className="text-sm font-medium text-kalkvit/60 mb-3">Pillar Scores</h4>
                 {hasRadarData ? (
                   <div className="h-48" style={{ minWidth: 0, minHeight: 192 }}>
@@ -581,7 +581,7 @@ export function JourneyDashboardPage() {
               <GlassCard className="text-center py-3">
                 <MessageCircle className="w-5 h-5 text-koppar mx-auto mb-1" />
                 <div className="font-display text-xl font-bold text-kalkvit">
-                  {statsLoading ? '...' : (stats?.unread_messages ?? 0)}
+                  {statsLoading ? '...' : (stats?.unread_messages ?? stats?.messages_unread ?? 0)}
                 </div>
                 <div className="text-kalkvit/50 text-xs">Unread</div>
               </GlassCard>
