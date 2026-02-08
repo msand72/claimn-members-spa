@@ -18,57 +18,53 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expertI
     .slice(0, 2)
 
   return (
-    <GlassCard variant="base" className="group">
-      <div className="flex items-start gap-4 mb-4">
-        {expert.avatar_url ? (
-          <img
-            src={expert.avatar_url}
-            alt={expert.name}
-            className="w-16 h-16 rounded-xl object-cover"
-          />
-        ) : (
-          <GlassAvatar initials={initials} size="xl" />
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-kalkvit truncate">{expert.name}</h3>
-            {expert.is_top_rated && <GlassBadge variant="koppar">Top Rated</GlassBadge>}
-            <span className="ml-auto font-display text-lg font-bold text-kalkvit whitespace-nowrap">
-              ${expert.hourly_rate}<span className="text-xs font-normal text-kalkvit/50"> /hour</span>
-            </span>
+    <GlassCard variant="base" className="group hover:border-koppar/30 transition-colors">
+      <Link to={`/experts/${expert.id}`} className="block">
+        <div className="flex items-start gap-4 mb-4">
+          {expert.avatar_url ? (
+            <img
+              src={expert.avatar_url}
+              alt={expert.name}
+              className="w-16 h-16 rounded-xl object-cover"
+            />
+          ) : (
+            <GlassAvatar initials={initials} size="xl" />
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold text-kalkvit truncate group-hover:text-koppar transition-colors">{expert.name}</h3>
+              {expert.is_top_rated && <GlassBadge variant="koppar">Top Rated</GlassBadge>}
+              <span className="ml-auto font-display text-lg font-bold text-kalkvit whitespace-nowrap">
+                ${expert.hourly_rate}<span className="text-xs font-normal text-kalkvit/50"> /hour</span>
+              </span>
+            </div>
+            <p className="text-sm text-koppar truncate">{expert.title}</p>
           </div>
-          <p className="text-sm text-koppar truncate">{expert.title}</p>
         </div>
-      </div>
 
-      <p className="text-sm text-kalkvit/70 mb-2 line-clamp-2">{expert.bio}</p>
-      <Link
-        to={`/experts/${expert.id}`}
-        className="inline-block text-xs font-medium text-koppar hover:text-koppar/80 transition-colors mb-2"
-      >
-        Read more &rarr;
+        <p className="text-sm text-kalkvit/70 mb-3 line-clamp-2">{expert.bio}</p>
+
+        <div className="flex flex-wrap gap-1 mb-4">
+          {expert.specialties.slice(0, 3).map((s) => (
+            <GlassBadge key={s} variant="default" className="text-xs">
+              {s}
+            </GlassBadge>
+          ))}
+          {expert.specialties.length > 3 && (
+            <GlassBadge variant="default" className="text-xs">
+              +{expert.specialties.length - 3}
+            </GlassBadge>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
+          <span className="flex items-center gap-1">
+            <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
+            {expert.rating} ({expert.reviews_count})
+          </span>
+          <span>{expert.total_sessions} sessions</span>
+        </div>
       </Link>
-
-      <div className="flex flex-wrap gap-1 mb-4">
-        {expert.specialties.slice(0, 3).map((s) => (
-          <GlassBadge key={s} variant="default" className="text-xs">
-            {s}
-          </GlassBadge>
-        ))}
-        {expert.specialties.length > 3 && (
-          <GlassBadge variant="default" className="text-xs">
-            +{expert.specialties.length - 3}
-          </GlassBadge>
-        )}
-      </div>
-
-      <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
-        <span className="flex items-center gap-1">
-          <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
-          {expert.rating} ({expert.reviews_count})
-        </span>
-        <span>{expert.total_sessions} sessions</span>
-      </div>
 
       <div className="flex items-center justify-between gap-2 pt-4 border-t border-white/10">
         <span className="text-xs text-skogsgron truncate">
