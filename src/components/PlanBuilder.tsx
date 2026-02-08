@@ -5,7 +5,6 @@ import {
   GlassInput,
   GlassModal,
   GlassModalFooter,
-  GlassBadge,
 } from './ui'
 import type { SuggestedGoal, SuggestedActionItem } from '../lib/protocol-plan'
 import {
