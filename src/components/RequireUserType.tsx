@@ -35,10 +35,10 @@ export function RequireUserType({ types, children, fallback = 'upgrade' }: Requi
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
             </svg>
           </div>
-          <h2 className="text-xl font-display font-bold text-kalkvit mb-2">
+          <h2 className="text-xl font-display font-bold text-charcoal dark:text-kalkvit mb-2">
             Upgrade to Access This Feature
           </h2>
-          <p className="text-kalkvit/60 text-sm mb-6">
+          <p className="text-jordbrun dark:text-kalkvit/60 text-sm mb-6">
             This feature requires a higher membership tier. Upgrade your plan to unlock it.
           </p>
           <a

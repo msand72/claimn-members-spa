@@ -32,8 +32,8 @@ export function RequireTier({ minTier, children, fallback = 'upgrade' }: Require
     return <Navigate to={`/login?redirect=${redirectPath}`} replace />
   }
 
-  // Superadmin bypasses tier check
-  if (userType === 'superadmin') {
+  // Admin and superadmin bypass tier check
+  if (userType === 'superadmin' || userType === 'admin') {
     return <>{children}</>
   }
 
@@ -68,25 +68,25 @@ export function RequireTier({ minTier, children, fallback = 'upgrade' }: Require
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl font-display font-bold text-kalkvit mb-3">
+        <h2 className="text-2xl font-display font-bold text-charcoal dark:text-kalkvit mb-3">
           Premium Feature
         </h2>
 
         {/* Description */}
-        <p className="text-kalkvit/60 mb-2">
+        <p className="text-jordbrun dark:text-kalkvit/60 mb-2">
           This feature requires <span className="text-koppar font-medium">{TIER_NAMES[minTier]}</span> membership or higher.
         </p>
-        <p className="text-kalkvit/40 text-sm mb-8">
-          You're currently on the <span className="text-kalkvit/60">{TIER_NAMES[userTier]}</span> plan.
+        <p className="text-jordbrun/60 dark:text-kalkvit/40 text-sm mb-8">
+          You're currently on the <span className="text-jordbrun dark:text-kalkvit/60">{TIER_NAMES[userTier]}</span> plan.
         </p>
 
         {/* Features preview */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6 text-left">
-          <h3 className="text-sm font-medium text-kalkvit/80 mb-3 flex items-center gap-2">
+        <div className="bg-charcoal/5 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 rounded-xl p-4 mb-6 text-left">
+          <h3 className="text-sm font-medium text-charcoal/80 dark:text-kalkvit/80 mb-3 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-koppar" />
             What you'll unlock:
           </h3>
-          <ul className="space-y-2 text-sm text-kalkvit/60">
+          <ul className="space-y-2 text-sm text-jordbrun dark:text-kalkvit/60">
             <li className="flex items-start gap-2">
               <span className="text-skogsgron">✓</span>
               Personalized transformation protocols
@@ -117,7 +117,7 @@ export function RequireTier({ minTier, children, fallback = 'upgrade' }: Require
           </Link>
           <Link
             to="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-kalkvit font-medium rounded-lg hover:bg-white/10 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-charcoal/5 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 text-charcoal dark:text-kalkvit font-medium rounded-lg hover:bg-charcoal/10 dark:hover:bg-white/10 transition-colors"
           >
             Go to Dashboard
           </Link>

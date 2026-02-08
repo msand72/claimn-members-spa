@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userType: UserType = user?.user_type || 'guest'
 
   const hasAccess = (...types: UserType[]) => {
-    if (userType === 'superadmin') return true
+    if (userType === 'superadmin' || userType === 'admin') return true
     return types.includes(userType)
   }
 
