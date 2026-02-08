@@ -303,7 +303,7 @@ export function BookSessionPage() {
                     </button>
                   </div>
                 </div>
-                <div className="grid grid-cols-7 gap-2">
+                <div className="flex justify-between gap-1">
                   {days.slice(dateOffset, dateOffset + 7).map((day) => (
                     <button
                       key={day.dateStr}
@@ -313,7 +313,7 @@ export function BookSessionPage() {
                       }}
                       disabled={!selectedExpertId}
                       className={cn(
-                        'p-2 rounded-xl text-center transition-all',
+                        'flex-1 py-3 rounded-xl text-center transition-all min-w-0',
                         !selectedExpertId
                           ? 'opacity-50 cursor-not-allowed'
                           : selectedDate === day.dateStr
@@ -323,8 +323,8 @@ export function BookSessionPage() {
                               : 'hover:bg-white/[0.06] text-kalkvit/70'
                       )}
                     >
-                      <p className="text-xs">{day.day}</p>
-                      <p className="font-semibold">{day.date}</p>
+                      <p className="text-[11px] leading-tight text-center">{day.day}</p>
+                      <p className="text-base font-semibold leading-tight mt-1">{day.date}</p>
                     </button>
                   ))}
                 </div>

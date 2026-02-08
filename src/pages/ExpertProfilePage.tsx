@@ -279,7 +279,7 @@ export function ExpertProfilePage() {
             {availabilitySlots && availabilitySlots.length > 0 && (
               <GlassCard variant="base">
                 <h3 className="font-semibold text-kalkvit mb-4">Quick Book</h3>
-                <div className="grid grid-cols-7 gap-1">
+                <div className="flex justify-between gap-1">
                   {days.map((day) => {
                     const hasSlot = availabilitySlots.some(
                       (s) => s.day.toLowerCase() === day.dayLong.toLowerCase(),
@@ -290,7 +290,7 @@ export function ExpertProfilePage() {
                         onClick={() => hasSlot && setSelectedDate(day.dateStr)}
                         disabled={!hasSlot}
                         className={cn(
-                          'p-2 rounded-xl text-center transition-all',
+                          'flex-1 py-3 rounded-xl text-center transition-all min-w-0',
                           !hasSlot
                             ? 'opacity-30 cursor-not-allowed'
                             : selectedDate === day.dateStr
@@ -298,8 +298,8 @@ export function ExpertProfilePage() {
                               : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]',
                         )}
                       >
-                        <p className="text-[10px] leading-tight">{day.dayShort}</p>
-                        <p className="text-sm font-semibold">{day.dateNum}</p>
+                        <p className="text-[11px] leading-tight">{day.dayShort}</p>
+                        <p className="text-base font-semibold leading-tight mt-1">{day.dateNum}</p>
                       </button>
                     )
                   })}
