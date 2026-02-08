@@ -101,7 +101,7 @@ function ProgramCard({
           Unlock with Premium
         </GlassButton>
       ) : isEnrolled ? (
-        <Link to="/programs">
+        <Link to="/programs/sprints">
           <GlassButton variant="primary" className="w-full">
             <Play className="w-4 h-4" />
             Continue Learning
