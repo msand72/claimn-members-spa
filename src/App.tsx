@@ -8,17 +8,13 @@ import { RequireTier } from './components/RequireTier'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
 import { PageErrorBoundary } from './components/PageErrorBoundary'
 import { LoadingSpinner } from './components/LoadingSpinner'
+import { isChunkLoadError } from './lib/isChunkLoadError'
 
 // Auto-reload on stale chunk errors after deploy
 function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }>) {
   return lazy(() =>
     importFn().catch((error: unknown) => {
-      const isChunkError =
-        error instanceof TypeError &&
-        (error.message.includes('dynamically imported module') ||
-          error.message.includes('Failed to fetch') ||
-          error.message.includes('Loading chunk'))
-      if (!isChunkError) throw error
+      if (!isChunkLoadError(error)) throw error
 
       // Prevent infinite reload loop: only reload once per session
       const reloadKey = 'chunk_reload_' + window.location.pathname

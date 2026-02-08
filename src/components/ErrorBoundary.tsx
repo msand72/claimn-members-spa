@@ -1,5 +1,6 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { isChunkLoadError } from '../lib/isChunkLoadError'
 
 interface Props {
   children: ReactNode
@@ -22,6 +23,15 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary] Uncaught error:', error, errorInfo)
+
+    if (isChunkLoadError(error)) {
+      const reloadKey = 'chunk_reload_' + window.location.pathname
+      const lastReload = sessionStorage.getItem(reloadKey)
+      if (!lastReload || Date.now() - Number(lastReload) >= 10000) {
+        sessionStorage.setItem(reloadKey, String(Date.now()))
+        window.location.reload()
+      }
+    }
   }
 
   render() {

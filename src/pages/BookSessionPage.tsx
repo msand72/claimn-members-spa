@@ -176,6 +176,9 @@ export function BookSessionPage() {
     return new Set(availability.map((a) => a.day.toLowerCase()))
   }, [availability])
 
+  // When expert has no availability configured, treat all future dates as available
+  const hasAvailabilityConstraints = availableDays.size > 0
+
   // Get time slots for selected date from availability (match by day-of-week)
   const timeSlotsForDate = useMemo(() => {
     if (!selectedDate || !availability.length) return []
@@ -311,26 +314,25 @@ export function BookSessionPage() {
             {/* Date Selection — hidden when expert uses external calendar */}
             {!selectedExpert?.calendar_url && (
               <GlassCard variant="base">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-kalkvit">Select Date</h3>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
-                      onClick={() => navigateMonth(-1)}
-                      disabled={!canGoPrev}
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <span className="text-sm font-medium text-kalkvit min-w-[120px] text-center">
-                      {calendarLabel}
-                    </span>
-                    <button
-                      className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit"
-                      onClick={() => navigateMonth(1)}
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </div>
+                <h3 className="font-semibold text-kalkvit mb-3">Select Date</h3>
+                {/* Month navigation */}
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    className="p-1.5 rounded-lg hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
+                    onClick={() => navigateMonth(-1)}
+                    disabled={!canGoPrev}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="text-sm font-medium text-kalkvit">
+                    {calendarLabel}
+                  </span>
+                  <button
+                    className="p-1.5 rounded-lg hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit"
+                    onClick={() => navigateMonth(1)}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
                 {/* Weekday headers */}
                 <div className="grid grid-cols-7 mb-1">
@@ -339,12 +341,12 @@ export function BookSessionPage() {
                   ))}
                 </div>
                 {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-px">
+                <div className="grid grid-cols-7">
                   {calendarDays.map((cell, i) => {
                     if (!cell) return <div key={`empty-${i}`} />
                     const isPast = cell.dateStr < todayStr
                     const dayOfWeek = new Date(cell.dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-                    const isAvailable = !isPast && selectedExpertId && availableDays.has(dayOfWeek)
+                    const isAvailable = !isPast && !!selectedExpertId && (!hasAvailabilityConstraints || availableDays.has(dayOfWeek))
                     const isSelected = selectedDate === cell.dateStr
                     const isToday = cell.dateStr === todayStr
                     return (
@@ -359,13 +361,15 @@ export function BookSessionPage() {
                         disabled={!isAvailable}
                         className={cn(
                           'aspect-square flex items-center justify-center rounded-lg text-sm transition-all',
-                          !isAvailable
-                            ? 'text-kalkvit/20 cursor-default'
-                            : isSelected
-                              ? 'bg-koppar text-kalkvit font-semibold'
-                              : isToday
-                                ? 'bg-white/[0.08] text-kalkvit font-semibold hover:bg-white/[0.12]'
-                                : 'text-kalkvit/70 hover:bg-white/[0.06]',
+                          isPast
+                            ? 'text-kalkvit/15 cursor-default'
+                            : !isAvailable
+                              ? 'text-kalkvit/30 cursor-default'
+                              : isSelected
+                                ? 'bg-koppar text-kalkvit font-semibold'
+                                : isToday
+                                  ? 'bg-white/[0.08] text-kalkvit font-semibold hover:bg-white/[0.12]'
+                                  : 'text-kalkvit/70 hover:bg-white/[0.06]',
                         )}
                       >
                         {cell.day}
@@ -374,7 +378,7 @@ export function BookSessionPage() {
                   })}
                 </div>
                 {!selectedExpertId && (
-                  <p className="text-xs text-kalkvit/40 mt-3">Select an expert first</p>
+                  <p className="text-xs text-kalkvit/40 mt-3 text-center">Select an expert first</p>
                 )}
               </GlassCard>
             )}

@@ -1,14 +1,6 @@
 import { useRouteError, isRouteErrorResponse, Link } from 'react-router-dom'
 import { AlertTriangle, FileQuestion, Home, RefreshCw } from 'lucide-react'
-
-function isChunkLoadError(error: unknown): boolean {
-  return (
-    error instanceof TypeError &&
-    (error.message.includes('dynamically imported module') ||
-      error.message.includes('Failed to fetch') ||
-      error.message.includes('Loading chunk'))
-  )
-}
+import { isChunkLoadError } from '../lib/isChunkLoadError'
 
 export function RouteErrorBoundary() {
   const error = useRouteError()

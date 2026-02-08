@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { isChunkLoadError } from '../lib/isChunkLoadError'
 
 interface Props {
   children: ReactNode
@@ -37,6 +38,16 @@ export class PageErrorBoundary extends Component<Props, State> {
       error,
       info.componentStack
     )
+
+    // Auto-reload on stale chunk errors (shared sub-chunks that fail during render)
+    if (isChunkLoadError(error)) {
+      const reloadKey = 'chunk_reload_' + window.location.pathname
+      const lastReload = sessionStorage.getItem(reloadKey)
+      if (!lastReload || Date.now() - Number(lastReload) >= 10000) {
+        sessionStorage.setItem(reloadKey, String(Date.now()))
+        window.location.reload()
+      }
+    }
   }
 
   private handleRetry = () => {
