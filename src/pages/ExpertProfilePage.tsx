@@ -24,7 +24,7 @@ import { useExpert, useExpertTestimonials, useExpertAvailability } from '../lib/
 export function ExpertProfilePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [selectedSlot, setSelectedSlot] = useState<{ date: string; time: string } | null>(null)
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
 
   const { data: expert, isLoading, isError, refetch } = useExpert(id || '')
   const { data: testimonials } = useExpertTestimonials(id || '')
@@ -253,41 +253,38 @@ export function ExpertProfilePage() {
             </GlassCard>
 
             {/* Quick Book */}
-            {availabilitySlots && availabilitySlots.length > 0 && (
-              <GlassCard variant="base">
-                <h3 className="font-semibold text-kalkvit mb-4">Quick Book</h3>
-                <div className="space-y-4">
-                  {availabilitySlots.map((slot) => (
-                    <div key={slot.date}>
-                      <p className="text-sm text-kalkvit/60 mb-2">{slot.date}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {(slot.times ?? []).map((time) => (
-                          <button
-                            key={`${slot.date}-${time}`}
-                            onClick={() => setSelectedSlot({ date: slot.date, time })}
-                            className={cn(
-                              'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
-                              selectedSlot?.date === slot.date && selectedSlot?.time === time
-                                ? 'bg-koppar text-kalkvit'
-                                : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
-                            )}
-                          >
-                            {time}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {selectedSlot && (
-                  <Link to={`/book-session?expert=${id}&date=${selectedSlot.date}&time=${selectedSlot.time}`}>
-                    <GlassButton variant="primary" className="w-full mt-4">
-                      Book {selectedSlot.date} at {selectedSlot.time}
-                    </GlassButton>
-                  </Link>
-                )}
-              </GlassCard>
-            )}
+            {availabilitySlots && availabilitySlots.length > 0 && (() => {
+              const selected = availabilitySlots.find((s) => s.id === selectedSlotId)
+              return (
+                <GlassCard variant="base">
+                  <h3 className="font-semibold text-kalkvit mb-4">Quick Book</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {availabilitySlots.map((slot) => (
+                      <button
+                        key={slot.id}
+                        onClick={() => setSelectedSlotId(slot.id)}
+                        className={cn(
+                          'px-3 py-2 rounded-lg text-sm font-medium transition-all',
+                          selectedSlotId === slot.id
+                            ? 'bg-koppar text-kalkvit'
+                            : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
+                        )}
+                      >
+                        {slot.day && <span className="block text-xs opacity-70">{slot.day}</span>}
+                        {slot.time}
+                      </button>
+                    ))}
+                  </div>
+                  {selected && (
+                    <Link to={`/book-session?expert=${id}&day=${selected.day}&time=${selected.time}`}>
+                      <GlassButton variant="primary" className="w-full mt-4">
+                        Book {selected.day ? `${selected.day} ` : ''}{selected.time}
+                      </GlassButton>
+                    </Link>
+                  )}
+                </GlassCard>
+              )
+            })()}
 
             {/* Stats */}
             <GlassCard variant="base">

@@ -4,7 +4,6 @@ import type {
   Expert,
   ExpertTestimonial,
   ExpertAvailabilityRaw,
-  ExpertAvailabilitySlot,
   CoachingSession,
   SessionNote,
   BookSessionRequest,
@@ -82,7 +81,13 @@ export function useExpertTestimonials(expertId: string) {
   })
 }
 
-// Get expert availability (backend returns flat rows, we group by day_of_week)
+/** Strip seconds from "HH:MM:SS" → "HH:MM" */
+function fmtTime(t: string) {
+  const parts = t.split(':')
+  return parts.length >= 2 ? `${parts[0]}:${parts[1]}` : t
+}
+
+// Get expert availability (backend returns flat rows per day)
 export function useExpertAvailability(expertId: string) {
   return useQuery({
     queryKey: expertKeys.availability(expertId),
@@ -91,19 +96,13 @@ export function useExpertAvailability(expertId: string) {
         `/members/experts/${expertId}/availability`,
       )
       const rows = Array.isArray(raw) ? raw : []
-      // Group by day_of_week → ExpertAvailabilitySlot[]
-      const grouped = new Map<string, string[]>()
-      for (const row of rows) {
-        if (!row.is_active) continue
-        const day = row.day_of_week
-        if (!grouped.has(day)) grouped.set(day, [])
-        grouped.get(day)!.push(`${row.start_time} - ${row.end_time}`)
-      }
-      const slots: ExpertAvailabilitySlot[] = []
-      for (const [day, times] of grouped) {
-        slots.push({ date: day, times })
-      }
-      return slots
+      return rows
+        .filter((r) => r.is_active)
+        .map((r) => ({
+          id: r.id,
+          day: r.day_of_week || '',
+          time: `${fmtTime(r.start_time)} – ${fmtTime(r.end_time)}`,
+        }))
     },
     enabled: !!expertId,
   })

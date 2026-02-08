@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect } from '../components/ui'
 import { useExperts, useExpertAvailability, useBookSession } from '../lib/api/hooks'
-import type { Expert, ExpertAvailabilitySlot } from '../lib/api/types'
+import type { Expert } from '../lib/api/types'
 import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -125,7 +125,7 @@ export function BookSessionPage() {
   const { data: availabilityData, isLoading: isLoadingAvailability } = useExpertAvailability(
     selectedExpertId || ''
   )
-  const availability: ExpertAvailabilitySlot[] = availabilityData || []
+  const availability = availabilityData || []
 
   // Book session mutation
   const bookSessionMutation = useBookSession()
@@ -149,12 +149,14 @@ export function BookSessionPage() {
     [today.toDateString()]
   )
 
-  // Get time slots for selected date from availability
+  // Get time slots for selected date from availability (match by day-of-week)
   const timeSlotsForDate = useMemo(() => {
     if (!selectedDate || !availability.length) return []
-    const dayAvailability = availability.find((a) => a.date === selectedDate)
-    if (!dayAvailability) return []
-    return dayAvailability.times.map((time) => ({ time, available: true }))
+    const dayOfWeek = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })
+    const matching = availability.filter(
+      (a) => a.day.toLowerCase() === dayOfWeek.toLowerCase(),
+    )
+    return matching.map((a) => ({ time: a.time, available: true }))
   }, [selectedDate, availability])
 
   const handleBook = async () => {

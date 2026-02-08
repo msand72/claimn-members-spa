@@ -453,10 +453,11 @@ export interface ExpertAvailabilityRaw {
   is_active: boolean
 }
 
-/** Grouped availability slot used by the UI */
+/** Availability slot used by the UI (one per row) */
 export interface ExpertAvailabilitySlot {
-  date: string
-  times: string[]
+  id: string
+  day: string
+  time: string
 }
 
 export interface CoachingSession {
