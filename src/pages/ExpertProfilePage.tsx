@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
@@ -24,11 +24,34 @@ import { useExpert, useExpertTestimonials, useExpertAvailability } from '../lib/
 export function ExpertProfilePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   const { data: expert, isLoading, isError, refetch } = useExpert(id || '')
   const { data: testimonials } = useExpertTestimonials(id || '')
   const { data: availabilitySlots } = useExpertAvailability(id || '')
+
+  // Build next 7 calendar days
+  const days = useMemo(() => {
+    const today = new Date()
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today)
+      d.setDate(today.getDate() + i)
+      return {
+        dateStr: d.toISOString().split('T')[0],
+        dayShort: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayLong: d.toLocaleDateString('en-US', { weekday: 'long' }),
+        dateNum: d.getDate(),
+        month: d.toLocaleDateString('en-US', { month: 'short' }),
+      }
+    })
+  }, [])
+
+  // Find available time for the selected date (match day-of-week)
+  const selectedDaySlot = useMemo(() => {
+    if (!selectedDate || !availabilitySlots?.length) return null
+    const dayLong = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })
+    return availabilitySlots.find((s) => s.day.toLowerCase() === dayLong.toLowerCase()) ?? null
+  }, [selectedDate, availabilitySlots])
 
   if (isLoading) {
     return (
@@ -253,38 +276,56 @@ export function ExpertProfilePage() {
             </GlassCard>
 
             {/* Quick Book */}
-            {availabilitySlots && availabilitySlots.length > 0 && (() => {
-              const selected = availabilitySlots.find((s) => s.id === selectedSlotId)
-              return (
-                <GlassCard variant="base">
-                  <h3 className="font-semibold text-kalkvit mb-4">Quick Book</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {availabilitySlots.map((slot) => (
+            {availabilitySlots && availabilitySlots.length > 0 && (
+              <GlassCard variant="base">
+                <h3 className="font-semibold text-kalkvit mb-4">Quick Book</h3>
+                <div className="grid grid-cols-7 gap-1">
+                  {days.map((day) => {
+                    const hasSlot = availabilitySlots.some(
+                      (s) => s.day.toLowerCase() === day.dayLong.toLowerCase(),
+                    )
+                    return (
                       <button
-                        key={slot.id}
-                        onClick={() => setSelectedSlotId(slot.id)}
+                        key={day.dateStr}
+                        onClick={() => hasSlot && setSelectedDate(day.dateStr)}
+                        disabled={!hasSlot}
                         className={cn(
-                          'px-3 py-2 rounded-lg text-sm font-medium transition-all',
-                          selectedSlotId === slot.id
-                            ? 'bg-koppar text-kalkvit'
-                            : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
+                          'p-2 rounded-xl text-center transition-all',
+                          !hasSlot
+                            ? 'opacity-30 cursor-not-allowed'
+                            : selectedDate === day.dateStr
+                              ? 'bg-koppar text-kalkvit'
+                              : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]',
                         )}
                       >
-                        {slot.day && <span className="block text-xs opacity-70">{slot.day}</span>}
-                        {slot.time}
+                        <p className="text-[10px] leading-tight">{day.dayShort}</p>
+                        <p className="text-sm font-semibold">{day.dateNum}</p>
                       </button>
-                    ))}
-                  </div>
-                  {selected && (
-                    <Link to={`/book-session?expert=${id}&day=${selected.day}&time=${selected.time}`}>
-                      <GlassButton variant="primary" className="w-full mt-4">
-                        Book {selected.day ? `${selected.day} ` : ''}{selected.time}
+                    )
+                  })}
+                </div>
+                {selectedDate && selectedDaySlot && (
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-kalkvit/60">
+                      <Clock className="w-4 h-4 text-koppar" />
+                      Available {selectedDaySlot.time}
+                    </div>
+                    <Link to={`/book-session?expert=${id}&date=${selectedDate}`}>
+                      <GlassButton variant="primary" className="w-full">
+                        <Calendar className="w-4 h-4" />
+                        Book {days.find((d) => d.dateStr === selectedDate)?.month}{' '}
+                        {days.find((d) => d.dateStr === selectedDate)?.dateNum}
                       </GlassButton>
                     </Link>
-                  )}
-                </GlassCard>
-              )
-            })()}
+                  </div>
+                )}
+                {selectedDate && !selectedDaySlot && (
+                  <p className="mt-3 text-sm text-kalkvit/50 text-center">
+                    Not available on this day
+                  </p>
+                )}
+              </GlassCard>
+            )}
 
             {/* Stats */}
             <GlassCard variant="base">
