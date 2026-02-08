@@ -108,7 +108,10 @@ export function BookSessionPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [sessionType, setSessionType] = useState('60')
   const [bookingSuccess, setBookingSuccess] = useState(false)
-  const [dateOffset, setDateOffset] = useState(0)
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date()
+    return { year: now.getFullYear(), month: now.getMonth() }
+  })
   const [bookingError, setBookingError] = useState<string | null>(null)
 
   // Fetch experts
@@ -130,24 +133,48 @@ export function BookSessionPage() {
   // Book session mutation
   const bookSessionMutation = useBookSession()
 
-  // Generate calendar days (current week + next week)
+  // Build calendar grid for the displayed month
   const today = new Date()
-  const days = useMemo(
-    () =>
-      Array.from({ length: 14 }, (_, i) => {
-        const date = new Date(today)
-        date.setDate(today.getDate() + i)
-        return {
-          dateStr: date.toISOString().split('T')[0],
-          date: date.getDate(),
-          day: date.toLocaleDateString('en-US', { weekday: 'short' }),
-          month: date.toLocaleDateString('en-US', { month: 'short' }),
-          isToday: i === 0,
-        }
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [today.toDateString()]
-  )
+  const todayStr = today.toISOString().split('T')[0]
+
+  const calendarDays = useMemo(() => {
+    const { year, month } = calendarMonth
+    const firstDay = new Date(year, month, 1)
+    const startOffset = firstDay.getDay() // 0=Sun
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+    const cells: (null | { dateStr: string; day: number })[] = []
+    // Leading empty cells
+    for (let i = 0; i < startOffset; i++) cells.push(null)
+    // Day cells
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+      cells.push({ dateStr, day: d })
+    }
+    return cells
+  }, [calendarMonth])
+
+  const calendarLabel = new Date(calendarMonth.year, calendarMonth.month).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  })
+
+  const canGoPrev = calendarMonth.year > today.getFullYear() || calendarMonth.month > today.getMonth()
+
+  const navigateMonth = (dir: -1 | 1) => {
+    setCalendarMonth((prev) => {
+      let m = prev.month + dir
+      let y = prev.year
+      if (m < 0) { m = 11; y-- }
+      if (m > 11) { m = 0; y++ }
+      return { year: y, month: m }
+    })
+  }
+
+  // Set of available day-of-week names (lowercase) from the expert
+  const availableDays = useMemo(() => {
+    return new Set(availability.map((a) => a.day.toLowerCase()))
+  }, [availability])
 
   // Get time slots for selected date from availability (match by day-of-week)
   const timeSlotsForDate = useMemo(() => {
@@ -286,47 +313,65 @@ export function BookSessionPage() {
               <GlassCard variant="base">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-kalkvit">Select Date</h3>
-                  <div className="flex gap-1">
+                  <div className="flex items-center gap-2">
                     <button
                       className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
-                      onClick={() => setDateOffset(Math.max(0, dateOffset - 7))}
-                      disabled={dateOffset === 0}
+                      onClick={() => navigateMonth(-1)}
+                      disabled={!canGoPrev}
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
+                    <span className="text-sm font-medium text-kalkvit min-w-[120px] text-center">
+                      {calendarLabel}
+                    </span>
                     <button
-                      className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit disabled:opacity-30 disabled:cursor-not-allowed"
-                      onClick={() => setDateOffset(dateOffset + 7)}
-                      disabled={dateOffset + 7 >= days.length}
+                      className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit"
+                      onClick={() => navigateMonth(1)}
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
-                <div className="flex justify-between gap-1">
-                  {days.slice(dateOffset, dateOffset + 7).map((day) => (
-                    <button
-                      key={day.dateStr}
-                      onClick={() => {
-                        setSelectedDate(day.dateStr)
-                        setSelectedTime(null)
-                      }}
-                      disabled={!selectedExpertId}
-                      className={cn(
-                        'flex-1 py-3 rounded-xl text-center transition-all min-w-0',
-                        !selectedExpertId
-                          ? 'opacity-50 cursor-not-allowed'
-                          : selectedDate === day.dateStr
-                            ? 'bg-koppar text-kalkvit'
-                            : day.isToday
-                              ? 'bg-white/[0.08] text-kalkvit'
-                              : 'hover:bg-white/[0.06] text-kalkvit/70'
-                      )}
-                    >
-                      <p className="text-[11px] leading-tight text-center">{day.day}</p>
-                      <p className="text-base font-semibold leading-tight mt-1">{day.date}</p>
-                    </button>
+                {/* Weekday headers */}
+                <div className="grid grid-cols-7 mb-1">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                    <div key={d} className="text-center text-[11px] text-kalkvit/40 py-1">{d}</div>
                   ))}
+                </div>
+                {/* Calendar grid */}
+                <div className="grid grid-cols-7 gap-px">
+                  {calendarDays.map((cell, i) => {
+                    if (!cell) return <div key={`empty-${i}`} />
+                    const isPast = cell.dateStr < todayStr
+                    const dayOfWeek = new Date(cell.dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+                    const isAvailable = !isPast && selectedExpertId && availableDays.has(dayOfWeek)
+                    const isSelected = selectedDate === cell.dateStr
+                    const isToday = cell.dateStr === todayStr
+                    return (
+                      <button
+                        key={cell.dateStr}
+                        onClick={() => {
+                          if (isAvailable) {
+                            setSelectedDate(cell.dateStr)
+                            setSelectedTime(null)
+                          }
+                        }}
+                        disabled={!isAvailable}
+                        className={cn(
+                          'aspect-square flex items-center justify-center rounded-lg text-sm transition-all',
+                          !isAvailable
+                            ? 'text-kalkvit/20 cursor-default'
+                            : isSelected
+                              ? 'bg-koppar text-kalkvit font-semibold'
+                              : isToday
+                                ? 'bg-white/[0.08] text-kalkvit font-semibold hover:bg-white/[0.12]'
+                                : 'text-kalkvit/70 hover:bg-white/[0.06]',
+                        )}
+                      >
+                        {cell.day}
+                      </button>
+                    )
+                  })}
                 </div>
                 {!selectedExpertId && (
                   <p className="text-xs text-kalkvit/40 mt-3">Select an expert first</p>
@@ -438,8 +483,11 @@ export function BookSessionPage() {
                   <div className="flex items-center gap-3 text-kalkvit/80">
                     <Calendar className="w-4 h-4 text-koppar" />
                     <span>
-                      {days.find((d) => d.dateStr === selectedDate)?.month}{' '}
-                      {days.find((d) => d.dateStr === selectedDate)?.date}
+                      {selectedDate && new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-kalkvit/80">
