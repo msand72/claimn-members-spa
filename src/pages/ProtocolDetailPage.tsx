@@ -694,16 +694,18 @@ export function ProtocolDetailPage() {
         }
       }
 
-      // 2. Start the protocol
-      await startMutation.mutateAsync({
-        protocol_slug: slug,
-        protocol_name: protocol.title || slug,
-        pillar: protocol.pillar,
-        duration_weeks: protocol.duration_weeks,
-      })
+      // 2. Start the protocol (only if not already started)
+      if (!activeProtocol) {
+        await startMutation.mutateAsync({
+          protocol_slug: slug,
+          protocol_name: protocol.title || slug,
+          pillar: protocol.pillar,
+          duration_weeks: protocol.duration_weeks,
+        })
+        setJustStarted(true)
+      }
 
       setShowPlanBuilder(false)
-      setJustStarted(true)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
       setPlanError(`Failed to create plan: ${msg}`)
@@ -962,6 +964,27 @@ export function ProtocolDetailPage() {
             isPausing={pauseMutation.isPending}
             isResuming={resumeMutation.isPending}
           />
+        )}
+
+        {/* Set Up Plan prompt — for protocols started without the PlanBuilder */}
+        {hasStarted && linkedGoals.length === 0 && (
+          <GlassCard variant="accent" className="mb-8">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-koppar/10 flex items-center justify-center flex-shrink-0">
+                <Target className="w-5 h-5 text-koppar" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-kalkvit mb-1">Set up your action plan</h3>
+                <p className="text-sm text-kalkvit/60 mb-3">
+                  Create goals and action items from this protocol so you know exactly what to do each step of the way.
+                </p>
+                <GlassButton variant="primary" onClick={handleStartClick}>
+                  <ListChecks className="w-4 h-4" />
+                  Create Plan
+                </GlassButton>
+              </div>
+            </div>
+          </GlassCard>
         )}
 
         {/* Scientific Foundation */}
