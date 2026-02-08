@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type PaginatedResponse, type PaginationParams } from '../client'
+import { api, safeArray, type PaginatedResponse, type PaginationParams } from '../client'
 import type {
   Expert,
   ExpertTestimonial,
+  ExpertAvailabilityRaw,
   ExpertAvailabilitySlot,
   CoachingSession,
   SessionNote,
@@ -67,20 +68,43 @@ export function useExpert(id: string) {
   })
 }
 
-// Get expert testimonials
+// Get expert testimonials (backend returns paginated response)
 export function useExpertTestimonials(expertId: string) {
   return useQuery({
     queryKey: expertKeys.testimonials(expertId),
-    queryFn: () => api.get<ExpertTestimonial[]>(`/members/experts/${expertId}/testimonials`),
+    queryFn: async () => {
+      const res = await api.get<ExpertTestimonial[] | { data: ExpertTestimonial[] }>(
+        `/members/experts/${expertId}/testimonials`,
+      )
+      return safeArray<ExpertTestimonial>(res)
+    },
     enabled: !!expertId,
   })
 }
 
-// Get expert availability
+// Get expert availability (backend returns flat rows, we group by day_of_week)
 export function useExpertAvailability(expertId: string) {
   return useQuery({
     queryKey: expertKeys.availability(expertId),
-    queryFn: () => api.get<ExpertAvailabilitySlot[]>(`/members/experts/${expertId}/availability`),
+    queryFn: async () => {
+      const raw = await api.get<ExpertAvailabilityRaw[]>(
+        `/members/experts/${expertId}/availability`,
+      )
+      const rows = Array.isArray(raw) ? raw : []
+      // Group by day_of_week → ExpertAvailabilitySlot[]
+      const grouped = new Map<string, string[]>()
+      for (const row of rows) {
+        if (!row.is_active) continue
+        const day = row.day_of_week
+        if (!grouped.has(day)) grouped.set(day, [])
+        grouped.get(day)!.push(`${row.start_time} - ${row.end_time}`)
+      }
+      const slots: ExpertAvailabilitySlot[] = []
+      for (const [day, times] of grouped) {
+        slots.push({ date: day, times })
+      }
+      return slots
+    },
     enabled: !!expertId,
   })
 }

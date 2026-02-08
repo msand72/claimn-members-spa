@@ -416,20 +416,21 @@ export interface Expert {
   title: string
   bio: string
   avatar_url: string | null
-  location: string | null
-  experience: string | null
   specialties: string[]
-  certifications: string[]
   rating: number
   reviews_count: number
   total_sessions: number
   hourly_rate: number
-  availability: string | null
   calendar_url: string | null
-  languages: string[]
   is_top_rated: boolean
   created_at: string
   updated_at: string
+  // Fields not yet in backend – kept optional for forward-compat
+  location?: string | null
+  experience?: string | null
+  certifications?: string[]
+  availability?: string | null
+  languages?: string[]
 }
 
 export interface ExpertTestimonial {
@@ -438,10 +439,21 @@ export interface ExpertTestimonial {
   author_name: string
   author_avatar_url: string | null
   rating: number
-  text: string
+  content: string
   created_at: string
 }
 
+/** Raw availability row from backend */
+export interface ExpertAvailabilityRaw {
+  id: string
+  expert_id: string
+  day_of_week: string
+  start_time: string
+  end_time: string
+  is_active: boolean
+}
+
+/** Grouped availability slot used by the UI */
 export interface ExpertAvailabilitySlot {
   date: string
   times: string[]

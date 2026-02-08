@@ -154,14 +154,14 @@ export function ExpertProfilePage() {
             )}
 
             {/* Certifications */}
-            {expert.certifications?.length > 0 && (
+            {(expert.certifications ?? []).length > 0 && (
               <GlassCard variant="base">
                 <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
                   <GraduationCap className="w-5 h-5 text-koppar" />
                   Certifications
                 </h2>
                 <ul className="space-y-3">
-                  {expert.certifications.map((cert, i) => (
+                  {(expert.certifications ?? []).map((cert, i) => (
                     <li key={i} className="flex items-center gap-3 text-kalkvit/70">
                       <CheckCircle className="w-4 h-4 text-skogsgron flex-shrink-0" />
                       {cert}
@@ -215,7 +215,7 @@ export function ExpertProfilePage() {
                             ))}
                           </div>
                         </div>
-                        <p className="text-sm text-kalkvit/70 italic">"{testimonial.text}"</p>
+                        <p className="text-sm text-kalkvit/70 italic">"{testimonial.content}"</p>
                       </div>
                     )
                   })}
@@ -243,10 +243,10 @@ export function ExpertProfilePage() {
                     {expert.availability}
                   </div>
                 )}
-                {expert.languages?.length > 0 && (
+                {(expert.languages ?? []).length > 0 && (
                   <div className="flex items-center gap-2">
                     <MessageCircle className="w-4 h-4 text-koppar" />
-                    {expert.languages.join(', ')}
+                    {(expert.languages ?? []).join(', ')}
                   </div>
                 )}
               </div>
@@ -261,7 +261,7 @@ export function ExpertProfilePage() {
                     <div key={slot.date}>
                       <p className="text-sm text-kalkvit/60 mb-2">{slot.date}</p>
                       <div className="flex flex-wrap gap-2">
-                        {slot.times.map((time) => (
+                        {(slot.times ?? []).map((time) => (
                           <button
                             key={`${slot.date}-${time}`}
                             onClick={() => setSelectedSlot({ date: slot.date, time })}
