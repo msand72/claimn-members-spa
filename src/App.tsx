@@ -35,7 +35,7 @@ const ForgotPasswordPage = lazyWithRetry(() => import('./pages/ForgotPasswordPag
 const ResetPasswordPage = lazyWithRetry(() => import('./pages/ResetPasswordPage'))
 
 // Pages - Core
-const JourneyDashboardPage = lazyWithRetry(() => import('./pages/JourneyDashboardPage'))
+const HubPage = lazyWithRetry(() => import('./pages/HubPage'))
 const ProfilePage = lazyWithRetry(() => import('./pages/ProfilePage'))
 const BillingPage = lazyWithRetry(() => import('./pages/BillingPage'))
 const ResourcesPage = lazyWithRetry(() => import('./pages/ResourcesPage'))
@@ -157,7 +157,7 @@ const router = createBrowserRouter([
       { path: '/onboarding/path', element: <Protected><OnboardingPathPage /></Protected> },
 
       // Protected routes - Core Pages
-      { path: '/', element: <Protected><JourneyDashboardPage /></Protected> },
+      { path: '/', element: <Protected><HubPage /></Protected> },
       { path: '/profile', element: <Protected><ProfilePage /></Protected> },
       { path: '/billing', element: <Protected><BillingPage /></Protected> },
       { path: '/resources', element: <Protected><ResourcesPage /></Protected> },

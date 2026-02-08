@@ -45,7 +45,7 @@ export interface SectionConfig {
 
 export const SECTION_NAV: Record<string, SectionConfig> = {
   dashboard: {
-    label: 'Dashboard',
+    label: 'The Hub',
     icon: LayoutDashboard,
     basePath: '/',
     mode: 'tabs',
