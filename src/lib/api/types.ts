@@ -226,14 +226,35 @@ export interface CirclePost {
 // Dashboard
 // =====================================================
 export interface DashboardStats {
+  user_id: string
   connections_count: number
   circles_count: number
   posts_count: number
-  unread_messages: number
-  days_since_joined: number
+  likes_received: number
+  comments_received: number
+  messages_unread: number
+  recent_activity: {
+    type: string
+    timestamp: string
+    summary: string
+    target_id?: string
+  }[]
+  pillar_progress: Record<string, number>
+  achievements: Achievement[]
+  // Fields not yet in backend — kept for forward-compatibility
+  unread_messages?: number
+  days_since_joined?: number
   current_streak?: number
   goals_active?: number
   goals_completed?: number
+}
+
+export interface Achievement {
+  id: string
+  name: string
+  description: string
+  icon: string
+  earned_at: string
 }
 
 export interface DashboardData {

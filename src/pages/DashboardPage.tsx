@@ -129,28 +129,25 @@ export function DashboardPage() {
             icon={Target}
             label="Active Goals"
             value={statsLoading ? '...' : String(stats?.goals_active ?? 0)}
-            trend={stats?.goals_completed ? `+${stats.goals_completed}` : '--'}
+            trend={stats?.goals_completed ? `+${stats.goals_completed}` : undefined}
             trendLabel="completed"
           />
           <GlassStatsCard
             icon={Flame}
             label="Current Streak"
             value={statsLoading ? '...' : String(stats?.current_streak ?? 0)}
-            trend="--"
             trendLabel="days"
           />
           <GlassStatsCard
             icon={CheckSquare}
             label="Action Items"
             value={actionItemsLoading ? '...' : String(actionItemsData?.pagination?.total ?? actionItems.length)}
-            trend="--"
             trendLabel="pending"
           />
           <GlassStatsCard
             icon={Trophy}
             label="Days Active"
             value={statsLoading ? '...' : String(stats?.days_since_joined ?? daysSinceJoining)}
-            trend="--"
             trendLabel="journey"
           />
         </div>
@@ -161,21 +158,20 @@ export function DashboardPage() {
             icon={Heart}
             label="Total Posts"
             value={statsLoading ? '...' : String(stats?.posts_count ?? 0)}
-            trend="--"
+            trend={stats?.likes_received ? `${stats.likes_received} likes` : undefined}
             trendLabel="shared"
           />
           <GlassStatsCard
             icon={MessageCircle}
             label="Messages"
-            value={statsLoading ? '...' : String(stats?.unread_messages ?? 0)}
-            trend={stats?.unread_messages ? `${stats.unread_messages}` : '--'}
+            value={statsLoading ? '...' : String(stats?.unread_messages ?? stats?.messages_unread ?? 0)}
+            trend={(stats?.unread_messages ?? stats?.messages_unread) ? `${stats?.unread_messages ?? stats?.messages_unread}` : undefined}
             trendLabel="unread"
           />
           <GlassStatsCard
             icon={Users}
             label="Connections"
             value={statsLoading ? '...' : String(stats?.connections_count ?? 0)}
-            trend="--"
             trendLabel="network"
           />
         </div>

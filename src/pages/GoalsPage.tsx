@@ -13,7 +13,7 @@ import {
 } from '../components/ui'
 import { PILLARS, PILLAR_IDS, GOAL_STATUSES } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
-import { useGoals, useCreateGoal, useUpdateGoal, useMyActiveProtocols } from '../lib/api/hooks'
+import { useGoals, useCreateGoal, useUpdateGoal, useMyActiveProtocols, useDashboardStats, useAchievements } from '../lib/api/hooks'
 import type { Goal, CreateGoalRequest } from '../lib/api/types'
 import { getProtocolSlugFromGoal, addProtocolTag, stripProtocolTag } from '../lib/protocol-plan'
 import {
@@ -166,6 +166,8 @@ export function GoalsPage() {
   const createGoal = useCreateGoal()
   const updateGoal = useUpdateGoal()
   const { data: activeProtocols } = useMyActiveProtocols()
+  const { data: dashStats } = useDashboardStats()
+  const { data: achievements } = useAchievements()
 
   const goals = Array.isArray(goalsData?.data) ? goalsData.data : []
 
@@ -250,7 +252,7 @@ export function GoalsPage() {
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
             <Flame className="w-6 h-6 text-tegelrod mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">--</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">{dashStats?.current_streak ?? 0}</p>
             <p className="text-xs text-kalkvit/50">Day Streak</p>
           </GlassCard>
         </div>
@@ -355,35 +357,50 @@ export function GoalsPage() {
           </GlassCard>
         )}
 
-        {/* Achievements Section — derived from real goal data */}
+        {/* Achievements Section — from API, with client-computed fallback */}
         {goals.length > 0 && (
           <div className="mt-12">
             <h2 className="font-serif text-xl font-bold text-kalkvit mb-4">Milestones</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { name: 'First Goal Created', icon: Target, earned: goals.length > 0 },
-                { name: 'Goal Completed', icon: CheckCircle2, earned: completedGoals > 0 },
-                { name: '5 Goals Set', icon: TrendingUp, earned: goals.length >= 5 },
-                { name: '10 Goals Completed', icon: Trophy, earned: completedGoals >= 10 },
-              ].map((milestone) => (
-                <GlassCard
-                  key={milestone.name}
-                  variant="base"
-                  className={cn('text-center py-4', !milestone.earned && 'opacity-40')}
-                >
-                  <milestone.icon
-                    className={cn(
-                      'w-8 h-8 mx-auto mb-2',
-                      milestone.earned ? 'text-koppar' : 'text-kalkvit/30'
+            {achievements && achievements.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {achievements.map((a) => (
+                  <GlassCard key={a.id} variant="base" className="text-center py-4">
+                    <Trophy className="w-8 h-8 mx-auto mb-2 text-koppar" />
+                    <p className="text-sm text-kalkvit">{a.name}</p>
+                    <p className="text-xs text-kalkvit/50 mt-1">{a.description}</p>
+                    <p className="text-xs text-koppar mt-1">
+                      {new Date(a.earned_at).toLocaleDateString()}
+                    </p>
+                  </GlassCard>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { name: 'First Goal Created', icon: Target, earned: goals.length > 0 },
+                  { name: 'Goal Completed', icon: CheckCircle2, earned: completedGoals > 0 },
+                  { name: '5 Goals Set', icon: TrendingUp, earned: goals.length >= 5 },
+                  { name: '10 Goals Completed', icon: Trophy, earned: completedGoals >= 10 },
+                ].map((milestone) => (
+                  <GlassCard
+                    key={milestone.name}
+                    variant="base"
+                    className={cn('text-center py-4', !milestone.earned && 'opacity-40')}
+                  >
+                    <milestone.icon
+                      className={cn(
+                        'w-8 h-8 mx-auto mb-2',
+                        milestone.earned ? 'text-koppar' : 'text-kalkvit/30'
+                      )}
+                    />
+                    <p className="text-sm text-kalkvit">{milestone.name}</p>
+                    {milestone.earned && (
+                      <p className="text-xs text-koppar mt-1">Earned</p>
                     )}
-                  />
-                  <p className="text-sm text-kalkvit">{milestone.name}</p>
-                  {milestone.earned && (
-                    <p className="text-xs text-koppar mt-1">Earned</p>
-                  )}
-                </GlassCard>
-              ))}
-            </div>
+                  </GlassCard>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

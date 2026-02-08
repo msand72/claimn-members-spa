@@ -67,6 +67,7 @@ export {
   dashboardKeys,
   useDashboard,
   useDashboardStats,
+  useAchievements,
 } from './useDashboard'
 
 // Goals & KPIs
@@ -211,8 +212,11 @@ export {
   useAccountabilityGroupDetail,
   useJoinAccountabilityGroup,
   useLeaveAccountabilityGroup,
+  useCreateCheckIn,
   type AccountabilityGroup,
   type AccountabilityMember,
+  type CheckInRequest,
+  type CheckIn,
 } from './useAccountability'
 
 // Events

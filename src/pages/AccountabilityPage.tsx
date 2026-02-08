@@ -9,7 +9,7 @@ import {
   GlassModalFooter,
   GlassTextarea,
 } from '../components/ui'
-import { useAccountabilityGroup, useLeaveAccountabilityGroup } from '../lib/api/hooks'
+import { useAccountabilityGroup, useLeaveAccountabilityGroup, useCreateCheckIn } from '../lib/api/hooks'
 import {
   Users,
   MessageCircle,
@@ -30,13 +30,24 @@ export function AccountabilityPage() {
 
   const { data: group, isLoading, error } = useAccountabilityGroup()
   const leaveGroup = useLeaveAccountabilityGroup()
+  const createCheckIn = useCreateCheckIn()
 
-  const handleSubmitCheckIn = () => {
-    // Check-in API endpoints not yet implemented in the backend
-    setShowCheckInModal(false)
-    setCheckInMessage('')
-    setCheckInNotice('Check-in feature coming soon. Your message was not sent.')
-    setTimeout(() => setCheckInNotice(null), 5000)
+  const handleSubmitCheckIn = async () => {
+    if (!group || !checkInMessage.trim()) return
+    try {
+      await createCheckIn.mutateAsync({
+        groupId: group.id,
+        data: { progress_update: checkInMessage.trim() },
+      })
+      setShowCheckInModal(false)
+      setCheckInMessage('')
+      setCheckInNotice('Check-in shared with your group!')
+      setTimeout(() => setCheckInNotice(null), 5000)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to submit check-in'
+      setCheckInNotice(msg)
+      setTimeout(() => setCheckInNotice(null), 5000)
+    }
   }
 
   const handleLeaveGroup = () => {
@@ -260,10 +271,19 @@ export function AccountabilityPage() {
             <GlassButton
               variant="primary"
               onClick={handleSubmitCheckIn}
-              disabled={!checkInMessage.trim()}
+              disabled={!checkInMessage.trim() || createCheckIn.isPending}
             >
-              <Send className="w-4 h-4" />
-              Share
+              {createCheckIn.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Sharing...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Share
+                </>
+              )}
             </GlassButton>
           </GlassModalFooter>
         </GlassModal>

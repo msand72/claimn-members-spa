@@ -136,3 +136,44 @@ export function useLeaveAccountabilityGroup() {
     },
   })
 }
+
+// ---------------------------------------------------------------------------
+// Check-ins
+// ---------------------------------------------------------------------------
+
+export interface CheckInRequest {
+  progress_update?: string
+  challenges?: string
+  support_needed?: string
+  commitments_for_next?: string
+  week_rating?: number
+}
+
+export interface CheckIn {
+  id: string
+  group_id: string
+  member_id: string
+  check_in_date: string
+  progress_update: string | null
+  challenges: string | null
+  support_needed: string | null
+  commitments_for_next: string | null
+  week_rating: number | null
+  created_at: string
+}
+
+/**
+ * Submit a check-in to an accountability group
+ * POST /members/accountability/groups/{id}/check-ins
+ */
+export function useCreateCheckIn() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ groupId, data }: { groupId: string; data: CheckInRequest }) =>
+      api.post<CheckIn>(`/members/accountability/groups/${groupId}/check-ins`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: accountabilityKeys.all })
+    },
+  })
+}
