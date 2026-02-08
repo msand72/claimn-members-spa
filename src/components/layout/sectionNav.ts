@@ -63,8 +63,6 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
       { to: '/protocols', label: 'Protocols', icon: BookOpen },
       { to: '/action-items', label: 'Actions', icon: CheckSquare },
       { to: '/milestones', label: 'Milestones', icon: Flag },
-    ],
-    moreItems: [
       { to: '/kpis', label: 'KPIs', icon: BarChart3 },
       { to: '/accountability', label: 'Accountability', icon: UsersRound },
     ],
