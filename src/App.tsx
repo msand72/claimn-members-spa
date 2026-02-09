@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
-import { RequireTier } from './components/RequireTier'
+import { RequireUserType } from './components/RequireUserType'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
 import { PageErrorBoundary } from './components/PageErrorBoundary'
 import { LoadingSpinner } from './components/LoadingSpinner'
@@ -119,12 +119,12 @@ function Protected({ children }: { children: React.ReactNode }) {
   )
 }
 
-/** Premium routes require coaching tier or higher (transformation features) */
+/** Premium routes require client or expert user_type (bought a protocol or expert session) */
 function PremiumProtected({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
       <PageErrorBoundary>
-        <RequireTier minTier="coaching">{children}</RequireTier>
+        <RequireUserType types={['client', 'expert']}>{children}</RequireUserType>
       </PageErrorBoundary>
     </ProtectedRoute>
   )
