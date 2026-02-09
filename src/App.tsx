@@ -160,6 +160,7 @@ const router = createBrowserRouter([
       { path: '/', element: <Protected><HubPage /></Protected> },
       { path: '/profile', element: <Protected><ProfilePage /></Protected> },
       { path: '/billing', element: <Protected><BillingPage /></Protected> },
+      { path: '/members/billing', element: <Protected><BillingPage /></Protected> },
       { path: '/resources', element: <Protected><ResourcesPage /></Protected> },
 
       // Protected routes - Community Pages
