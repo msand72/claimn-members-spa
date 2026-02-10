@@ -9,8 +9,10 @@ import {
   CreditCard,
   LogOut,
   Library,
+  Bell,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useNotifications, safeArray, type Notification } from '../../lib/api'
 
 interface NavItem {
   to: string
@@ -28,6 +30,8 @@ export function GlassSidebar() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const currentSection = useCurrentSection()
+  const { data: notifData } = useNotifications({ limit: 50 })
+  const unreadCount = safeArray<Notification>(notifData).filter((n) => !n.read_at).length
 
   const handleSignOut = async () => {
     await signOut()
@@ -57,6 +61,14 @@ export function GlassSidebar() {
             <p className="text-sm font-semibold text-kalkvit truncate">{displayName}</p>
             <p className="text-xs text-kalkvit/50 truncate">{user?.email}</p>
           </div>
+          <Link to="/notifications" className="relative p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit">
+            <Bell className="w-4.5 h-4.5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-koppar text-[10px] font-bold text-kalkvit flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
 

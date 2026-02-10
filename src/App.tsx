@@ -79,6 +79,12 @@ const OnboardingResultsPage = lazyWithRetry(() => import('./pages/onboarding/Onb
 const OnboardingChallengePage = lazyWithRetry(() => import('./pages/onboarding/OnboardingChallengePage'))
 const OnboardingPathPage = lazyWithRetry(() => import('./pages/onboarding/OnboardingPathPage'))
 
+// Pages - Notifications
+const NotificationsPage = lazyWithRetry(() => import('./pages/NotificationsPage'))
+
+// Pages - Quarterly Reviews
+const QuarterlyReviewsPage = lazyWithRetry(() => import('./pages/QuarterlyReviewsPage'))
+
 // Pages - Transformation Tracking
 const AssessmentPage = lazyWithRetry(() => import('./pages/AssessmentPage'))
 const AssessmentTakePage = lazyWithRetry(() => import('./pages/AssessmentTakePage'))
@@ -169,6 +175,7 @@ const router = createBrowserRouter([
       { path: '/billing', element: <Protected><BillingPage /></Protected> },
       { path: '/members/billing', element: <Protected><BillingPage /></Protected> },
       { path: '/resources', element: <Protected><ResourcesPage /></Protected> },
+      { path: '/notifications', element: <Protected><NotificationsPage /></Protected> },
 
       // Protected routes - Community Pages
       { path: '/feed', element: <Protected><FeedPage /></Protected> },
@@ -195,6 +202,7 @@ const router = createBrowserRouter([
       { path: '/coaching/sessions', element: <Protected><CoachingSessionsPage /></Protected> },
       { path: '/coaching/resources', element: <Protected><CoachingResourcesPage /></Protected> },
       { path: '/coaching/session-notes', element: <Protected><SessionNotesPage /></Protected> },
+      { path: '/coaching/quarterly-reviews', element: <Protected><QuarterlyReviewsPage /></Protected> },
 
       // Protected routes - Expert Sessions
       { path: '/expert-sessions', element: <Protected><ExpertSessionsPage /></Protected> },
