@@ -4,20 +4,15 @@ const TOKEN_KEY = 'claimn_access_token'
 const REFRESH_TOKEN_KEY = 'claimn_refresh_token'
 const EXPIRES_AT_KEY = 'claimn_expires_at'
 
-// Auto-detect production based on hostname, fallback to env var or localhost
+// API URL resolution:
+// 1. VITE_API_URL env var (set in .env for local dev, Vercel env vars for deploys)
+// 2. Fallback to production API (safe for preview deploys; local dev should set .env)
 export function getApiBaseUrl(): string {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL
   }
 
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname
-    if (hostname === 'members.claimn.co' || hostname === 'www.members.claimn.co') {
-      return 'https://api.claimn.co'
-    }
-  }
-
-  return 'http://localhost:3001'
+  return 'https://api.claimn.co'
 }
 
 const AUTH_BASE = () => `${getApiBaseUrl()}/api/v2/auth`
