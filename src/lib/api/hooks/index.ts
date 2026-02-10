@@ -315,6 +315,21 @@ export {
   type JournalEntriesParams,
 } from './useJournal'
 
+// Settings
+export {
+  settingsKeys,
+  useAssessmentSharing,
+  useUpdateAssessmentSharing,
+} from './useSettings'
+
+// Quarterly Reviews
+export {
+  quarterlyReviewKeys,
+  useQuarterlyReviews,
+  type QuarterlyReview,
+  type QuarterlyReviewsResponse,
+} from './useQuarterlyReviews'
+
 // Subscription
 export {
   subscriptionKeys,

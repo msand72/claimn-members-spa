@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { Menu, X, LogOut, Home, User, CreditCard, TrendingUp, Users, Sparkles, GraduationCap, ShoppingBag, Library } from 'lucide-react'
+import { NavLink, Link, useNavigate } from 'react-router-dom'
+import { Menu, X, LogOut, Home, User, CreditCard, TrendingUp, Users, Sparkles, GraduationCap, ShoppingBag, Library, Bell } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../contexts/AuthContext'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { useCurrentSection, SECTION_KEYS, SECTION_NAV } from './sectionNav'
+import { useNotifications, safeArray, type Notification } from '../../lib/api'
 
 const SECTION_ICONS: Record<string, React.ElementType> = {
   growth: TrendingUp,
@@ -37,6 +38,8 @@ export function MobileHeader() {
   const { signOut } = useAuth()
   const navigate = useNavigate()
   const section = useCurrentSection()
+  const { data: notifData } = useNotifications({ limit: 50 })
+  const unreadCount = safeArray<Notification>(notifData).filter((n) => !n.read_at).length
 
   const closeMenu = () => setIsOpen(false)
 
@@ -56,13 +59,27 @@ export function MobileHeader() {
             </div>
             <span className="font-display text-lg font-bold text-kalkvit">CLAIM'N</span>
           </div>
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="p-2 rounded-xl text-kalkvit/70 hover:bg-white/[0.06] hover:text-kalkvit transition-colors"
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="flex items-center gap-1">
+            <Link
+              to="/notifications"
+              className="relative p-2 rounded-xl text-kalkvit/70 hover:bg-white/[0.06] hover:text-kalkvit transition-colors"
+              aria-label="Notifications"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-koppar text-[10px] font-bold text-kalkvit flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Link>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 rounded-xl text-kalkvit/70 hover:bg-white/[0.06] hover:text-kalkvit transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </header>
 

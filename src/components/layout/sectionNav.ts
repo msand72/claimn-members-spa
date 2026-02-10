@@ -94,9 +94,12 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
       { to: '/coaching/sessions', label: 'My Sessions', icon: CircleDot },
       { to: '/coaching/session-notes', label: 'Notes', icon: FileText },
       { to: '/coaching/resources', label: 'Materials', icon: FolderOpen },
+    ],
+    moreItems: [
+      { to: '/coaching/quarterly-reviews', label: 'Quarterly Reviews', icon: ClipboardCheck },
       { to: '/events', label: 'Events', icon: Calendar },
     ],
-    allPaths: ['/experts', '/book-session', '/coaching/sessions', '/coaching/session-notes', '/coaching/resources', '/events'],
+    allPaths: ['/experts', '/book-session', '/coaching/sessions', '/coaching/session-notes', '/coaching/resources', '/coaching/quarterly-reviews', '/events'],
   },
   programs: {
     label: 'Programs',

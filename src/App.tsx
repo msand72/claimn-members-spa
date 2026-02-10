@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
-import { RequireTier } from './components/RequireTier'
+import { RequireUserType } from './components/RequireUserType'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
 import { PageErrorBoundary } from './components/PageErrorBoundary'
 import { LoadingSpinner } from './components/LoadingSpinner'
@@ -79,6 +79,12 @@ const OnboardingResultsPage = lazyWithRetry(() => import('./pages/onboarding/Onb
 const OnboardingChallengePage = lazyWithRetry(() => import('./pages/onboarding/OnboardingChallengePage'))
 const OnboardingPathPage = lazyWithRetry(() => import('./pages/onboarding/OnboardingPathPage'))
 
+// Pages - Notifications
+const NotificationsPage = lazyWithRetry(() => import('./pages/NotificationsPage'))
+
+// Pages - Quarterly Reviews
+const QuarterlyReviewsPage = lazyWithRetry(() => import('./pages/QuarterlyReviewsPage'))
+
 // Pages - Transformation Tracking
 const AssessmentPage = lazyWithRetry(() => import('./pages/AssessmentPage'))
 const AssessmentTakePage = lazyWithRetry(() => import('./pages/AssessmentTakePage'))
@@ -126,12 +132,12 @@ function Protected({ children }: { children: React.ReactNode }) {
   )
 }
 
-/** Premium routes require coaching tier or higher (transformation features) */
+/** Premium routes require client or expert user_type (bought a protocol or expert session) */
 function PremiumProtected({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
       <PageErrorBoundary>
-        <RequireTier minTier="coaching">{children}</RequireTier>
+        <RequireUserType types={['client', 'expert']}>{children}</RequireUserType>
       </PageErrorBoundary>
     </ProtectedRoute>
   )
@@ -167,7 +173,9 @@ const router = createBrowserRouter([
       { path: '/', element: <Protected><HubPage /></Protected> },
       { path: '/profile', element: <Protected><ProfilePage /></Protected> },
       { path: '/billing', element: <Protected><BillingPage /></Protected> },
+      { path: '/members/billing', element: <Protected><BillingPage /></Protected> },
       { path: '/resources', element: <Protected><ResourcesPage /></Protected> },
+      { path: '/notifications', element: <Protected><NotificationsPage /></Protected> },
 
       // Protected routes - Community Pages
       { path: '/feed', element: <Protected><FeedPage /></Protected> },
@@ -194,6 +202,7 @@ const router = createBrowserRouter([
       { path: '/coaching/sessions', element: <Protected><CoachingSessionsPage /></Protected> },
       { path: '/coaching/resources', element: <Protected><CoachingResourcesPage /></Protected> },
       { path: '/coaching/session-notes', element: <Protected><SessionNotesPage /></Protected> },
+      { path: '/coaching/quarterly-reviews', element: <Protected><QuarterlyReviewsPage /></Protected> },
 
       // Protected routes - Expert Sessions
       { path: '/expert-sessions', element: <Protected><ExpertSessionsPage /></Protected> },

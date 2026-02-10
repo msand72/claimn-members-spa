@@ -10,7 +10,7 @@ import {
   GlassMultiSelect,
 } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { useCurrentProfile, useUpdateProfile, useUploadAvatar } from '../lib/api/hooks'
+import { useCurrentProfile, useUpdateProfile, useUploadAvatar, useAssessmentSharing, useUpdateAssessmentSharing } from '../lib/api/hooks'
 import { useInterests, useMemberInterests, useUpdateMemberInterests } from '../hooks/useInterests'
 import { ARCHETYPES, PILLARS, PILLAR_IDS } from '../lib/constants'
 import type { Archetype, PillarId } from '../lib/constants'
@@ -38,6 +38,10 @@ export function ProfilePage() {
   const updateProfile = useUpdateProfile()
   const uploadAvatar = useUploadAvatar()
   const updateMemberInterests = useUpdateMemberInterests()
+
+  // Assessment sharing consent (independent of profile save)
+  const { data: sharingData } = useAssessmentSharing()
+  const updateSharing = useUpdateAssessmentSharing()
 
   // Local form state
   const [formData, setFormData] = useState({
@@ -379,7 +383,7 @@ export function ProfilePage() {
             </GlassCard>
 
             {/* Preferences */}
-            <GlassCard variant="base">
+            <GlassCard variant="base" className="mb-6">
               <h3 className="font-display text-xl font-semibold text-kalkvit mb-6">Preferences</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.04]">
@@ -414,6 +418,31 @@ export function ProfilePage() {
                         setFormData({ ...formData, weekly_digest: e.target.checked })
                       }
                       disabled={!isEditing}
+                    />
+                    <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-kalkvit after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-koppar"></div>
+                  </label>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Privacy */}
+            <GlassCard variant="base">
+              <h3 className="font-display text-xl font-semibold text-kalkvit mb-6">Privacy</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.04]">
+                  <div className="flex-1 mr-4">
+                    <p className="text-kalkvit font-medium">Share assessment results with your coach</p>
+                    <p className="text-sm text-kalkvit/50">
+                      When enabled, your coach can see your archetype profile and pillar scores to personalize your coaching experience. When disabled, your assessment data remains private.
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={sharingData?.consent ?? true}
+                      onChange={(e) => updateSharing.mutate(e.target.checked)}
+                      disabled={updateSharing.isPending}
                     />
                     <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-kalkvit after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-koppar"></div>
                   </label>
