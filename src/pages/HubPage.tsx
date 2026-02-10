@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
+import { PageErrorBoundary } from '../components/PageErrorBoundary'
 import {
   GlassCard,
   GlassAvatar,
@@ -126,7 +127,7 @@ function StatsRow() {
   const { data: stats, isLoading } = useDashboardStats()
   const { data: goalsData } = useGoals({ status: 'active', limit: 1 })
 
-  const goalsCount = Array.isArray(goalsData?.data) ? goalsData.data.length : 0
+  const goalsCount = safeArray<Goal>(goalsData).length
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -215,7 +216,7 @@ function ExpertSpotlight() {
 
 function ActiveGoals() {
   const { data, isLoading } = useGoals({ status: 'active', limit: 3 })
-  const goals: Goal[] = Array.isArray(data?.data) ? data.data : []
+  const goals: Goal[] = safeArray<Goal>(data)
 
   return (
     <GlassCard variant="base">
@@ -274,7 +275,7 @@ function ActiveGoals() {
 
 function ActiveProtocolsList() {
   const { data, isLoading } = useActiveProtocols({ status: 'active' })
-  const protocols: ActiveProtocol[] = Array.isArray(data) ? data : []
+  const protocols: ActiveProtocol[] = safeArray<ActiveProtocol>(data)
 
   if (!isLoading && protocols.length === 0) return null
 
@@ -331,7 +332,7 @@ function ActiveProtocolsList() {
 
 function RecentFeedPosts() {
   const { data, isLoading } = useFeed({ limit: 3 })
-  const posts: FeedPost[] = Array.isArray(data?.data) ? data.data : []
+  const posts: FeedPost[] = safeArray<FeedPost>(data)
 
   return (
     <GlassCard variant="base">
@@ -401,7 +402,7 @@ function RecentFeedPosts() {
 
 function UnreadMessages() {
   const { data, isLoading } = useConversations({ limit: 4 })
-  const conversations: Conversation[] = Array.isArray(data?.data) ? data.data : []
+  const conversations: Conversation[] = safeArray<Conversation>(data)
 
   return (
     <GlassCard variant="base">
@@ -473,10 +474,8 @@ function UpcomingSection() {
 
   const isLoading = eventsLoading || sessionsLoading
 
-  const events: ClaimnEvent[] = Array.isArray(eventsData?.data)
-    ? eventsData.data
-    : Array.isArray(eventsData) ? eventsData as ClaimnEvent[] : []
-  const sessions: CoachingSession[] = Array.isArray(sessionsData?.data) ? sessionsData.data : []
+  const events: ClaimnEvent[] = safeArray<ClaimnEvent>(eventsData)
+  const sessions: CoachingSession[] = safeArray<CoachingSession>(sessionsData)
 
   type UpcomingItem = { kind: 'event' | 'session'; date: string; title: string; subtitle: string; avatarUrl?: string }
 
@@ -537,9 +536,9 @@ function UpcomingSection() {
         </div>
       ) : (
         <div className="space-y-3">
-          {upcoming.map((item, i) => (
+          {upcoming.map((item) => (
             <Link
-              key={i}
+              key={`${item.kind}-${item.date}-${item.title}`}
               to={item.kind === 'event' ? '/events' : '/coaching/sessions'}
               className="flex items-center gap-3 group"
             >
@@ -573,7 +572,7 @@ function UpcomingSection() {
 
 function MyPrograms() {
   const { data, isLoading } = useEnrolledPrograms({ limit: 3 })
-  const programs: UserProgram[] = Array.isArray(data?.data) ? data.data : []
+  const programs: UserProgram[] = safeArray<UserProgram>(data)
 
   return (
     <GlassCard variant="base">
@@ -640,26 +639,44 @@ export function HubPage() {
     <MainLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Welcome Banner — full width */}
-        <WelcomeBanner />
+        <PageErrorBoundary section="WelcomeBanner">
+          <WelcomeBanner />
+        </PageErrorBoundary>
 
         {/* Stats row — full width */}
-        <StatsRow />
+        <PageErrorBoundary section="StatsRow">
+          <StatsRow />
+        </PageErrorBoundary>
 
         {/* 2-column grid: main (2/3) + sidebar (1/3) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main column */}
           <div className="lg:col-span-2 space-y-6">
-            <ExpertSpotlight />
-            <ActiveGoals />
-            <ActiveProtocolsList />
-            <RecentFeedPosts />
+            <PageErrorBoundary section="ExpertSpotlight">
+              <ExpertSpotlight />
+            </PageErrorBoundary>
+            <PageErrorBoundary section="ActiveGoals">
+              <ActiveGoals />
+            </PageErrorBoundary>
+            <PageErrorBoundary section="ActiveProtocols">
+              <ActiveProtocolsList />
+            </PageErrorBoundary>
+            <PageErrorBoundary section="RecentFeedPosts">
+              <RecentFeedPosts />
+            </PageErrorBoundary>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <UnreadMessages />
-            <UpcomingSection />
-            <MyPrograms />
+            <PageErrorBoundary section="UnreadMessages">
+              <UnreadMessages />
+            </PageErrorBoundary>
+            <PageErrorBoundary section="UpcomingSection">
+              <UpcomingSection />
+            </PageErrorBoundary>
+            <PageErrorBoundary section="MyPrograms">
+              <MyPrograms />
+            </PageErrorBoundary>
           </div>
         </div>
       </div>

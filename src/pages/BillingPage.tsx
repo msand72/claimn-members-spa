@@ -4,6 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
 import { CreditCard, Download, ExternalLink, CheckCircle, Loader2 } from 'lucide-react'
 import { api } from '../lib/api/client'
+import { isAllowedExternalUrl } from '../lib/url-validation'
 
 // API response types
 interface BillingInfo {
@@ -96,7 +97,7 @@ export function BillingPage() {
     try {
       const data = await api.post<PortalResponse & { data?: { url: string } }>('/members/billing/portal')
       const portalUrl = data?.url ?? (data as unknown as { data?: { url: string } })?.data?.url
-      if (portalUrl) {
+      if (portalUrl && isAllowedExternalUrl(portalUrl)) {
         window.location.href = portalUrl
       } else {
         setPortalError('Unable to open the billing portal. Please try again or contact support.')

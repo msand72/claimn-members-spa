@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { sanitizeRedirect } from '../lib/url-validation'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAlert, GlassInput } from '../components/ui'
 import type { AssessmentQuestion as LocalAssessmentQuestion } from '../lib/assessment/questions'
@@ -131,7 +132,7 @@ export function AssessmentTakePage() {
   const isLight = theme === 'light'
   const [searchParams] = useSearchParams()
   const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
-  const returnTo = searchParams.get('returnTo')
+  const returnTo = sanitizeRedirect(searchParams.get('returnTo'), '/assessment/results')
   const formRef = useRef<HTMLFormElement>(null)
 
   // answers stores: number (option index) for radio questions, or -1 as sentinel for text/select
@@ -304,7 +305,7 @@ export function AssessmentTakePage() {
       {
         onSuccess: () => {
           sessionStorage.removeItem(PROGRESS_KEY)
-          navigate(returnTo || '/assessment/results')
+          navigate(returnTo)
         },
         onError: () => {
           setSubmitError(

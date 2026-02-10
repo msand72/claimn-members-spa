@@ -93,7 +93,19 @@ export function useToggleActionItem() {
       api.put<ActionItem>(`/members/action-items/${id}`, {
         status: completed ? 'completed' : 'pending',
       }),
-    onSuccess: (_, { id }) => {
+    onMutate: async ({ id, completed }) => {
+      await queryClient.cancelQueries({ queryKey: actionItemKeys.all })
+      const previous = queryClient.getQueriesData({ queryKey: actionItemKeys.all })
+      queryClient.setQueriesData<PaginatedResponse<ActionItem>>({ queryKey: actionItemKeys.list() }, (old) => {
+        if (!old?.data) return old
+        return { ...old, data: old.data.map((item) => item.id === id ? { ...item, status: completed ? 'completed' : 'pending' } : item) }
+      })
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      context?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
+    },
+    onSettled: (_, __, { id }) => {
       queryClient.invalidateQueries({ queryKey: actionItemKeys.all })
       queryClient.invalidateQueries({ queryKey: actionItemKeys.detail(id) })
     },

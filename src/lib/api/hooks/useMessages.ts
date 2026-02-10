@@ -13,7 +13,7 @@ export const messageKeys = {
 }
 
 // Get conversations
-export function useConversations(params?: PaginationParams) {
+export function useConversations(params?: PaginationParams, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: messageKeys.conversations(params),
     queryFn: () =>
@@ -22,6 +22,7 @@ export function useConversations(params?: PaginationParams) {
         limit: params?.limit,
         sort: params?.sort,
       }),
+    enabled: options?.enabled ?? true,
   })
 }
 

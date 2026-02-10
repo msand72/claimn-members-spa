@@ -11,7 +11,7 @@ export const connectionKeys = {
 }
 
 // Get connections
-export function useConnections(params?: PaginationParams & { status?: string }) {
+export function useConnections(params?: PaginationParams & { status?: string }, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: connectionKeys.list(params),
     queryFn: () =>
@@ -21,17 +21,19 @@ export function useConnections(params?: PaginationParams & { status?: string }) 
         sort: params?.sort,
         status: params?.status,
       }),
+    enabled: options?.enabled ?? true,
   })
 }
 
 // Get pending connection requests
-export function usePendingConnections() {
+export function usePendingConnections(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: connectionKeys.pending(),
     queryFn: () =>
       api.get<PaginatedResponse<Connection>>('/members/connections', {
         status: 'pending',
       }),
+    enabled: options?.enabled ?? true,
   })
 }
 

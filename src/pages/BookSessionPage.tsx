@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect } from '../components/ui'
@@ -6,6 +6,7 @@ import { useExperts, useExpertAvailability, useBookSession } from '../lib/api/ho
 import type { Expert } from '../lib/api/types'
 import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { safeOpenUrl } from '../lib/url-validation'
 
 const sessionTypes = [
   { value: '30', label: '30 minutes - Quick Check-in' },
@@ -113,6 +114,9 @@ export function BookSessionPage() {
     return { year: now.getFullYear(), month: now.getMonth() }
   })
   const [bookingError, setBookingError] = useState<string | null>(null)
+  const navTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => () => { if (navTimerRef.current) clearTimeout(navTimerRef.current) }, [])
 
   // Fetch experts
   const { data: expertsData, isLoading: isLoadingExperts, error: expertsError } = useExperts()
@@ -206,7 +210,7 @@ export function BookSessionPage() {
       setBookingSuccess(true)
 
       // Navigate to sessions page after a short delay
-      setTimeout(() => {
+      navTimerRef.current = setTimeout(() => {
         navigate('/expert-sessions')
       }, 2000)
     } catch (_error) {
@@ -399,7 +403,7 @@ export function BookSessionPage() {
                     variant="primary"
                     className="w-full"
                     onClick={() =>
-                      window.open(selectedExpert.calendar_url!, '_blank', 'noopener,noreferrer')
+                      safeOpenUrl(selectedExpert.calendar_url!)
                     }
                   >
                     <ExternalLink className="w-4 h-4" />

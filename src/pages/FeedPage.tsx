@@ -53,6 +53,9 @@ function PostCard({ post }: { post: FeedPost }) {
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [reported, setReported] = useState(false)
   const moreMenuRef = useRef<HTMLDivElement>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
   // Close more menu on outside click
   useEffect(() => {
@@ -85,7 +88,7 @@ function PostCard({ post }: { post: FeedPost }) {
     try {
       await navigator.clipboard.writeText(url)
       setShareCopied(true)
-      setTimeout(() => setShareCopied(false), 2000)
+      timerRef.current = setTimeout(() => setShareCopied(false), 2000)
     } catch {
       // Fallback: silently fail
     }
@@ -102,7 +105,7 @@ function PostCard({ post }: { post: FeedPost }) {
   const handleReport = () => {
     setReported(true)
     setShowMoreMenu(false)
-    setTimeout(() => setReported(false), 3000)
+    timerRef.current = setTimeout(() => setReported(false), 3000)
   }
 
   const authorName = post.author?.display_name || 'Anonymous'

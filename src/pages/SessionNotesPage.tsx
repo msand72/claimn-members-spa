@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassTextarea, GlassAvatar, GlassBadge } from '../components/ui'
@@ -44,6 +44,9 @@ export function SessionNotesPage() {
   const [editedPersonalNotes, setEditedPersonalNotes] = useState('')
   const [newActionItem, setNewActionItem] = useState('')
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }, [])
 
   // Helper to persist note updates
   const persistNotes = useCallback(
@@ -53,7 +56,7 @@ export function SessionNotesPage() {
         {
           onSuccess: () => {
             setSaveSuccess(true)
-            setTimeout(() => setSaveSuccess(false), 2000)
+            saveTimerRef.current = setTimeout(() => setSaveSuccess(false), 2000)
           },
         },
       )

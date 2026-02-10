@@ -12,7 +12,7 @@ export const feedKeys = {
 }
 
 // Get feed posts with pagination
-export function useFeed(params?: PaginationParams & { interest_group_id?: string }) {
+export function useFeed(params?: PaginationParams & { interest_group_id?: string }, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: feedKeys.list(params),
     queryFn: () =>
@@ -22,6 +22,7 @@ export function useFeed(params?: PaginationParams & { interest_group_id?: string
         sort: params?.sort,
         interest_group_id: params?.interest_group_id,
       }),
+    enabled: options?.enabled ?? true,
   })
 }
 
@@ -75,7 +76,19 @@ export function useLikePost() {
   return useMutation({
     mutationFn: (postId: string) =>
       api.post(`/members/feed/${postId}/like`),
-    onSuccess: () => {
+    onMutate: async (postId) => {
+      await queryClient.cancelQueries({ queryKey: feedKeys.all })
+      const previous = queryClient.getQueriesData({ queryKey: feedKeys.all })
+      queryClient.setQueriesData<PaginatedResponse<FeedPost>>({ queryKey: feedKeys.list() }, (old) => {
+        if (!old?.data) return old
+        return { ...old, data: old.data.map((p) => p.id === postId ? { ...p, is_liked: true, likes_count: (p.likes_count ?? 0) + 1 } : p) }
+      })
+      return { previous }
+    },
+    onError: (_err, _postId, context) => {
+      context?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: feedKeys.all })
     },
   })
@@ -88,7 +101,19 @@ export function useUnlikePost() {
   return useMutation({
     mutationFn: (postId: string) =>
       api.delete(`/members/feed/${postId}/like`),
-    onSuccess: () => {
+    onMutate: async (postId) => {
+      await queryClient.cancelQueries({ queryKey: feedKeys.all })
+      const previous = queryClient.getQueriesData({ queryKey: feedKeys.all })
+      queryClient.setQueriesData<PaginatedResponse<FeedPost>>({ queryKey: feedKeys.list() }, (old) => {
+        if (!old?.data) return old
+        return { ...old, data: old.data.map((p) => p.id === postId ? { ...p, is_liked: false, likes_count: Math.max((p.likes_count ?? 1) - 1, 0) } : p) }
+      })
+      return { previous }
+    },
+    onError: (_err, _postId, context) => {
+      context?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: feedKeys.all })
     },
   })

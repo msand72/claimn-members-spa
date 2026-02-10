@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassToast } from '../components/ui'
@@ -104,6 +104,9 @@ function getContent(
 export function AssessmentResultsPage() {
   const navigate = useNavigate()
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'info' | 'warning' | 'error' } | null>(null)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current) }, [])
 
   // Fetch from API — always use latestResult since useAssessmentResults
   // expects an assessmentId (assessments.id) but we have a resultId (assessment_results.id)
@@ -129,7 +132,12 @@ export function AssessmentResultsPage() {
       return null
     }
 
-    const answers = JSON.parse(storedAnswers) as Record<string, number>
+    let answers: Record<string, number>
+    try {
+      answers = JSON.parse(storedAnswers) as Record<string, number>
+    } catch {
+      return null
+    }
     const questionsForScoring = apiQuestions.map(q => ({
       id: q.id,
       section: q.section ?? q.question_type,
@@ -200,7 +208,7 @@ export function AssessmentResultsPage() {
   const showToast = useCallback(
     (message: string, variant: 'success' | 'info' | 'warning' | 'error' = 'info') => {
       setToast({ message, variant })
-      setTimeout(() => setToast(null), 3000)
+      toastTimerRef.current = setTimeout(() => setToast(null), 3000)
     },
     []
   )

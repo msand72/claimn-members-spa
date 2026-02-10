@@ -1,4 +1,4 @@
-import { getAccessToken, getApiBaseUrl } from '../auth'
+import { getAccessToken, getApiBaseUrl, clearTokens } from '../auth'
 
 const API_BASE_URL = getApiBaseUrl()
 const API_PREFIX = '/api/v2'
@@ -11,7 +11,7 @@ export const API_URL = `${API_BASE_URL}${API_PREFIX}`
 // in the console instead of causing silent UI bugs.
 // ---------------------------------------------------------------------------
 // Enable logging in dev, or on production via localStorage: localStorage.setItem('api_debug', '1')
-const IS_DEV = import.meta.env.DEV || (typeof localStorage !== 'undefined' && localStorage.getItem('api_debug') === '1')
+const IS_DEV = import.meta.env.DEV
 
 // ---------------------------------------------------------------------------
 // Persistent API error log — errors are stored in window.__apiErrors so they
@@ -33,7 +33,7 @@ declare global {
   }
 }
 
-if (typeof window !== 'undefined') {
+if (IS_DEV && typeof window !== 'undefined') {
   window.__apiErrors = window.__apiErrors || []
 }
 
@@ -46,10 +46,12 @@ function logApiError(method: string, endpoint: string, status: string | number, 
     code,
     message,
   }
-  if (typeof window !== 'undefined') {
+  if (IS_DEV && typeof window !== 'undefined') {
     window.__apiErrors.push(entry)
   }
-  console.error(`[API ${method} ${endpoint}] ${status} ${code}: ${message}`)
+  if (IS_DEV) {
+    console.error(`[API ${method} ${endpoint}] ${status} ${code}: ${message}`)
+  }
 }
 
 function describeShape(obj: unknown): string {
@@ -191,9 +193,13 @@ class ApiClient {
     const url = `${API_URL}${cleanEndpoint}`
     const method = options.method || 'GET'
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30_000)
+
     try {
       const response = await fetch(url, {
         ...options,
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -202,6 +208,14 @@ class ApiClient {
       })
 
       if (!response.ok) {
+        // 401 — session expired, clear tokens and redirect to login
+        if (response.status === 401) {
+          clearTokens()
+          const redirect = encodeURIComponent(window.location.pathname + window.location.search)
+          window.location.href = `/login?redirect=${redirect}`
+          throw new Error('Session expired')
+        }
+
         const errorData = await response.json().catch(() => ({
           error: { code: 'UNKNOWN', message: 'An unknown error occurred' }
         }))
@@ -223,6 +237,8 @@ class ApiClient {
       const message = error?.error?.message || (error instanceof Error ? error.message : 'Unknown error')
       logApiError(method, cleanEndpoint, status, code, message)
       throw error
+    } finally {
+      clearTimeout(timeoutId)
     }
   }
 
@@ -271,23 +287,38 @@ class ApiClient {
     const formData = new FormData()
     formData.append(fieldName, file)
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      body: formData,
-    })
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 120_000)
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: { code: 'UPLOAD_FAILED', message: 'File upload failed' }
-      }))
-      errorData.status = response.status
-      throw errorData
+    try {
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          clearTokens()
+          const redirect = encodeURIComponent(window.location.pathname + window.location.search)
+          window.location.href = `/login?redirect=${redirect}`
+          throw new Error('Session expired')
+        }
+
+        const errorData = await response.json().catch(() => ({
+          error: { code: 'UPLOAD_FAILED', message: 'File upload failed' }
+        }))
+        errorData.status = response.status
+        throw errorData
+      }
+
+      return response.json()
+    } finally {
+      clearTimeout(timeoutId)
     }
-
-    return response.json()
   }
 }
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassAlert } from '../components/ui'
 import { useCheckout } from '../lib/api/hooks'
+import { isAllowedExternalUrl } from '../lib/url-validation'
 import {
   Check,
   X,
@@ -205,7 +206,11 @@ export function ShopUpgradePage() {
       { plan_tier: planId },
       {
         onSuccess: (data) => {
-          window.location.href = data.checkout_url
+          if (isAllowedExternalUrl(data.checkout_url)) {
+            window.location.href = data.checkout_url
+          } else {
+            setCheckoutError('Invalid checkout URL. Please try again or contact support.')
+          }
         },
         onError: () => {
           setCheckoutError('Failed to start checkout. Please try again.')

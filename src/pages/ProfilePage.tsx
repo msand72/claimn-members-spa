@@ -101,6 +101,7 @@ export function ProfilePage() {
 
   const handleSave = async () => {
     if (!user?.id) return
+    if (!formData.display_name?.trim()) return
 
     setSaveStatus('idle')
 

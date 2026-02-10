@@ -11,15 +11,16 @@ export const dashboardKeys = {
 }
 
 // Get dashboard data
-export function useDashboard() {
+export function useDashboard(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: dashboardKeys.data(),
     queryFn: () => api.get<DashboardData>('/members/dashboard'),
+    enabled: options?.enabled ?? true,
   })
 }
 
 // Get stats from the dashboard endpoint (which returns the full DashboardStats shape)
-export function useDashboardStats() {
+export function useDashboardStats(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: dashboardKeys.stats(),
     queryFn: async () => {
@@ -32,17 +33,19 @@ export function useDashboardStats() {
       }
       return res
     },
+    enabled: options?.enabled ?? true,
   })
 }
 
 // Get member achievements
 // GET /members/achievements
-export function useAchievements() {
+export function useAchievements(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: dashboardKeys.achievements(),
     queryFn: async () => {
       const res = await api.get<Achievement[] | { data: Achievement[] }>('/members/achievements')
       return safeArray<Achievement>(res)
     },
+    enabled: options?.enabled ?? true,
   })
 }

@@ -108,6 +108,13 @@ const queryClient = new QueryClient({
         return failureCount < 1
       },
     },
+    mutations: {
+      onError: (error) => {
+        if (import.meta.env.DEV) {
+          console.error('[Mutation error]', error)
+        }
+      },
+    },
   },
 })
 

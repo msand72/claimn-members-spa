@@ -158,7 +158,12 @@ export function OnboardingResultsPage() {
     const storedAnswers = sessionStorage.getItem('assessmentAnswers')
     if (!storedAnswers || !apiQuestions || apiQuestions.length === 0) return null
 
-    const answers = JSON.parse(storedAnswers) as Record<string, number>
+    let answers: Record<string, number>
+    try {
+      answers = JSON.parse(storedAnswers) as Record<string, number>
+    } catch {
+      return null
+    }
     const questionsForScoring = apiQuestions.map(q => ({
       id: q.id,
       section: q.section ?? q.question_type,

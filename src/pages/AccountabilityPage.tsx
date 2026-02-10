@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
@@ -27,6 +27,9 @@ export function AccountabilityPage() {
   const [showCheckInModal, setShowCheckInModal] = useState(false)
   const [checkInMessage, setCheckInMessage] = useState('')
   const [checkInNotice, setCheckInNotice] = useState<string | null>(null)
+  const noticeTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => () => { if (noticeTimerRef.current) clearTimeout(noticeTimerRef.current) }, [])
 
   const { data: group, isLoading, error } = useAccountabilityGroup()
   const leaveGroup = useLeaveAccountabilityGroup()
@@ -42,11 +45,11 @@ export function AccountabilityPage() {
       setShowCheckInModal(false)
       setCheckInMessage('')
       setCheckInNotice('Check-in shared with your group!')
-      setTimeout(() => setCheckInNotice(null), 5000)
+      noticeTimerRef.current = setTimeout(() => setCheckInNotice(null), 5000)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to submit check-in'
       setCheckInNotice(msg)
-      setTimeout(() => setCheckInNotice(null), 5000)
+      noticeTimerRef.current = setTimeout(() => setCheckInNotice(null), 5000)
     }
   }
 

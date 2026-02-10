@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassInput } from '../components/ui'
 import { useResources } from '../lib/api/hooks'
+import { safeOpenUrl } from '../lib/url-validation'
 import type { Resource } from '../lib/api/types'
 import {
   FileText,
@@ -32,7 +33,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
 
   const handleOpen = () => {
     if (resource.url) {
-      window.open(resource.url, '_blank')
+      safeOpenUrl(resource.url)
     }
   }
 
@@ -62,7 +63,7 @@ function ResourceCard({ resource }: { resource: Resource }) {
               onClick={(e) => {
                 e.stopPropagation()
                 if (resource.url) {
-                  window.open(resource.url, '_blank')
+                  safeOpenUrl(resource.url)
                 }
               }}
             >
