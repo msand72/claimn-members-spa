@@ -200,6 +200,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
               <div className="absolute right-0 top-full mt-1 z-50 min-w-[200px] rounded-xl bg-charcoal border border-white/15 py-1 shadow-xl shadow-black/40">
                 <button
                   onClick={() => {
+                    if (!window.confirm('Are you sure you want to remove this connection?')) return
                     removeConnection.mutate(connection.id)
                     setShowMenu(false)
                   }}

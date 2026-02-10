@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
 import { useCoachingSessions } from '../lib/api/hooks'
+import { safeOpenUrl } from '../lib/url-validation'
 import type { CoachingSession } from '../lib/api/types'
 import {
   Calendar,
@@ -112,7 +113,7 @@ function SessionCard({ session }: { session: CoachingSession }) {
           {/* Actions */}
           <div className="flex items-center gap-2 pt-3 border-t border-white/10">
             {session.status === 'scheduled' && session.meeting_url && (
-              <GlassButton variant="primary" className="text-sm" onClick={() => window.open(session.meeting_url!, '_blank')}>
+              <GlassButton variant="primary" className="text-sm" onClick={() => safeOpenUrl(session.meeting_url!)}>
                 Join Session
                 <ChevronRight className="w-4 h-4" />
               </GlassButton>
@@ -126,7 +127,7 @@ function SessionCard({ session }: { session: CoachingSession }) {
               </Link>
             )}
             {session.has_recording && session.recording_url && (
-              <GlassButton variant="ghost" className="text-sm" onClick={() => window.open(session.recording_url!, '_blank')}>
+              <GlassButton variant="ghost" className="text-sm" onClick={() => safeOpenUrl(session.recording_url!)}>
                 <Play className="w-4 h-4" />
                 Recording
               </GlassButton>

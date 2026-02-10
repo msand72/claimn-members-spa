@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassTextarea, GlassAvatar, GlassBadge, GlassInput } from '../components/ui'
@@ -57,6 +57,9 @@ function PostCard({ post }: { post: CirclePost }) {
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [shareCopied, setShareCopied] = useState(false)
+  const shareTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => () => { if (shareTimerRef.current) clearTimeout(shareTimerRef.current) }, [])
 
   // Fetch comments only when section is open
   const { data: commentsData, isLoading: commentsLoading } = usePostComments(
@@ -77,7 +80,7 @@ function PostCard({ post }: { post: CirclePost }) {
     try {
       await navigator.clipboard.writeText(url)
       setShareCopied(true)
-      setTimeout(() => setShareCopied(false), 2000)
+      shareTimerRef.current = setTimeout(() => setShareCopied(false), 2000)
     } catch {
       // Fallback: silently fail
     }

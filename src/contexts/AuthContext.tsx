@@ -90,10 +90,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     init()
 
+    // Cross-tab session sync: detect logout from another tab
+    function onStorageChange(e: StorageEvent) {
+      if (e.key === 'claimn_access_token' && !e.newValue) {
+        setUser(null)
+        setSession(null)
+        if (refreshTimerRef.current) {
+          clearTimeout(refreshTimerRef.current)
+        }
+      }
+    }
+    window.addEventListener('storage', onStorageChange)
+
     return () => {
       if (refreshTimerRef.current) {
         clearTimeout(refreshTimerRef.current)
       }
+      window.removeEventListener('storage', onStorageChange)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -112,9 +125,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         accessToken = exchangeResponse.access_token
         expiresAt = exchangeResponse.expires_at
         userType = exchangeResponse.user.user_type
-      } catch {
+      } catch (exchangeErr) {
         // If exchange fails, fall back to the original token
-        console.warn('Token exchange failed, using original token')
+        if (import.meta.env.DEV) {
+          console.warn('Token exchange failed, using original token:', exchangeErr)
+        }
       }
 
       const userData = await fetchCurrentUser(accessToken)

@@ -10,7 +10,7 @@ export const networkKeys = {
 }
 
 // Get network members with filters and pagination
-export function useNetwork(filters?: NetworkFilters & PaginationParams) {
+export function useNetwork(filters?: NetworkFilters & PaginationParams, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: networkKeys.list(filters),
     queryFn: () =>
@@ -24,14 +24,16 @@ export function useNetwork(filters?: NetworkFilters & PaginationParams) {
         city: filters?.city,
         country: filters?.country,
       }),
+    enabled: options?.enabled ?? true,
   })
 }
 
 // Get connection suggestions
-export function useNetworkSuggestions(limit = 5) {
+export function useNetworkSuggestions(limit = 5, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: networkKeys.suggestions(),
     queryFn: () =>
       api.get<NetworkMember[]>('/members/network/suggestions', { limit }),
+    enabled: options?.enabled ?? true,
   })
 }

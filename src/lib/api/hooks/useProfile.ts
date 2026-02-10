@@ -9,10 +9,11 @@ export const profileKeys = {
 }
 
 // Get current user's profile
-export function useCurrentProfile() {
+export function useCurrentProfile(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: profileKeys.current(),
     queryFn: () => api.get<MemberProfile>('/members/profile'),
+    enabled: options?.enabled ?? true,
   })
 }
 

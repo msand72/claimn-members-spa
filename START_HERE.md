@@ -1,195 +1,1005 @@
-# CLAIM'N Members SPA - Start Here
+# CLAIM'N Members SPA - START HERE
 
-**IMPORTANT: Read this ENTIRE document before making any changes.**
+**Read this ENTIRE document before making any changes to this codebase.**
+
+*Last updated: 2026-02-10*
 
 ---
 
-## 🚫 CRITICAL: Agent Separation Policy
+## Table of Contents
+
+1. [What Is This?](#what-is-this)
+2. [Agent Separation Policy](#agent-separation-policy)
+3. [Tech Stack](#tech-stack)
+4. [Getting Started](#getting-started)
+5. [Project Structure](#project-structure)
+6. [Architecture Overview](#architecture-overview)
+7. [Routing](#routing)
+8. [Authentication](#authentication)
+9. [API Layer](#api-layer)
+10. [State Management](#state-management)
+11. [Styling & Theme System](#styling--theme-system)
+12. [Component Library (Glass UI)](#component-library-glass-ui)
+13. [Page Inventory](#page-inventory)
+14. [Domain Concepts](#domain-concepts)
+15. [Navigation System](#navigation-system)
+16. [Environment & Deployment](#environment--deployment)
+17. [Common Patterns](#common-patterns)
+18. [Gotchas & Hard-Won Lessons](#gotchas--hard-won-lessons)
+19. [Database Schema Reference](#database-schema-reference)
+20. [Reference Locations](#reference-locations)
+
+---
+
+## What Is This?
+
+The CLAIM'N Members SPA is a **React single-page application** for the CLAIM'N men's transformation platform. It serves as the member-facing portal where users manage their profiles, track transformation goals, participate in community features, book coaching sessions, and follow structured protocols.
+
+- **Production URL:** `https://members.claimn.co`
+- **Backend API:** `https://api.claimn.co` (Go-based, separate repo)
+- **52 pages**, **26 API hook files**, **14 Glass UI components**
+- **87+ Go API endpoints** integrated via `/api/v2/members/*`
+
+---
+
+## Agent Separation Policy
 
 **Frontend and backend are handled by SEPARATE agents.**
 
-- **This repo (claimn-members-spa):** Frontend agent ONLY
-- **server-infra repo:** Backend agent ONLY — do NOT modify unless explicitly told to
+| Repo | Agent | Purpose |
+|------|-------|---------|
+| `claimn-members-spa` (this) | Frontend agent | React SPA |
+| `claimn-admin-spa` | Frontend agent | Admin panel |
+| `server-infra` | Backend agent | Go API, database |
+| `claimn-web` | Reference only | Next.js marketing site, migration docs |
 
-If you need backend changes, document the requirements and let the backend agent handle it. Never push to server-infra.
-
----
-
-## LEARNINGS FROM MEMBERS SPA BUILD
-
-### Critical Lessons Learned
-
-1. **NEVER GUESS** - Always check the actual source: database schema, claimn-web codebase, migration docs
-2. **Font loading took 10+ attempts** - The correct approach is documented below
-3. **Typography hierarchy matters** - Follow Glass Component Kit 2 exactly
-4. **Check claimn-web for reference** - It's the working production site
+If you need backend changes (new endpoints, schema changes), **document the requirements** and let the backend agent handle it. Never push to `server-infra`.
 
 ---
 
-## MANDATORY First Steps
+## Tech Stack
 
-1. **Read the migration docs** in `/claimn-web/docs/migration 2.0/`
-2. **Get the full database schema** from Supabase (see Database Schema Discovery section below)
-3. **Check the constants** in `src/lib/constants.ts`
-4. **Read Glass Component Kit 2** at `/claimn-web/docs/migration 2.0/Glass Component Kit 2.tsx`
-5. **NEVER guess** table names, column names, or data types
+| Category | Technology | Version |
+|----------|-----------|---------|
+| **Framework** | React | 19.2 |
+| **Language** | TypeScript | 5.9 (strict mode) |
+| **Build Tool** | Vite | 7.2 |
+| **Routing** | React Router | 7.13 |
+| **Server State** | TanStack React Query | 5.90 |
+| **Client State** | Zustand (available), Context API | 5.0 |
+| **Styling** | Tailwind CSS | 4.1 |
+| **Forms** | React Hook Form + Zod validation | 7.71 / 4.3 |
+| **UI Primitives** | Radix UI (dialog, dropdown, tabs, tooltip) | Latest |
+| **Icons** | Lucide React | 0.563 |
+| **Charts** | Recharts | 3.7 |
+| **Animation** | Framer Motion | 12.29 |
+| **Dates** | date-fns | 4.1 |
+| **Deployment** | Vercel | SPA config |
 
 ---
 
-## 🔍 DATABASE SCHEMA DISCOVERY
+## Getting Started
 
-### Supabase Connection Details
+### Prerequisites
 
-**IMPORTANT: Get credentials from environment variables or Supabase Dashboard - NEVER commit keys to git!**
+- Node.js (LTS recommended)
+- npm
+- Access to the Go backend running locally or use production API
 
-See: https://supabase.com/dashboard/project/onzzadpetfvpfbpfylmt/settings/api
+### Setup
 
----
+```bash
+# 1. Clone and install
+git clone <repo-url>
+cd claimn-members-spa
+npm install
 
-## FONTS (CRITICAL - LEARNED THE HARD WAY)
+# 2. Create environment file
+cp .env.example .env
 
-### The CORRECT Approach (after many failed attempts)
+# 3. Configure .env
+# VITE_SUPABASE_URL=your-supabase-url
+# VITE_SUPABASE_ANON_KEY=your-anon-key
+# VITE_API_URL=http://localhost:3001   (local Go backend)
+# VITE_STRIPE_PUBLISHABLE_KEY=your-stripe-key
 
-**Font file location:** `public/fonts/Neutraface_2.ttf`
-
-**fonts.css** (in `src/fonts.css`):
-```css
-@font-face {
-  font-family: 'Neutraface 2 Display';
-  src: url('/fonts/Neutraface_2.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Neutraface 2 Display';
-  src: url('/fonts/Neutraface_2.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-:root {
-  --font-neutraface: 'Neutraface 2 Display';
-  --font-playfair: 'Playfair Display';
-  --font-lato: 'Lato';
-}
+# 4. Start dev server
+npm run dev
 ```
 
-**main.tsx** - Import order matters:
+### Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite dev server with HMR |
+| `npm run build` | TypeScript check + Vite production build |
+| `npm run lint` | ESLint across all files |
+| `npm run preview` | Preview production build locally |
+
+### Build Verification
+
+```bash
+# Always run before committing to catch type errors
+npm run build
+```
+
+The build must pass with **zero TypeScript errors** before deployment.
+
+---
+
+## Project Structure
+
+```
+claimn-members-spa/
+├── public/
+│   └── fonts/
+│       └── Neutraface_2.ttf          # Custom brand font
+├── src/
+│   ├── main.tsx                       # Entry point (StrictMode + ErrorBoundary)
+│   ├── App.tsx                        # Router, providers, route definitions
+│   ├── fonts.css                      # @font-face declarations (import FIRST)
+│   ├── index.css                      # Tailwind + CSS variables + Google Fonts
+│   ├── vite-env.d.ts                  # Vite type definitions
+│   │
+│   ├── contexts/                      # React Context providers
+│   │   ├── AuthContext.tsx            #   Auth state, signIn/signOut, user info
+│   │   └── ThemeContext.tsx           #   Light/dark theme toggle
+│   │
+│   ├── components/
+│   │   ├── ui/                        # Glass UI component library (14 components)
+│   │   │   ├── GlassCard.tsx
+│   │   │   ├── GlassButton.tsx
+│   │   │   ├── GlassInput.tsx
+│   │   │   ├── GlassModal.tsx
+│   │   │   ├── GlassDropdown.tsx
+│   │   │   ├── GlassTabs.tsx
+│   │   │   ├── GlassTable.tsx
+│   │   │   ├── GlassMultiSelect.tsx
+│   │   │   ├── GlassBadge.tsx
+│   │   │   ├── GlassAlert.tsx
+│   │   │   ├── GlassAvatar.tsx
+│   │   │   ├── GlassStatsCard.tsx
+│   │   │   ├── BackgroundPattern.tsx
+│   │   │   └── ThemeToggle.tsx
+│   │   │
+│   │   ├── layout/                    # Layout shell components
+│   │   │   ├── MainLayout.tsx         #   Responsive sidebar + content
+│   │   │   ├── GlassSidebar.tsx       #   Desktop navigation sidebar
+│   │   │   ├── MobileHeader.tsx       #   Mobile top header
+│   │   │   ├── MobileBottomNav.tsx    #   Mobile bottom navigation bar
+│   │   │   ├── SectionTopBar.tsx      #   Section-specific tab/stepper bar
+│   │   │   └── sectionNav.ts          #   Section navigation config
+│   │   │
+│   │   ├── ProtectedRoute.tsx         # Auth guard + onboarding redirect
+│   │   ├── RequireTier.tsx            # Subscription tier gate
+│   │   ├── RequireUserType.tsx        # User type check
+│   │   ├── ErrorBoundary.tsx          # Root error boundary
+│   │   ├── RouteErrorBoundary.tsx     # Route-level errors (404, etc.)
+│   │   ├── PageErrorBoundary.tsx      # Per-page error boundary
+│   │   ├── LoadingSpinner.tsx         # Loading indicator
+│   │   ├── EmptyState.tsx             # Empty state display
+│   │   ├── ErrorCard.tsx              # Error display card
+│   │   ├── PlanBuilder.tsx            # Protocol planning interface
+│   │   ├── AskExpertButton.tsx        # Expert consultation CTA
+│   │   └── [journey widgets]          # JourneyWidget, SmartPrompts, etc.
+│   │
+│   ├── hooks/                         # Standalone custom hooks
+│   │   ├── useInterests.ts
+│   │   └── useInterestGroups.ts
+│   │
+│   ├── lib/                           # Core utilities & services
+│   │   ├── auth.ts                    # Token management, login/logout, refresh
+│   │   ├── constants.ts               # Archetypes, pillars, KPI types, statuses
+│   │   ├── utils.ts                   # General utilities
+│   │   ├── image-utils.ts             # Image processing helpers
+│   │   ├── protocol-plan.ts           # Protocol planning logic
+│   │   ├── isChunkLoadError.ts        # Stale chunk detection
+│   │   │
+│   │   ���── assessment/                # Assessment system
+│   │   │   ├── questions.ts           #   30 assessment questions
+│   │   │   └── scoring.ts            #   Scoring algorithm
+│   │   │
+│   │   └── api/                       # API client & React Query hooks
+│   │       ├── client.ts              #   Fetch-based API client + helpers
+│   │       ├── types.ts               #   TypeScript interfaces for API
+│   │       ├── index.ts               #   Barrel exports
+│   │       └── hooks/                 #   26 React Query hook files
+│   │           ├── useProfile.ts
+│   │           ├── useFeed.ts
+│   │           ├── useGoals.ts
+│   │           ├── useProtocols.ts
+│   │           ├── useExperts.ts
+│   │           ├── ... (26 total)
+│   │           └── index.ts           #   Barrel re-exports
+│   │
+│   └── pages/                         # Route page components (52 files)
+│       ├── HubPage.tsx                # Landing page (/)
+│       ├── LoginPage.tsx              # Auth
+│       ├── ProfilePage.tsx            # User profile
+│       ├── GoalsPage.tsx              # Goals list
+│       ├── ... (52 total)
+│       └── onboarding/                # 5-step onboarding flow
+│           ├── OnboardingWelcomePage.tsx
+│           ├── OnboardingAssessmentPage.tsx
+│           ├── OnboardingResultsPage.tsx
+│           ├── OnboardingChallengePage.tsx
+│           └── OnboardingPathPage.tsx
+│
+├── package.json
+├── tsconfig.json / tsconfig.app.json / tsconfig.node.json
+├── vite.config.ts
+├── tailwind.config.js
+├── postcss.config.js
+├── eslint.config.js
+├── vercel.json                        # Deployment: font headers + SPA rewrites
+├── index.html                         # HTML shell
+├── .env.example                       # Environment variable template
+└── START_HERE.md                      # This file
+```
+
+---
+
+## Architecture Overview
+
+### Provider Stack
+
+The app wraps the entire component tree in nested providers (see `App.tsx`):
+
+```
+ErrorBoundary          → Catches React render crashes
+  QueryClientProvider   → TanStack React Query (server state cache)
+    ThemeProvider        → Light/dark theme context
+      AuthProvider       → User session, auth methods
+        RouterProvider   → React Router (all routes)
+```
+
+### Data Flow
+
+```
+User Action → Page Component → React Query Hook → API Client → Go Backend
+                                    ↓                              ↓
+                              Cache (5min stale)          /api/v2/members/*
+                                    ↓
+                              Re-render with data
+```
+
+### Key Architectural Decisions
+
+1. **Lazy-loaded pages** — Every page uses `lazyWithRetry()` for code splitting with automatic stale chunk recovery after deploys
+2. **React Query for ALL server state** — No manual fetch/useEffect patterns; all API data goes through query hooks
+3. **Glass UI component library** — All UI uses the custom Glass design system (glassmorphism + brand colors)
+4. **Tier-based access control** — Routes are wrapped with `Protected` (auth only) or `PremiumProtected` (coaching tier+)
+5. **Token exchange flow** — Login gets Supabase token, then exchanges it for a Go-issued JWT with user_type
+
+---
+
+## Routing
+
+Defined in `src/App.tsx` using React Router v7 with `createBrowserRouter`.
+
+### Route Protection Levels
+
+| Wrapper | Access | Used For |
+|---------|--------|----------|
+| None | Public | `/login`, `/forgot-password`, `/reset-password` |
+| `<Protected>` | Authenticated | Most pages (hub, profile, community, shop, etc.) |
+| `<PremiumProtected>` | Coaching tier+ | Transformation features (goals, protocols, KPIs, etc.) |
+
+### Route Map
+
+```
+Public:
+  /login                    → LoginPage
+  /forgot-password          → ForgotPasswordPage
+  /reset-password           → ResetPasswordPage
+
+Protected (auth required):
+  /                         → HubPage (landing)
+  /profile                  → ProfilePage
+  /billing                  → BillingPage
+  /resources                → ResourcesPage
+
+  /onboarding/*             → 5-step onboarding flow (welcome → assessment → results → challenge → path)
+
+  /feed                     → FeedPage
+  /messages                 → MessagesPage
+  /connections              → ConnectionsPage
+  /circles                  → CirclesPage
+  /circles/:id              → CircleDetailPage
+  /network                  → NetworkPage
+  /interest-groups          → InterestGroupsPage
+
+  /shop                     → ShopPage
+  /shop/protocols           → ShopProtocolsPage
+  /shop/protocols/:slug     → ShopProtocolDetailPage
+  /shop/circles             → ShopCirclesPage
+  /shop/upgrade             → ShopUpgradePage
+  /shop/success             → ShopSuccessPage
+
+  /experts                  → ExpertsPage
+  /experts/:id              → ExpertProfilePage
+  /book-session             → BookSessionPage
+  /expert-sessions          → ExpertSessionsPage
+
+  /events                   → EventsPage
+  /events/:id               → EventDetailPage
+
+  /programs                 → ProgramsPage
+  /programs/sprints         → ProgramsSprintsPage
+  /programs/reviews         → ProgramsReviewsPage
+
+  /coaching/sessions        → CoachingSessionsPage
+  /coaching/resources       → CoachingResourcesPage
+  /coaching/session-notes   → SessionNotesPage
+
+  /assessment               → AssessmentPage
+  /assessment/take          → AssessmentTakePage
+  /assessment/results       → AssessmentResultsPage
+
+Premium Protected (coaching tier required):
+  /goals                    → GoalsPage
+  /goals/:id                → GoalDetailPage
+  /action-items             → ActionItemsPage
+  /protocols                → ProtocolsPage
+  /protocols/:slug          → ProtocolDetailPage
+  /my-protocols             → MyProtocolsPage
+  /kpis                     → KPIsPage
+  /milestones               → MilestonesPage
+  /accountability           → AccountabilityPage
+```
+
+### Adding a New Route
+
+1. Create the page component in `src/pages/`
+2. Add a lazy import in `App.tsx` using `lazyWithRetry()`
+3. Add the route entry in the router config with appropriate protection wrapper
+4. If it belongs to a navigation section, add it to `sectionNav.ts`
+
+---
+
+## Authentication
+
+### Flow
+
+```
+1. User submits email + password
+2. POST /api/v2/auth/login → Supabase-style tokens
+3. POST /api/v2/auth/exchange → Go JWT with user_type (fallback: use original token)
+4. GET /api/v2/auth/me → User profile data
+5. Tokens stored in localStorage
+6. Auto-refresh scheduled 5 minutes before expiry
+```
+
+### Key Files
+
+- `src/lib/auth.ts` — Token storage, login/logout, refresh logic, exchange
+- `src/contexts/AuthContext.tsx` — React context, `useAuth()` hook
+
+### Token Storage (localStorage)
+
+| Key | Content |
+|-----|---------|
+| `claimn_access_token` | JWT access token |
+| `claimn_refresh_token` | Refresh token |
+| `claimn_expires_at` | Unix timestamp (seconds) |
+
+### User Types
+
+```typescript
+type UserType = 'guest' | 'member' | 'client' | 'expert' | 'admin' | 'superadmin'
+```
+
+- `admin` and `superadmin` bypass all tier requirements
+- `hasAccess(...types)` checks the current user's type (admins always pass)
+
+### Using Auth in Components
+
 ```tsx
-import './fonts.css'  // MUST come first
-import './index.css'
-```
+import { useAuth } from '../contexts/AuthContext'
 
-**tailwind.config.js**:
-```js
-fontFamily: {
-  display: ['var(--font-neutraface)', 'Montserrat', 'sans-serif'],
-  serif: ['var(--font-playfair)', 'Georgia', 'serif'],
-  sans: ['var(--font-lato)', 'system-ui', 'sans-serif'],
-},
-```
+function MyComponent() {
+  const { user, userType, hasAccess, signOut } = useAuth()
 
-**vercel.json** - Headers for font files:
-```json
-{
-  "headers": [
-    {
-      "source": "/fonts/(.*).ttf",
-      "headers": [
-        { "key": "Content-Type", "value": "font/ttf" },
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
-    }
-  ]
+  if (hasAccess('expert', 'admin')) {
+    // expert or admin-only logic
+  }
+
+  return <p>Hello, {user?.display_name}</p>
 }
 ```
 
-### What DOESN'T Work (we tried all of these):
+---
 
-1. ❌ Font in `src/assets/fonts/` with Vite import - doesn't work in production
-2. ❌ Dynamic JavaScript injection of @font-face - unreliable
-3. ❌ External font URLs - CORS issues
-4. ❌ Wrong font-family names ('Neutraface 2', 'Neutraface 2 Display Bold') - must be exact
-5. ❌ Missing quotes around font names with spaces in Tailwind - breaks CSS
+## API Layer
 
-### Key Insight
+### Architecture
 
-The font-family name MUST be exactly `'Neutraface 2 Display'` - this is the name embedded in the TTF file itself. Check `/claimn-web/src/app/globals.css` for reference.
+```
+src/lib/api/
+├── client.ts     → ApiClient class (fetch wrapper with auth headers)
+├── types.ts      → TypeScript interfaces for all API entities
+├── index.ts      → Barrel exports
+└── hooks/        → 26 React Query hook files (queries + mutations)
+```
+
+### API Client (`src/lib/api/client.ts`)
+
+- Singleton `api` instance with `get`, `post`, `put`, `delete`, `uploadFile` methods
+- Auto-attaches Bearer token from localStorage
+- Auto-detects API base URL (production vs. development)
+- Strips trailing slashes (Go backend returns 404 on trailing slashes)
+- Logs response shapes in development for debugging
+- Stores all errors in `window.__apiErrors` (inspect via browser console)
+
+### Safe Data Extraction Helpers
+
+The backend response format can vary. These helpers handle all variants safely:
+
+| Helper | Purpose |
+|--------|---------|
+| `safeArray<T>(response)` | Extracts array from `data`, `items`, `results`, or bare array |
+| `safePagination(response)` | Extracts pagination from `pagination`, `meta`, or `paging` |
+| `safeString(obj, key, fallback)` | Safe string field access |
+| `unwrapData<T>(response)` | Unwrap `{ data: T }` wrapper |
+| `is404Error(error)` | Check if error is 404 |
+
+### React Query Hooks
+
+All 26 hook files live in `src/lib/api/hooks/`. Each file exports query hooks and mutation hooks.
+
+| Hook File | Domain |
+|-----------|--------|
+| `useProfile` | Member profile CRUD |
+| `useDashboard` | Dashboard data |
+| `useNetwork` | Network/member directory |
+| `useConnections` | Connection requests |
+| `useFeed` | Community feed posts |
+| `useMessages` | Direct messaging |
+| `useCircles` | Circles (groups) |
+| `useGoals` | Goal tracking |
+| `useActionItems` | Action items |
+| `useProtocols` | Protocol enrollment/progress |
+| `useExperts` | Expert directory |
+| `useMyExpert` | Assigned expert |
+| `useCoachingSessions` | Coaching session booking |
+| `useResources` | Learning resources |
+| `usePrograms` | Program enrollment |
+| `useAssessments` | Assessment submission/results |
+| `useEvents` | Events/calendar |
+| `useBilling` | Subscription & billing |
+| `useSubscription` | Subscription status |
+| `useNotifications` | Notifications |
+| `useOnboarding` | Onboarding progress |
+| `useJourney` | Journey tracking |
+| `useJournal` | Journal entries |
+| `useMilestones` | Milestone tracking |
+| `useAccountability` | Accountability groups |
+| `useInterests` | Interest categories |
+| `useCommunityQuestions` | Community Q&A |
+
+### Using Hooks in Pages
+
+```tsx
+import { useGoals, useCreateGoal } from '../lib/api/hooks'
+
+function GoalsPage() {
+  const { data, isLoading, error } = useGoals()
+  const createGoal = useCreateGoal()
+
+  const handleCreate = () => {
+    createGoal.mutate({ title: 'New Goal', pillar: 'physical' })
+  }
+
+  if (isLoading) return <LoadingSpinner />
+  if (error) return <ErrorCard error={error} />
+
+  const goals = safeArray(data)
+  return goals.map(goal => <GoalCard key={goal.id} goal={goal} />)
+}
+```
+
+### Query Client Configuration
+
+```typescript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,  // 5 minutes
+      retry: (failureCount, error) => {
+        if (status >= 400 && status < 500) return false  // No retry on 4xx
+        return failureCount < 1                           // 1 retry for others
+      },
+    },
+  },
+})
+```
 
 ---
 
-## TYPOGRAPHY SYSTEM (from Glass Component Kit 2)
+## State Management
+
+### Three Layers
+
+| Layer | Tool | Scope | Usage |
+|-------|------|-------|-------|
+| **Server State** | TanStack React Query | API data | All backend data fetching & caching |
+| **Global Client State** | Context API | App-wide | Auth (user/session), Theme (light/dark) |
+| **Local State** | React.useState | Component | Forms, modals, UI toggles |
+
+Zustand is installed and available but **not currently in use**. It's there if complex client-side state management is needed in the future.
+
+### Rule of Thumb
+
+- Fetching from API? Use a React Query hook from `src/lib/api/hooks/`
+- Need auth or theme info? Use `useAuth()` or `useTheme()` context hooks
+- Everything else? Use local component state
+
+---
+
+## Styling & Theme System
+
+### Tailwind CSS 4.1
+
+All styling uses Tailwind utility classes. Custom theme values are defined in `tailwind.config.js`.
+
+### Brand Color Palette
+
+| Color | Hex | Tailwind Class | Usage |
+|-------|-----|----------------|-------|
+| Charcoal | `#1C1C1E` | `text-charcoal`, `bg-charcoal` | Dark backgrounds, text |
+| Jordbrun | `#5E503F` | `text-jordbrun`, `bg-jordbrun` | Physical pillar |
+| Sand Beige | `#E5D9C7` | `text-sandbeige`, `bg-sandbeige` | Warm accents |
+| Oliv | `#3A4A42` | `text-oliv`, `bg-oliv` | Emotional pillar, success states |
+| Dimblag | `#A1B1C6` | `text-dimblag`, `bg-dimblag` | Muted/secondary text |
+| Koppar | `#B87333` | `text-koppar`, `bg-koppar` | **Primary accent**, CTAs |
+| Kalkvit | `#F9F7F4` | `text-kalkvit`, `bg-kalkvit` | Theme-adaptive (see below) |
+| Tegelrod | `#B54A46` | `text-tegelrod`, `bg-tegelrod` | Errors, high priority |
+| Skogsgron | `#6B8E6F` | `text-skogsgron`, `bg-skogsgron` | Success, completed states |
+| Glass Dark | `#0A0A0B` | `bg-glass-dark` | Dark mode background |
+
+### Theme System (Light/Dark)
+
+The `kalkvit` color **switches meaning** based on theme:
+
+| Mode | `--color-kalkvit` resolves to | Effect |
+|------|-------------------------------|--------|
+| Dark (default) | Cream white (`#F9F7F4`) | Light text on dark bg |
+| Light | Charcoal (`#1C1C1E`) | Dark text on light bg |
+
+**Always use `text-kalkvit`** for primary text — it adapts automatically.
+
+Theme is controlled via `ThemeContext` and toggled with the `ThemeToggle` component. It applies the `.light` CSS class to `:root`.
+
+### Typography
 
 | Font | Tailwind Class | Usage |
-|------|---------------|-------|
+|------|----------------|-------|
 | **Neutraface 2 Display** | `font-display` | Hero titles, h1, h3 card titles, large stat numbers |
 | **Playfair Display** | `font-serif` | h2 section headings, subtitles, taglines (often italic) |
 | **Lato** | `font-sans` | Body text, buttons, labels, small text |
 
-### Google Fonts Import (in index.css)
-
-```css
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap');
+**Import order matters** in `main.tsx`:
+```tsx
+import './fonts.css'  // MUST come before index.css
+import './index.css'
 ```
 
-This MUST be the first line in index.css, before any Tailwind imports.
+### Glass Morphism Variants
+
+```css
+/* Base Glass — cards, panels */
+background: rgba(255, 255, 255, 0.08);
+backdrop-filter: blur(16px);
+border: 1px solid rgba(255, 255, 255, 0.15);
+
+/* Elevated Glass — modals, dropdowns */
+background: rgba(255, 255, 255, 0.12);
+backdrop-filter: blur(24px);
+border: 1px solid rgba(255, 255, 255, 0.2);
+
+/* Accent Glass — CTAs, featured items */
+background: linear-gradient(135deg, rgba(184, 115, 51, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+border: 1px solid rgba(184, 115, 51, 0.25);
+```
 
 ---
 
-## THEME SYSTEM (Light/Dark Mode)
+## Component Library (Glass UI)
 
-### CSS Variables (in index.css)
+All reusable UI components live in `src/components/ui/` and follow the Glass design system.
 
-```css
-:root {
-  /* Dark theme (default) */
-  --color-kalkvit: 249 247 244;  /* Cream white RGB */
-  --text-primary: #F9F7F4;
-  --bg-primary: #0A0A0B;
-}
+| Component | Purpose | Key Props |
+|-----------|---------|-----------|
+| `GlassCard` | Container with glass background | `variant`, `className` |
+| `GlassButton` | Styled button | `variant` (primary/secondary/ghost/danger), `size`, `loading` |
+| `GlassInput` | Form input field | Standard input props + glass styling |
+| `GlassModal` | Dialog overlay (Radix UI) | `open`, `onClose`, `title` |
+| `GlassDropdown` | Dropdown menu (Radix UI) | `items`, `trigger` |
+| `GlassTabs` | Tabbed interface (Radix UI) | `tabs`, `activeTab` |
+| `GlassTable` | Data table | `columns`, `data`, `pagination` |
+| `GlassMultiSelect` | Multi-select dropdown | `options`, `value`, `onChange` |
+| `GlassBadge` | Status/category badge | `variant`, `color` |
+| `GlassAlert` | Alert/notification bar | `type` (info/success/warning/error) |
+| `GlassAvatar` | User avatar with fallback | `src`, `name`, `size` |
+| `GlassStatsCard` | Statistics display card | `title`, `value`, `change` |
+| `BackgroundPattern` | Animated background | Used in layout |
+| `ThemeToggle` | Light/dark mode switch | Uses ThemeContext |
 
-.light {
-  --color-kalkvit: 28 28 30;  /* Charcoal RGB */
-  --text-primary: #1C1C1E;
-  --bg-primary: #F9F7F4;
-}
-```
+### Shared Page Components
 
-### Key Pattern
-
-The `kalkvit` color switches meaning based on theme:
-- Dark mode: Cream white text on dark background
-- Light mode: Charcoal text on light background
-
-Use `text-kalkvit` and it automatically adapts.
+| Component | Purpose |
+|-----------|---------|
+| `LoadingSpinner` | Full-page or inline loading state |
+| `EmptyState` | Empty list/data display with icon + message |
+| `ErrorCard` | Error display with retry option |
+| `ProtectedRoute` | Auth + onboarding check wrapper |
+| `RequireTier` | Subscription tier gate |
+| `PlanBuilder` | Protocol/goal planning form |
+| `AskExpertButton` | Floating CTA to contact expert |
 
 ---
 
-## DATABASE SCHEMA (Key Tables)
+## Page Inventory
 
-### CRITICAL: Common Mistakes to Avoid
+### Auth Pages (3)
+| Page | Route | Purpose |
+|------|-------|---------|
+| LoginPage | `/login` | Email/password login |
+| ForgotPasswordPage | `/forgot-password` | Request password reset email |
+| ResetPasswordPage | `/reset-password` | Set new password via token |
 
-| Wrong | Correct | Notes |
-|-------|---------|-------|
-| `members` table | `member_profiles` | Table name |
-| `id` column | `user_id` | Primary key for member lookup |
-| `full_name` | `display_name` | Name field |
-| `phone` | `whatsapp_number` | Phone field |
-| `location` | `city` + `country` | Location is split |
-| `pillar_focus: string` | `pillar_focus: string[]` | It's an ARRAY |
+### Onboarding (5)
+| Page | Route | Purpose |
+|------|-------|---------|
+| OnboardingWelcomePage | `/onboarding/welcome` | Welcome + archetype intro |
+| OnboardingAssessmentPage | `/onboarding/assessment` | 30-question assessment |
+| OnboardingResultsPage | `/onboarding/results` | Assessment results + archetype |
+| OnboardingChallengePage | `/onboarding/challenge` | 7-day challenge intro |
+| OnboardingPathPage | `/onboarding/path` | Choose transformation path |
 
-### `member_profiles` table
+### Core (4)
+| Page | Route | Purpose |
+|------|-------|---------|
+| HubPage | `/` | Landing page / main hub |
+| ProfilePage | `/profile` | User profile edit |
+| BillingPage | `/billing` | Subscription management |
+| ResourcesPage | `/resources` | Learning materials |
+
+### Community (6)
+| Page | Route | Purpose |
+|------|-------|---------|
+| FeedPage | `/feed` | Community posts feed |
+| MessagesPage | `/messages` | Direct messaging |
+| ConnectionsPage | `/connections` | Connection requests |
+| CirclesPage | `/circles` | Circle membership |
+| CircleDetailPage | `/circles/:id` | Single circle view |
+| NetworkPage | `/network` | Member directory |
+
+### Transformation Tracking (11) — Premium
+| Page | Route | Purpose |
+|------|-------|---------|
+| AssessmentPage | `/assessment` | Assessment landing |
+| AssessmentTakePage | `/assessment/take` | Take assessment |
+| AssessmentResultsPage | `/assessment/results` | View results |
+| GoalsPage | `/goals` | Goals list |
+| GoalDetailPage | `/goals/:id` | Single goal view |
+| ActionItemsPage | `/action-items` | Action items list |
+| ProtocolsPage | `/protocols` | Protocol catalog |
+| ProtocolDetailPage | `/protocols/:slug` | Protocol details |
+| MyProtocolsPage | `/my-protocols` | Enrolled protocols |
+| KPIsPage | `/kpis` | KPI tracking dashboard |
+| MilestonesPage | `/milestones` | Milestone tracking |
+| AccountabilityPage | `/accountability` | Accountability groups |
+
+### Coaching & Experts (8)
+| Page | Route | Purpose |
+|------|-------|---------|
+| ExpertsPage | `/experts` | Expert directory |
+| ExpertProfilePage | `/experts/:id` | Expert profile |
+| BookSessionPage | `/book-session` | Session booking (calendar) |
+| ExpertSessionsPage | `/expert-sessions` | My expert sessions |
+| CoachingSessionsPage | `/coaching/sessions` | Coaching session history |
+| CoachingResourcesPage | `/coaching/resources` | Coaching materials |
+| SessionNotesPage | `/coaching/session-notes` | Session notes |
+| InterestGroupsPage | `/interest-groups` | Interest-based groups |
+
+### Events (2)
+| Page | Route | Purpose |
+|------|-------|---------|
+| EventsPage | `/events` | Events calendar |
+| EventDetailPage | `/events/:id` | Event details |
+
+### Programs (3)
+| Page | Route | Purpose |
+|------|-------|---------|
+| ProgramsPage | `/programs` | Enrolled programs |
+| ProgramsSprintsPage | `/programs/sprints` | Sprint tracking |
+| ProgramsReviewsPage | `/programs/reviews` | Program reviews |
+
+### Shop (6)
+| Page | Route | Purpose |
+|------|-------|---------|
+| ShopPage | `/shop` | Shop landing |
+| ShopProtocolsPage | `/shop/protocols` | Browse protocols |
+| ShopProtocolDetailPage | `/shop/protocols/:slug` | Protocol purchase |
+| ShopCirclesPage | `/shop/circles` | Browse circles |
+| ShopUpgradePage | `/shop/upgrade` | Tier upgrade |
+| ShopSuccessPage | `/shop/success` | Purchase confirmation |
+
+---
+
+## Domain Concepts
+
+### The 5 Archetypes
+
+Member personality types that inform their transformation journey:
+
+1. **The Achiever** — Goal-oriented, results-driven
+2. **The Optimizer** — Systems thinker, efficiency-focused
+3. **The Networker** — Relationship builder, connector
+4. **The Grinder** — Discipline-focused, consistency-driven
+5. **The Philosopher** — Meaning-seeker, introspective
+
+### The 5 Pillars
+
+Core areas of transformation:
+
+| Pillar | ID | Color | Description |
+|--------|----|-------|-------------|
+| Identity & Purpose | `identity` | koppar | Values, purpose, life direction |
+| Emotional & Mental | `emotional` | oliv | Stress resilience, emotional regulation |
+| Physical & Vital | `physical` | jordbrun | Sleep, nutrition, performance |
+| Connection & Leadership | `connection` | charcoal | Relationships, leadership presence |
+| Mission & Mastery | `mission` | koppar | Flow states, deliberate practice |
+
+### KPI Types
+
+Tracked metrics, split into two categories:
+
+- **Action KPIs:** protocol_completion, habit_streak, session_attendance, circle_participation, connection_activities
+- **Biological KPIs:** sleep_hours, sleep_quality, hrv, stress_level, energy_level, weight, exercise_frequency, nutrition_score
+
+### Subscription Tiers
+
+| Tier | Access Level |
+|------|-------------|
+| Free/Guest | Public pages, assessment |
+| Member | Community, feed, connections, shop |
+| Coaching | All above + transformation tracking (goals, protocols, KPIs, etc.) |
+
+### Interest Categories (20)
+
+Strength & Combat Sports, Outdoor Adventures, Endurance Sports, Water Sports, Golf & Racquet Sports, Cars & Racing, Motorcycles & Aviation, Entrepreneurship & Startups, Investing, Leadership & Career, Building & Making, Cooking & Food Culture, Photography & Content Creation, Reading & Philosophy, Music & Arts, Gaming & Strategy, Fatherhood & Family, Travel & Exploration, Spirits & Socializing, Biohacking & Performance
+
+---
+
+## Navigation System
+
+### Section-Based Navigation
+
+Navigation is organized into 6 sections, defined in `src/components/layout/sectionNav.ts`:
+
+| Section | Label | Base Path | Pages |
+|---------|-------|-----------|-------|
+| `dashboard` | The Hub | `/` | Hub only |
+| `growth` | My Plan | `/goals` | Assessment, Goals, Protocols, Actions, Milestones, KPIs, Accountability |
+| `community` | Community | `/feed` | Feed, Messages, Connections, Network, Circles, Groups |
+| `coaching` | Coaching & Experts | `/experts` | Experts, Book Session, Sessions, Notes, Materials, Events |
+| `programs` | Programs | `/programs` | Programs, Sprints, Reviews |
+| `shop` | Shop | `/shop` | Browse, Protocols, Circles, Upgrade |
+
+### Layout Components
+
+- **Desktop:** `GlassSidebar` (left) shows section icons; `SectionTopBar` shows tabs/stepper for the active section
+- **Mobile:** `MobileHeader` (top) + `MobileBottomNav` (bottom) for section switching
+
+The `MainLayout` component orchestrates the responsive layout automatically. Most protected pages wrap their content in `<MainLayout>`.
+
+---
+
+## Environment & Deployment
+
+### Environment Variables
+
+| Variable | Purpose | Example |
+|----------|---------|---------|
+| `VITE_SUPABASE_URL` | Supabase project URL | `https://onzzadpetfvpfbpfylmt.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon key | (from Supabase dashboard) |
+| `VITE_API_URL` | Go backend URL | `http://localhost:3001` (dev) |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe public key | `pk_test_...` |
+
+### API URL Auto-Detection
+
+The API base URL is determined automatically in `src/lib/auth.ts`:
+
+1. If `VITE_API_URL` env var is set → use it
+2. If hostname is `members.claimn.co` → `https://api.claimn.co`
+3. Fallback → `http://localhost:3001`
+
+### Vercel Deployment
+
+Configured via `vercel.json`:
+
+- **Font headers:** Proper MIME type, 1-year immutable cache, CORS for `.ttf` files
+- **SPA rewrite:** All non-file routes → `index.html` (enables client-side routing)
+
+### Build Process
+
+```
+npm run build
+  → tsc -b          (TypeScript type check — must pass with zero errors)
+  → vite build      (production bundle in dist/)
+```
+
+Vercel auto-deploys on push to `master`.
+
+---
+
+## Common Patterns
+
+### Creating a New Page
+
+```tsx
+// src/pages/MyNewPage.tsx
+import { MainLayout } from '../components/layout/MainLayout'
+import { GlassCard } from '../components/ui/GlassCard'
+import { LoadingSpinner } from '../components/LoadingSpinner'
+import { useMyData } from '../lib/api/hooks'
+import { safeArray } from '../lib/api/client'
+
+export default function MyNewPage() {
+  const { data, isLoading } = useMyData()
+
+  if (isLoading) return <MainLayout><LoadingSpinner /></MainLayout>
+
+  const items = safeArray(data)
+
+  return (
+    <MainLayout>
+      <div className="space-y-6">
+        <h1 className="text-2xl font-display text-kalkvit">My Page</h1>
+        {items.map(item => (
+          <GlassCard key={item.id}>
+            {/* content */}
+          </GlassCard>
+        ))}
+      </div>
+    </MainLayout>
+  )
+}
+```
+
+### Creating a New API Hook
+
+```tsx
+// src/lib/api/hooks/useMyFeature.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { api, safeArray } from '../client'
+import type { MyEntity } from '../types'
+
+export function useMyFeatures() {
+  return useQuery({
+    queryKey: ['my-features'],
+    queryFn: async () => {
+      const data = await api.get('/members/my-features')
+      return safeArray<MyEntity>(data)
+    },
+  })
+}
+
+export function useCreateMyFeature() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Partial<MyEntity>) =>
+      api.post('/members/my-features', payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-features'] }),
+  })
+}
+```
+
+### Form Pattern (React Hook Form + Zod)
+
+```tsx
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+
+const schema = z.object({
+  title: z.string().min(1, 'Required'),
+  pillar: z.enum(['identity', 'emotional', 'physical', 'connection', 'mission']),
+})
+
+type FormData = z.infer<typeof schema>
+
+function MyForm() {
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
+
+  const onSubmit = (data: FormData) => { /* mutation.mutate(data) */ }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <GlassInput {...register('title')} error={errors.title?.message} />
+      <GlassButton type="submit">Save</GlassButton>
+    </form>
+  )
+}
+```
+
+### Debug: Inspecting API Errors
+
+In the browser console:
+```js
+// See all API errors from this session
+window.__apiErrors
+
+// Enable response shape logging on production
+localStorage.setItem('api_debug', '1')
+```
+
+---
+
+## Gotchas & Hard-Won Lessons
+
+### NEVER GUESS
+
+Always check the actual source: database schema, claimn-web codebase, migration docs. This has burned us multiple times.
+
+### Font Loading (took 10+ failed attempts)
+
+The correct setup:
+1. Font file: `public/fonts/Neutraface_2.ttf`
+2. Font name MUST be exactly `'Neutraface 2 Display'` (embedded in the TTF)
+3. Import `fonts.css` BEFORE `index.css` in `main.tsx`
+4. `vercel.json` must have headers for font MIME type + CORS
+
+**What DOESN'T work:**
+- Font in `src/assets/fonts/` with Vite import (fails in production)
+- Dynamic JS font injection (unreliable)
+- External font URLs (CORS issues)
+- Wrong font-family names (`'Neutraface 2'`, `'Neutraface 2 Display Bold'`)
+- Missing quotes around font names with spaces in Tailwind config
+
+### Go Backend Trailing Slashes
+
+The Go backend returns **404 on trailing slashes**. The API client strips them automatically, but be aware if making direct fetch calls.
+
+### Database Table Names
+
+| Wrong | Correct |
+|-------|---------|
+| `members` | `member_profiles` |
+| `id` column | `user_id` (primary key) |
+| `full_name` | `display_name` |
+| `phone` | `whatsapp_number` |
+| `location` | `city` + `country` (separate columns) |
+| `pillar_focus: string` | `pillar_focus: string[]` (it's an ARRAY) |
+
+### Stale Chunk Errors After Deploys
+
+Handled automatically by `lazyWithRetry()` in `App.tsx`. When a deploy changes chunk hashes, users with cached pages get an auto-reload (once per session per route, to prevent loops).
+
+### CSS Variable Order
+
+The Google Fonts `@import` MUST be the first line in `index.css`, before any Tailwind imports. `fonts.css` must import before `index.css` in `main.tsx`.
+
+### Admin Users and Tier Paywall
+
+Admin and superadmin users bypass tier requirements automatically via `hasAccess()` in AuthContext and `RequireTier` component.
+
+---
+
+## Database Schema Reference
+
+### `member_profiles` Table
 
 ```sql
 user_id UUID PRIMARY KEY REFERENCES auth.users(id)
 display_name TEXT
 bio TEXT
-archetype TEXT -- one of 5 archetypes
-pillar_focus TEXT[] -- ARRAY of pillar IDs
+archetype TEXT              -- one of 5 archetypes
+pillar_focus TEXT[]          -- ARRAY of pillar IDs
 city TEXT
 country TEXT
 links JSONB
@@ -200,132 +1010,57 @@ created_at TIMESTAMPTZ
 updated_at TIMESTAMPTZ
 ```
 
-### The 5 Archetypes
+### Supabase Project References
 
-1. The Achiever
-2. The Optimizer
-3. The Networker
-4. The Grinder
-5. The Philosopher
+| Database | Project Ref | Region |
+|----------|-------------|--------|
+| Web | `onzzadpetfvpfbpfylmt` | eu-north-1 (Stockholm) |
+| Agent | `ymchipjpncqvhiaxxdnm` | eu-north-1 (Stockholm) |
+| CMS | `nyuzlgpipemixwoiwdvu` | eu-west-1 (Ireland) |
 
-### The 5 Pillars
+### Supabase CLI Quick Reference
 
-1. identity
-2. emotional
-3. physical
-4. connection
-5. mission
+```bash
+# Set access token
+export SUPABASE_CLI_ACCESS_TOKEN=<YOUR_TOKEN>
 
----
+# List projects
+npx supabase projects list
 
-## GLASS UI SYSTEM
+# Link to Web database
+npx supabase link --project-ref onzzadpetfvpfbpfylmt
 
-### Three Glass Variants (from Glass Component Kit 2)
-
-```css
-/* Base Glass */
-.glass-base {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-/* Elevated Glass (modals, dropdowns) */
-.glass-elevated {
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
-}
-
-/* Accent Glass (CTAs, featured) */
-.glass-accent {
-  background: linear-gradient(135deg, rgba(184, 115, 51, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(184, 115, 51, 0.25);
-}
-```
-
-### Brand Colors
-
-```js
-charcoal: '#1C1C1E',
-jordbrun: '#5E503F',
-sandbeige: '#E5D9C7',
-oliv: '#3A4A42',
-dimblag: '#A1B1C6',
-koppar: '#B87333',      // Primary accent
-kalkvit: '#F9F7F4',     // Cream white
-tegelrod: '#B54A46',
-skogsgron: '#6B8E6F',
+# Push migrations (run from claimn-web repo)
+cd /path/to/claimn-web && npx supabase db push
 ```
 
 ---
 
-## PROJECT STRUCTURE
+## Reference Locations
 
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `src/lib/constants.ts` | Archetypes, Pillars, KPI types |
-| `src/lib/supabase.ts` | Supabase client |
-| `src/contexts/AuthContext.tsx` | Authentication state |
-| `src/contexts/ThemeContext.tsx` | Light/dark theme |
-| `src/hooks/useProfile.ts` | Member profile queries |
-| `src/fonts.css` | @font-face declarations |
-| `src/index.css` | Tailwind + theme variables |
-| `public/fonts/` | Font files |
-| `vercel.json` | Deployment config |
-
----
-
-## DEPLOYMENT (Vercel)
-
-### vercel.json Configuration
-
-```json
-{
-  "headers": [
-    {
-      "source": "/fonts/(.*).ttf",
-      "headers": [
-        { "key": "Content-Type", "value": "font/ttf" },
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/:path((?!.*\\.).*)",
-      "destination": "/index.html"
-    }
-  ]
-}
-```
-
-The rewrite rule ensures SPA client-side routing works (all non-file routes serve index.html).
-
----
-
-## REFERENCE LOCATIONS
-
-### Migration Documentation
+### Migration & Design Docs (in claimn-web)
 
 ```
-/Users/maxsandberg/claimn-web/docs/migration 2.0/
-├── Glass Component Kit 2.tsx        # Design reference (CRITICAL)
-├── MEMBERS_SPA_COMPLETE_PLAN.md     # Full implementation plan
-├── MEMBERS_SPA_GAP_ANALYSIS.md      # Data structure corrections
-├── MEMBERS_SPA_STATUS_REPORT.md     # Current status
+/claimn-web/docs/migration 2.0/
+├── Glass Component Kit 2.tsx           # Design reference (CRITICAL)
+├── MEMBERS_SPA_COMPLETE_PLAN.md        # Full implementation plan
+├── MEMBERS_SPA_GAP_ANALYSIS.md         # Data structure corrections
+├── MEMBERS_SPA_STATUS_REPORT.md        # Status report
 ```
 
-### Database Migrations
+### Audit & Status Docs (in claimn-web root)
 
 ```
-/Users/maxsandberg/claimn-web/supabase/migrations/
+/claimn-web/
+├── 260202-CLAIMN-MEMBERS-SPA-AUDIT.md  # Full codebase audit
+├── 260129_MEMBERS_SPA_FULL_AUDIT_AND_FIX_PLAN.md
+├── 260202_2300_MEMBERS_NAV_AUDIT.md    # Navigation audit
+```
+
+### Database Migrations (in claimn-web)
+
+```
+/claimn-web/supabase/migrations/
 ├── 101_member_profiles.sql
 ├── 117_interests.sql
 ├── 131_program_assessments.sql
@@ -335,140 +1070,12 @@ The rewrite rule ensures SPA client-side routing works (all non-file routes serv
 ### Working Reference (claimn-web)
 
 ```
-/Users/maxsandberg/claimn-web/
+/claimn-web/
 ├── src/app/globals.css              # Font declarations reference
-├── src/app/fonts.ts                 # Next.js font loading
 ├── tailwind.config.ts               # Tailwind config reference
 ├── public/fonts/Neutraface_2.ttf    # Font file source
 ```
 
 ---
 
-## DEBUGGING TIPS
-
-### Font Not Loading?
-
-1. Check browser Network tab - is the font file being requested?
-2. Check browser Console for errors
-3. Verify font file exists in `public/fonts/`
-4. Check vercel.json headers configuration
-5. Clear browser cache completely
-6. Check computed font-family in DevTools Elements panel
-
-### Add Debug Logging (temporarily)
-
-```typescript
-// In main.tsx
-document.fonts.ready.then(() => {
-  console.log('Fonts loaded:')
-  document.fonts.forEach(font => {
-    console.log(`  ${font.family} - ${font.status}`)
-  })
-})
-```
-
----
-
-## CHECKLIST FOR ADMIN PAGES
-
-Before starting admin pages development:
-
-- [ ] Copy font setup from members-spa (public/fonts/, fonts.css, vercel.json)
-- [ ] Use same Tailwind config for colors and fonts
-- [ ] Follow Glass Component Kit 2 for UI components
-- [ ] Use same typography hierarchy (Neutraface h1/h3, Playfair h2, Lato body)
-- [ ] Implement same theme system (light/dark with kalkvit switching)
-- [ ] Check database schema for admin-specific tables
-- [ ] Review RLS policies for admin access
-
----
-
-## Supabase CLI & Database Management
-
-### Required Environment Variables
-
-Add these to `.env.local`:
-
-```bash
-# Supabase Access Token (for CLI operations)
-# Get from: https://supabase.com/dashboard/account/tokens
-SUPABASE_CLI_ACCESS_TOKEN=<YOUR_SUPABASE_CLI_ACCESS_TOKEN>
-```
-
-### Installing & Using Supabase CLI
-
-The Supabase CLI is installed via npm. Use `npx` to run it:
-
-```bash
-npx supabase --version
-```
-
-### Linking to a Supabase Project
-
-```bash
-# Set access token in environment
-export SUPABASE_CLI_ACCESS_TOKEN=<YOUR_SUPABASE_CLI_ACCESS_TOKEN>
-
-# List available projects
-npx supabase projects list
-
-# Link to Web database (primary for Members SPA)
-npx supabase link --project-ref onzzadpetfvpfbpfylmt  # Web database
-```
-
-### Running Migrations
-
-Migrations are stored in `claimn-web/supabase/migrations/` directory (not in this repo).
-
-```bash
-cd C:\Users\maxsa\Documents\projects\claimn-web
-
-# Set access token
-export SUPABASE_CLI_ACCESS_TOKEN=<YOUR_SUPABASE_CLI_ACCESS_TOKEN>
-
-# Link to Web database
-npx supabase link --project-ref onzzadpetfvpfbpfylmt
-
-# Push all pending migrations
-npx supabase db push
-```
-
-**IMPORTANT:** The CLI may fail if local migrations don't match remote history. Use:
-```bash
-# Repair migration history
-npx supabase migration repair --status reverted <timestamp>
-
-# Pull remote schema
-npx supabase db pull
-```
-
-### Running SQL Directly via Management API
-
-If the CLI has issues, use the Supabase Management API:
-
-```bash
-# Query table structure
-curl -s -X POST "https://api.supabase.com/v1/projects/onzzadpetfvpfbpfylmt/database/query" \
-  -H "Authorization: Bearer $SUPABASE_CLI_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "SELECT column_name FROM information_schema.columns WHERE table_name = '\''your_table'\'' ORDER BY ordinal_position"}'
-
-# Run DDL (CREATE TABLE, ALTER TABLE, etc.)
-curl -s -X POST "https://api.supabase.com/v1/projects/onzzadpetfvpfbpfylmt/database/query" \
-  -H "Authorization: Bearer $SUPABASE_CLI_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "ALTER TABLE your_table ADD COLUMN IF NOT EXISTS new_column TEXT"}'
-```
-
-### Project References Quick Reference
-
-| Database | Project Ref | Region |
-|----------|-------------|--------|
-| Web | `onzzadpetfvpfbpfylmt` | eu-north-1 (Stockholm) |
-| Agent | `ymchipjpncqvhiaxxdnm` | eu-north-1 (Stockholm) |
-| CMS | `nyuzlgpipemixwoiwdvu` | eu-west-1 (Ireland) |
-
----
-
-*Last updated: 2026-02-06*
-*Learnings compiled from members-spa development session*
+*Compiled from members-spa development, audit reports, and codebase analysis.*

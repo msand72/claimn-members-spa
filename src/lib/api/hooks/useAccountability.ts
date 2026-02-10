@@ -43,13 +43,14 @@ export const accountabilityKeys = {
  * Get the current user's accountability groups
  * GET /members/accountability/my → array of groups
  */
-export function useMyAccountabilityGroups() {
+export function useMyAccountabilityGroups(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: accountabilityKeys.myGroups(),
     queryFn: async () => {
       const res = await api.get<AccountabilityGroup[] | { data: AccountabilityGroup[] }>('/members/accountability/my')
       return safeArray<AccountabilityGroup>(res)
     },
+    enabled: options?.enabled ?? true,
   })
 }
 
@@ -58,7 +59,7 @@ export function useMyAccountabilityGroups() {
  * Returns null if the user has no groups.
  * This maintains backward compatibility with the AccountabilityPage.
  */
-export function useAccountabilityGroup() {
+export function useAccountabilityGroup(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: accountabilityKeys.myGroups(),
     queryFn: async () => {
@@ -66,6 +67,7 @@ export function useAccountabilityGroup() {
       const groups = safeArray<AccountabilityGroup>(res)
       return groups.find(g => g.is_active) ?? groups[0] ?? null
     },
+    enabled: options?.enabled ?? true,
   })
 }
 
@@ -73,13 +75,14 @@ export function useAccountabilityGroup() {
  * Browse all available accountability groups
  * GET /members/accountability → paginated list
  */
-export function useAllAccountabilityGroups() {
+export function useAllAccountabilityGroups(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: accountabilityKeys.allGroups(),
     queryFn: async () => {
       const res = await api.get<AccountabilityGroup[] | { data: AccountabilityGroup[] }>('/members/accountability')
       return safeArray<AccountabilityGroup>(res)
     },
+    enabled: options?.enabled ?? true,
   })
 }
 

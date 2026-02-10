@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
+import { safeOpenUrl } from '../lib/url-validation'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge, GlassButton, GlassModal, GlassModalFooter, GlassToast } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import { Search, Send, MoreVertical, ArrowLeft, Loader2, MessageCircle, Plus, ImagePlus, X } from 'lucide-react'
@@ -697,7 +698,7 @@ export function MessagesPage() {
                               src={msg.image_url}
                               alt=""
                               className="rounded-lg max-w-full max-h-60 object-cover mb-1 cursor-pointer"
-                              onClick={() => window.open(msg.image_url!, '_blank')}
+                              onClick={() => safeOpenUrl(msg.image_url!)}
                             />
                           )}
                           {msg.content && <p className="text-sm">{msg.content}</p>}
@@ -766,10 +767,10 @@ export function MessagesPage() {
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={(!messageInput.trim() && !pendingImage) || isUploading}
+                      disabled={(!messageInput.trim() && !pendingImage) || isUploading || sendMessage.isPending}
                       className={cn(
                         'p-3 rounded-xl transition-all flex-shrink-0',
-                        (messageInput.trim() || pendingImage) && !isUploading
+                        (messageInput.trim() || pendingImage) && !isUploading && !sendMessage.isPending
                           ? 'bg-koppar text-kalkvit hover:bg-koppar/80'
                           : 'bg-white/[0.06] text-kalkvit/30 cursor-not-allowed'
                       )}

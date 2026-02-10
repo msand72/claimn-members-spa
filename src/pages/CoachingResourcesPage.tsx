@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
 import { useCoachingResources } from '../lib/api/hooks'
+import { safeOpenUrl } from '../lib/url-validation'
 import type { CoachingResource } from '../lib/api/types'
 import {
   FileText,
@@ -36,7 +37,7 @@ function ResourceCard({ resource }: { resource: CoachingResource }) {
 
   const handleOpen = () => {
     if (resource.url) {
-      window.open(resource.url, '_blank')
+      safeOpenUrl(resource.url)
     }
   }
 
@@ -82,7 +83,7 @@ function ResourceCard({ resource }: { resource: CoachingResource }) {
                   onClick={(e) => {
                     e.stopPropagation()
                     if (resource.url) {
-                      window.open(resource.url, '_blank')
+                      safeOpenUrl(resource.url)
                     }
                   }}
                 >
@@ -95,7 +96,7 @@ function ResourceCard({ resource }: { resource: CoachingResource }) {
                 onClick={(e) => {
                   e.stopPropagation()
                   if (resource.url) {
-                    window.open(resource.url, '_blank')
+                    safeOpenUrl(resource.url)
                   }
                 }}
               >
@@ -184,7 +185,7 @@ export function CoachingResourcesPage() {
                         className={`text-center ${resource.url ? 'cursor-pointer' : ''}`}
                         onClick={() => {
                           if (resource.url) {
-                            window.open(resource.url, '_blank')
+                            safeOpenUrl(resource.url)
                           }
                         }}
                       >

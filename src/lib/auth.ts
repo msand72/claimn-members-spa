@@ -21,6 +21,13 @@ export function getApiBaseUrl(): string {
 }
 
 const AUTH_BASE = () => `${getApiBaseUrl()}/api/v2/auth`
+const AUTH_TIMEOUT = 15_000
+
+function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), AUTH_TIMEOUT)
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeoutId))
+}
 
 interface AuthTokens {
   access_token: string
@@ -45,7 +52,7 @@ function storeTokens(tokens: AuthTokens) {
   localStorage.setItem(EXPIRES_AT_KEY, String(tokens.expires_at))
 }
 
-function clearTokens() {
+export function clearTokens() {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(REFRESH_TOKEN_KEY)
   localStorage.removeItem(EXPIRES_AT_KEY)
@@ -82,7 +89,7 @@ export async function refreshToken(): Promise<AuthTokens> {
         throw new Error('No refresh token available')
       }
 
-      const res = await fetch(`${AUTH_BASE()}/refresh`, {
+      const res = await authFetch(`${AUTH_BASE()}/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: tokens.refresh_token }),
@@ -130,7 +137,7 @@ export async function getAccessToken(): Promise<string | null> {
 export async function login(email: string, password: string): Promise<AuthTokens> {
   const url = `${AUTH_BASE()}/login`
 
-  const res = await fetch(url, {
+  const res = await authFetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -154,7 +161,7 @@ export async function login(email: string, password: string): Promise<AuthTokens
 export async function logout(): Promise<void> {
   const token = localStorage.getItem(TOKEN_KEY)
   if (token) {
-    await fetch(`${AUTH_BASE()}/logout`, {
+    await authFetch(`${AUTH_BASE()}/logout`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
     }).catch(() => {})
@@ -165,7 +172,7 @@ export async function logout(): Promise<void> {
 export async function fetchCurrentUser(token: string): Promise<AuthUserResponse> {
   const url = `${AUTH_BASE()}/me`
 
-  const res = await fetch(url, {
+  const res = await authFetch(url, {
     headers: { 'Authorization': `Bearer ${token}` },
   })
 
@@ -188,7 +195,7 @@ export async function fetchCurrentUser(token: string): Promise<AuthUserResponse>
 }
 
 export async function forgotPassword(email: string): Promise<void> {
-  const res = await fetch(`${AUTH_BASE()}/forgot-password`, {
+  const res = await authFetch(`${AUTH_BASE()}/forgot-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
@@ -201,7 +208,7 @@ export async function forgotPassword(email: string): Promise<void> {
 }
 
 export async function resetPassword(token: string, password: string): Promise<void> {
-  const res = await fetch(`${AUTH_BASE()}/reset-password`, {
+  const res = await authFetch(`${AUTH_BASE()}/reset-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, password }),
@@ -233,7 +240,7 @@ export interface ExchangeTokenResponse {
 export async function exchangeToken(supabaseToken: string): Promise<ExchangeTokenResponse> {
   const url = `${AUTH_BASE()}/exchange`
 
-  const res = await fetch(url, {
+  const res = await authFetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ supabase_token: supabaseToken }),

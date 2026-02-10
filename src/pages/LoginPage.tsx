@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { sanitizeRedirect } from '../lib/url-validation'
 import { GlassCard, GlassButton, BackgroundPattern } from '../components/ui'
 import { LogIn, AlertCircle, ArrowLeft } from 'lucide-react'
 
@@ -13,7 +14,7 @@ export function LoginPage() {
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/dashboard'
+  const redirect = sanitizeRedirect(searchParams.get('redirect'), '/')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

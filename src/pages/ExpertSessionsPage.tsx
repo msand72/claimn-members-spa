@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
 import { useCoachingSessions } from '../lib/api/hooks'
+import { safeOpenUrl } from '../lib/url-validation'
 import type { CoachingSession } from '../lib/api/types'
 import { Calendar, Clock, Video, MessageCircle, Star, ChevronRight, Plus, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
@@ -158,7 +159,7 @@ function SessionCard({ session }: { session: CoachingSession }) {
                 <MessageCircle className="w-4 h-4" />
               </GlassButton>
               {session.meeting_url && (
-                <GlassButton variant="primary" className="text-sm" onClick={() => window.open(session.meeting_url!, '_blank')}>
+                <GlassButton variant="primary" className="text-sm" onClick={() => safeOpenUrl(session.meeting_url!)}>
                   Join Call
                   <ChevronRight className="w-4 h-4" />
                 </GlassButton>

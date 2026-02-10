@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassAlert } from '../components/ui'
 import { useCheckout, useProtocolTemplate, useActiveProtocolBySlug } from '../lib/api/hooks'
+import { isAllowedExternalUrl } from '../lib/url-validation'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import {
@@ -102,7 +103,11 @@ export function ShopProtocolDetailPage() {
       { item_type: 'protocol', item_slug: slug },
       {
         onSuccess: (data) => {
-          window.location.href = data.checkout_url
+          if (isAllowedExternalUrl(data.checkout_url)) {
+            window.location.href = data.checkout_url
+          } else {
+            setCheckoutError('Invalid checkout URL. Please try again or contact support.')
+          }
         },
         onError: () => {
           setCheckoutError('Failed to start checkout. Please try again.')
