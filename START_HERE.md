@@ -57,6 +57,22 @@ If you need backend changes (new endpoints, schema changes), **document the requ
 
 ---
 
+## 📚 External API Integration Protocol
+
+**BEFORE modifying ANY external API integration:**
+
+1. **Ask for API Documentation** - Request the official API documentation URL
+2. **Read Documentation Thoroughly** - Study auth, data structures, endpoints, rate limits
+3. **Understand the Data Model** - Know exactly how the API structures its data
+4. **Verify When Uncertain** - Ask the user rather than guessing
+5. **Test Carefully** - Changes to external APIs can break integrations for hours
+
+**Why:** Incorrect assumptions about external APIs can cause 6+ hours of debugging.
+
+See CLAUDE.md "External API Integration Protocol" section for full details.
+
+---
+
 ## Tech Stack
 
 | Category | Technology | Version |

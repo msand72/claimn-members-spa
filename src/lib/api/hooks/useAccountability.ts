@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, safeArray } from '../client'
+import { api, safeArray, unwrapData } from '../client'
 
 // ---------------------------------------------------------------------------
 // Types matching actual backend response (accountability_groups table)
@@ -95,10 +95,7 @@ export function useAccountabilityGroupDetail(id: string) {
     queryKey: accountabilityKeys.group(id),
     queryFn: async () => {
       const res = await api.get<AccountabilityGroup | { data: AccountabilityGroup }>(`/members/accountability/${id}`)
-      if (res && typeof res === 'object' && 'data' in res && res.data) {
-        return res.data as AccountabilityGroup
-      }
-      return res as AccountabilityGroup
+      return unwrapData<AccountabilityGroup>(res)!
     },
     enabled: !!id,
   })
