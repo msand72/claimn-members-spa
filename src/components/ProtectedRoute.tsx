@@ -21,11 +21,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user) {
-    const redirectPath = encodeURIComponent(location.pathname + location.search)
+    const redirectPath = location ? encodeURIComponent(location.pathname + location.search) : ''
     return <Navigate to={`/login?redirect=${redirectPath}`} replace />
   }
 
-  const isOnboardingRoute = location.pathname.startsWith('/onboarding')
+  const isOnboardingRoute = location?.pathname.startsWith('/onboarding')
   const onboardingComplete = onboarding?.step === 'complete' || !!onboarding?.completed_at
 
   // Completed users: redirect away from onboarding pages (prevent re-entering)
