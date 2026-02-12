@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type PaginatedResponse, type PaginationParams } from '../client'
+import { api, safeArray, type PaginatedResponse, type PaginationParams } from '../client'
 import type { Circle, CircleMember, CirclePost } from '../types'
 
 // Query keys
@@ -31,8 +31,10 @@ export function useCircles(params?: PaginationParams) {
 export function useMyCircles() {
   return useQuery({
     queryKey: circleKeys.myCircles(),
-    queryFn: () =>
-      api.get<Circle[]>('/members/circles/my'),
+    queryFn: async () => {
+      const res = await api.get<Circle[] | { data: Circle[] }>('/members/circles/my')
+      return safeArray<Circle>(res)
+    },
   })
 }
 

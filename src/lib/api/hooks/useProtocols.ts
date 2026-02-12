@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, safeArray, is404Error, type PaginationParams } from '../client'
+import { api, safeArray, unwrapData, is404Error, type PaginationParams } from '../client'
 import type {
   ActiveProtocol,
   StartProtocolRequest,
@@ -163,11 +163,7 @@ export function useProtocol(slug: string) {
     queryKey: protocolKeys.detail(slug),
     queryFn: async () => {
       const res = await api.get<ProtocolTemplate | { data: ProtocolTemplate }>(`/members/protocols/library/${slug}`)
-      // Unwrap if needed
-      if (res && typeof res === 'object' && 'data' in res && res.data) {
-        return res.data as ProtocolTemplate
-      }
-      return res as ProtocolTemplate
+      return unwrapData<ProtocolTemplate>(res)!
     },
     enabled: !!slug,
   })
@@ -182,11 +178,7 @@ export function useProtocolsByPillar() {
     queryKey: protocolKeys.pillars(),
     queryFn: async () => {
       const res = await api.get<ProtocolsByPillar | { data: ProtocolsByPillar }>('/members/protocols/library/pillars')
-      // Unwrap if needed
-      if (res && typeof res === 'object' && 'data' in res && res.data) {
-        return res.data as ProtocolsByPillar
-      }
-      return res as ProtocolsByPillar
+      return unwrapData<ProtocolsByPillar>(res)!
     },
   })
 }
@@ -283,11 +275,7 @@ export function useProtocolTemplate(slug: string) {
     queryKey: protocolKeys.detail(slug),
     queryFn: async () => {
       const res = await api.get<ProtocolTemplate | { data: ProtocolTemplate }>(`/members/protocols/library/${slug}`)
-      // Unwrap if needed
-      if (res && typeof res === 'object' && 'data' in res && res.data) {
-        return res.data as ProtocolTemplate
-      }
-      return res as ProtocolTemplate
+      return unwrapData<ProtocolTemplate>(res)!
     },
     enabled: !!slug && slug !== 'library',
   })

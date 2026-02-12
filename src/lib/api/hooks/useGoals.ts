@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type PaginatedResponse, type PaginationParams } from '../client'
+import { api, safeArray, type PaginatedResponse, type PaginationParams } from '../client'
 import type {
   Goal,
   CreateGoalRequest,
@@ -114,7 +114,10 @@ export function useKPIs(params?: PaginationParams) {
 export function useGoalKPIs(goalId: string) {
   return useQuery({
     queryKey: goalKeys.kpis(goalId),
-    queryFn: () => api.get<KPI[]>(`/members/goals/${goalId}/kpis`),
+    queryFn: async () => {
+      const res = await api.get<KPI[] | { data: KPI[] }>(`/members/goals/${goalId}/kpis`)
+      return safeArray<KPI>(res)
+    },
     enabled: !!goalId,
   })
 }
