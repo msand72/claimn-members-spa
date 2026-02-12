@@ -3,6 +3,10 @@ import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { BugReportProvider } from './contexts/BugReportContext'
+import { GlobalErrorBoundary } from './components/GlobalErrorBoundary'
+import { BugReportPanel } from './components/BugReportPanel'
+import { BugReportToast } from './components/BugReportToast'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { RequireUserType } from './components/RequireUserType'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
@@ -244,7 +248,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <RouterProvider router={router} />
+          <BugReportProvider>
+            <GlobalErrorBoundary>
+              <RouterProvider router={router} />
+            </GlobalErrorBoundary>
+            <BugReportPanel />
+            <BugReportToast />
+          </BugReportProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

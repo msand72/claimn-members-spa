@@ -10,9 +10,11 @@ import {
   LogOut,
   Library,
   Bell,
+  Bug,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useNotifications, safeArray, type Notification } from '../../lib/api'
+import { useBugReport } from '../../contexts/BugReportContext'
 
 interface NavItem {
   to: string
@@ -30,6 +32,7 @@ export function GlassSidebar() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const currentSection = useCurrentSection()
+  const { openManualReport } = useBugReport()
   const { data: notifData } = useNotifications({ limit: 50 })
   const unreadCount = safeArray<Notification>(notifData).filter((n) => !n.read_at).length
 
@@ -123,8 +126,20 @@ export function GlassSidebar() {
         </div>
       </nav>
 
-      {/* Sign Out */}
-      <div className="p-4 border-t border-white/10 shrink-0">
+      {/* Report Bug + Sign Out */}
+      <div className="p-4 border-t border-white/10 shrink-0 space-y-1">
+        <button
+          onClick={openManualReport}
+          className={cn(
+            'w-full flex items-center gap-3 px-4 py-2.5 rounded-xl',
+            'text-sm font-medium text-kalkvit/50',
+            'hover:bg-white/[0.06] hover:text-kalkvit/70',
+            'transition-all duration-200'
+          )}
+        >
+          <Bug className="w-5 h-5" />
+          Report a Bug
+        </button>
         <button
           onClick={handleSignOut}
           className={cn(
