@@ -248,7 +248,7 @@ export function AssessmentTakePage() {
 
     setSubmitError(null)
 
-    const archetypeResponses: { questionKey: string; archetype: string }[] = []
+    const archetypeResponses: { questionKey: string; archetype?: string; value?: string; pillar_category?: string }[] = []
     const pillarResponses: { questionKey: string; pillar: PillarId; value: number }[] = []
     const backgroundData: Record<string, string> = {}
 
@@ -262,12 +262,25 @@ export function AssessmentTakePage() {
           backgroundData[q._questionKey] = textVal
         }
       } else if (q._questionType === 'archetype') {
-        const archetypeKey = q._optionKeys?.[selectedIndex]
-        if (archetypeKey) {
-          archetypeResponses.push({
-            questionKey: q._questionKey,
-            archetype: archetypeKey,
-          })
+        if (q._optionKeys && q._optionKeys.length > 0) {
+          // Old forced-choice format
+          const archetypeKey = q._optionKeys[selectedIndex]
+          if (archetypeKey) {
+            archetypeResponses.push({
+              questionKey: q._questionKey,
+              archetype: archetypeKey,
+            })
+          }
+        } else {
+          // Big Five Likert format — send value + dimension
+          const likertValue = q.options[selectedIndex]?.value
+          if (likertValue !== undefined) {
+            archetypeResponses.push({
+              questionKey: q._questionKey,
+              value: String(likertValue),
+              pillar_category: q._pillarCategory || '',
+            })
+          }
         }
       } else if (q._questionType === 'pillar' && q._pillarCategory) {
         const value = q.options[selectedIndex]?.value

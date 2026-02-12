@@ -11,9 +11,40 @@ export const ARCHETYPES = [
   'The Networker',
   'The Grinder',
   'The Philosopher',
+  'The Integrator',
 ] as const
 
 export type Archetype = (typeof ARCHETYPES)[number]
+
+export const ARCHETYPE_DISPLAY_NAMES: Record<string, string> = {
+  achiever: 'The Achiever',
+  optimizer: 'The Optimizer',
+  networker: 'The Networker',
+  grinder: 'The Grinder',
+  philosopher: 'The Philosopher',
+  integrator: 'The Integrator',
+}
+
+// Big Five personality dimensions used for archetype scoring
+export const BIG5_DIMENSIONS = [
+  'conscientiousness',
+  'extraversion',
+  'openness',
+  'agreeableness',
+  'neuroticism',
+] as const
+
+export type Big5Dimension = (typeof BIG5_DIMENSIONS)[number]
+
+// Archetype Big Five templates — target profiles on 1-7 scale
+export const ARCHETYPE_BIG5_TEMPLATES: Record<string, Record<Big5Dimension, number>> = {
+  achiever:    { conscientiousness: 6.0, extraversion: 6.0, openness: 2.0, agreeableness: 2.0, neuroticism: 2.0 },
+  optimizer:   { conscientiousness: 6.0, extraversion: 2.0, openness: 2.0, agreeableness: 4.0, neuroticism: 2.0 },
+  networker:   { conscientiousness: 4.0, extraversion: 6.0, openness: 2.0, agreeableness: 6.0, neuroticism: 6.0 },
+  grinder:     { conscientiousness: 2.0, extraversion: 6.0, openness: 6.0, agreeableness: 2.0, neuroticism: 4.0 },
+  philosopher: { conscientiousness: 2.0, extraversion: 2.0, openness: 6.0, agreeableness: 6.0, neuroticism: 2.0 },
+  integrator:  { conscientiousness: 5.0, extraversion: 5.0, openness: 5.0, agreeableness: 5.0, neuroticism: 2.0 },
+}
 
 // ============================================
 // PILLARS - The 5 transformation pillars

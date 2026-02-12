@@ -826,18 +826,36 @@ function deriveFromApiResult(apiResult: {
   const rawSecondary = apiResult.secondary_archetype ?? apiResult.archetypes?.[1] ?? null
   const secondaryArchetype = rawSecondary ? normalizeArchetypeKey(rawSecondary) : null
 
-  // Archetype scores — normalize keys from DB format ("The Achiever" → "achiever")
+  // Archetype scores — handle both Big Five nested format and legacy flat format
+  // Big Five: { big5_profile: { C, E, O, A, N }, archetype_match: { achiever: 75, ... } }
+  // Legacy:   { achiever: 3, optimizer: 2, ... } (vote counts)
   const archetypeScores: Record<string, number> = {}
+  let isBig5Format = false
   if (apiResult.archetype_scores) {
-    for (const [key, val] of Object.entries(apiResult.archetype_scores)) {
-      archetypeScores[normalizeArchetypeKey(key)] = val
+    const scores = apiResult.archetype_scores as Record<string, unknown>
+    if (scores.archetype_match && typeof scores.archetype_match === 'object') {
+      // Big Five nested format — use archetype_match values (already percentages)
+      isBig5Format = true
+      for (const [key, val] of Object.entries(scores.archetype_match as Record<string, number>)) {
+        archetypeScores[normalizeArchetypeKey(key)] = val
+      }
+    } else {
+      // Legacy flat format — vote counts
+      for (const [key, val] of Object.entries(apiResult.archetype_scores)) {
+        if (typeof val === 'number') {
+          archetypeScores[normalizeArchetypeKey(key)] = val
+        }
+      }
     }
   }
 
   const primaryScore = archetypeScores[primaryArchetype] ?? 0
   const secondaryScore = secondaryArchetype ? (archetypeScores[secondaryArchetype] ?? 0) : 0
-  const primaryPercentage = Math.round((primaryScore / 6) * 100)
-  const secondaryPercentage = secondaryArchetype ? Math.round((secondaryScore / 6) * 100) : 0
+  // Big Five scores are already percentages; legacy scores are vote counts (max ~6)
+  const primaryPercentage = isBig5Format ? Math.round(primaryScore) : Math.round((primaryScore / 6) * 100)
+  const secondaryPercentage = secondaryArchetype
+    ? (isBig5Format ? Math.round(secondaryScore) : Math.round((secondaryScore / 6) * 100))
+    : 0
 
   // Pillar scores
   const pillarScores: Record<PillarId, PillarScore> = {} as Record<PillarId, PillarScore>

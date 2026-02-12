@@ -2,8 +2,8 @@
 // Scale: 1-7 Likert (matching PHP original and claimn-web reference)
 // Primary scoring is done server-side; this is for offline fallback only
 
-import { PILLARS } from '../constants'
-import type { Archetype, PillarId } from '../constants'
+import { PILLARS, ARCHETYPE_BIG5_TEMPLATES, ARCHETYPE_DISPLAY_NAMES, BIG5_DIMENSIONS } from '../constants'
+import type { Archetype, PillarId, Big5Dimension } from '../constants'
 
 export interface PillarScore {
   raw: number
@@ -39,17 +39,101 @@ export interface AssessmentResult {
   created_at: string
 }
 
-// Calculate consistency score (exact port from PHP — max possible range is 6)
-export function calculateConsistencyScore(archetypeScores: ArchetypeScores): number {
-  if (Object.keys(archetypeScores).length === 0) return 0.0
+// =====================================================
+// Big Five Scoring Functions
+// =====================================================
 
-  const scores = Object.values(archetypeScores)
-  const max = Math.max(...scores)
-  const min = Math.min(...scores)
-  const range = max - min
-  const maxPossibleRange = 6 // All 6 archetype questions could go to one archetype
+// Max possible Euclidean distance in 5D space with 1-7 scale
+const MAX_POSSIBLE_DISTANCE = Math.sqrt(5 * Math.pow(7 - 1, 2)) // sqrt(180) ≈ 13.42
 
-  const consistency = 1 - range / maxPossibleRange
+export interface Big5Profile {
+  C: number
+  E: number
+  O: number
+  A: number
+  N: number
+}
+
+export interface Big5ArchetypeScores {
+  big5_profile: Big5Profile
+  archetype_match: Record<string, number>
+}
+
+// Compute Big Five dimension averages from archetype question responses
+export function computeBig5Profile(
+  answers: Record<string, number | string>,
+  questions: { id: string; question_type?: string; pillar_category?: string; is_reverse_scored?: boolean }[]
+): Big5Profile {
+  const dimensionMap: Record<string, string> = {
+    conscientiousness: 'C',
+    extraversion: 'E',
+    openness: 'O',
+    agreeableness: 'A',
+    neuroticism: 'N',
+  }
+
+  const dimensionValues: Record<string, number[]> = { C: [], E: [], O: [], A: [], N: [] }
+
+  for (const question of questions) {
+    if (question.question_type !== 'archetype') continue
+    const dim = dimensionMap[question.pillar_category || '']
+    if (!dim) continue
+
+    const rawValue = Number(answers[question.id])
+    if (isNaN(rawValue) || rawValue < 1 || rawValue > 7) continue
+
+    const value = question.is_reverse_scored ? 8 - rawValue : rawValue
+    dimensionValues[dim].push(value)
+  }
+
+  const avg = (arr: number[]) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 4.0
+
+  return {
+    C: Math.round(avg(dimensionValues.C) * 10) / 10,
+    E: Math.round(avg(dimensionValues.E) * 10) / 10,
+    O: Math.round(avg(dimensionValues.O) * 10) / 10,
+    A: Math.round(avg(dimensionValues.A) * 10) / 10,
+    N: Math.round(avg(dimensionValues.N) * 10) / 10,
+  }
+}
+
+// Calculate Euclidean distance between user profile and archetype template
+function euclideanDistance(profile: Big5Profile, template: Record<Big5Dimension, number>): number {
+  return Math.sqrt(
+    Math.pow(profile.C - template.conscientiousness, 2) +
+    Math.pow(profile.E - template.extraversion, 2) +
+    Math.pow(profile.O - template.openness, 2) +
+    Math.pow(profile.A - template.agreeableness, 2) +
+    Math.pow(profile.N - template.neuroticism, 2)
+  )
+}
+
+// Calculate match percentages for all archetypes from a Big Five profile
+export function calculateArchetypeMatches(profile: Big5Profile): Record<string, number> {
+  const matches: Record<string, number> = {}
+  for (const [archetype, template] of Object.entries(ARCHETYPE_BIG5_TEMPLATES)) {
+    const distance = euclideanDistance(profile, template)
+    matches[archetype] = Math.round((1 - distance / MAX_POSSIBLE_DISTANCE) * 100)
+  }
+  return matches
+}
+
+// Calculate consistency score — profile fit confidence
+// High value = user's Big Five profile closely matches a known archetype template
+export function calculateConsistencyScore(archetypeMatchOrScores: Record<string, number> | Big5ArchetypeScores): number {
+  let matchPercentages: number[]
+
+  if ('big5_profile' in archetypeMatchOrScores) {
+    matchPercentages = Object.values(archetypeMatchOrScores.archetype_match)
+  } else {
+    matchPercentages = Object.values(archetypeMatchOrScores)
+  }
+
+  if (matchPercentages.length === 0) return 0.0
+
+  const bestMatch = Math.max(...matchPercentages)
+  // Normalize: a 100% match = 1.0 consistency, scale linearly
+  const consistency = bestMatch / 100
   return Math.round(consistency * 100) / 100
 }
 
@@ -205,10 +289,11 @@ function getPillarInsight(archetype: Archetype, pillar: PillarId, level: string)
 }
 
 // Generate integration insights
+// Supports both Big Five archetype_match format and legacy vote-count format
 export function generateIntegrationInsights(
   primary: Archetype,
   secondary: Archetype | null,
-  archetypeScores: ArchetypeScores,
+  archetypeScores: ArchetypeScores | Big5ArchetypeScores,
   pillarScores: Record<PillarId, PillarScore>
 ): Insight[] {
   const insights: Insight[] = []
@@ -219,7 +304,7 @@ export function generateIntegrationInsights(
   const lowestPillar = sortedPillars[sortedPillars.length - 1]
   const gap = highestPillar[1].raw - lowestPillar[1].raw
 
-  // High-Low Gap Analysis (thresholds matching PHP original)
+  // High-Low Gap Analysis
   if (gap >= 2.5 && highestPillar[1].raw >= 5.0 && lowestPillar[1].raw <= 4.0) {
     insights.push({
       type: 'pillar_synergy',
@@ -238,19 +323,43 @@ export function generateIntegrationInsights(
     })
   }
 
-  // Archetype dominance analysis (percentage out of 6 questions, matching PHP)
-  const primaryScore = archetypeScores[primary] || 0
-  const primaryPercent = Math.round((primaryScore / 6) * 100)
+  // Archetype dominance analysis
+  if ('big5_profile' in archetypeScores) {
+    // Big Five format: use match percentages
+    const matches = Object.entries(archetypeScores.archetype_match).sort((a, b) => b[1] - a[1])
+    const primaryMatch = matches[0]?.[1] ?? 0
+    const secondaryMatch = matches[1]?.[1] ?? 0
+    const dominanceGap = primaryMatch - secondaryMatch
 
-  if (primaryPercent >= 70) {
-    insights.push({
-      type: 'archetype_dominance',
-      title: 'Strong Archetype Focus',
-      insight: `Your ${primary} dominance (${primaryPercent}%) creates clear directional focus. This concentrated identity allows for deep mastery but consider developing complementary traits to avoid rigidity.`,
-    })
+    if (dominanceGap < 10) {
+      insights.push({
+        type: 'archetype_balance',
+        title: 'Blended Profile',
+        insight: `Your top two archetypes are closely matched (${primaryMatch}% vs ${secondaryMatch}%), indicating a versatile personality. You draw from multiple strengths depending on context.`,
+      })
+    } else if (primaryMatch >= 75) {
+      insights.push({
+        type: 'archetype_dominance',
+        title: 'Strong Archetype Focus',
+        insight: `Your ${primary} match (${primaryMatch}%) shows a clear personality orientation. This focused identity allows deep mastery but consider developing complementary traits.`,
+      })
+    }
+  } else {
+    // Legacy vote-count format
+    const primaryScore = (archetypeScores as ArchetypeScores)[primary] || 0
+    const totalResponses = Object.values(archetypeScores as ArchetypeScores).reduce((a, b) => a + b, 0)
+    const primaryPercent = totalResponses > 0 ? Math.round((primaryScore / totalResponses) * 100) : 0
+
+    if (primaryPercent >= 70) {
+      insights.push({
+        type: 'archetype_dominance',
+        title: 'Strong Archetype Focus',
+        insight: `Your ${primary} dominance (${primaryPercent}%) creates clear directional focus. This concentrated identity allows for deep mastery but consider developing complementary traits to avoid rigidity.`,
+      })
+    }
   }
 
-  return insights.slice(0, 5) // Limit to top 5
+  return insights.slice(0, 5)
 }
 
 // Helper to capitalize first letter
@@ -297,54 +406,55 @@ export function calculatePillarScores(
 }
 
 // Determine archetypes from answers
-// Archetype questions have forced-choice options where each option maps to an archetype
-// The answer value IS the archetype key (e.g. "optimizer"), not an index
+// Supports both Big Five Likert format (question keys start with big5_) and legacy forced-choice
 export function determineArchetypesFromAnswers(
   answers: Record<string, number | string>,
-  questions: { id: string; section?: string; question_type?: string }[]
+  questions: { id: string; section?: string; question_type?: string; pillar_category?: string; is_reverse_scored?: boolean }[]
 ): string[] {
+  const archetypeQuestions = questions.filter(
+    q => q.question_type === 'archetype' || q.section === 'archetype'
+  )
+
+  // Detect format: Big Five if any archetype question has a Big Five pillar_category
+  const isBig5 = archetypeQuestions.some(q =>
+    BIG5_DIMENSIONS.includes(q.pillar_category as Big5Dimension)
+  )
+
+  if (isBig5) {
+    // Big Five scoring: compute profile → match to templates
+    const profile = computeBig5Profile(answers, questions)
+    const matches = calculateArchetypeMatches(profile)
+    const sorted = Object.entries(matches)
+      .sort((a, b) => b[1] - a[1])
+      .map(([key]) => ARCHETYPE_DISPLAY_NAMES[key] || capitalize(key))
+    return sorted.length > 0 ? sorted : ['The Integrator']
+  }
+
+  // Legacy forced-choice scoring
   const archetypeScores: Record<string, number> = {
-    achiever: 0,
-    optimizer: 0,
-    networker: 0,
-    grinder: 0,
-    philosopher: 0,
+    achiever: 0, optimizer: 0, networker: 0, grinder: 0, philosopher: 0,
   }
 
-  const archetypeDisplayNames: Record<string, string> = {
-    achiever: 'The Achiever',
-    optimizer: 'The Optimizer',
-    networker: 'The Networker',
-    grinder: 'The Grinder',
-    philosopher: 'The Philosopher',
-  }
-
-  // Count answers for archetype questions
-  for (const question of questions) {
-    const isArchetypeQuestion = question.question_type === 'archetype' || question.section === 'archetype'
-    if (isArchetypeQuestion && answers[question.id] !== undefined) {
-      const answerValue = String(answers[question.id]).toLowerCase()
-      // New format: answer value is archetype key directly (e.g. "optimizer")
-      if (archetypeScores.hasOwnProperty(answerValue)) {
-        archetypeScores[answerValue]++
-      } else {
-        // Legacy format: answer value is 1-5 index mapping to archetype
-        const numVal = Number(answers[question.id])
-        const archetypeKeys = Object.keys(archetypeScores)
-        if (numVal >= 1 && numVal <= 5) {
-          archetypeScores[archetypeKeys[numVal - 1]]++
-        }
+  for (const question of archetypeQuestions) {
+    if (answers[question.id] === undefined) continue
+    const answerValue = String(answers[question.id]).toLowerCase()
+    if (answerValue in archetypeScores) {
+      archetypeScores[answerValue]++
+    } else {
+      const numVal = Number(answers[question.id])
+      const archetypeKeys = Object.keys(archetypeScores)
+      if (numVal >= 1 && numVal <= 5) {
+        archetypeScores[archetypeKeys[numVal - 1]]++
       }
     }
   }
 
-  // Sort by score and return top archetypes with display names
   const sorted = Object.entries(archetypeScores)
     .sort((a, b) => b[1] - a[1])
     .filter(([, score]) => score > 0)
-    .map(([key]) => archetypeDisplayNames[key] || capitalize(key))
+    .map(([key]) => ARCHETYPE_DISPLAY_NAMES[key] || capitalize(key))
 
-  return sorted.length > 0 ? sorted : ['The Achiever'] // Default
+  return sorted.length > 0 ? sorted : ['The Achiever']
 }
 
 // Generate simple micro insights for pillar scores (percentage-based)

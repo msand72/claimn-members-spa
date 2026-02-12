@@ -724,7 +724,9 @@ export interface AssessmentResult {
 // Structured submit format matching backend scoring engine
 export interface ArchetypeResponse {
   questionKey: string
-  archetype: string // Full archetype name from option_value (e.g. "The Achiever")
+  archetype?: string // Old forced-choice format (e.g. "The Achiever")
+  value?: string // Big Five Likert format: "1"-"7"
+  pillar_category?: string // Big Five dimension (e.g. "conscientiousness")
 }
 
 export interface PillarResponse {
