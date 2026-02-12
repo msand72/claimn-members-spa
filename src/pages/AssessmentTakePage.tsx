@@ -34,6 +34,24 @@ const PILLAR_COLORS: Record<string, string> = {
   mission: 'text-koppar',
 }
 
+/** Big Five dimension display names */
+const BIG5_NAMES: Record<string, string> = {
+  conscientiousness: 'Conscientiousness',
+  extraversion: 'Extraversion',
+  openness: 'Openness',
+  agreeableness: 'Agreeableness',
+  neuroticism: 'Neuroticism',
+}
+
+/** Big Five dimension descriptions */
+const BIG5_DESCRIPTIONS: Record<string, string> = {
+  conscientiousness: 'How you approach structure, discipline, and follow-through',
+  extraversion: 'How you engage with people and draw energy from social situations',
+  openness: 'How you relate to new ideas, experiences, and unconventional thinking',
+  agreeableness: 'How you balance your own needs with the needs of others',
+  neuroticism: 'How you experience and respond to stress and emotional pressure',
+}
+
 /**
  * Extended local question with metadata needed for structured submit.
  */
@@ -169,6 +187,21 @@ export function AssessmentTakePage() {
     }
     return groups
   }, [pillarQuestions])
+
+  // Detect Big Five format: archetype questions without forced-choice options
+  const isBig5Archetype = archetypeQuestions.length > 0 && !archetypeQuestions[0]._optionKeys
+
+  // Group archetype questions by Big Five dimension (when Big Five format)
+  const archetypesByDimension = useMemo(() => {
+    if (!isBig5Archetype) return {}
+    const groups: Record<string, EnrichedQuestion[]> = {}
+    for (const q of archetypeQuestions) {
+      const dim = q._pillarCategory || 'other'
+      if (!groups[dim]) groups[dim] = []
+      groups[dim].push(q)
+    }
+    return groups
+  }, [archetypeQuestions, isBig5Archetype])
 
   // Restore progress from sessionStorage on mount
   useEffect(() => {
@@ -470,55 +503,127 @@ export function AssessmentTakePage() {
             <GlassCard variant="elevated">
               <div className="mb-6">
                 <h2 className="font-display text-2xl font-bold text-kalkvit mb-2">
-                  Archetype Assessment
+                  Personality Profile
                 </h2>
                 <p className="text-kalkvit/60">
-                  Our {archetypeQuestions.length}-question assessment uses three key areas to accurately determine your archetype: Deep Reflection, Real-World Scenarios, and Core Identity Patterns. Each area captures the most important aspects of your development.
+                  Rate each statement from 1 (not true at all) to 7 (completely true)
                 </p>
               </div>
 
-              <div className="space-y-8">
-                {archetypeQuestions.map((q, index) => (
-                  <div key={q.id} className="border-l-4 border-koppar pl-5 py-2">
-                    <h3 className="font-display text-lg font-semibold text-kalkvit mb-4">
-                      {index + 1}. {q.question}
-                    </h3>
-                    <div className="space-y-3">
-                      {q.options.map((option, idx) => {
-                        const isSelected = answers[q.id] === idx
-                        return (
-                          <label
-                            key={idx}
-                            className={cn(
-                              'flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all',
-                              isSelected
-                                ? 'border-koppar bg-koppar/10'
-                                : 'border-white/10 hover:border-koppar/30 hover:bg-white/[0.04]'
-                            )}
-                          >
-                            <input
-                              type="radio"
-                              name={q.id}
-                              checked={isSelected}
-                              onChange={() => handleAnswer(q.id, idx)}
-                              className="sr-only"
-                            />
-                            <div
+              {isBig5Archetype ? (
+                /* Big Five Likert scale — grouped by dimension */
+                <div className="space-y-8">
+                  {Object.entries(archetypesByDimension).map(([dimension, dimQuestions]) => {
+                    return (
+                      <div key={dimension} className="border-t border-white/10 pt-6 first:border-t-0 first:pt-0">
+                        <div className="mb-4">
+                          <h3 className="font-display text-xl font-semibold text-koppar">
+                            {BIG5_NAMES[dimension] || dimension}
+                          </h3>
+                          {BIG5_DESCRIPTIONS[dimension] && (
+                            <p className="text-sm text-kalkvit/40 mt-1">
+                              {BIG5_DESCRIPTIONS[dimension]}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-6">
+                          {dimQuestions.map((q, index) => {
+                            const selectedIndex = answers[q.id]
+                            return (
+                              <div key={q.id} className="bg-white/[0.04] rounded-xl p-4">
+                                <div className="mb-3">
+                                  <span className="inline-block bg-koppar text-kalkvit text-xs font-bold px-2.5 py-1 rounded mb-2">
+                                    Question {index + 1}
+                                  </span>
+                                  <p className="text-kalkvit/90">{q.question}</p>
+                                </div>
+
+                                {/* Scale labels */}
+                                <div className="flex justify-between text-xs text-kalkvit/40 mb-2 px-1">
+                                  <span>Not true at all</span>
+                                  <span>Completely true</span>
+                                </div>
+
+                                {/* 1-7 Scale */}
+                                <div className="flex gap-2">
+                                  {q.options.map((option, idx) => {
+                                    const isSelected = selectedIndex === idx
+                                    return (
+                                      <label
+                                        key={idx}
+                                        className={cn(
+                                          'flex-1 flex items-center justify-center h-12 rounded-lg border-2 cursor-pointer transition-all font-display text-lg font-semibold',
+                                          isSelected
+                                            ? 'border-koppar bg-koppar text-kalkvit shadow-md scale-105'
+                                            : 'border-white/10 bg-white/[0.04] text-kalkvit/60 hover:border-koppar/40 hover:bg-koppar/5'
+                                        )}
+                                      >
+                                        <input
+                                          type="radio"
+                                          name={q.id}
+                                          checked={isSelected}
+                                          onChange={() => handleAnswer(q.id, idx)}
+                                          className="sr-only"
+                                        />
+                                        {option.value}
+                                      </label>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                /* Legacy forced-choice — vertical radio list */
+                <div className="space-y-8">
+                  {archetypeQuestions.map((q, index) => (
+                    <div key={q.id} className="border-l-4 border-koppar pl-5 py-2">
+                      <h3 className="font-display text-lg font-semibold text-kalkvit mb-4">
+                        {index + 1}. {q.question}
+                      </h3>
+                      <div className="space-y-3">
+                        {q.options.map((option, idx) => {
+                          const isSelected = answers[q.id] === idx
+                          return (
+                            <label
+                              key={idx}
                               className={cn(
-                                'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
-                                isSelected ? 'border-koppar bg-koppar' : 'border-kalkvit/30'
+                                'flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                                isSelected
+                                  ? 'border-koppar bg-koppar/10'
+                                  : 'border-white/10 hover:border-koppar/30 hover:bg-white/[0.04]'
                               )}
                             >
-                              {isSelected && <Check className="w-3 h-3 text-kalkvit" />}
-                            </div>
-                            <span className="text-sm text-kalkvit/80">{option.label}</span>
-                          </label>
-                        )
-                      })}
+                              <input
+                                type="radio"
+                                name={q.id}
+                                checked={isSelected}
+                                onChange={() => handleAnswer(q.id, idx)}
+                                className="sr-only"
+                              />
+                              <div
+                                className={cn(
+                                  'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                                  isSelected ? 'border-koppar bg-koppar' : 'border-kalkvit/30'
+                                )}
+                              >
+                                {isSelected && <Check className="w-3 h-3 text-kalkvit" />}
+                              </div>
+                              <span className="text-sm text-kalkvit/80">{option.label}</span>
+                            </label>
+                          )
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </GlassCard>
           )}
 
