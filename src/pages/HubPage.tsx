@@ -483,24 +483,20 @@ function UpcomingSection() {
 
   const now = new Date()
   const upcoming: UpcomingItem[] = [
-    ...events
-      .filter((e) => new Date(e.scheduled_date) >= now)
-      .map((e): UpcomingItem => ({
-        kind: 'event',
-        date: e.scheduled_date,
-        title: e.title,
-        subtitle: `${e.duration_minutes}min`,
-        avatarUrl: e.facilitator?.avatar_url ?? undefined,
-      })),
-    ...sessions
-      .filter((s) => s.status === 'scheduled' && new Date(s.scheduled_at) >= now)
-      .map((s): UpcomingItem => ({
-        kind: 'session',
-        date: s.scheduled_at,
-        title: s.title || 'Coaching Session',
-        subtitle: s.expert?.name || 'Expert',
-        avatarUrl: s.expert?.avatar_url ?? undefined,
-      })),
+    ...(events || []).filter((e) => new Date(e.scheduled_date) >= now).map((e): UpcomingItem => ({
+      kind: 'event',
+      date: e.scheduled_date,
+      title: e.title,
+      subtitle: `${e.duration_minutes}min`,
+      avatarUrl: e.facilitator?.avatar_url ?? undefined,
+    })),
+    ...(sessions || []).filter((s) => s.status === 'scheduled' && new Date(s.scheduled_at) >= now).map((s): UpcomingItem => ({
+      kind: 'session',
+      date: s.scheduled_at,
+      title: s.title || 'Coaching Session',
+      subtitle: s.expert?.name || 'Expert',
+      avatarUrl: s.expert?.avatar_url ?? undefined,
+    })),
   ]
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3)
