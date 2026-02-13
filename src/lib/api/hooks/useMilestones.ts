@@ -1,31 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../client'
-import type { PillarId } from '../../constants'
-import type { MilestoneStatus } from '../../constants'
+import type { Milestone } from '../types'
 
-export interface Milestone {
-  id: string
-  title: string
-  description: string
-  pillar: PillarId
-  target_date: string
-  status: MilestoneStatus
-  created_by: {
-    id: string
-    name: string
-    role: 'expert' | 'facilitator'
-  }
-  progress_notes: string | null
-  created_at: string
-  updated_at: string
-}
+export type { Milestone }
 
 interface MilestonesResponse {
   milestones: Milestone[]
 }
 
 interface UpdateMilestoneStatusRequest {
-  status: MilestoneStatus
+  status: Milestone['status']
   progress_notes?: string
 }
 

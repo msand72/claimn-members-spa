@@ -1,21 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, safeArray } from '../client'
+import type { JournalEntry, JournalEntriesParams } from '../types'
 
-export interface JournalEntry {
-  id: string
-  user_id: string
-  entry_type: string
-  content: string
-  mood?: string
-  pillar?: string
-  created_at: string
-  updated_at?: string
-}
-
-export interface JournalEntriesParams {
-  page?: number
-  limit?: number
-}
+export type { JournalEntry, JournalEntriesParams }
 
 interface JournalEntriesResponse {
   data: JournalEntry[]

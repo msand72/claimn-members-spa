@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type PaginatedResponse, type PaginationParams } from '../client'
+import { STALE_TIME } from '../../constants'
 import type {
   Assessment,
   AssessmentQuestion,
@@ -15,6 +16,7 @@ export const assessmentKeys = {
   detail: (id: string) => [...assessmentKeys.all, 'detail', id] as const,
   questions: (id: string) => [...assessmentKeys.all, 'questions', id] as const,
   results: (id: string) => [...assessmentKeys.all, 'results', id] as const,
+  resultById: (id: string) => [...assessmentKeys.all, 'result-by-id', id] as const,
   latestResult: () => [...assessmentKeys.all, 'latest-result'] as const,
   content: () => [...assessmentKeys.all, 'content'] as const,
 }
@@ -96,6 +98,20 @@ export function useLatestAssessmentResult() {
   })
 }
 
+// Get a specific assessment result by its ID
+export function useAssessmentResultById(resultId: string) {
+  return useQuery({
+    queryKey: assessmentKeys.resultById(resultId),
+    queryFn: async () => {
+      const result = await api.get<AssessmentResult>(
+        `/members/assessments/results/${resultId}`
+      )
+      return normalizeAssessmentResult(result)
+    },
+    enabled: !!resultId,
+  })
+}
+
 // Get assessment content map (for rendering full report text from content table)
 export function useAssessmentContent() {
   return useQuery({
@@ -104,7 +120,7 @@ export function useAssessmentContent() {
       const result = await api.get<AssessmentContentMap>('/members/assessments/content')
       return result
     },
-    staleTime: 1000 * 60 * 60, // Content rarely changes — cache for 1 hour
+    staleTime: STALE_TIME.STATIC,
   })
 }
 
@@ -143,10 +159,22 @@ export function useSubmitAssessment() {
 // =====================================================
 
 /**
- * Normalize an AssessmentResult to handle multiple API response shapes:
- * 1. Snake_case (from GET endpoints / DB) — primary_archetype, pillar_scores
- * 2. CamelCase (from POST submit response) — primary, pillarScores, resultId
- * 3. Legacy (old format) — archetypes array
+ * Normalize an AssessmentResult from the backend to a consistent snake_case shape.
+ *
+ * The backend returns three different response formats depending on the endpoint:
+ *
+ * **Format 1 — Snake_case (GET endpoints / stored results):**
+ * `{ primary_archetype, pillar_scores, archetype_scores, ... }` → returned as-is.
+ *
+ * **Format 2 — CamelCase (POST /submit response):**
+ * `{ resultId, primary, pillarScores, archetypeScores, ... }` → mapped to snake_case.
+ *
+ * **Format 3 — Legacy array (old results):**
+ * `{ archetypes: ["The Achiever", "The Optimizer"] }` → maps first two entries to
+ * primary/secondary archetype with "The " prefix stripped and lowercased.
+ *
+ * TODO: Once the backend standardizes all responses to snake_case (Format 1), this
+ * function can be replaced with a simple identity return.
  */
 function normalizeAssessmentResult(result: AssessmentResult): AssessmentResult {
   if (!result) return result

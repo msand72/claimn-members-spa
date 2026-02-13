@@ -210,3 +210,20 @@ export type MilestoneStatus = (typeof MILESTONE_STATUSES)[number]['id']
 // ============================================
 export const CREATED_BY_OPTIONS = ['member', 'expert', 'facilitator', 'system'] as const
 export type CreatedBy = (typeof CREATED_BY_OPTIONS)[number]
+
+// ============================================
+// QUERY STALE TIME TIERS (React Query)
+// ============================================
+// Use these instead of hardcoding staleTime values in individual hooks.
+// The QueryClient global default is STALE_TIME.DEFAULT (5 minutes).
+// Only set staleTime in a hook when it needs a different tier.
+export const STALE_TIME = {
+  /** Data that changes frequently — journey, sessions (2 min) */
+  FREQUENT: 1000 * 60 * 2,
+  /** Default tier — most endpoints (5 min, matches QueryClient global default) */
+  DEFAULT: 1000 * 60 * 5,
+  /** Semi-static data — interests, subscription info (10 min) */
+  SEMI_STATIC: 1000 * 60 * 10,
+  /** Static/reference data — assessment content, resources (1 hour) */
+  STATIC: 1000 * 60 * 60,
+} as const

@@ -13,7 +13,9 @@ import { RequireUserType } from './components/RequireUserType'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
 import { PageErrorBoundary } from './components/PageErrorBoundary'
 import { LoadingSpinner } from './components/LoadingSpinner'
+import { MutationErrorToast } from './components/MutationErrorToast'
 import { isChunkLoadError } from './lib/isChunkLoadError'
+import { STALE_TIME } from './lib/constants'
 
 // Auto-reload on stale chunk errors after deploy
 function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }>) {
@@ -109,7 +111,7 @@ const AccountabilityPage = lazyWithRetry(() => import('./pages/AccountabilityPag
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: STALE_TIME.DEFAULT,
       retry: (failureCount, error) => {
         // Don't retry on 4xx client errors (404, 403, 401, etc.)
         if (error && typeof error === 'object' && 'status' in error) {
@@ -124,6 +126,18 @@ const queryClient = new QueryClient({
         if (import.meta.env.DEV) {
           console.error('[Mutation error]', error)
         }
+        // Extract user-friendly message from API error shape: { error: { message } }
+        let message = 'Something went wrong. Please try again.'
+        if (error && typeof error === 'object') {
+          const err = error as unknown as Record<string, unknown>
+          if (err.error && typeof err.error === 'object') {
+            const inner = err.error as Record<string, unknown>
+            if (typeof inner.message === 'string') message = inner.message
+          }
+        }
+        window.dispatchEvent(
+          new CustomEvent('mutation-error', { detail: { message } }),
+        )
       },
     },
   },
@@ -255,6 +269,7 @@ function App() {
             </GlobalErrorBoundary>
             <BugReportPanel />
             <BugReportToast />
+            <MutationErrorToast />
             <ReportBugButton />
           </BugReportProvider>
         </AuthProvider>

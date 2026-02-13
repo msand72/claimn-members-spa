@@ -1,20 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { api, is404Error } from '../client'
+import type { MyExpertData } from '../types'
 
-export interface MyExpertData {
-  expert: {
-    id: string
-    name: string
-    bio: string
-    avatar_url: string
-    specializations: string
-  }
-  next_session: {
-    id: string
-    session_date: string
-    status: string
-  } | null
-}
+export type { MyExpertData }
 
 export const myExpertKeys = {
   all: ['my-expert'] as const,

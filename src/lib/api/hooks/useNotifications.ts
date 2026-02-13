@@ -1,31 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../client'
+import type { Notification, NotificationsResponse, NotificationsParams } from '../types'
 
-export interface Notification {
-  id: string
-  type: string
-  title: string
-  body: string
-  action_url: string | null
-  metadata: Record<string, unknown>
-  read_at: string | null
-  created_at: string
-}
-
-export interface NotificationsResponse {
-  data: Notification[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-  }
-}
-
-export interface NotificationsParams {
-  page?: number
-  limit?: number
-  read?: boolean
-}
+export type { Notification, NotificationsResponse, NotificationsParams }
 
 export const notificationKeys = {
   all: ['notifications'] as const,

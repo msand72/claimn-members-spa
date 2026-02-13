@@ -1,17 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../client'
-import type { InterestGroup } from '../types'
+import { STALE_TIME } from '../../constants'
+import type { InterestGroup, Interest } from '../types'
 
-export type { InterestGroup }
-
-export interface Interest {
-  id: string
-  name: string
-  slug: string
-  description: string | null
-  icon: string | null
-  sort_order: number
-}
+export type { InterestGroup, Interest }
 
 export const interestKeys = {
   all: ['interests'] as const,
@@ -27,7 +19,7 @@ export function useInterests() {
   return useQuery({
     queryKey: interestKeys.list(),
     queryFn: () => api.get<Interest[]>('/members/interests'),
-    staleTime: 1000 * 60 * 10, // 10 minutes - interests don't change often
+    staleTime: STALE_TIME.SEMI_STATIC,
   })
 }
 

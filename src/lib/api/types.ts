@@ -748,3 +748,408 @@ export interface LegacySubmitAssessmentRequest {
 
 // Content table lookup map
 export type AssessmentContentMap = Record<string, string>
+
+// =====================================================
+// Protocol Templates
+// =====================================================
+
+export interface ProtocolTemplate {
+  slug: string
+  title: string
+  pillar: string
+  category?: string
+  description: string
+  headline_stat?: string
+  subtitle?: string
+  duration_weeks?: number
+  is_featured?: boolean
+  keywords?: string[]
+  stats?: ProtocolStat[]
+  scientific_foundation?: string
+  scientific_citations?: string[]
+  protocol_sections?: ProtocolSection[]
+  implementation_steps?: ImplementationStep[]
+  implementation_guides?: ImplementationGuide[]
+  tracking_methods?: TrackingMethod[]
+  success_metrics?: SuccessMetric[]
+  emergency_protocols?: EmergencyProtocol[]
+  related_protocol_slugs?: string[]
+  prerequisite_protocol_slugs?: string[]
+  hero_image_url?: string
+  hero_background_style?: string
+  price_id?: string
+  created_at?: string
+  updated_at?: string
+  // Computed/legacy fields for backwards compatibility
+  name?: string // alias for title
+  stat?: string // alias for headline_stat
+  timeline?: string // computed from duration_weeks
+  weeks?: ProtocolWeek[] // legacy structure
+}
+
+export interface TrackingMethod {
+  title: string
+  description?: string
+  frequency?: string
+}
+
+export interface SuccessMetric {
+  title: string
+  target?: string
+  description?: string
+}
+
+export interface EmergencyProtocol {
+  title: string
+  description?: string
+  steps?: string[]
+}
+
+export interface ProtocolWeek {
+  week: number
+  title: string
+  description: string
+  tasks: ProtocolTask[]
+}
+
+export interface ProtocolTask {
+  id: string
+  title: string
+}
+
+export interface ProtocolSection {
+  id: string
+  title: string
+  icon?: string
+  items: string[]
+}
+
+export interface ImplementationStep {
+  step: number
+  title: string
+  description: string
+}
+
+export interface ImplementationGuide {
+  id: string
+  title: string
+  description: string
+  details?: string[]
+}
+
+export interface ProtocolStat {
+  label?: string
+  value?: string
+  description?: string
+  // DB seed format uses these keys
+  stat?: string
+  title?: string
+  desc?: string
+}
+
+export interface ProtocolsByPillar {
+  identity: ProtocolTemplate[]
+  emotional: ProtocolTemplate[]
+  physical: ProtocolTemplate[]
+  connection: ProtocolTemplate[]
+  mission: ProtocolTemplate[]
+}
+
+export interface LogProtocolProgressRequest {
+  week: number
+  notes?: string
+  metrics?: Record<string, number>
+}
+
+// =====================================================
+// Notifications
+// =====================================================
+
+export interface Notification {
+  id: string
+  type: string
+  title: string
+  body: string
+  action_url: string | null
+  metadata: Record<string, unknown>
+  read_at: string | null
+  created_at: string
+}
+
+export interface NotificationsResponse {
+  data: Notification[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+  }
+}
+
+export interface NotificationsParams {
+  page?: number
+  limit?: number
+  read?: boolean
+}
+
+// =====================================================
+// Journey
+// =====================================================
+
+export interface JourneyMilestone {
+  type: string
+  label: string
+  completed_at: string | null
+}
+
+export interface SmartPrompt {
+  type: string
+  message: string
+  action_url: string
+}
+
+export interface JourneyProtocol {
+  id: string
+  title: string
+  slug: string
+  progress_pct: number
+  current_step: number
+  total_steps: number
+  assigned_by_expert: boolean
+}
+
+export interface JourneySession {
+  id: string
+  expert_name: string
+  start_time: string
+  type: string
+}
+
+export interface JourneyFocus {
+  current_pillar: string | null
+  changed_at: string | null
+}
+
+export interface JourneyOnboarding {
+  current_step: string
+}
+
+export interface JourneyData {
+  focus: JourneyFocus
+  active_protocols: JourneyProtocol[]
+  upcoming_sessions: JourneySession[]
+  goals: unknown[]
+  kpi_streaks: unknown[]
+  milestones: JourneyMilestone[]
+  onboarding: JourneyOnboarding
+  smart_prompts: SmartPrompt[]
+}
+
+// =====================================================
+// Onboarding
+// =====================================================
+
+export type OnboardingStep = 'welcome' | 'profile' | 'assessment' | 'results' | 'challenge' | 'path' | 'complete'
+
+export type PrimaryChallenge = 'identity' | 'vitality' | 'connection' | 'emotional' | 'mission'
+
+export interface OnboardingState {
+  step: OnboardingStep
+  completed_at: string | null
+  primary_challenge: PrimaryChallenge | null
+  recommended_protocol_id: string | null
+  recommended_circle_id: string | null
+}
+
+// =====================================================
+// My Expert
+// =====================================================
+
+export interface MyExpertData {
+  expert: {
+    id: string
+    name: string
+    bio: string
+    avatar_url: string
+    specializations: string
+  }
+  next_session: {
+    id: string
+    session_date: string
+    status: string
+  } | null
+}
+
+// =====================================================
+// Journal
+// =====================================================
+
+export interface JournalEntry {
+  id: string
+  user_id: string
+  entry_type: string
+  content: string
+  mood?: string
+  pillar?: string
+  created_at: string
+  updated_at?: string
+}
+
+export interface JournalEntriesParams {
+  page?: number
+  limit?: number
+}
+
+// =====================================================
+// Subscription & Billing
+// =====================================================
+
+export type SubscriptionTier = 'brotherhood' | 'coaching' | 'programs' | 'none'
+
+export interface SubscriptionInfo {
+  tier: SubscriptionTier
+  status: string
+  current_period_start: string
+  current_period_end: string
+  cancel_at_period_end: boolean
+  amount?: number
+  currency?: string
+  interval?: string
+  features?: string[]
+}
+
+// =====================================================
+// Quarterly Reviews
+// =====================================================
+
+export interface QuarterlyReview {
+  id: string
+  coach_id: string
+  member_id: string
+  review_date: string
+  quarter: string
+  summary: string
+  strengths: string[]
+  areas_for_improvement: string[]
+  goals_progress_notes: string
+  recommendations: string
+  overall_rating: number | null
+  coach?: {
+    id: string
+    name: string
+    avatar_url: string | null
+  }
+  created_at: string
+}
+
+export interface QuarterlyReviewsResponse {
+  data: QuarterlyReview[]
+  pagination?: {
+    page: number
+    limit: number
+    total: number
+  }
+}
+
+// =====================================================
+// Milestones
+// =====================================================
+
+export interface Milestone {
+  id: string
+  title: string
+  description: string
+  pillar: PillarId
+  target_date: string
+  status: 'pending' | 'on_track' | 'delayed' | 'achieved'
+  created_by: {
+    id: string
+    name: string
+    role: 'expert' | 'facilitator'
+  }
+  progress_notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+// =====================================================
+// Accountability
+// =====================================================
+
+export interface AccountabilityGroup {
+  id: string
+  name: string
+  group_type: 'trio' | 'pair'
+  is_active: boolean
+  program_id: string | null
+  created_at: string
+}
+
+export interface AccountabilityMember {
+  id: string
+  member_id: string
+  display_name: string
+  avatar_url: string | null
+}
+
+export interface CheckIn {
+  id: string
+  group_id: string
+  member_id: string
+  check_in_date: string
+  progress_update: string | null
+  challenges: string | null
+  support_needed: string | null
+  commitments_for_next: string | null
+  week_rating: number | null
+  created_at: string
+}
+
+export interface CheckInRequest {
+  progress_update?: string
+  challenges?: string
+  support_needed?: string
+  commitments_for_next?: string
+  week_rating?: number
+}
+
+// =====================================================
+// Interests
+// =====================================================
+
+export interface Interest {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  icon: string | null
+  sort_order: number
+}
+
+// =====================================================
+// Events
+// =====================================================
+
+export interface ClaimnEvent {
+  id: string
+  event_type: 'brotherhood_call' | 'go_session'
+  title: string
+  description: string
+  scheduled_date: string
+  duration_minutes: number
+  capacity: number
+  registered_count: number
+  is_registered: boolean
+  tier_required: string
+  facilitator: {
+    name: string
+    avatar_url: string
+  }
+}
+
+// =====================================================
+// Community Questions
+// =====================================================
+
+export interface CommunityQuestion extends FeedPost {
+  is_expert_question: boolean
+}

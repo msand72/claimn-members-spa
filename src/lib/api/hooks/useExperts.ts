@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, safeArray, type PaginatedResponse, type PaginationParams } from '../client'
+import { api, safeArray, is404Error, type PaginatedResponse, type PaginationParams } from '../client'
 import type {
   Expert,
   ExpertTestimonial,
@@ -168,12 +168,21 @@ export function useCancelSession() {
 // Session Notes Hooks
 // =====================================================
 
-// Get session notes
+// Get session notes (returns null if no notes exist yet)
 export function useSessionNotes(sessionId: string) {
   return useQuery({
     queryKey: coachingKeys.notes(sessionId),
-    queryFn: () => api.get<SessionNote>(`/members/coaching/sessions/${sessionId}/notes`),
+    queryFn: async () => {
+      try {
+        return await api.get<SessionNote>(`/members/coaching/sessions/${sessionId}/notes`)
+      } catch (err) {
+        // 404 means notes haven't been created yet — not an error
+        if (is404Error(err)) return null
+        throw err
+      }
+    },
     enabled: !!sessionId,
+    retry: (failureCount, error) => !is404Error(error) && failureCount < 1,
   })
 }
 

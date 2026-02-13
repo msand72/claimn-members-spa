@@ -1,17 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, is404Error } from '../client'
+import type { OnboardingState } from '../types'
 
-export type OnboardingStep = 'welcome' | 'profile' | 'assessment' | 'results' | 'challenge' | 'path' | 'complete'
-
-export type PrimaryChallenge = 'identity' | 'vitality' | 'connection' | 'emotional' | 'mission'
-
-export interface OnboardingState {
-  step: OnboardingStep
-  completed_at: string | null
-  primary_challenge: PrimaryChallenge | null
-  recommended_protocol_id: string | null
-  recommended_circle_id: string | null
-}
+export type { OnboardingStep, PrimaryChallenge, OnboardingState } from '../types'
 
 export const onboardingKeys = {
   all: ['onboarding'] as const,

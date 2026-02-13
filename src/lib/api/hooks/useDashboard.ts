@@ -25,7 +25,8 @@ export function useDashboardStats(options?: { enabled?: boolean }) {
     queryKey: dashboardKeys.stats(),
     queryFn: async () => {
       const res = await api.get<DashboardStats>('/members/dashboard')
-      // Normalise field name differences between backend and frontend
+      // Backend returns `messages_unread`, frontend also uses `unread_messages`.
+      // TODO: Remove once backend and frontend agree on a single field name.
       if (res && typeof res === 'object') {
         if (!('unread_messages' in res) && 'messages_unread' in res) {
           (res as DashboardStats).unread_messages = (res as DashboardStats).messages_unread

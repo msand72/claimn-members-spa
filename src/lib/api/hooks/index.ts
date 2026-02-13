@@ -103,18 +103,15 @@ export {
 // Protocols
 export {
   protocolKeys,
-  // New hooks per requirements
+  // Current hooks
   useProtocols,
   useProtocol,
-  useProtocolsByPillar,
-  useFeaturedProtocols,
   useMyActiveProtocols,
   useLogProtocolProgress,
-  // Legacy hooks (backward compatibility)
+  // Legacy hooks (deprecated — see JSDoc in useProtocols.ts)
   useActiveProtocols,
   useProtocolLibrary,
   useProtocolTemplate,
-  useActiveProtocol,
   useActiveProtocolBySlug,
   useStartProtocol,
   useUpdateProtocolProgress,
@@ -191,6 +188,7 @@ export {
   useAssessmentQuestions,
   useAssessmentResults,
   useLatestAssessmentResult,
+  useAssessmentResultById,
   useAssessmentContent,
   useSubmitAssessment,
 } from './useAssessments'

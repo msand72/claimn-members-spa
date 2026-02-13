@@ -1,17 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type PaginatedResponse } from '../client'
-import type { FeedPost } from '../types'
+import type { CommunityQuestion } from '../types'
 
-/**
- * Community questions are feed posts with `is_expert_question: true`.
- * The backend has no dedicated `/members/community/questions` endpoint.
- * We use `GET /members/feed?is_expert_question=true` to list them
- * and `POST /members/feed` with `{ content, is_expert_question: true }` to create them.
- */
-
-export interface CommunityQuestion extends FeedPost {
-  is_expert_question: boolean
-}
+export type { CommunityQuestion }
 
 export interface CommunityQuestionsParams {
   page?: number

@@ -1,28 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, safeArray, unwrapData } from '../client'
+import type { AccountabilityGroup, CheckIn, CheckInRequest } from '../types'
 
-// ---------------------------------------------------------------------------
-// Types matching actual backend response (accountability_groups table)
-// ---------------------------------------------------------------------------
-
-export interface AccountabilityGroup {
-  id: string
-  name: string
-  group_type: 'trio' | 'pair'
-  is_active: boolean
-  program_id: string | null
-  created_at: string
-}
-
-// Member data from accountability_group_members + profile enrichment
-// Note: the member-facing GET endpoints do NOT currently return member details.
-// This type is kept for future use when the backend enriches group responses.
-export interface AccountabilityMember {
-  id: string
-  member_id: string
-  display_name: string
-  avatar_url: string | null
-}
+export type { AccountabilityGroup, AccountabilityMember, CheckInRequest, CheckIn } from '../types'
 
 // ---------------------------------------------------------------------------
 // Query keys
@@ -41,7 +21,7 @@ export const accountabilityKeys = {
 
 /**
  * Get the current user's accountability groups
- * GET /members/accountability/my → array of groups
+ * GET /members/accountability/my
  */
 export function useMyAccountabilityGroups(options?: { enabled?: boolean }) {
   return useQuery({
@@ -57,7 +37,6 @@ export function useMyAccountabilityGroups(options?: { enabled?: boolean }) {
 /**
  * Convenience hook: get the user's first active accountability group.
  * Returns null if the user has no groups.
- * This maintains backward compatibility with the AccountabilityPage.
  */
 export function useAccountabilityGroup(options?: { enabled?: boolean }) {
   return useQuery({
@@ -73,7 +52,7 @@ export function useAccountabilityGroup(options?: { enabled?: boolean }) {
 
 /**
  * Browse all available accountability groups
- * GET /members/accountability → paginated list
+ * GET /members/accountability
  */
 export function useAllAccountabilityGroups(options?: { enabled?: boolean }) {
   return useQuery({
@@ -140,27 +119,6 @@ export function useLeaveAccountabilityGroup() {
 // ---------------------------------------------------------------------------
 // Check-ins
 // ---------------------------------------------------------------------------
-
-export interface CheckInRequest {
-  progress_update?: string
-  challenges?: string
-  support_needed?: string
-  commitments_for_next?: string
-  week_rating?: number
-}
-
-export interface CheckIn {
-  id: string
-  group_id: string
-  member_id: string
-  check_in_date: string
-  progress_update: string | null
-  challenges: string | null
-  support_needed: string | null
-  commitments_for_next: string | null
-  week_rating: number | null
-  created_at: string
-}
 
 /**
  * Submit a check-in to an accountability group

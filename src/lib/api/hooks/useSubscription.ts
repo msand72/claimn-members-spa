@@ -1,19 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../client'
+import type { SubscriptionTier, SubscriptionInfo } from '../types'
 
-export type SubscriptionTier = 'brotherhood' | 'coaching' | 'programs' | 'none'
-
-export interface SubscriptionInfo {
-  tier: SubscriptionTier
-  status: string
-  current_period_start: string
-  current_period_end: string
-  cancel_at_period_end: boolean
-  amount?: number
-  currency?: string
-  interval?: string
-  features?: string[]
-}
+export type { SubscriptionTier, SubscriptionInfo }
 
 interface BillingResponse {
   subscription: SubscriptionInfo
@@ -46,7 +35,7 @@ export function useSubscription() {
         }
       }
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    // Uses QueryClient global default (STALE_TIME.DEFAULT = 5 min)
     retry: 1,
   })
 }

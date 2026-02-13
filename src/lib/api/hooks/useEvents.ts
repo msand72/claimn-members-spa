@@ -1,22 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type PaginatedResponse } from '../client'
+import type { ClaimnEvent } from '../types'
 
-export interface ClaimnEvent {
-  id: string
-  event_type: 'brotherhood_call' | 'go_session'
-  title: string
-  description: string
-  scheduled_date: string
-  duration_minutes: number
-  capacity: number
-  registered_count: number
-  is_registered: boolean
-  tier_required: string
-  facilitator: {
-    name: string
-    avatar_url: string
-  }
-}
+export type { ClaimnEvent }
 
 export interface EventsParams {
   type?: 'brotherhood_call' | 'go_session'

@@ -1,34 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../client'
+import type { QuarterlyReviewsResponse } from '../types'
 
-export interface QuarterlyReview {
-  id: string
-  coach_id: string
-  member_id: string
-  review_date: string
-  quarter: string
-  summary: string
-  strengths: string[]
-  areas_for_improvement: string[]
-  goals_progress_notes: string
-  recommendations: string
-  overall_rating: number | null
-  coach?: {
-    id: string
-    name: string
-    avatar_url: string | null
-  }
-  created_at: string
-}
-
-export interface QuarterlyReviewsResponse {
-  data: QuarterlyReview[]
-  pagination?: {
-    page: number
-    limit: number
-    total: number
-  }
-}
+export type { QuarterlyReview, QuarterlyReviewsResponse } from '../types'
 
 export const quarterlyReviewKeys = {
   all: ['quarterly-reviews'] as const,
