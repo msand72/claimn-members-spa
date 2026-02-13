@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { safeOpenUrl } from '../lib/url-validation'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge, GlassButton, GlassModal, GlassModalFooter, GlassToast } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, Send, MoreVertical, ArrowLeft, Loader2, MessageCircle, Plus, ImagePlus, X } from 'lucide-react'
+import { Search, Send, MoreVertical, ArrowLeft, Loader2, MessageCircle, Plus, ImagePlus, X, Flag } from 'lucide-react'
 import { api } from '../lib/api/client'
 import { validateImageFile, compressMessageImage, blobToFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
@@ -13,9 +13,11 @@ import {
   useConversationMessages,
   useSendMessage,
   useMarkConversationRead,
+  useReportMessage,
   useConnections,
   type Conversation,
 } from '../lib/api'
+import { ReportModal } from '../components/ReportModal'
 
 // Optimistic message type (displayed before API confirms)
 interface OptimisticMessage {
@@ -87,6 +89,8 @@ export function MessagesPage() {
 
   const sendMessage = useSendMessage()
   const markRead = useMarkConversationRead()
+  const reportMessage = useReportMessage()
+  const [reportMessageId, setReportMessageId] = useState<string | null>(null)
 
   // Fetch accepted connections for "New Conversation" modal
   const {
@@ -679,7 +683,7 @@ export function MessagesPage() {
                       <div
                         key={msg.id}
                         className={cn(
-                          'flex items-end gap-1.5',
+                          'group flex items-end gap-1.5',
                           isOwn ? 'justify-end' : 'justify-start'
                         )}
                       >
@@ -715,6 +719,15 @@ export function MessagesPage() {
                         </div>
                         {isSending && (
                           <Loader2 className="w-3.5 h-3.5 animate-spin text-kalkvit/40 flex-shrink-0 mb-2" />
+                        )}
+                        {!isOwn && !msg._optimistic && (
+                          <button
+                            onClick={() => setReportMessageId(msg.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-kalkvit/60 transition-all flex-shrink-0 mb-2"
+                            title="Report message"
+                          >
+                            <Flag className="w-3 h-3" />
+                          </button>
                         )}
                       </div>
                     )
@@ -884,6 +897,24 @@ export function MessagesPage() {
           />
         </div>
       )}
+      <ReportModal
+        isOpen={!!reportMessageId}
+        onClose={() => setReportMessageId(null)}
+        isPending={reportMessage.isPending}
+        title="Report Message"
+        onSubmit={(data) => {
+          if (!reportMessageId) return
+          reportMessage.mutate(
+            { messageId: reportMessageId, data },
+            {
+              onSuccess: () => {
+                setReportMessageId(null)
+                setToast({ variant: 'success', message: 'Message reported. Thank you.' })
+              },
+            }
+          )
+        }}
+      />
     </MainLayout>
   )
 }

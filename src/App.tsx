@@ -7,7 +7,6 @@ import { BugReportProvider } from './contexts/BugReportContext'
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary'
 import { BugReportPanel } from './components/BugReportPanel'
 import { BugReportToast } from './components/BugReportToast'
-import { ReportBugButton } from './components/ReportBugButton'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { RequireUserType } from './components/RequireUserType'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
@@ -270,7 +269,6 @@ function App() {
             <BugReportPanel />
             <BugReportToast />
             <MutationErrorToast />
-            <ReportBugButton />
           </BugReportProvider>
         </AuthProvider>
       </ThemeProvider>

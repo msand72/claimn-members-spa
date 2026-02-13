@@ -130,3 +130,16 @@ export function useDeleteMessage() {
     },
   })
 }
+
+// Report message
+export function useReportMessage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ messageId, data }: { messageId: string; data: { reason: string; details?: string } }) =>
+      api.post(`/members/messages/${messageId}/report`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: messageKeys.all })
+    },
+  })
+}

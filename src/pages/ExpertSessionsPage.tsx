@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
-import { useCoachingSessions } from '../lib/api/hooks'
+import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassInput, GlassTextarea, GlassModal, GlassModalFooter } from '../components/ui'
+import { useCoachingSessions, useRescheduleSession } from '../lib/api/hooks'
 import { safeOpenUrl } from '../lib/url-validation'
 import type { CoachingSession } from '../lib/api/types'
-import { Calendar, Clock, Video, MessageCircle, Star, ChevronRight, Plus, AlertTriangle } from 'lucide-react'
+import { Calendar, Clock, Video, MessageCircle, Star, ChevronRight, Plus, AlertTriangle, RefreshCw } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 function formatSessionDate(scheduledAt: string): string {
@@ -62,7 +62,7 @@ function SessionCardSkeleton() {
   )
 }
 
-function SessionCard({ session }: { session: CoachingSession }) {
+function SessionCard({ session, onReschedule }: { session: CoachingSession; onReschedule?: (sessionId: string) => void }) {
   // Map API status to UI status
   const getUIStatus = (status: CoachingSession['status']): 'upcoming' | 'completed' | 'cancelled' => {
     switch (status) {
@@ -155,6 +155,9 @@ function SessionCard({ session }: { session: CoachingSession }) {
           <GlassBadge variant={status.variant}>{status.label}</GlassBadge>
           {uiStatus === 'upcoming' && (
             <div className="flex gap-2 mt-2">
+              <GlassButton variant="ghost" className="p-2" onClick={() => onReschedule?.(session.id)} title="Reschedule">
+                <RefreshCw className="w-4 h-4" />
+              </GlassButton>
               <GlassButton variant="ghost" className="p-2">
                 <MessageCircle className="w-4 h-4" />
               </GlassButton>
@@ -181,6 +184,11 @@ function SessionCard({ session }: { session: CoachingSession }) {
 
 export function ExpertSessionsPage() {
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('all')
+  const [rescheduleSessionId, setRescheduleSessionId] = useState<string | null>(null)
+  const [proposedDatetime, setProposedDatetime] = useState('')
+  const [rescheduleReason, setRescheduleReason] = useState('')
+  const [rescheduleSuccess, setRescheduleSuccess] = useState(false)
+  const rescheduleSession = useRescheduleSession()
 
   // Fetch sessions based on filter
   const { data: sessionsData, isLoading, error } = useCoachingSessions(
@@ -320,7 +328,7 @@ export function ExpertSessionsPage() {
             <SessionCardSkeleton />
           </>
         ) : filteredSessions.length > 0 ? (
-          filteredSessions.map((session) => <SessionCard key={session.id} session={session} />)
+          filteredSessions.map((session) => <SessionCard key={session.id} session={session} onReschedule={setRescheduleSessionId} />)
         ) : (
           <GlassCard variant="base" className="text-center py-12">
             <p className="text-kalkvit/60">No sessions found.</p>
@@ -332,6 +340,91 @@ export function ExpertSessionsPage() {
           </GlassCard>
         )}
       </div>
+
+      {/* Reschedule Modal */}
+      <GlassModal
+        isOpen={!!rescheduleSessionId}
+        onClose={() => {
+          setRescheduleSessionId(null)
+          setProposedDatetime('')
+          setRescheduleReason('')
+        }}
+        title="Reschedule Session"
+        size="sm"
+      >
+        {rescheduleSuccess ? (
+          <div className="text-center py-4">
+            <RefreshCw className="w-8 h-8 text-skogsgron mx-auto mb-3" />
+            <p className="text-kalkvit font-medium mb-1">Reschedule Requested</p>
+            <p className="text-sm text-kalkvit/60">Your expert will confirm the new time.</p>
+            <GlassButton
+              variant="primary"
+              className="mt-4"
+              onClick={() => {
+                setRescheduleSessionId(null)
+                setProposedDatetime('')
+                setRescheduleReason('')
+                setRescheduleSuccess(false)
+              }}
+            >
+              Done
+            </GlassButton>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              <GlassInput
+                label="Proposed Date & Time"
+                type="datetime-local"
+                value={proposedDatetime}
+                onChange={(e) => setProposedDatetime(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+              <GlassTextarea
+                label="Reason (optional)"
+                placeholder="Why do you need to reschedule?"
+                value={rescheduleReason}
+                onChange={(e) => setRescheduleReason(e.target.value)}
+                rows={2}
+              />
+            </div>
+            <GlassModalFooter>
+              <GlassButton
+                variant="ghost"
+                onClick={() => {
+                  setRescheduleSessionId(null)
+                  setProposedDatetime('')
+                  setRescheduleReason('')
+                }}
+                disabled={rescheduleSession.isPending}
+              >
+                Cancel
+              </GlassButton>
+              <GlassButton
+                variant="primary"
+                disabled={!proposedDatetime || rescheduleSession.isPending}
+                onClick={() => {
+                  if (!rescheduleSessionId || !proposedDatetime) return
+                  rescheduleSession.mutate(
+                    {
+                      sessionId: rescheduleSessionId,
+                      data: {
+                        proposed_datetime: new Date(proposedDatetime).toISOString(),
+                        reason: rescheduleReason.trim() || undefined,
+                      },
+                    },
+                    {
+                      onSuccess: () => setRescheduleSuccess(true),
+                    }
+                  )
+                }}
+              >
+                {rescheduleSession.isPending ? 'Requesting...' : 'Request Reschedule'}
+              </GlassButton>
+            </GlassModalFooter>
+          </>
+        )}
+      </GlassModal>
     </MainLayout>
   )
 }

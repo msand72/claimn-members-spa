@@ -145,6 +145,14 @@ export function useAddComment() {
   })
 }
 
+// Report post
+export function useReportPost() {
+  return useMutation({
+    mutationFn: ({ postId, data }: { postId: string; data: { reason: string; details?: string } }) =>
+      api.post(`/members/feed/${postId}/report`, data),
+  })
+}
+
 // Delete comment
 export function useDeleteComment() {
   const queryClient = useQueryClient()

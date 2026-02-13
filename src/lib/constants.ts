@@ -212,6 +212,17 @@ export const CREATED_BY_OPTIONS = ['member', 'expert', 'facilitator', 'system'] 
 export type CreatedBy = (typeof CREATED_BY_OPTIONS)[number]
 
 // ============================================
+// REPORT REASONS (shared by feed + message reporting)
+// ============================================
+export const REPORT_REASONS = [
+  { value: 'spam', label: 'Spam' },
+  { value: 'inappropriate', label: 'Inappropriate content' },
+  { value: 'harassment', label: 'Harassment or bullying' },
+  { value: 'misinformation', label: 'Misinformation' },
+  { value: 'other', label: 'Other' },
+] as const
+
+// ============================================
 // QUERY STALE TIME TIERS (React Query)
 // ============================================
 // Use these instead of hardcoding staleTime values in individual hooks.

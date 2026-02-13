@@ -164,6 +164,22 @@ export function useCancelSession() {
   })
 }
 
+// Reschedule a coaching session
+export function useRescheduleSession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ sessionId, data }: {
+      sessionId: string
+      data: { proposed_datetime: string; reason?: string }
+    }) => api.patch<CoachingSession>(`/members/coaching/sessions/${sessionId}/reschedule`, data),
+    onSuccess: (_, { sessionId }) => {
+      queryClient.invalidateQueries({ queryKey: coachingKeys.all })
+      queryClient.invalidateQueries({ queryKey: coachingKeys.session(sessionId) })
+    },
+  })
+}
+
 // =====================================================
 // Session Notes Hooks
 // =====================================================

@@ -6,6 +6,11 @@
 export type PillarId = 'identity' | 'emotional' | 'physical' | 'connection' | 'mission'
 export type ArchetypeId = 'achiever' | 'optimizer' | 'networker' | 'grinder' | 'philosopher'
 
+export interface ReportRequest {
+  reason: string
+  details?: string
+}
+
 // =====================================================
 // Member Profile
 // =====================================================

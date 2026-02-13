@@ -20,9 +20,11 @@ import {
   useUnlikePost,
   usePostComments,
   useAddComment,
+  useReportPost,
   type FeedPost,
   type FeedComment,
 } from '../lib/api'
+import { ReportModal } from '../components/ReportModal'
 import { api } from '../lib/api/client'
 import { Heart, MessageCircle, Share2, MoreHorizontal, ImagePlus, Send, Users, Loader2, Check, Flag, X } from 'lucide-react'
 import { compressMessageImage, validateImageFile, blobToFile } from '../lib/image-utils'
@@ -47,12 +49,14 @@ function PostCard({ post }: { post: FeedPost }) {
   const likePost = useLikePost()
   const unlikePost = useUnlikePost()
   const addComment = useAddComment()
+  const reportPost = useReportPost()
 
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [shareCopied, setShareCopied] = useState(false)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [reported, setReported] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
   const moreMenuRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
 
@@ -104,9 +108,8 @@ function PostCard({ post }: { post: FeedPost }) {
   }
 
   const handleReport = () => {
-    setReported(true)
     setShowMoreMenu(false)
-    timerRef.current = setTimeout(() => setReported(false), 3000)
+    setShowReportModal(true)
   }
 
   const authorName = post.author?.display_name || 'Anonymous'
@@ -291,6 +294,25 @@ function PostCard({ post }: { post: FeedPost }) {
           )}
         </div>
       </div>
+
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        isPending={reportPost.isPending}
+        title="Report Post"
+        onSubmit={(data) => {
+          reportPost.mutate(
+            { postId: post.id, data },
+            {
+              onSuccess: () => {
+                setShowReportModal(false)
+                setReported(true)
+                timerRef.current = setTimeout(() => setReported(false), 3000)
+              },
+            }
+          )
+        }}
+      />
     </GlassCard>
   )
 }

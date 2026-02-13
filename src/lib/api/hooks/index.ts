@@ -36,6 +36,7 @@ export {
   usePostComments,
   useAddComment,
   useDeleteComment,
+  useReportPost,
 } from './useFeed'
 
 // Messages
@@ -47,6 +48,7 @@ export {
   useMarkMessageRead,
   useMarkConversationRead,
   useDeleteMessage,
+  useReportMessage,
 } from './useMessages'
 
 // Circles
@@ -146,6 +148,7 @@ export {
   useCoachingSession,
   useBookSession,
   useCancelSession,
+  useRescheduleSession,
   useSessionNotes,
   useUpdateSessionNotes,
   type ExpertsParams,
