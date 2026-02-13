@@ -30,7 +30,6 @@ import {
   type ActiveProtocol,
 } from '../lib/api'
 import type { ClaimnEvent } from '../lib/api/hooks/useEvents'
-import { useState } from 'react'
 import {
   Heart,
   MessageCircle,
@@ -43,7 +42,6 @@ import {
   Flame,
   BarChart3,
   Trophy,
-  AlertTriangle,
 } from 'lucide-react'
 
 // ── Helpers ──────────────────────────────────────────
@@ -634,65 +632,6 @@ function MyPrograms() {
   )
 }
 
-// ── BugReportTest (TEMPORARY - remove after testing) ─
-
-function CrashComponent() {
-  throw new Error('TEST: React render crash in CrashComponent')
-  return null
-}
-
-function BugReportTestSection() {
-  const [shouldCrash, setShouldCrash] = useState(false)
-
-  if (shouldCrash) {
-    return <CrashComponent />
-  }
-
-  return (
-    <GlassCard variant="base" className="border-tegelrod/30">
-      <div className="flex items-center gap-2 mb-3">
-        <AlertTriangle className="w-5 h-5 text-tegelrod" />
-        <h2 className="font-display text-lg font-semibold text-tegelrod">
-          Bug Report Test Panel
-        </h2>
-        <GlassBadge variant="default" className="text-[10px]">TEMP</GlassBadge>
-      </div>
-      <p className="text-xs text-kalkvit/50 mb-4">
-        Click buttons below to test each error capture method. Remove this section after testing.
-      </p>
-      <div className="flex flex-wrap gap-3">
-        <GlassButton
-          variant="secondary"
-          className="text-xs"
-          onClick={() => setShouldCrash(true)}
-        >
-          1. Error Boundary Crash
-        </GlassButton>
-        <GlassButton
-          variant="secondary"
-          className="text-xs"
-          onClick={() => {
-            Promise.reject(new Error('TEST: Unhandled promise rejection'))
-          }}
-        >
-          2. Unhandled Rejection
-        </GlassButton>
-        <GlassButton
-          variant="secondary"
-          className="text-xs"
-          onClick={() => {
-            setTimeout(() => {
-              throw new Error('TEST: Window onerror from setTimeout')
-            }, 0)
-          }}
-        >
-          3. Window Error
-        </GlassButton>
-      </div>
-    </GlassCard>
-  )
-}
-
 // ── HubPage (main) ───────────────────────────────────
 
 export function HubPage() {
@@ -702,11 +641,6 @@ export function HubPage() {
         {/* Welcome Banner — full width */}
         <PageErrorBoundary section="WelcomeBanner">
           <WelcomeBanner />
-        </PageErrorBoundary>
-
-        {/* ⚠️ TEMPORARY: Bug Report Test Section — remove after testing */}
-        <PageErrorBoundary section="BugReportTest">
-          <BugReportTestSection />
         </PageErrorBoundary>
 
         {/* Stats row — full width */}
