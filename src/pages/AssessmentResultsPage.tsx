@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassToast } from '../components/ui'
 import { PILLARS } from '../lib/constants'
@@ -110,9 +110,17 @@ export function AssessmentResultsPage() {
 
   useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current) }, [])
 
-  // Fetch from API — always use latestResult since useAssessmentResults
-  // expects an assessmentId (assessments.id) but we have a resultId (assessment_results.id)
+  // Read ?id= query param (passed from OnboardingResultsPage)
+  // TODO(backend): Add GET /members/assessments/results/{id} endpoint to fetch a specific
+  // result so we can use the resultId param instead of always showing the latest result.
+  const [searchParams] = useSearchParams()
+  const requestedResultId = searchParams.get('id')
+
+  // Currently we always fetch the latest result — the backend doesn't yet support
+  // fetching a specific result by its assessment_results.id.
   const latestResult = useLatestAssessmentResult()
+  // When backend supports it, we can fetch by requestedResultId instead.
+  void requestedResultId
   const { data: apiQuestions } = useAssessmentQuestions('five-pillars')
   const { data: contentMap } = useAssessmentContent()
 

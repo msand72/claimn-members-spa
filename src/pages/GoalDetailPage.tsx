@@ -83,11 +83,12 @@ export function GoalDetailPage() {
   const kpis = goal?.kpis || []
 
   // Get subtasks (action items linked to this goal)
+  // API may return ActionItem[] or PaginatedResponse<ActionItem> depending on backend
   const subtasks: ActionItem[] = useMemo(() => {
     if (!actionItemsData) return []
-    const raw = actionItemsData as any
-    if (Array.isArray(raw)) return raw
-    if (raw && Array.isArray(raw.data)) return raw.data
+    if (Array.isArray(actionItemsData)) return actionItemsData
+    const wrapped = actionItemsData as { data?: unknown }
+    if (wrapped && Array.isArray(wrapped.data)) return wrapped.data as ActionItem[]
     return []
   }, [actionItemsData])
 

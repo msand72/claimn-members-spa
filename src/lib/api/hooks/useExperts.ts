@@ -148,16 +148,16 @@ export function useBookSession() {
   })
 }
 
-// Cancel a coaching session
+// Cancel a coaching session via dedicated cancel endpoint
 export function useCancelSession() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (sessionId: string) =>
-      api.put<CoachingSession>(`/members/coaching/sessions/${sessionId}`, {
-        status: 'cancelled',
+    mutationFn: ({ sessionId, reason }: { sessionId: string; reason?: string }) =>
+      api.patch<CoachingSession>(`/members/coaching/sessions/${sessionId}/cancel`, {
+        reason: reason || 'Cancelled by member',
       }),
-    onSuccess: (_, sessionId) => {
+    onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: coachingKeys.all })
       queryClient.invalidateQueries({ queryKey: coachingKeys.session(sessionId) })
     },

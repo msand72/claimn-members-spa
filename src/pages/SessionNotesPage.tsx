@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassTextarea, GlassAvatar, GlassBadge } from '../components/ui'
+import { GlassCard, GlassButton, GlassTextarea, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import {
   ArrowLeft,
   Calendar,
@@ -311,13 +311,13 @@ export function SessionNotesPage() {
 
           {/* Add new action item */}
           <div className="flex gap-2">
-            <input
+            <GlassInput
               type="text"
               value={newActionItem}
               onChange={(e) => setNewActionItem(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddActionItem()}
               placeholder="Add new action item..."
-              className="flex-1 px-4 py-2 bg-white/[0.05] border border-white/[0.1] rounded-xl text-kalkvit placeholder-kalkvit/40 focus:outline-none focus:border-koppar/50"
+              className="flex-1"
               disabled={updateNotes.isPending}
             />
             <GlassButton

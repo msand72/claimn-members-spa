@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../client'
+import type { InterestGroup } from '../types'
+
+export type { InterestGroup }
 
 export interface Interest {
   id: string
@@ -8,15 +11,6 @@ export interface Interest {
   description: string | null
   icon: string | null
   sort_order: number
-}
-
-export interface InterestGroup {
-  id: string
-  name: string
-  description: string | null
-  interest_id: string
-  member_count: number
-  is_member: boolean
 }
 
 export const interestKeys = {

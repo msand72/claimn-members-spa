@@ -78,13 +78,10 @@ export function useSendMessage() {
 
   return useMutation({
     mutationFn: (data: SendMessageRequest) => {
-      // Backend requires a non-empty body; use content or fallback for image-only messages
-      const messageBody = data.content?.trim() || (data.image_url ? '[Image]' : '')
+      const messageContent = data.content?.trim() || (data.image_url ? '[Image]' : '')
       const payload = {
         recipient_id: data.recipient_id,
-        addressee_id: data.recipient_id, // Backend may use 'addressee_id' like connections
-        body: messageBody, // Backend expects 'body', not 'content'
-        content: messageBody, // Send both in case backend uses either
+        content: messageContent,
         ...(data.image_url ? { image_url: data.image_url } : {}),
       }
       return api.post<Message>('/members/messages', payload)

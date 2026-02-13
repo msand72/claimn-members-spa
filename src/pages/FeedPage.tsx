@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
   GlassCard,
@@ -296,9 +297,11 @@ function PostCard({ post }: { post: FeedPost }) {
 
 export function FeedPage() {
   const { user } = useAuth()
+  const [searchParams] = useSearchParams()
+  const initialGroupId = searchParams.get('group') ?? ''
   const [postContent, setPostContent] = useState('')
-  const [activeTab, setActiveTab] = useState('all')
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('')
+  const [activeTab, setActiveTab] = useState(initialGroupId ? initialGroupId : 'all')
+  const [selectedGroupId, setSelectedGroupId] = useState<string>(initialGroupId)
   const [postError, setPostError] = useState<string | null>(null)
 
   // Image upload state
