@@ -204,7 +204,7 @@ export function BookSessionPage() {
         expert_id: selectedExpert.id,
         scheduled_at: scheduledAt,
         duration: parseInt(sessionType),
-        session_type: 'video',
+        session_type: 'coaching',
       })
 
       setBookingSuccess(true)
