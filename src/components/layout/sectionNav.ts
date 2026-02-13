@@ -58,7 +58,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     basePath: '/goals',
     mode: 'stepper',
     items: [
-      { to: '/assessment', label: 'Assessment', icon: ClipboardCheck },
+      { to: '/assessment/results', label: 'Assessment', icon: ClipboardCheck },
       { to: '/goals', label: 'Goals', icon: Target },
       { to: '/protocols', label: 'Protocols', icon: BookOpen },
       { to: '/action-items', label: 'Actions', icon: CheckSquare },
@@ -66,7 +66,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
       { to: '/kpis', label: 'KPIs', icon: BarChart3 },
       { to: '/accountability', label: 'Accountability', icon: UsersRound },
     ],
-    allPaths: ['/goals', '/kpis', '/action-items', '/protocols', '/milestones', '/accountability', '/assessment'],
+    allPaths: ['/goals', '/kpis', '/action-items', '/protocols', '/milestones', '/accountability', '/assessment', '/assessment/results', '/assessment/take'],
   },
   community: {
     label: 'Community',
