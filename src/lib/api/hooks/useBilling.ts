@@ -7,27 +7,25 @@ export const billingKeys = {
   verify: (sessionId: string) => [...billingKeys.all, 'verify', sessionId] as const,
 }
 
-interface CheckoutRequest {
-  item_type?: string
-  item_slug?: string
-  plan_tier?: string
+export interface CheckoutRequest {
+  price_id: string
+  tier?: string
+  product?: string
+  max_members?: number
+  success_url?: string
+  cancel_url?: string
 }
 
 interface CheckoutResponse {
-  checkout_url: string
-  session_id: string
+  url: string
 }
 
-interface VerifyResponse {
-  success: boolean
-  plan_name?: string
-  billing_cycle?: string
-  amount_paid?: number
-  currency?: string
-  next_billing_date?: string
-  email?: string
-  item_type?: string
-  item_name?: string
+export interface VerifyResponse {
+  status: string
+  payment_status: string
+  customer_email?: string
+  subscription_id?: string
+  customer_id?: string
 }
 
 export function useCheckout() {

@@ -13,6 +13,7 @@ import {
 } from '../lib/assessment/scoring'
 import {
   useLatestAssessmentResult,
+  useAssessmentResultById,
   useAssessmentQuestions,
   useAssessmentContent,
 } from '../lib/api/hooks/useAssessments'
@@ -111,21 +112,17 @@ export function AssessmentResultsPage() {
   useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current) }, [])
 
   // Read ?id= query param (passed from OnboardingResultsPage)
-  // TODO(backend): Add GET /members/assessments/results/{id} endpoint to fetch a specific
-  // result so we can use the resultId param instead of always showing the latest result.
   const [searchParams] = useSearchParams()
   const requestedResultId = searchParams.get('id')
 
-  // Currently we always fetch the latest result — the backend doesn't yet support
-  // fetching a specific result by its assessment_results.id.
+  // Fetch by specific ID if provided, otherwise fetch latest
+  const specificResult = useAssessmentResultById(requestedResultId ?? '')
   const latestResult = useLatestAssessmentResult()
-  // When backend supports it, we can fetch by requestedResultId instead.
-  void requestedResultId
   const { data: apiQuestions } = useAssessmentQuestions('five-pillars')
   const { data: contentMap } = useAssessmentContent()
 
-  const apiResult = latestResult.data
-  const apiLoading = latestResult.isLoading
+  const apiResult = requestedResultId ? specificResult.data : latestResult.data
+  const apiLoading = requestedResultId ? specificResult.isLoading : latestResult.isLoading
 
   // Derive normalized results
   const results: DerivedResults | null = useMemo(() => {

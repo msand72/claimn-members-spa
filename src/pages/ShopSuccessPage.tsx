@@ -23,13 +23,15 @@ export function ShopSuccessPage() {
 
   const { data: verification, isLoading, isError } = useVerifyCheckout(sessionId)
 
+  const isVerified = verification?.status === 'complete' && verification?.payment_status === 'paid'
+
   // Auto-redirect to dashboard after 5 seconds on success
   useEffect(() => {
-    if (verification?.success) {
+    if (isVerified) {
       const timer = setTimeout(() => navigate('/'), 5000)
       return () => clearTimeout(timer)
     }
-  }, [verification?.success, navigate])
+  }, [isVerified, navigate])
 
   if (isLoading && sessionId) {
     return (
@@ -42,7 +44,7 @@ export function ShopSuccessPage() {
     )
   }
 
-  if (isError || (verification && !verification.success)) {
+  if (isError || (verification && !isVerified)) {
     return (
       <MainLayout>
         <div className="max-w-md mx-auto text-center py-24">
@@ -71,20 +73,7 @@ export function ShopSuccessPage() {
     )
   }
 
-  // Use verified data if available, fall back to static placeholder
-  const planName = verification?.plan_name || verification?.item_name || 'Pro Membership'
-  const billingCycle = verification?.billing_cycle || 'Annual'
-  const amountPaid = verification?.amount_paid
-    ? `${verification.currency === 'eur' ? '€' : '$'}${(verification.amount_paid / 100).toFixed(2)}`
-    : '$970.00'
-  const nextBillingDate = verification?.next_billing_date
-    ? new Date(verification.next_billing_date).toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : 'January 26, 2027'
-  const email = verification?.email || 'your@email.com'
+  const email = verification?.customer_email || 'your@email.com'
 
   return (
     <MainLayout>
@@ -112,20 +101,8 @@ export function ShopSuccessPage() {
           <h2 className="font-semibold text-kalkvit mb-4">Order Summary</h2>
           <div className="space-y-3 pb-4 border-b border-white/10">
             <div className="flex justify-between text-sm">
-              <span className="text-kalkvit/60">Plan</span>
-              <span className="text-kalkvit">{planName}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-kalkvit/60">Billing Cycle</span>
-              <span className="text-kalkvit">{billingCycle}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-kalkvit/60">Amount Paid</span>
-              <span className="text-kalkvit">{amountPaid}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-kalkvit/60">Next Billing Date</span>
-              <span className="text-kalkvit">{nextBillingDate}</span>
+              <span className="text-kalkvit/60">Status</span>
+              <span className="text-kalkvit">Payment confirmed</span>
             </div>
           </div>
           <div className="pt-4 flex items-center justify-between">

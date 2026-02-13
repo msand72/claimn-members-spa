@@ -99,12 +99,17 @@ export function ShopProtocolDetailPage() {
 
   const handlePurchase = () => {
     setCheckoutError(null)
+    const priceId = protocol?.price_id
+    if (!priceId) {
+      setCheckoutError('This protocol is not available for purchase yet. Please contact support.')
+      return
+    }
     checkout.mutate(
-      { item_type: 'protocol', item_slug: slug },
+      { price_id: priceId, tier: 'protocol' },
       {
         onSuccess: (data) => {
-          if (isAllowedExternalUrl(data.checkout_url)) {
-            window.location.href = data.checkout_url
+          if (isAllowedExternalUrl(data.url)) {
+            window.location.href = data.url
           } else {
             setCheckoutError('Invalid checkout URL. Please try again or contact support.')
           }

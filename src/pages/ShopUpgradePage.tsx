@@ -26,6 +26,8 @@ interface Plan {
   description: string
   price: number
   priceAnnual: number
+  priceId: string
+  priceIdAnnual: string
   icon: React.ElementType
   isPopular: boolean
   isCurrent: boolean
@@ -43,6 +45,8 @@ const plans: Plan[] = [
     description: 'Full access + community',
     price: 19,
     priceAnnual: 180,
+    priceId: import.meta.env.VITE_STRIPE_PRICE_BROTHERHOOD_MONTHLY ?? '',
+    priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_BROTHERHOOD_ANNUAL ?? '',
     icon: Star,
     isPopular: false,
     isCurrent: true,
@@ -63,6 +67,8 @@ const plans: Plan[] = [
     description: 'Tactical expertise + Brotherhood',
     price: 390,
     priceAnnual: 3480,
+    priceId: import.meta.env.VITE_STRIPE_PRICE_COACHING_MONTHLY ?? '',
+    priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_COACHING_ANNUAL ?? '',
     icon: Zap,
     isPopular: true,
     isCurrent: false,
@@ -83,6 +89,8 @@ const plans: Plan[] = [
     description: 'Identity architecture — by application',
     price: 1900,
     priceAnnual: 17880,
+    priceId: import.meta.env.VITE_STRIPE_PRICE_PROGRAMS_MONTHLY ?? '',
+    priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_PROGRAMS_ANNUAL ?? '',
     icon: Crown,
     isPopular: false,
     isCurrent: false,
@@ -99,7 +107,7 @@ const plans: Plan[] = [
   },
 ]
 
-function PlanCard({ plan, isAnnual, onUpgrade, isLoading }: { plan: Plan; isAnnual: boolean; onUpgrade: (planId: string) => void; isLoading: boolean }) {
+function PlanCard({ plan, isAnnual, onUpgrade, isLoading }: { plan: Plan; isAnnual: boolean; onUpgrade: (priceId: string, tier: string) => void; isLoading: boolean }) {
   const price = isAnnual ? Math.round(plan.priceAnnual / 12) : plan.price
   const Icon = plan.icon
 
@@ -157,7 +165,7 @@ function PlanCard({ plan, isAnnual, onUpgrade, isLoading }: { plan: Plan; isAnnu
         <GlassButton
           variant={plan.isPopular ? 'primary' : 'secondary'}
           className="w-full mb-6"
-          onClick={() => onUpgrade(plan.id)}
+          onClick={() => onUpgrade(isAnnual ? plan.priceIdAnnual : plan.priceId, plan.id)}
           disabled={isLoading}
         >
           {isLoading ? (
@@ -200,14 +208,18 @@ export function ShopUpgradePage() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const checkout = useCheckout()
 
-  const handleUpgrade = (planId: string) => {
+  const handleUpgrade = (priceId: string, tier: string) => {
     setCheckoutError(null)
+    if (!priceId) {
+      setCheckoutError('Checkout is not configured for this plan. Please contact support.')
+      return
+    }
     checkout.mutate(
-      { plan_tier: planId },
+      { price_id: priceId, tier },
       {
         onSuccess: (data) => {
-          if (isAllowedExternalUrl(data.checkout_url)) {
-            window.location.href = data.checkout_url
+          if (isAllowedExternalUrl(data.url)) {
+            window.location.href = data.url
           } else {
             setCheckoutError('Invalid checkout URL. Please try again or contact support.')
           }
