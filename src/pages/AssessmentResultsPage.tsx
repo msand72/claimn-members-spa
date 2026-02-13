@@ -49,12 +49,14 @@ const PILLAR_ICONS: Record<PillarId, React.ReactNode> = {
   mission: <Target className="w-5 h-5" />,
 }
 
+// Fallback display names — content API (DB) takes priority when available
 const ARCHETYPE_DISPLAY: Record<string, { name: string; subtitle: string }> = {
   achiever: { name: 'The Achiever', subtitle: 'Results-Driven, Goal-Oriented' },
   optimizer: { name: 'The Optimizer', subtitle: 'Systems-Focused, Efficiency-Driven' },
   networker: { name: 'The Networker', subtitle: 'Connection-Builder, Relationship-Focused' },
   grinder: { name: 'The Grinder', subtitle: 'Discipline-Driven, Relentless Worker' },
   philosopher: { name: 'The Philosopher', subtitle: 'Deep Thinker, Meaning-Seeker' },
+  integrator: { name: 'The Integrator', subtitle: 'Balanced, Holistically Developed' },
 }
 
 const INSIGHT_TYPE_STYLES: Record<string, { icon: React.ReactNode; color: string }> = {
@@ -252,9 +254,11 @@ export function AssessmentResultsPage() {
     overallScore,
   } = results
 
-  const archetypeInfo = ARCHETYPE_DISPLAY[primaryArchetype] ?? {
-    name: primaryArchetype,
-    subtitle: '',
+  // Content API (DB) takes priority, fall back to hardcoded ARCHETYPE_DISPLAY
+  const fallback = ARCHETYPE_DISPLAY[primaryArchetype]
+  const archetypeInfo = {
+    name: getContent(contentMap, `${primaryArchetype}_name`, fallback?.name ?? primaryArchetype),
+    subtitle: getContent(contentMap, `${primaryArchetype}_subtitle`, fallback?.subtitle ?? ''),
   }
 
   // Sort pillars by percentage
