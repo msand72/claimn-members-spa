@@ -1,11 +1,14 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Bug } from 'lucide-react'
 import { isChunkLoadError } from '../lib/isChunkLoadError'
+import { useBugReport, type ErrorSource } from '../contexts/BugReportContext'
 
-interface Props {
+interface InnerProps {
   children: ReactNode
-  /** Optional label shown in the error card (e.g. "Messages", "Feed") */
   section?: string
+  onError?: (error: Error, source: ErrorSource, componentStack?: string) => void
+  onCaptureScreenshot?: () => Promise<string | null>
+  onOpenModal?: () => void
 }
 
 interface State {
@@ -14,16 +17,11 @@ interface State {
 }
 
 /**
- * Catches runtime errors inside a page section so the rest of the app
- * keeps working. Renders an inline error card instead of a blank page.
- *
- * Usage:
- *   <PageErrorBoundary section="Messages">
- *     <MessagesPage />
- *   </PageErrorBoundary>
+ * Inner class component that catches render errors.
+ * Connected to BugReportContext via the outer PageErrorBoundary wrapper.
  */
-export class PageErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+class PageErrorBoundaryInner extends Component<InnerProps, State> {
+  constructor(props: InnerProps) {
     super(props)
     this.state = { hasError: false, error: null }
   }
@@ -46,8 +44,21 @@ export class PageErrorBoundary extends Component<Props, State> {
       if (!lastReload || Date.now() - Number(lastReload) >= 10000) {
         sessionStorage.setItem(reloadKey, String(Date.now()))
         window.location.reload()
+        return
       }
     }
+
+    // Capture screenshot before rendering fallback UI
+    this.props.onCaptureScreenshot?.().catch(() => {
+      // Non-critical failure
+    })
+
+    // Notify bug report context so toast + modal flow is triggered
+    this.props.onError?.(
+      error,
+      'error_boundary',
+      info.componentStack || undefined
+    )
   }
 
   private handleRetry = () => {
@@ -74,13 +85,24 @@ export class PageErrorBoundary extends Component<Props, State> {
                 {this.state.error.stack.split('\n').slice(0, 5).join('\n')}
               </pre>
             )}
-            <button
-              onClick={this.handleRetry}
-              className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-koppar text-kalkvit hover:bg-koppar/80 transition-all"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Try Again
-            </button>
+            <div className="mt-4 flex items-center justify-center gap-3 flex-wrap">
+              <button
+                onClick={this.handleRetry}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-white/[0.08] border border-white/[0.15] text-kalkvit hover:bg-white/[0.12] transition-all"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Try Again
+              </button>
+              {this.props.onOpenModal && (
+                <button
+                  onClick={this.props.onOpenModal}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-br from-koppar to-[#A66529] text-kalkvit shadow-[0_4px_20px_rgba(184,115,51,0.4)] hover:shadow-[0_6px_24px_rgba(184,115,51,0.5)] hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  <Bug className="w-4 h-4" />
+                  Report Bug
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )
@@ -88,4 +110,26 @@ export class PageErrorBoundary extends Component<Props, State> {
 
     return this.props.children
   }
+}
+
+// ─── Wrapper that connects class component to BugReportContext ────────────────
+
+interface PageErrorBoundaryProps {
+  children: ReactNode
+  section?: string
+}
+
+export function PageErrorBoundary({ children, section }: PageErrorBoundaryProps) {
+  const { setPendingError, captureScreenshot, openModal } = useBugReport()
+
+  return (
+    <PageErrorBoundaryInner
+      section={section}
+      onError={setPendingError}
+      onCaptureScreenshot={captureScreenshot}
+      onOpenModal={openModal}
+    >
+      {children}
+    </PageErrorBoundaryInner>
+  )
 }
