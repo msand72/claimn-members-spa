@@ -11,9 +11,13 @@ interface ActiveProtocolCardProps {
 
 export function ActiveProtocolCard({ protocol, nextTask }: ActiveProtocolCardProps) {
   // Derive current week from step count (assuming ~tasks-per-week grouping)
-  const estimatedWeek = protocol.total_steps > 0
+  const estimatedWeek = protocol?.total_steps > 0
     ? Math.max(1, Math.ceil((protocol.current_step / protocol.total_steps) * 4))
     : 1
+
+  if (!protocol) {
+    return null
+  }
 
   return (
     <GlassCard className="p-4">

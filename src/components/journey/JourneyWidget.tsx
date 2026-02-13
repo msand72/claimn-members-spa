@@ -95,7 +95,7 @@ export function JourneyWidget() {
   const firstProtocol = journey.active_protocols?.[0]
   const progressPct = firstProtocol?.progress_pct ?? 0
   const hasFocus = !!journey.focus?.current_pillar
-  const hasProtocols = journey.active_protocols.length > 0
+  const hasProtocols = (journey.active_protocols?.length ?? 0) > 0
 
   // Hide widget entirely when there's nothing to show
   if (!hasFocus && !hasProtocols) return null
@@ -148,7 +148,7 @@ export function JourneyWidget() {
       )}
 
       {/* Protocols count */}
-      {journey.active_protocols.length > 0 && (
+      {(journey.active_protocols?.length ?? 0) > 0 && (
         <p className="text-[11px] text-kalkvit/50 mb-2">
           {journey.active_protocols.length} active protocol{journey.active_protocols.length !== 1 ? 's' : ''}
         </p>
