@@ -8,17 +8,19 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useAuth()
+  const authContext = useAuth()
   const location = useLocation()
   const { data: onboarding, isLoading: onboardingLoading } = useOnboardingState()
 
-  if (loading || onboardingLoading) {
+  if (!authContext || authContext.loading || onboardingLoading) {
     return (
       <div className="min-h-screen bg-glass-dark flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-koppar animate-spin" />
       </div>
     )
   }
+
+  const { user } = authContext
 
   if (!user) {
     const redirectPath = encodeURIComponent(location.pathname + location.search)

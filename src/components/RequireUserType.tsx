@@ -14,13 +14,15 @@ interface RequireUserTypeProps {
  * - Superadmin always passes.
  */
 export function RequireUserType({ types, children, fallback = 'upgrade' }: RequireUserTypeProps) {
-  const { user, hasAccess } = useAuth()
+  const authContext = useAuth()
   const location = useLocation()
 
-  if (!user) {
+  if (!authContext || !authContext.user) {
     const redirectPath = encodeURIComponent(location.pathname + location.search)
     return <Navigate to={`/login?redirect=${redirectPath}`} replace />
   }
+
+  const { user, hasAccess } = authContext
 
   if (!hasAccess(...types)) {
     if (fallback === 'redirect') {
