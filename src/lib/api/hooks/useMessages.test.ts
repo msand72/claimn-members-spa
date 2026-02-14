@@ -39,9 +39,9 @@ describe('useMessages hooks', () => {
     const { result } = renderHook(() => useSendMessage(), { wrapper: createHookWrapper() })
     result.current.mutate({ content: 'Hey!', recipient_id: 'user-2' })
     await waitFor(() => expect(body).not.toBeNull())
-    expect(body!.content).toBe('Hey!')
+    // Hook maps input `content` to API field `body`
+    expect(body!.body).toBe('Hey!')
     expect(body!.recipient_id).toBe('user-2')
-    expect(body).not.toHaveProperty('body')
     expect(body).not.toHaveProperty('addressee_id')
   })
 

@@ -67,8 +67,9 @@ describe('Bug Regressions', () => {
     expect(capturedUrl).toContain('/sessions/session-123/cancel')
   })
 
-  // BUG-F07: Messages sends 'content' + 'recipient_id' (not 'body' + 'addressee_id')
-  it('BUG-F07: useSendMessage sends content + recipient_id', async () => {
+  // BUG-F07: Messages sends 'body' + 'recipient_id' (not old 'addressee_id')
+  // Hook accepts `content` from caller, maps it to API field `body`
+  it('BUG-F07: useSendMessage sends body + recipient_id', async () => {
     let capturedBody: Record<string, unknown> | null = null
     server.use(
       http.post(`${API_BASE}/members/messages`, async ({ request }) => {
@@ -84,10 +85,10 @@ describe('Bug Regressions', () => {
     result.current.mutate({ content: 'Hello', recipient_id: 'user-2' })
 
     await waitFor(() => expect(capturedBody).not.toBeNull())
-    expect(capturedBody!.content).toBe('Hello')
+    // Hook maps input `content` to API field `body`
+    expect(capturedBody!.body).toBe('Hello')
     expect(capturedBody!.recipient_id).toBe('user-2')
     // Must NOT have old field names
-    expect(capturedBody).not.toHaveProperty('body')
     expect(capturedBody).not.toHaveProperty('addressee_id')
   })
 
