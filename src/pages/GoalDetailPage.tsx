@@ -45,6 +45,7 @@ import {
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { AskExpertButton } from '../components/AskExpertButton'
+import { calculateKpiProgress } from '../lib/kpi-utils'
 import { getProtocolSlugFromGoal, stripProtocolTag } from '../lib/protocol-plan'
 
 export function GoalDetailPage() {
@@ -71,7 +72,7 @@ export function GoalDetailPage() {
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [showAddKpiModal, setShowAddKpiModal] = useState(false)
-  const [newKpi, setNewKpi] = useState({ kpiType: '', targetValue: '', frequency: 'daily' })
+  const [newKpi, setNewKpi] = useState({ kpiType: '', currentValue: '', targetValue: '', frequency: 'daily' })
   const [actionError, setActionError] = useState<string | null>(null)
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [isAddingSubtask, setIsAddingSubtask] = useState(false)
@@ -107,7 +108,7 @@ export function GoalDetailPage() {
     // KPI progress
     if (kpis.length > 0) {
       const avgKpi = kpis.reduce(
-        (sum, k) => sum + Math.min((k.current_value / k.target_value) * 100, 100),
+        (sum, k) => sum + calculateKpiProgress(k.current_value, k.target_value),
         0
       ) / kpis.length
       parts.push(avgKpi)
@@ -288,7 +289,7 @@ export function GoalDetailPage() {
     )
 
     try {
-      await createKPI.mutateAsync({
+      const created = await createKPI.mutateAsync({
         goalId: goal.id,
         data: {
           name: selectedKpiType?.name || newKpi.kpiType,
@@ -298,8 +299,13 @@ export function GoalDetailPage() {
           frequency: newKpi.frequency as 'daily' | 'weekly' | 'monthly',
         },
       })
+      // Log the initial current value so the KPI starts at the user's actual state
+      const initialValue = parseFloat(newKpi.currentValue)
+      if (initialValue && created?.id) {
+        await logKPI.mutateAsync({ kpiId: created.id, data: { value: initialValue } })
+      }
       setShowAddKpiModal(false)
-      setNewKpi({ kpiType: '', targetValue: '', frequency: 'daily' })
+      setNewKpi({ kpiType: '', currentValue: '', targetValue: '', frequency: 'daily' })
     } catch (_err) {
       setActionError('Failed to create KPI. Please try again.')
     }
@@ -602,7 +608,7 @@ export function GoalDetailPage() {
           ) : (
             <div className="space-y-4">
               {kpis.map((kpi) => {
-                const progress = Math.min((kpi.current_value / kpi.target_value) * 100, 100)
+                const progress = calculateKpiProgress(kpi.current_value, kpi.target_value)
 
                 return (
                   <GlassCard key={kpi.id} variant="base">
@@ -614,7 +620,9 @@ export function GoalDetailPage() {
                             {kpi.current_value}
                             <span className="text-sm font-normal text-kalkvit/50">{kpi.unit}</span>
                           </span>
-                          <span className="text-kalkvit/40">/</span>
+                          <span className="text-kalkvit/40">
+                            {kpi.current_value > kpi.target_value ? '\u2192' : '/'}
+                          </span>
                           <span className="text-kalkvit/60">
                             {kpi.target_value}
                             {kpi.unit}
@@ -730,9 +738,16 @@ export function GoalDetailPage() {
               onChange={(e) => setNewKpi({ ...newKpi, kpiType: e.target.value })}
             />
             <GlassInput
+              label="Current Value"
+              type="number"
+              placeholder="Where are you now? (e.g. 82)"
+              value={newKpi.currentValue}
+              onChange={(e) => setNewKpi({ ...newKpi, currentValue: e.target.value })}
+            />
+            <GlassInput
               label="Target Value"
               type="number"
-              placeholder="Enter target value"
+              placeholder="Where do you want to be? (e.g. 78)"
               value={newKpi.targetValue}
               onChange={(e) => setNewKpi({ ...newKpi, targetValue: e.target.value })}
             />

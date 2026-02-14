@@ -57,24 +57,24 @@ function ProtocolCard({
     <Link to={`/protocols/${protocol.slug}`}>
       <GlassCard
         variant="base"
-        className="h-full hover:border-koppar/30 transition-all hover:scale-[1.02] cursor-pointer"
+        className="h-full hover:border-koppar/30 transition-all hover:scale-[1.02] cursor-pointer p-5 md:p-7"
       >
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-koppar/10 flex items-center justify-center">
-              <PillarIcon className="w-4 h-4 text-koppar" />
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-koppar/10 flex items-center justify-center">
+              <PillarIcon className="w-4.5 h-4.5 text-koppar" />
             </div>
-            <GlassBadge variant="koppar" className="text-xs">
+            <GlassBadge variant="koppar" className="text-xs whitespace-nowrap">
               {pillar.name}
             </GlassBadge>
           </div>
           {isActive && (
-            <GlassBadge variant="success" className="text-xs">
+            <GlassBadge variant="success" className="text-xs whitespace-nowrap flex-shrink-0">
               Active
             </GlassBadge>
           )}
           {protocol.is_featured && !isActive && (
-            <GlassBadge variant="warning" className="text-xs flex items-center gap-1">
+            <GlassBadge variant="warning" className="text-xs whitespace-nowrap flex-shrink-0 flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
               Featured
             </GlassBadge>
@@ -203,7 +203,7 @@ export function ProtocolsPage() {
 
         {/* Protocols Grid */}
         {!isLoading && protocols.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {protocols.map((protocol) => (
               <ProtocolCard
                 key={protocol.slug}

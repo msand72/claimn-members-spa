@@ -37,6 +37,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { PrintReport } from '../components/PrintReport'
 
 // =====================================================
 // Constants
@@ -281,7 +282,8 @@ export function AssessmentResultsPage() {
 
   return (
     <MainLayout>
-      <div className="max-w-4xl mx-auto print:max-w-none">
+      <PrintReport results={results} contentMap={contentMap} />
+      <div className="max-w-4xl mx-auto print:hidden">
         {/* ============================================= */}
         {/* Section 1: Header */}
         {/* ============================================= */}

@@ -87,8 +87,12 @@ export function useDeleteGoal() {
 
   return useMutation({
     mutationFn: (id: string) => api.delete(`/members/goals/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: goalKeys.all })
+    onSuccess: (_, id) => {
+      // Remove the deleted goal's queries from cache to prevent 404 refetches
+      queryClient.removeQueries({ queryKey: goalKeys.detail(id) })
+      queryClient.removeQueries({ queryKey: goalKeys.kpis(id) })
+      // Only invalidate the list (not all, which would refetch the deleted detail)
+      queryClient.invalidateQueries({ queryKey: goalKeys.list() })
     },
   })
 }

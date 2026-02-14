@@ -475,3 +475,245 @@ body {
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* ============================================
+   PRINT STYLES — Assessment Report
+   ============================================ */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+
+  /* Hide the entire app layout, show only print-report */
+  body * {
+    visibility: hidden;
+  }
+
+  .print-report,
+  .print-report * {
+    visibility: visible;
+  }
+
+  .print-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    display: block;
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #000;
+    background: #fff;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  .print-page {
+    page-break-after: always;
+    padding: 0;
+  }
+
+  .print-page:last-child {
+    page-break-after: auto;
+  }
+
+  .print-cover {
+    text-align: center;
+    padding-top: 3rem;
+    margin-bottom: 2rem;
+  }
+
+  .print-brand {
+    font-size: 14pt;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+
+  .print-title {
+    font-size: 22pt;
+    font-weight: 700;
+    margin: 0 0 1rem;
+  }
+
+  .print-divider {
+    width: 4rem;
+    height: 2px;
+    background: #000;
+    margin: 1.5rem auto;
+  }
+
+  .print-archetype-name {
+    font-size: 28pt;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+  }
+
+  .print-subtitle {
+    font-style: italic;
+    font-size: 14pt;
+    color: #444;
+    margin: 0 0 1rem;
+  }
+
+  .print-match {
+    font-size: 18pt;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+  }
+
+  .print-secondary {
+    font-size: 12pt;
+    color: #555;
+    margin: 0 0 1.5rem;
+  }
+
+  .print-description {
+    max-width: 40rem;
+    margin: 0 auto;
+    font-size: 11pt;
+    color: #333;
+    text-align: left;
+  }
+
+  .print-h2 {
+    font-size: 16pt;
+    font-weight: 700;
+    border-bottom: 1px solid #000;
+    padding-bottom: 0.25rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .print-h3 {
+    font-size: 13pt;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+  }
+
+  .print-h4 {
+    font-size: 11pt;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+  }
+
+  .print-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .print-list {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  .print-list li {
+    margin-bottom: 0.25rem;
+  }
+
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0.75rem;
+    font-size: 10pt;
+  }
+
+  .print-table th {
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid #000;
+    padding: 0.35rem 0.5rem;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .print-table td {
+    border-bottom: 1px solid #ddd;
+    padding: 0.35rem 0.5rem;
+    vertical-align: middle;
+  }
+
+  .print-td-label {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .print-td-center {
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .print-td-bar {
+    width: 40%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .print-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: #eee;
+    border: 1px solid #ccc;
+  }
+
+  .print-bar-fill {
+    height: 100%;
+    background: #333;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-bar-pct {
+    font-size: 9pt;
+    white-space: nowrap;
+    min-width: 2.5rem;
+    text-align: right;
+  }
+
+  .print-row-primary td {
+    font-weight: 700;
+  }
+
+  .print-footnote {
+    font-size: 9pt;
+    color: #666;
+    margin-top: 0.5rem;
+  }
+
+  .print-insight {
+    margin-bottom: 1rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid #999;
+  }
+
+  .print-insight p {
+    margin: 0;
+    color: #333;
+  }
+
+  .print-pill {
+    display: inline-block;
+    font-size: 8pt;
+    font-weight: 400;
+    border: 1px solid #999;
+    padding: 0 0.4rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .print-footer-note {
+    margin-top: 3rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #ccc;
+    font-size: 9pt;
+    color: #999;
+    text-align: center;
+  }
+}
+
+/* Hide print report on screen */
+.print-report {
+  display: none;
+}

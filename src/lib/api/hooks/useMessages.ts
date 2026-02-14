@@ -78,11 +78,13 @@ export function useSendMessage() {
 
   return useMutation({
     mutationFn: (data: SendMessageRequest) => {
-      const messageContent = data.content?.trim() || (data.image_url ? '[Image]' : '')
-      const payload = {
+      const messageBody = data.content?.trim() || (data.image_url ? '[Image]' : '')
+      const payload: Record<string, string> = {
         recipient_id: data.recipient_id,
-        content: messageContent,
-        ...(data.image_url ? { image_url: data.image_url } : {}),
+        body: messageBody,
+      }
+      if (data.image_url) {
+        payload.image_url = data.image_url
       }
       return api.post<Message>('/members/messages', payload)
     },

@@ -53,7 +53,7 @@ The CLAIM'N Members SPA is a **React single-page application** for the CLAIM'N m
 | `server-infra` | Backend agent | Go API, database |
 | `claimn-web` | Reference only | Next.js marketing site, migration docs |
 
-If you need backend changes (new endpoints, schema changes), **document the requirements** and let the backend agent handle it. Never push to `server-infra`.
+If you need backend changes (new endpoints, schema changes), **write a prompt file** to `/Users/maxsandberg/projects/server-infra/AGENT_PROMPT.md` with the exact changes needed. The backend agent runs on a separate on-prem machine and will execute the prompt independently. Never push to or directly modify `server-infra`. See CLAUDE.md "Backend Change Requests" section for the full protocol.
 
 ---
 
