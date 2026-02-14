@@ -82,20 +82,23 @@ body {
   min-height: 100vh;
 }
 
-/* Glass utilities */
+/* Glass utilities — dark theme: 95% opaque (5% transparent) */
 @layer utilities {
   .glass-base {
-    @apply bg-white/[0.08] backdrop-blur-[16px] border border-white/[0.15];
+    @apply backdrop-blur-[16px] border border-white/[0.15];
+    background-color: rgba(28, 28, 30, 0.95);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
   .glass-elevated {
-    @apply bg-white/[0.12] backdrop-blur-[24px] border border-white/[0.2];
+    @apply backdrop-blur-[24px] border border-white/[0.2];
+    background-color: rgba(28, 28, 30, 0.95);
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
   .glass-dropdown {
-    @apply bg-white/[0.18] backdrop-blur-[32px] border border-white/[0.2];
+    @apply backdrop-blur-[32px] border border-white/[0.2];
+    background-color: rgba(28, 28, 30, 0.95);
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
@@ -397,11 +400,6 @@ body {
 /* Ring colors for light mode */
 .light .ring-white\/10 {
   --tw-ring-color: rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Mobile menu drawer - dark theme: 80% opacity background */
-.mobile-drawer.glass-elevated {
-  background: rgba(28, 28, 30, 0.80) !important;
 }
 
 /* Mobile menu drawer - keep dark styling even in light mode */
