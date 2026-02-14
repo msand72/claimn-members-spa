@@ -5,12 +5,6 @@ const API_PREFIX = '/api/v2'
 
 export const API_URL = `${API_BASE_URL}${API_PREFIX}`
 
-// ---------------------------------------------------------------------------
-// API Response Logger — logs actual response shapes in development so
-// mismatches between TypeScript types and backend reality are visible
-// in the console instead of causing silent UI bugs.
-// ---------------------------------------------------------------------------
-// Enable logging in dev, or on production via localStorage: localStorage.setItem('api_debug', '1')
 const IS_DEV = import.meta.env.DEV
 
 // ---------------------------------------------------------------------------
@@ -49,38 +43,6 @@ function logApiError(method: string, endpoint: string, status: string | number, 
   if (IS_DEV && typeof window !== 'undefined') {
     window.__apiErrors.push(entry)
   }
-  if (IS_DEV) {
-    console.error(`[API ${method} ${endpoint}] ${status} ${code}: ${message}`)
-  }
-}
-
-function describeShape(obj: unknown): string {
-  if (obj === null) return 'null'
-  if (obj === undefined) return 'undefined'
-  if (Array.isArray(obj)) {
-    if (obj.length === 0) return '[]'
-    return `[${describeShape(obj[0])} x${obj.length}]`
-  }
-  if (typeof obj === 'object') {
-    const keys = Object.keys(obj as Record<string, unknown>)
-    if (keys.length === 0) return '{}'
-    const entries = keys.slice(0, 8).map((k) => {
-      const v = (obj as Record<string, unknown>)[k]
-      if (v === null) return `${k}:null`
-      if (v === undefined) return `${k}:undef`
-      if (Array.isArray(v)) return `${k}:[${v.length}]`
-      if (typeof v === 'object') return `${k}:{…}`
-      return `${k}:${typeof v}`
-    })
-    if (keys.length > 8) entries.push(`+${keys.length - 8}`)
-    return `{${entries.join(', ')}}`
-  }
-  return typeof obj
-}
-
-function logResponse(method: string, endpoint: string, data: unknown) {
-  if (!IS_DEV) return
-  console.log(`[API ${method} ${endpoint}]`, describeShape(data))
 }
 
 // ---------------------------------------------------------------------------
@@ -229,7 +191,6 @@ class ApiClient {
       }
 
       const data = await response.json()
-      logResponse(method, cleanEndpoint, data)
       return data
     } catch (error: any) {
       const status = error?.status || 'unknown'
