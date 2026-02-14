@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect } from '../components/ui'
+import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect, GlassModal, GlassModalFooter } from '../components/ui'
 import { useExperts, useExpertAvailability, useBookSession } from '../lib/api/hooks'
 import type { Expert } from '../lib/api/types'
 import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react'
@@ -113,6 +113,7 @@ export function BookSessionPage() {
     const now = new Date()
     return { year: now.getFullYear(), month: now.getMonth() }
   })
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const navTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
 
@@ -197,8 +198,10 @@ export function BookSessionPage() {
     if (!selectedExpert || !selectedDate || !selectedTime) return
 
     try {
-      // Construct the scheduled_at datetime
-      const scheduledAt = `${selectedDate}T${convertTo24Hour(selectedTime)}:00`
+      // Construct the scheduled_at datetime with timezone offset
+      const timeStr = convertTo24Hour(selectedTime)
+      const localDate = new Date(`${selectedDate}T${timeStr}:00`)
+      const scheduledAt = localDate.toISOString()
 
       await bookSessionMutation.mutateAsync({
         expert_id: selectedExpert.id,
@@ -207,6 +210,7 @@ export function BookSessionPage() {
         session_type: 'coaching',
       })
 
+      setShowConfirmModal(false)
       setBookingSuccess(true)
 
       // Navigate to sessions page after a short delay
@@ -427,7 +431,11 @@ export function BookSessionPage() {
                       <button
                         key={slot.time}
                         disabled={!slot.available}
-                        onClick={() => setSelectedTime(slot.time)}
+                        onClick={() => {
+                          setSelectedTime(slot.time)
+                          setBookingError(null)
+                          setShowConfirmModal(true)
+                        }}
                         className={cn(
                           'p-2 rounded-xl text-sm font-medium transition-all',
                           !slot.available
@@ -463,82 +471,90 @@ export function BookSessionPage() {
               </GlassCard>
             )}
 
-            {/* Session Summary — only for internal booking flow */}
-            {selectedExpert && !selectedExpert.calendar_url && selectedDate && selectedTime && (
-              <GlassCard variant="accent" leftBorder={false}>
-                <h3 className="font-semibold text-kalkvit mb-4">Session Summary</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-3 text-kalkvit/80">
-                    {selectedExpert.avatar_url ? (
-                      <img
-                        src={selectedExpert.avatar_url}
-                        alt={selectedExpert.name}
-                        className="w-8 h-8 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <GlassAvatar
-                        initials={selectedExpert.name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')
-                          .toUpperCase()
-                          .slice(0, 2)}
-                        size="sm"
-                      />
-                    )}
-                    <span>{selectedExpert.name}</span>
+            {/* Booking Confirmation Modal */}
+            <GlassModal
+              isOpen={showConfirmModal}
+              onClose={() => { setShowConfirmModal(false); setBookingError(null) }}
+              title="Confirm Booking"
+              size="sm"
+            >
+              {selectedExpert && selectedDate && selectedTime && (
+                <>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center gap-3 text-kalkvit/80">
+                      {selectedExpert.avatar_url ? (
+                        <img
+                          src={selectedExpert.avatar_url}
+                          alt={selectedExpert.name}
+                          className="w-8 h-8 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <GlassAvatar
+                          initials={selectedExpert.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 2)}
+                          size="sm"
+                        />
+                      )}
+                      <span className="font-medium text-kalkvit">{selectedExpert.name}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-kalkvit/80">
+                      <Calendar className="w-4 h-4 text-koppar" />
+                      <span>
+                        {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-kalkvit/80">
+                      <Clock className="w-4 h-4 text-koppar" />
+                      <span>
+                        {selectedTime} ({sessionType} min)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-kalkvit/80">
+                      <Video className="w-4 h-4 text-koppar" />
+                      <span>Video Call</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                      <span className="text-kalkvit/60">Total</span>
+                      <span className="font-display text-2xl font-bold text-kalkvit">
+                        ${Math.round(selectedExpert.hourly_rate * (parseInt(sessionType) / 60))}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 text-kalkvit/80">
-                    <Calendar className="w-4 h-4 text-koppar" />
-                    <span>
-                      {selectedDate && new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-kalkvit/80">
-                    <Clock className="w-4 h-4 text-koppar" />
-                    <span>
-                      {selectedTime} ({sessionType} min)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-kalkvit/80">
-                    <Video className="w-4 h-4 text-koppar" />
-                    <span>Video Call</span>
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t border-white/10">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-kalkvit/60">Total</span>
-                    <span className="font-display text-2xl font-bold text-kalkvit">
-                      ${Math.round(selectedExpert.hourly_rate * (parseInt(sessionType) / 60))}
-                    </span>
-                  </div>
-                  <GlassButton
-                    variant="primary"
-                    className="w-full"
-                    onClick={handleBook}
-                    disabled={bookSessionMutation.isPending}
-                  >
-                    {bookSessionMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Booking...
-                      </>
-                    ) : (
-                      'Confirm Booking'
-                    )}
-                  </GlassButton>
                   {(bookSessionMutation.isError || bookingError) && (
-                    <p className="text-xs text-tegelrod mt-2 text-center">
+                    <p className="text-xs text-tegelrod mt-3 text-center">
                       {bookingError || 'Failed to book session. Please try again.'}
                     </p>
                   )}
-                </div>
-              </GlassCard>
-            )}
+                  <GlassModalFooter>
+                    <GlassButton variant="ghost" onClick={() => { setShowConfirmModal(false); setBookingError(null) }}>
+                      Cancel
+                    </GlassButton>
+                    <GlassButton
+                      variant="primary"
+                      onClick={handleBook}
+                      disabled={bookSessionMutation.isPending}
+                    >
+                      {bookSessionMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Booking...
+                        </>
+                      ) : (
+                        'Confirm Booking'
+                      )}
+                    </GlassButton>
+                  </GlassModalFooter>
+                </>
+              )}
+            </GlassModal>
           </div>
         </div>
       </div>
