@@ -104,24 +104,24 @@ programs
 
 ### Frontend work
 
-- [ ] Add `SprintDetailPage` at `/programs/sprints/:id`
+- [x] Add `SprintDetailPage` at `/programs/sprints/:id`
   - Show sprint info, focus area, duration
   - List sprint goals with checkboxes (trackable)
   - Progress bar based on goals_completed / total_goals
   - Notes field for sprint reflections
-- [ ] Add hooks: `useSprintProgress()`, `useSprintGoals()`, `useUpdateSprintProgress()`, `useCompleteGoal()`
-- [ ] Add types: `SprintGoal`, `MemberSprintProgress`
-- [ ] Update `ProgramDetailPage` sprint cards to link to sprint detail
-- [ ] Update `ProgramsSprintsPage` "View Progress" button to link to sprint detail
-- [ ] Add route `/programs/sprints/:id` to App.tsx
+- [x] Add hooks: `useSprintProgress()`, `useSprintGoals()`, `useUpdateSprintProgress()`, `useCompleteSprintGoal()`
+- [x] Add types: `SprintGoal`, `MemberSprintProgress`
+- [x] Update `ProgramDetailPage` sprint cards to link to sprint detail
+- [x] Update `ProgramsSprintsPage` "View Progress" button to link to sprint detail
+- [x] Add route `/programs/sprints/:id` to App.tsx
 
 ### Progress
 
-- [ ] Backend endpoints created
-- [ ] Frontend types added
-- [ ] Frontend hooks added
-- [ ] SprintDetailPage created
-- [ ] Routes and navigation updated
+- [x] Backend endpoints created
+- [x] Frontend types added
+- [x] Frontend hooks added
+- [x] SprintDetailPage created
+- [x] Routes and navigation updated
 - [ ] Tested end-to-end
 
 ---
@@ -348,7 +348,7 @@ programs
 | Phase | Description | Backend | Frontend | Status |
 |-------|-------------|---------|----------|--------|
 | 0 | Program Detail Page | Done | Done | **Complete** |
-| 1 | Sprint Progress Tracking | Not started | Not started | Planned |
+| 1 | Sprint Progress Tracking | Done | Done | **Testing** |
 | 2 | Program Assessments | Not started | Not started | Planned |
 | 3 | Cohorts | Not started | Not started | Planned |
 | 4 | Accountability Groups | Not started | Not started | Planned |

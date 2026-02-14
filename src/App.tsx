@@ -68,6 +68,7 @@ const ExpertProfilePage = lazyWithRetry(() => import('./pages/ExpertProfilePage'
 const ProgramsPage = lazyWithRetry(() => import('./pages/ProgramsPage'))
 const ProgramDetailPage = lazyWithRetry(() => import('./pages/ProgramDetailPage'))
 const ProgramsSprintsPage = lazyWithRetry(() => import('./pages/ProgramsSprintsPage'))
+const SprintDetailPage = lazyWithRetry(() => import('./pages/SprintDetailPage'))
 const ProgramsReviewsPage = lazyWithRetry(() => import('./pages/ProgramsReviewsPage'))
 
 // Pages - Events
@@ -211,6 +212,7 @@ const router = createBrowserRouter([
       { path: '/experts/:id', element: <Protected><ExpertProfilePage /></Protected> },
       { path: '/programs', element: <Protected><ProgramsPage /></Protected> },
       { path: '/programs/sprints', element: <Protected><ProgramsSprintsPage /></Protected> },
+      { path: '/programs/sprints/:id', element: <Protected><SprintDetailPage /></Protected> },
       { path: '/programs/reviews', element: <Protected><ProgramsReviewsPage /></Protected> },
       { path: '/programs/:id', element: <Protected><ProgramDetailPage /></Protected> },
 

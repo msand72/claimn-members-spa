@@ -613,6 +613,34 @@ export interface PeerReview {
   program?: Program
 }
 
+export interface SprintGoal {
+  id: string
+  sprint_id: string
+  title: string
+  description: string
+  category: string
+  target_metric: string
+  sequence_order: number
+  is_required: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface MemberSprintProgress {
+  id: string
+  user_id: string
+  sprint_id: string
+  status: 'not_started' | 'in_progress' | 'completed' | 'skipped'
+  started_at: string | null
+  completed_at: string | null
+  progress_percentage: number
+  notes: string | null
+  goals_completed: number
+  total_goals: number
+  created_at: string
+  updated_at: string
+}
+
 export interface SubmitReviewRequest {
   rating: number
   feedback: string

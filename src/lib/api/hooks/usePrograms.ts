@@ -4,6 +4,8 @@ import type {
   Program,
   UserProgram,
   Sprint,
+  SprintGoal,
+  MemberSprintProgress,
   PeerReview,
   EnrollProgramRequest,
   JoinSprintRequest,
@@ -19,6 +21,8 @@ export const programKeys = {
   sprints: (programId?: string, params?: SprintsParams) =>
     [...programKeys.all, 'sprints', programId, params] as const,
   sprint: (id: string) => [...programKeys.all, 'sprint', id] as const,
+  sprintGoals: (sprintId: string) => [...programKeys.all, 'sprintGoals', sprintId] as const,
+  sprintProgress: (sprintId: string) => [...programKeys.all, 'sprintProgress', sprintId] as const,
   reviews: (params?: ReviewsParams) => [...programKeys.all, 'reviews', params] as const,
   review: (id: string) => [...programKeys.all, 'review', id] as const,
 }
@@ -156,6 +160,64 @@ export function useJoinSprint() {
       api.post<Sprint>('/members/programs/sprints/join', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: programKeys.all })
+    },
+  })
+}
+
+// Get goals for a sprint
+export function useSprintGoals(sprintId: string) {
+  return useQuery({
+    queryKey: programKeys.sprintGoals(sprintId),
+    queryFn: () =>
+      api.get<PaginatedResponse<SprintGoal>>(`/members/programs/sprints/${sprintId}/goals`),
+    enabled: !!sprintId,
+  })
+}
+
+// Get user's progress for a sprint
+export function useSprintProgress(sprintId: string) {
+  return useQuery({
+    queryKey: programKeys.sprintProgress(sprintId),
+    queryFn: () =>
+      api.get<MemberSprintProgress>(`/members/programs/sprints/${sprintId}/progress`),
+    enabled: !!sprintId,
+  })
+}
+
+// Update sprint progress
+export function useUpdateSprintProgress() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      sprintId,
+      data,
+    }: {
+      sprintId: string
+      data: { status?: string; progress_percentage?: number; notes?: string }
+    }) =>
+      api.put<MemberSprintProgress>(`/members/programs/sprints/${sprintId}/progress`, data),
+    onSuccess: (_, { sprintId }) => {
+      queryClient.invalidateQueries({ queryKey: programKeys.sprintProgress(sprintId) })
+      queryClient.invalidateQueries({ queryKey: programKeys.sprints() })
+    },
+  })
+}
+
+// Mark a sprint goal as complete
+export function useCompleteSprintGoal() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ sprintId, goalId }: { sprintId: string; goalId: string }) =>
+      api.put<MemberSprintProgress>(
+        `/members/programs/sprints/${sprintId}/goals/${goalId}/complete`,
+        {}
+      ),
+    onSuccess: (_, { sprintId }) => {
+      queryClient.invalidateQueries({ queryKey: programKeys.sprintProgress(sprintId) })
+      queryClient.invalidateQueries({ queryKey: programKeys.sprintGoals(sprintId) })
+      queryClient.invalidateQueries({ queryKey: programKeys.sprints() })
     },
   })
 }
