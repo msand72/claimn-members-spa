@@ -325,7 +325,7 @@ Endpoint already exists: `GET /members/programs/completions?program_id={id}` —
 ### Progress
 
 - [x] Backend endpoints already exist (`GET /members/programs/applications`, `POST /members/programs/applications`)
-- [ ] Backend: Add `requires_application` column + struct field (AGENT_PROMPT written)
+- [x] Backend: `requires_application` column + struct field added
 - [x] Frontend types added
 - [x] Frontend hooks added
 - [x] Application UI on ProgramDetailPage
@@ -372,7 +372,7 @@ Endpoint already exists: `GET /members/programs/completions?program_id={id}` —
 | 3 | Cohorts | Done | Done | **Testing** |
 | 4 | Accountability Groups | Done (existing) | Done | **Testing** |
 | 5 | Completions & Certificates | Done (existing) | Done | **Testing** |
-| 6 | Program Applications | Partial (AGENT_PROMPT) | Done | **Testing** |
+| 6 | Program Applications | Done | Done | **Testing** |
 | 7 | Enhanced Detail Page | N/A | Not started | Planned |
 
 ### Existing Backend (Admin-only, no member endpoints yet)
