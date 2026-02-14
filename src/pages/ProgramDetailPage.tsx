@@ -189,14 +189,14 @@ export function ProgramDetailPage() {
   const completedAssessments = assessments.filter((a) => a.is_completed).length
 
   // Cohort — only fetch for enrolled users
-  const { data: cohortData, isLoading: isLoadingCohort } = useProgramCohort(
+  const { data: cohortData } = useProgramCohort(
     isEnrolled ? (id || '') : ''
   )
   const cohorts = Array.isArray(cohortData?.data) ? cohortData.data : []
   const cohort = cohorts[0] || null // User is typically in one cohort per program
 
   // Accountability — only fetch for enrolled users
-  const { data: accountabilityGroups, isLoading: isLoadingAccountability } = useMyAccountabilityGroups({
+  const { data: accountabilityGroups } = useMyAccountabilityGroups({
     enabled: isEnrolled,
   })
   const programGroup = (accountabilityGroups ?? []).find((g) => g.program_id === id) || null
