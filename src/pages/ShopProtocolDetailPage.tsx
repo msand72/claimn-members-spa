@@ -353,7 +353,7 @@ export function ShopProtocolDetailPage() {
                   <Link to={`/protocols/${slug}`}>
                     <GlassButton variant="primary" className="w-full mb-3">
                       <Play className="w-4 h-4" />
-                      Continue Learning
+                      Check Status
                     </GlassButton>
                   </Link>
                   <Link to="/programs/sprints">

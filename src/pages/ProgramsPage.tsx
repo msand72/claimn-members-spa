@@ -243,13 +243,13 @@ export function ProgramsPage() {
           </div>
         ) : (
           <>
-            {/* Continue Learning Section */}
+            {/* Check Status Section */}
             {activeCategory === 'All' && myPrograms.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-4">
                   <Trophy className="w-5 h-5 text-koppar" />
                   <h2 className="font-serif text-xl font-semibold text-kalkvit">
-                    Continue Learning
+                    Check Status
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
