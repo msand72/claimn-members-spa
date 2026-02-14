@@ -217,8 +217,9 @@ export function BookSessionPage() {
       navTimerRef.current = setTimeout(() => {
         navigate('/expert-sessions')
       }, 2000)
-    } catch (_error) {
-      setBookingError('Failed to book session. Please try again.')
+    } catch (error: any) {
+      const msg = error?.error?.message || error?.message || 'Failed to book session. Please try again.'
+      setBookingError(msg)
     }
   }
 
