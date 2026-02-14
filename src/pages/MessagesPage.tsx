@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useLocation } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { safeOpenUrl } from '../lib/url-validation'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge, GlassButton, GlassModal, GlassModalFooter, GlassToast } from '../components/ui'
@@ -54,6 +54,7 @@ function formatMessageTime(dateStr: string): string {
 export function MessagesPage() {
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -240,8 +241,21 @@ export function MessagesPage() {
     if (member) {
       handleStartConversationWithMember(member)
       setSearchParams({}, { replace: true })
+      return
     }
-  }, [targetUserId, conversationsLoading, connectionsLoading, conversations, connectedMembers])
+
+    // Fallback: use route state (e.g. from expert pages) to start conversation
+    // with someone who isn't in the user's connections list
+    const state = location.state as { participantName?: string; participantAvatar?: string | null } | null
+    if (state?.participantName) {
+      handleStartConversationWithMember({
+        user_id: targetUserId,
+        display_name: state.participantName,
+        avatar_url: state.participantAvatar ?? null,
+      })
+      setSearchParams({}, { replace: true })
+    }
+  }, [targetUserId, conversationsLoading, connectionsLoading, conversations, connectedMembers, location.state])
 
   // Apply optimistic last_message updates to the conversation list.
   // When the user sends a message, the sidebar should immediately show

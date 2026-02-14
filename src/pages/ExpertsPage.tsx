@@ -9,7 +9,7 @@ import { cn } from '../lib/utils'
 
 const specialtyFilters = ['All', 'Leadership', 'Mindset', 'Business', 'Wellness', 'Finance', 'Communication']
 
-function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expertId: string) => void }) {
+function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expert: Expert) => void }) {
   const initials = expert.name
     .split(' ')
     .map((n) => n[0])
@@ -71,7 +71,7 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expertI
           {expert.availability || 'Contact for availability'}
         </span>
         <div className="flex gap-2 shrink-0">
-          <GlassButton variant="ghost" className="p-2" onClick={() => onMessage(expert.id)}>
+          <GlassButton variant="ghost" className="p-2" onClick={() => onMessage(expert)}>
             <MessageCircle className="w-4 h-4" />
           </GlassButton>
           <Link to={`/book-session?expert=${expert.id}`}>
@@ -100,8 +100,10 @@ export function ExpertsPage() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  const handleMessage = (expertId: string) => {
-    navigate(`/messages?user=${expertId}`)
+  const handleMessage = (expert: Expert) => {
+    navigate(`/messages?user=${expert.id}`, {
+      state: { participantName: expert.name, participantAvatar: expert.avatar_url },
+    })
   }
 
   const {
