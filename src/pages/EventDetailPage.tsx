@@ -154,22 +154,24 @@ export function EventDetailPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Facilitator Card */}
-            <GlassCard variant="base">
-              <h2 className="font-display text-lg font-semibold text-kalkvit mb-4">
-                Facilitator
-              </h2>
-              <div className="flex items-center gap-3">
-                <GlassAvatar
-                  src={event.facilitator.avatar_url}
-                  alt={event.facilitator.name}
-                  size="lg"
-                />
-                <div>
-                  <p className="font-medium text-kalkvit">{event.facilitator.name}</p>
-                  <p className="text-xs text-kalkvit/50">Event Facilitator</p>
+            {event.facilitator && (
+              <GlassCard variant="base">
+                <h2 className="font-display text-lg font-semibold text-kalkvit mb-4">
+                  Facilitator
+                </h2>
+                <div className="flex items-center gap-3">
+                  <GlassAvatar
+                    src={event.facilitator.avatar_url}
+                    alt={event.facilitator.name}
+                    size="lg"
+                  />
+                  <div>
+                    <p className="font-medium text-kalkvit">{event.facilitator.name}</p>
+                    <p className="text-xs text-kalkvit/50">Event Facilitator</p>
+                  </div>
                 </div>
-              </div>
-            </GlassCard>
+              </GlassCard>
+            )}
 
             {/* Capacity Card */}
             <GlassCard variant="base">
