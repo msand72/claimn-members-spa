@@ -546,11 +546,16 @@ export interface Program {
   name: string
   description: string
   duration: string
+  duration_months?: number
   modules: number
   enrolled_count: number
   category: string
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced'
   is_locked: boolean
+  tier?: string
+  objectives?: string[]
+  prerequisites?: string[]
+  created_by?: string
   created_at: string
   updated_at: string
 }

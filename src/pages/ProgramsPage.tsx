@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
-import { usePrograms, useEnrolledPrograms, useEnrollProgram } from '../lib/api/hooks'
+import { usePrograms, useEnrolledPrograms } from '../lib/api/hooks'
 import type { Program, UserProgram } from '../lib/api/types'
 import {
   Search,
@@ -29,13 +29,9 @@ const difficultyColors = {
 function ProgramCard({
   program,
   userProgram,
-  onEnroll,
-  isEnrolling,
 }: {
   program: Program
   userProgram?: UserProgram
-  onEnroll: (programId: string) => void
-  isEnrolling: boolean
 }) {
   const isEnrolled = !!userProgram
   const progress = userProgram?.progress || 0
@@ -95,35 +91,24 @@ function ProgramCard({
         </div>
       )}
 
-      {program.is_locked ? (
-        <GlassButton variant="ghost" className="w-full" disabled>
-          <Lock className="w-4 h-4" />
-          Unlock with Premium
-        </GlassButton>
-      ) : isEnrolled ? (
-        <Link to="/programs/sprints">
+      <Link to={`/programs/${program.id}`}>
+        {program.is_locked ? (
+          <GlassButton variant="ghost" className="w-full">
+            <Lock className="w-4 h-4" />
+            View Program
+          </GlassButton>
+        ) : isEnrolled ? (
           <GlassButton variant="primary" className="w-full">
             <Play className="w-4 h-4" />
             Continue Learning
           </GlassButton>
-        </Link>
-      ) : (
-        <GlassButton
-          variant="secondary"
-          className="w-full"
-          onClick={() => onEnroll(program.id)}
-          disabled={isEnrolling}
-        >
-          {isEnrolling ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <>
-              Start Program
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
-        </GlassButton>
-      )}
+        ) : (
+          <GlassButton variant="secondary" className="w-full">
+            View Program
+            <ArrowRight className="w-4 h-4" />
+          </GlassButton>
+        )}
+      </Link>
     </GlassCard>
   )
 }
@@ -131,8 +116,6 @@ function ProgramCard({
 export function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
-  const [enrollingProgramId, setEnrollingProgramId] = useState<string | null>(null)
-
   const {
     data: programsData,
     isLoading: isLoadingPrograms,
@@ -144,21 +127,11 @@ export function ProgramsPage() {
   })
 
   const { data: enrolledData, isLoading: isLoadingEnrolled } = useEnrolledPrograms()
-  const enrollMutation = useEnrollProgram()
 
   const programs = Array.isArray(programsData?.data) ? programsData.data : []
   const enrolledPrograms = Array.isArray(enrolledData?.data) ? enrolledData.data : []
 
   const enrolledProgramIds = new Set(enrolledPrograms.map((ep) => ep.program_id))
-
-  const handleEnroll = async (programId: string) => {
-    setEnrollingProgramId(programId)
-    try {
-      await enrollMutation.mutateAsync({ program_id: programId })
-    } finally {
-      setEnrollingProgramId(null)
-    }
-  }
 
   const filteredPrograms =
     activeCategory === 'My Programs'
@@ -271,8 +244,6 @@ export function ProgramsPage() {
                       key={program.id}
                       program={program}
                       userProgram={enrolledPrograms.find((ep) => ep.program_id === program.id)}
-                      onEnroll={handleEnroll}
-                      isEnrolling={enrollingProgramId === program.id}
                     />
                   ))}
                 </div>
@@ -296,8 +267,6 @@ export function ProgramsPage() {
                       key={program.id}
                       program={program}
                       userProgram={enrolledPrograms.find((ep) => ep.program_id === program.id)}
-                      onEnroll={handleEnroll}
-                      isEnrolling={enrollingProgramId === program.id}
                     />
                   ))}
               </div>
