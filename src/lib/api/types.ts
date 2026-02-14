@@ -648,6 +648,64 @@ export interface SubmitReviewRequest {
   improvements?: string[]
 }
 
+// =====================================================
+// Program Assessments (distinct from onboarding assessments)
+// =====================================================
+
+export type ProgramAssessmentType = 'baseline' | 'midline' | 'final' | 'custom'
+
+export interface ProgramAssessment {
+  id: string
+  program_id: string
+  name: string
+  type: ProgramAssessmentType
+  week_number: number | null
+  is_required: boolean
+  total_possible_score: number | null
+  passing_score: number | null
+  question_count: number
+  is_completed: boolean
+  completed_at: string | null
+  created_at: string
+  updated_at: string
+  questions?: ProgramAssessmentQuestion[]
+}
+
+export interface ProgramAssessmentQuestion {
+  id: string
+  text: string
+  question_type: 'scale' | 'multiple_choice' | 'text' | 'boolean'
+  category: string | null
+  options: ProgramAssessmentOption[] | null
+  scale_min: number | null
+  scale_max: number | null
+  weight: number
+  sequence_order: number
+}
+
+export interface ProgramAssessmentOption {
+  value: string
+  label: string
+  score?: number
+}
+
+export interface ProgramAssessmentResult {
+  id: string
+  assessment_id: string
+  assessment_type: ProgramAssessmentType
+  assessment_name: string
+  score: number | null
+  total_possible: number | null
+  passed: boolean | null
+  answers: Record<string, string | number>
+  completed_at: string
+  created_at: string
+}
+
+export interface SubmitProgramAssessmentRequest {
+  answers: Record<string, string | number>
+}
+
 export interface JoinSprintRequest {
   sprint_id: string
 }

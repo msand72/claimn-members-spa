@@ -7,6 +7,9 @@ import type {
   SprintGoal,
   MemberSprintProgress,
   PeerReview,
+  ProgramAssessment,
+  ProgramAssessmentResult,
+  SubmitProgramAssessmentRequest,
   EnrollProgramRequest,
   JoinSprintRequest,
   SubmitReviewRequest,
@@ -25,6 +28,9 @@ export const programKeys = {
   sprintProgress: (sprintId: string) => [...programKeys.all, 'sprintProgress', sprintId] as const,
   reviews: (params?: ReviewsParams) => [...programKeys.all, 'reviews', params] as const,
   review: (id: string) => [...programKeys.all, 'review', id] as const,
+  assessments: (programId: string) => [...programKeys.all, 'assessments', programId] as const,
+  assessment: (id: string) => [...programKeys.all, 'assessment', id] as const,
+  assessmentResults: (programId: string) => [...programKeys.all, 'assessmentResults', programId] as const,
 }
 
 // Extended params for programs
@@ -219,6 +225,66 @@ export function useCompleteSprintGoal() {
       queryClient.invalidateQueries({ queryKey: programKeys.sprintGoals(sprintId) })
       queryClient.invalidateQueries({ queryKey: programKeys.sprints() })
     },
+  })
+}
+
+// =====================================================
+// Program Assessment Hooks
+// =====================================================
+
+// Get assessments for a program
+export function useProgramAssessments(programId: string) {
+  return useQuery({
+    queryKey: programKeys.assessments(programId),
+    queryFn: () =>
+      api.get<PaginatedResponse<ProgramAssessment>>(`/members/programs/${programId}/assessments`),
+    enabled: !!programId,
+  })
+}
+
+// Get single assessment with questions
+export function useProgramAssessment(id: string) {
+  return useQuery({
+    queryKey: programKeys.assessment(id),
+    queryFn: () => api.get<ProgramAssessment>(`/members/programs/assessments/${id}`),
+    enabled: !!id,
+  })
+}
+
+// Submit assessment answers
+export function useSubmitProgramAssessment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      assessmentId,
+      data,
+    }: {
+      assessmentId: string
+      programId: string
+      data: SubmitProgramAssessmentRequest
+    }) =>
+      api.post<ProgramAssessmentResult>(
+        `/members/programs/assessments/${assessmentId}/submit`,
+        data
+      ),
+    onSuccess: (_, { programId }) => {
+      queryClient.invalidateQueries({ queryKey: programKeys.assessments(programId) })
+      queryClient.invalidateQueries({ queryKey: programKeys.assessmentResults(programId) })
+      queryClient.invalidateQueries({ queryKey: programKeys.all })
+    },
+  })
+}
+
+// Get assessment results for a program
+export function useProgramAssessmentResults(programId: string) {
+  return useQuery({
+    queryKey: programKeys.assessmentResults(programId),
+    queryFn: () =>
+      api.get<PaginatedResponse<ProgramAssessmentResult>>(
+        `/members/programs/${programId}/assessment-results`
+      ),
+    enabled: !!programId,
   })
 }
 
