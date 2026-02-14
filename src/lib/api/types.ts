@@ -582,6 +582,8 @@ export interface Sprint {
   end_date: string
   duration: string
   status: 'upcoming' | 'active' | 'completed'
+  sequence_order: number
+  focus_area: string | null
   participants: number
   max_participants: number
   goals: string[]

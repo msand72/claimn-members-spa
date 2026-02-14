@@ -1,6 +1,6 @@
 # Programs Section — Full Implementation Roadmap
 
-> Last updated: 2026-02-13
+> Last updated: 2026-02-14
 
 ## Overview
 
@@ -333,32 +333,77 @@ Endpoint already exists: `GET /members/programs/completions?program_id={id}` —
 
 ---
 
-## Phase 7 — Enhanced Program Detail Page
+## Phase 7 — Program Dashboard & UX Redesign
 
-**Goal:** Bring all phases together into a polished program detail experience.
+**Goal:** Redesign the ProgramDetailPage so enrolled users land on a dashboard that shows their current status, next actions, and highlights from every area. Keep tabs for full detail views. Fix navigation gaps and button labels across the Programs section.
 
-### Frontend work
+### Problem
 
-- [ ] Redesign `ProgramDetailPage` tabs to include all sections:
-  - Overview (objectives, prerequisites, structure) — **Done**
-  - Sprints (with progress tracking) — Phase 1
-  - My Progress (assessment results, milestones, completion)
-  - Community (cohort members, accountability group, check-ins)
-- [ ] Add program timeline visualization
-  - Show months 1-12 with current position
-  - Mark assessment points (baseline, midline, final)
-  - Show sprint sequence
-- [ ] Add progress dashboard to enrolled programs on `ProgramsPage`
-  - Sprint completion count
-  - Next upcoming assessment
-  - Days until next check-in
+The current ProgramDetailPage treats enrolled and non-enrolled users almost the same — it's an information page, not a program workspace. Assessments, cohort, and accountability are buried in tabs with no top-level entry point. The "Continue Learning" button is vague and meaningless. Users have no sense of where they are in the program or what to do next.
+
+### Step 1: Seed dummy data (backend AGENT_PROMPT)
+
+Populate realistic data for one of the enrolled programs so the UI can be evaluated visually:
+
+- 6 sprints: 2 completed, 1 active, 3 upcoming (with dates, goals, facilitators)
+- 3 assessments: baseline (completed with score), midline (pending), final (upcoming)
+- 1 cohort with 5-6 members (display names, roles)
+- 1 accountability group with 3 members and 4-5 recent check-ins (with ratings)
+- Assessment results for the completed baseline
+
+### Step 2: Redesign ProgramDetailPage tabs
+
+**Enrolled users — tabs:**
+1. **Dashboard** (default landing tab) — current status at a glance:
+   - Program progress: "Sprint 3 of 6 / Week 6 of 12" with visual timeline
+   - Next action card: the single most important thing to do next (e.g. "Complete Midline Assessment", "Sprint 4 starts Monday")
+   - Current sprint summary (title, progress, goals)
+   - Pending assessment highlight
+   - Cohort activity snippet
+   - Latest accountability check-in
+2. **Sprints** — full list of all sprints with status, goals, facilitators
+3. **Assessments** — all assessments with scores, status, take/retake actions
+4. **Community** — cohort members + accountability group + check-ins + check-in form
+5. **Overview** — program description, objectives, prerequisites (reference info)
+
+**Non-enrolled users — tabs:**
+1. **Overview** (default) — program description, objectives, prerequisites, structure
+2. **Sprints** — preview of sprint list
+
+### Step 3: Fix ProgramsPage buttons
+
+| State | Current button | New button |
+|-------|---------------|------------|
+| Enrolled | "Continue Learning" (vague, just switches tab) | **"Check Status"** — links to program dashboard |
+| Non-enrolled | "Start Program" | **"View Program"** — links to info page |
+| Locked | "Unlock with Premium" | Keep as-is |
+| Application required | "Apply to Program" | Keep as-is |
+
+### Step 4: Fix sprint button labels
+
+Every button gets a simple name + descriptive text label explaining what happens when clicked:
+- "View Sprint" → subtitle: "See goals, materials and your progress"
+- "Start Sprint" → subtitle: "Begin this sprint's objectives"
+- Avoid jargon, be specific about what the user will see
+
+### Step 5: Fix sectionNav gaps
+
+- Add `/expert-sessions` to coaching section `allPaths`
+- Add `/my-protocols` to growth section `allPaths`
+
+### Step 6: Build, verify with dummy data, push
 
 ### Progress
 
-- [ ] Tab redesign
-- [ ] Timeline visualization
-- [ ] Progress dashboard on ProgramsPage
-- [ ] Tested end-to-end
+- [ ] Seed dummy data (backend AGENT_PROMPT)
+- [ ] Dashboard tab for enrolled users
+- [ ] Assessments tab (standalone)
+- [ ] Community tab (cohort + accountability merged)
+- [ ] Tab structure updated (enrolled vs non-enrolled)
+- [ ] ProgramsPage button labels fixed
+- [ ] Sprint button labels fixed
+- [ ] sectionNav gaps fixed
+- [ ] Tested end-to-end with dummy data
 
 ---
 
@@ -373,7 +418,7 @@ Endpoint already exists: `GET /members/programs/completions?program_id={id}` —
 | 4 | Accountability Groups | Done (existing) | Done | **Testing** |
 | 5 | Completions & Certificates | Done (existing) | Done | **Testing** |
 | 6 | Program Applications | Done | Done | **Testing** |
-| 7 | Enhanced Detail Page | N/A | Not started | Planned |
+| 7 | Program Dashboard & UX Redesign | Seed data needed | Not started | **Planned** |
 
 ### Existing Backend (Admin-only, no member endpoints yet)
 

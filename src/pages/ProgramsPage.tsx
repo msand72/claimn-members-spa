@@ -9,7 +9,6 @@ import {
   Clock,
   Users,
   CheckCircle,
-  Play,
   Lock,
   Trophy,
   ArrowRight,
@@ -114,8 +113,8 @@ function ProgramCard({
           </GlassButton>
         ) : isEnrolled ? (
           <GlassButton variant="primary" className="w-full">
-            <Play className="w-4 h-4" />
-            Continue Learning
+            Check Status
+            <ArrowRight className="w-4 h-4" />
           </GlassButton>
         ) : (
           <GlassButton variant="secondary" className="w-full">

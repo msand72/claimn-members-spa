@@ -66,7 +66,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
       { to: '/kpis', label: 'KPIs', icon: BarChart3 },
       { to: '/accountability', label: 'Accountability', icon: UsersRound },
     ],
-    allPaths: ['/goals', '/kpis', '/action-items', '/protocols', '/milestones', '/accountability', '/assessment', '/assessment/results', '/assessment/take'],
+    allPaths: ['/goals', '/kpis', '/action-items', '/protocols', '/my-protocols', '/milestones', '/accountability', '/assessment', '/assessment/results', '/assessment/take'],
   },
   community: {
     label: 'Community',
@@ -99,7 +99,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
       { to: '/coaching/quarterly-reviews', label: 'Quarterly Reviews', icon: ClipboardCheck },
       { to: '/events', label: 'Events', icon: Calendar },
     ],
-    allPaths: ['/experts', '/book-session', '/coaching/sessions', '/coaching/session-notes', '/coaching/resources', '/coaching/quarterly-reviews', '/events'],
+    allPaths: ['/experts', '/expert-sessions', '/book-session', '/coaching/sessions', '/coaching/session-notes', '/coaching/resources', '/coaching/quarterly-reviews', '/events'],
   },
   programs: {
     label: 'Programs',
