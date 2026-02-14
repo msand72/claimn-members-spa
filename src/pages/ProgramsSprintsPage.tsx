@@ -40,12 +40,12 @@ function SprintCard({
   const status = statusConfig[sprint.status]
   const spotsLeft = sprint.max_participants - sprint.participants
 
-  const facilitatorInitials = sprint.facilitator.name
-    .split(' ')
+  const facilitatorInitials = sprint.facilitator?.name
+    ?.split(' ')
     .map((n) => n[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2)
+    .slice(0, 2) || '?'
 
   return (
     <GlassCard variant="base" className="group">
@@ -120,18 +120,22 @@ function SprintCard({
 
       {/* Facilitator and CTA */}
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
-        <div className="flex items-center gap-2">
-          {sprint.facilitator.avatar_url ? (
-            <img
-              src={sprint.facilitator.avatar_url}
-              alt={sprint.facilitator.name}
-              className="w-8 h-8 rounded-full"
-            />
-          ) : (
-            <GlassAvatar initials={facilitatorInitials} size="sm" />
-          )}
-          <span className="text-sm text-kalkvit/60">{sprint.facilitator.name}</span>
-        </div>
+        {sprint.facilitator ? (
+          <div className="flex items-center gap-2">
+            {sprint.facilitator.avatar_url ? (
+              <img
+                src={sprint.facilitator.avatar_url}
+                alt={sprint.facilitator.name}
+                className="w-8 h-8 rounded-full"
+              />
+            ) : (
+              <GlassAvatar initials={facilitatorInitials} size="sm" />
+            )}
+            <span className="text-sm text-kalkvit/60">{sprint.facilitator.name}</span>
+          </div>
+        ) : (
+          <div />
+        )}
         {sprint.status === 'upcoming' && (
           <GlassButton
             variant="primary"
