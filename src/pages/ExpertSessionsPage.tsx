@@ -170,7 +170,7 @@ function SessionCard({ session, onReschedule }: { session: CoachingSession; onRe
             </div>
           )}
           {uiStatus === 'completed' && !session.has_notes && (
-            <Link to="/coaching/session-notes">
+            <Link to={`/coaching/session-notes?id=${session.id}`}>
               <GlassButton variant="secondary" className="text-sm mt-2">
                 Leave Review
               </GlassButton>
