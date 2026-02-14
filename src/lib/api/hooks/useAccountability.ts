@@ -13,6 +13,7 @@ export const accountabilityKeys = {
   myGroups: () => [...accountabilityKeys.all, 'my-groups'] as const,
   allGroups: () => [...accountabilityKeys.all, 'all-groups'] as const,
   group: (id: string) => [...accountabilityKeys.all, 'group', id] as const,
+  checkIns: (groupId: string) => [...accountabilityKeys.all, 'check-ins', groupId] as const,
 }
 
 // ---------------------------------------------------------------------------
@@ -66,17 +67,32 @@ export function useAllAccountabilityGroups(options?: { enabled?: boolean }) {
 }
 
 /**
- * Get a single accountability group by ID
- * GET /members/accountability/{id}
+ * Get a single accountability group by ID (with members)
+ * GET /members/accountability/groups/{id}
  */
 export function useAccountabilityGroupDetail(id: string) {
   return useQuery({
     queryKey: accountabilityKeys.group(id),
     queryFn: async () => {
-      const res = await api.get<AccountabilityGroup | { data: AccountabilityGroup }>(`/members/accountability/${id}`)
+      const res = await api.get<AccountabilityGroup | { data: AccountabilityGroup }>(`/members/accountability/groups/${id}`)
       return unwrapData<AccountabilityGroup>(res)!
     },
     enabled: !!id,
+  })
+}
+
+/**
+ * Get check-ins for an accountability group
+ * GET /members/accountability/groups/{id}/check-ins
+ */
+export function useGroupCheckIns(groupId: string) {
+  return useQuery({
+    queryKey: accountabilityKeys.checkIns(groupId),
+    queryFn: async () => {
+      const res = await api.get<CheckIn[] | { data: CheckIn[] }>(`/members/accountability/groups/${groupId}/check-ins`)
+      return safeArray<CheckIn>(res)
+    },
+    enabled: !!groupId,
   })
 }
 
@@ -130,7 +146,8 @@ export function useCreateCheckIn() {
   return useMutation({
     mutationFn: ({ groupId, data }: { groupId: string; data: CheckInRequest }) =>
       api.post<CheckIn>(`/members/accountability/groups/${groupId}/check-ins`, data),
-    onSuccess: () => {
+    onSuccess: (_, { groupId }) => {
+      queryClient.invalidateQueries({ queryKey: accountabilityKeys.checkIns(groupId) })
       queryClient.invalidateQueries({ queryKey: accountabilityKeys.all })
     },
   })

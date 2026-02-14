@@ -102,7 +102,7 @@ export function ExpertsPage() {
 
   const handleMessage = (expert: Expert) => {
     navigate(`/messages?user=${expert.id}`, {
-      state: { participantName: expert.name, participantAvatar: expert.avatar_url },
+      state: { participantName: expert.name, participantAvatar: expert.avatar_url, participantType: 'expert' },
     })
   }
 

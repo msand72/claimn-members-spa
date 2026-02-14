@@ -148,23 +148,24 @@ programs
 
 ### Frontend work
 
-- [ ] Add `ProgramAssessmentPage` at `/programs/:id/assessment/:type`
-  - Show assessment questions (scale, multiple choice, text)
+- [x] Add `ProgramAssessmentPage` at `/programs/:id/assessment/:assessmentId`
+  - Show assessment questions (scale, multiple choice, text, boolean)
   - Submit answers
-  - Show results with scores
-- [ ] Add assessment progress indicator to `ProgramDetailPage`
+  - Show results with scores and pass/fail
+- [x] Add assessment progress indicator to `ProgramDetailPage`
   - Show which assessments are completed (baseline/midline/final)
   - Link to take next assessment
-- [ ] Add hooks: `useProgramAssessments()`, `useAssessment()`, `useSubmitAssessment()`, `useAssessmentResults()`
-- [ ] Add types: `ProgramAssessment`, `AssessmentQuestion`, `AssessmentResult`
+  - Assessments tab with progress bar and per-assessment cards
+- [x] Add hooks: `useProgramAssessments()`, `useProgramAssessment()`, `useSubmitProgramAssessment()`, `useProgramAssessmentResults()`
+- [x] Add types: `ProgramAssessment`, `ProgramAssessmentQuestion`, `ProgramAssessmentResult`, `ProgramAssessmentOption`, `SubmitProgramAssessmentRequest`
 
 ### Progress
 
-- [ ] Backend endpoints created
-- [ ] Frontend types added
-- [ ] Frontend hooks added
-- [ ] ProgramAssessmentPage created
-- [ ] Assessment indicators on ProgramDetailPage
+- [x] Backend endpoints created
+- [x] Frontend types added
+- [x] Frontend hooks added
+- [x] ProgramAssessmentPage created
+- [x] Assessment indicators on ProgramDetailPage
 - [ ] Tested end-to-end
 
 ---
@@ -186,19 +187,19 @@ programs
 
 ### Frontend work
 
-- [ ] Add Cohort tab or section to `ProgramDetailPage`
+- [x] Add Cohort tab to `ProgramDetailPage`
   - Show cohort name, description, date range
   - List cohort members with avatars
-  - Show cohort progress summary
-- [ ] Add hook: `useProgramCohort(programId)`
-- [ ] Add type: `Cohort`, `CohortMember`
+  - Show member count and max capacity
+- [x] Add hook: `useProgramCohort(programId)`
+- [x] Add types: `ProgramCohort`, `ProgramCohortMember`
 
 ### Progress
 
-- [ ] Backend endpoint created
-- [ ] Frontend types added
-- [ ] Frontend hook added
-- [ ] Cohort UI on ProgramDetailPage
+- [x] Backend endpoint enriched
+- [x] Frontend types added
+- [x] Frontend hook added
+- [x] Cohort UI on ProgramDetailPage
 - [ ] Tested end-to-end
 
 ---
@@ -223,23 +224,23 @@ programs
 
 ### Frontend work
 
-- [ ] Add Accountability tab or section to `ProgramDetailPage`
-  - Show group members with avatars
-  - Show meeting schedule and communication channel
-  - Display recent check-ins from group members
-- [ ] Add `AccountabilityCheckInForm` component
-  - Fields: progress_update, challenges, support_needed, commitments_for_next, week_rating (1-5 scale)
-  - Submit check-in
-- [ ] Add hooks: `useAccountabilityGroup()`, `useCheckIns()`, `useSubmitCheckIn()`
-- [ ] Add types: `AccountabilityGroup`, `AccountabilityCheckIn`
+- [x] Add Accountability tab to `ProgramDetailPage`
+  - Show group info (name, type, meeting schedule, communication channel)
+  - Show group members with avatars (highlights current user)
+  - Display recent check-ins from group members with star ratings
+- [x] Add check-in form inline on Accountability tab
+  - Fields: progress_update, challenges, support_needed, commitments_for_next, week_rating (1-5 star scale)
+  - Submit check-in with success confirmation
+- [x] Extend existing hooks: `useGroupCheckIns()` added, `useCreateCheckIn()` updated
+- [x] Extend existing types: `AccountabilityGroup` and `AccountabilityMember` enriched with backend fields
 
 ### Progress
 
-- [ ] Backend endpoints created
-- [ ] Frontend types added
-- [ ] Frontend hooks added
-- [ ] Accountability UI on ProgramDetailPage
-- [ ] Check-in form component
+- [x] Backend endpoints already exist (`/members/accountability/my`, `/members/accountability/{id}`, `/members/accountability/groups/{id}/check-ins`)
+- [x] Frontend types extended
+- [x] Frontend hooks extended
+- [x] Accountability UI on ProgramDetailPage
+- [x] Check-in form component
 - [ ] Tested end-to-end
 
 ---
@@ -253,29 +254,32 @@ programs
 - `program_completions`: completed_at, certificate_url, final_score, notes
 - `program_enrollments.status`: 'active' | 'completed' | 'paused' | 'cancelled'
 
-### Backend needed
+### Backend
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/members/programs/{id}/completion` | Get user's completion record (certificate, score) |
+Endpoint already exists: `GET /members/programs/completions?program_id={id}` — returns completion records with `final_score`, `certificate_url`, `completed_at`, `notes`.
 
 ### Frontend work
 
-- [ ] Add completion state to `ProgramDetailPage`
-  - Show congratulations banner when completed
-  - Display final_score
-  - Download certificate button (certificate_url)
-- [ ] Add completion badge to `ProgramsPage` cards for completed programs
-- [ ] Add hook: `useProgramCompletion(programId)`
-- [ ] Add type: `ProgramCompletion`
+- [x] Add completion state to `ProgramDetailPage`
+  - Congratulations banner with completion date and final score
+  - Download certificate button (opens `certificate_url` in new tab)
+  - "Completed" badge replaces "Enrolled" badge
+  - "Review Material" button replaces "Continue Learning"
+  - Progress bar hidden when completed
+- [x] Add completion badge to `ProgramsPage` cards for completed programs
+  - Trophy icon with "Completed" koppar badge
+  - "View Certificate" button replaces "Continue Learning"
+  - Progress bar hidden when completed
+- [x] Add hook: `useProgramCompletion(programId)`
+- [x] Add type: `ProgramCompletion`
 
 ### Progress
 
-- [ ] Backend endpoint created
-- [ ] Frontend types added
-- [ ] Frontend hook added
-- [ ] Completion UI on ProgramDetailPage
-- [ ] Completion badge on ProgramsPage
+- [x] Backend endpoint already exists (`/members/programs/completions`)
+- [x] Frontend types added
+- [x] Frontend hook added
+- [x] Completion UI on ProgramDetailPage
+- [x] Completion badge on ProgramsPage
 - [ ] Tested end-to-end
 
 ---
@@ -288,28 +292,43 @@ programs
 
 - `program_applications`: status (pending|accepted|rejected|waitlisted|withdrawn), motivation, answers (jsonb), submitted_at, reviewed_at, review_notes
 
-### Backend needed
+### Backend endpoints (already exist)
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| POST | `/members/programs/{id}/apply` | Submit application |
-| GET | `/members/programs/{id}/application` | Get user's application status |
+| GET | `/members/programs/applications?program_id={id}` | Get user's application for a program |
+| POST | `/members/programs/applications` | Submit application (program_id, motivation, answers) |
+
+### Backend needed (AGENT_PROMPT written)
+
+| Change | Purpose |
+|--------|---------|
+| Add `requires_application` boolean to `programs` table + Program struct | Frontend needs to know which programs require applications |
+| Fix Forge application flow | The Forge uses a separate public endpoint that bypasses the standard application system |
 
 ### Frontend work
 
-- [ ] Add application flow to `ProgramDetailPage`
+- [x] Add application flow to `ProgramDetailPage`
   - If program requires application: show "Apply" button instead of "Enroll"
-  - Application form: motivation text, optional answer fields
+  - Application form: motivation text
   - Show application status (pending, accepted, rejected, waitlisted)
-- [ ] Add hooks: `useSubmitApplication()`, `useApplicationStatus()`
-- [ ] Add type: `ProgramApplication`
+  - If accepted: show "Enroll Now" button
+- [x] Add "By Application" badge on `ProgramsPage` cards for programs that require application
+- [x] Add hooks: `useProgramApplication()`, `useSubmitApplication()`
+- [x] Add types: `ProgramApplication`, `CreateApplicationRequest`
+- [x] Add `requires_application` field to `Program` type
+
+### Issues Found
+
+- **The Forge** has a separate public application endpoint (`POST /api/v2/public/forge-application`) that bypasses the standard application system. Applications made via claimn-web's Forge form are NOT linked to member accounts and don't show in the members portal. This needs to be fixed — The Forge should use the same `POST /members/programs/applications` endpoint as every other program.
 
 ### Progress
 
-- [ ] Backend endpoints created
-- [ ] Frontend types added
-- [ ] Frontend hooks added
-- [ ] Application UI on ProgramDetailPage
+- [x] Backend endpoints already exist (`GET /members/programs/applications`, `POST /members/programs/applications`)
+- [ ] Backend: Add `requires_application` column + struct field (AGENT_PROMPT written)
+- [x] Frontend types added
+- [x] Frontend hooks added
+- [x] Application UI on ProgramDetailPage
 - [ ] Tested end-to-end
 
 ---
@@ -349,11 +368,11 @@ programs
 |-------|-------------|---------|----------|--------|
 | 0 | Program Detail Page | Done | Done | **Complete** |
 | 1 | Sprint Progress Tracking | Done | Done | **Testing** |
-| 2 | Program Assessments | Not started | Not started | Planned |
-| 3 | Cohorts | Not started | Not started | Planned |
-| 4 | Accountability Groups | Not started | Not started | Planned |
-| 5 | Completions & Certificates | Not started | Not started | Planned |
-| 6 | Program Applications | Not started | Not started | Planned |
+| 2 | Program Assessments | Done | Done | **Testing** |
+| 3 | Cohorts | Done | Done | **Testing** |
+| 4 | Accountability Groups | Done (existing) | Done | **Testing** |
+| 5 | Completions & Certificates | Done (existing) | Done | **Testing** |
+| 6 | Program Applications | Partial (AGENT_PROMPT) | Done | **Testing** |
 | 7 | Enhanced Detail Page | N/A | Not started | Planned |
 
 ### Existing Backend (Admin-only, no member endpoints yet)

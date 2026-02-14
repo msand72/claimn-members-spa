@@ -160,6 +160,7 @@ export interface Conversation {
     display_name: string
     avatar_url: string | null
   }
+  other_user_type?: 'expert' | 'member' | string
   last_message: {
     content: string
     sent_at: string
@@ -555,6 +556,7 @@ export interface Program {
   tier?: string
   objectives?: string[]
   prerequisites?: string[]
+  requires_application?: boolean
   created_by?: string
   created_at: string
   updated_at: string
@@ -692,18 +694,87 @@ export interface ProgramAssessmentOption {
 export interface ProgramAssessmentResult {
   id: string
   assessment_id: string
-  assessment_type: ProgramAssessmentType
-  assessment_name: string
+  member_id: string
+  answers: Record<string, string | number> | null
   score: number | null
-  total_possible: number | null
+  max_score: number | null
   passed: boolean | null
-  answers: Record<string, string | number>
-  completed_at: string
+  feedback: string
+  submitted_at: string
+  graded_at: string | null
   created_at: string
+  updated_at: string
 }
 
 export interface SubmitProgramAssessmentRequest {
   answers: Record<string, string | number>
+}
+
+// =====================================================
+// Program Cohorts
+// =====================================================
+
+export interface ProgramCohort {
+  id: string
+  program_id: string
+  name: string
+  description: string
+  start_date: string | null
+  end_date: string | null
+  max_members: number
+  status: 'planned' | 'active' | 'completed' | 'archived'
+  member_count?: number
+  members?: ProgramCohortMember[]
+  created_at: string
+  updated_at: string
+}
+
+export interface ProgramCohortMember {
+  id: string
+  member_id: string
+  display_name: string
+  avatar_url: string | null
+  role: string
+  joined_at: string
+}
+
+// =====================================================
+// Program Completions
+// =====================================================
+
+export interface ProgramCompletion {
+  id: string
+  program_id: string
+  member_id: string
+  final_score?: string | null
+  certificate_url?: string | null
+  notes: string
+  completed_at: string
+  created_at: string
+}
+
+// =====================================================
+// Program Applications
+// =====================================================
+
+export interface ProgramApplication {
+  id: string
+  program_id: string
+  member_id: string
+  status: 'pending' | 'accepted' | 'rejected' | 'waitlisted' | 'withdrawn'
+  motivation: string
+  answers?: Record<string, unknown> | null
+  review_notes?: string
+  submitted_at: string
+  reviewed_at?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateApplicationRequest {
+  program_id: string
+  motivation: string
+  answers?: Record<string, unknown>
 }
 
 export interface JoinSprintRequest {
@@ -1174,10 +1245,17 @@ export interface Milestone {
 export interface AccountabilityGroup {
   id: string
   name: string
-  group_type: 'trio' | 'pair'
+  group_type: 'trio' | 'pair' | 'small_group'
   is_active: boolean
   program_id: string | null
+  cohort_id?: string | null
+  facilitator_id?: string | null
+  max_members?: number
+  communication_channel?: string
+  meeting_schedule?: string
+  members?: AccountabilityMember[]
   created_at: string
+  updated_at?: string
 }
 
 export interface AccountabilityMember {
@@ -1185,6 +1263,8 @@ export interface AccountabilityMember {
   member_id: string
   display_name: string
   avatar_url: string | null
+  role?: string
+  joined_at?: string
 }
 
 export interface CheckIn {

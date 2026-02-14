@@ -146,6 +146,7 @@ export function MessagesPage() {
             display_name: (raw.other_user_name as string) || 'Unknown',
             avatar_url: (raw.other_user_avatar as string) || null,
           },
+      other_user_type: (raw.other_user_type as string) || undefined,
       last_message: raw.last_message && typeof raw.last_message === 'object'
         ? raw.last_message as Conversation['last_message']
         : typeof raw.last_message === 'string'
@@ -246,12 +247,13 @@ export function MessagesPage() {
 
     // Fallback: use route state (e.g. from expert pages) to start conversation
     // with someone who isn't in the user's connections list
-    const state = location.state as { participantName?: string; participantAvatar?: string | null } | null
+    const state = location.state as { participantName?: string; participantAvatar?: string | null; participantType?: string } | null
     if (state?.participantName) {
       handleStartConversationWithMember({
         user_id: targetUserId,
         display_name: state.participantName,
         avatar_url: state.participantAvatar ?? null,
+        other_user_type: state.participantType,
       })
       setSearchParams({}, { replace: true })
     }
@@ -459,7 +461,7 @@ export function MessagesPage() {
   }
 
   // Start a new conversation with a connected member
-  const handleStartConversationWithMember = (member: { user_id: string; display_name: string; avatar_url: string | null }) => {
+  const handleStartConversationWithMember = (member: { user_id: string; display_name: string; avatar_url: string | null; other_user_type?: string }) => {
     // Check if a conversation already exists with this person
     const existing = conversations.find(
       (conv) => conv.participant_id === member.user_id
@@ -479,6 +481,7 @@ export function MessagesPage() {
           display_name: member.display_name,
           avatar_url: member.avatar_url,
         },
+        other_user_type: member.other_user_type,
         last_message: null,
         unread_count: 0,
         updated_at: new Date().toISOString(),
@@ -634,7 +637,7 @@ export function MessagesPage() {
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-semibold text-kalkvit truncate">{selectedConversation.participant?.display_name || 'Unknown'}</h3>
-                      <p className="text-xs text-kalkvit/50">Member</p>
+                      <p className="text-xs text-kalkvit/50">{selectedConversation.other_user_type === 'expert' ? 'Expert' : 'Member'}</p>
                     </div>
                   </div>
                   <div className="relative flex items-center" ref={headerMenuRef}>

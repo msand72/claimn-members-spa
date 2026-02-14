@@ -147,7 +147,7 @@ export function ExpertProfilePage() {
                     <GlassButton
                       variant="secondary"
                       onClick={() => navigate(`/messages?user=${id}`, {
-                        state: { participantName: expert.name, participantAvatar: expert.avatar_url },
+                        state: { participantName: expert.name, participantAvatar: expert.avatar_url, participantType: 'expert' },
                       })}
                     >
                       <MessageCircle className="w-4 h-4" />

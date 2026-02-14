@@ -9,6 +9,10 @@ import type {
   PeerReview,
   ProgramAssessment,
   ProgramAssessmentResult,
+  ProgramCohort,
+  ProgramCompletion,
+  ProgramApplication,
+  CreateApplicationRequest,
   SubmitProgramAssessmentRequest,
   EnrollProgramRequest,
   JoinSprintRequest,
@@ -31,6 +35,9 @@ export const programKeys = {
   assessments: (programId: string) => [...programKeys.all, 'assessments', programId] as const,
   assessment: (id: string) => [...programKeys.all, 'assessment', id] as const,
   assessmentResults: (programId: string) => [...programKeys.all, 'assessmentResults', programId] as const,
+  cohort: (programId: string) => [...programKeys.all, 'cohort', programId] as const,
+  completion: (programId: string) => [...programKeys.all, 'completion', programId] as const,
+  application: (programId: string) => [...programKeys.all, 'application', programId] as const,
 }
 
 // Extended params for programs
@@ -276,15 +283,84 @@ export function useSubmitProgramAssessment() {
   })
 }
 
-// Get assessment results for a program
+// Get assessment results/submissions for a program
 export function useProgramAssessmentResults(programId: string) {
   return useQuery({
     queryKey: programKeys.assessmentResults(programId),
     queryFn: () =>
       api.get<PaginatedResponse<ProgramAssessmentResult>>(
-        `/members/programs/${programId}/assessment-results`
+        `/members/programs/${programId}/assessments/submissions`
       ),
     enabled: !!programId,
+  })
+}
+
+// =====================================================
+// Cohort Hooks
+// =====================================================
+
+// Get user's cohort for a program
+export function useProgramCohort(programId: string) {
+  return useQuery({
+    queryKey: programKeys.cohort(programId),
+    queryFn: () =>
+      api.get<PaginatedResponse<ProgramCohort>>('/members/programs/cohorts', {
+        program_id: programId,
+      }),
+    enabled: !!programId,
+  })
+}
+
+// =====================================================
+// Completion Hooks
+// =====================================================
+
+// Get user's completion record for a program
+export function useProgramCompletion(programId: string) {
+  return useQuery({
+    queryKey: programKeys.completion(programId),
+    queryFn: async () => {
+      const res = await api.get<PaginatedResponse<ProgramCompletion>>(
+        '/members/programs/completions',
+        { program_id: programId }
+      )
+      const completions = Array.isArray(res?.data) ? res.data : []
+      return completions[0] || null
+    },
+    enabled: !!programId,
+  })
+}
+
+// =====================================================
+// Application Hooks
+// =====================================================
+
+// Get user's application for a program
+export function useProgramApplication(programId: string) {
+  return useQuery({
+    queryKey: programKeys.application(programId),
+    queryFn: async () => {
+      const res = await api.get<PaginatedResponse<ProgramApplication>>(
+        '/members/programs/applications',
+        { program_id: programId }
+      )
+      const applications = Array.isArray(res?.data) ? res.data : []
+      return applications[0] || null
+    },
+    enabled: !!programId,
+  })
+}
+
+// Submit a program application
+export function useSubmitApplication() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: CreateApplicationRequest) =>
+      api.post<ProgramApplication>('/members/programs/applications', data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: programKeys.application(variables.program_id) })
+    },
   })
 }
 

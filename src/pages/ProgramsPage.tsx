@@ -34,6 +34,7 @@ function ProgramCard({
   userProgram?: UserProgram
 }) {
   const isEnrolled = !!userProgram
+  const isCompleted = userProgram?.status === 'completed'
   const progress = userProgram?.progress || 0
 
   return (
@@ -53,7 +54,16 @@ function ProgramCard({
           </GlassBadge>
         </div>
         {program.is_locked && <Lock className="w-5 h-5 text-kalkvit/40" />}
-        {isEnrolled && !program.is_locked && <GlassBadge variant="success">Enrolled</GlassBadge>}
+        {isCompleted && !program.is_locked && (
+          <GlassBadge variant="koppar">
+            <Trophy className="w-3 h-3" />
+            Completed
+          </GlassBadge>
+        )}
+        {isEnrolled && !isCompleted && !program.is_locked && <GlassBadge variant="success">Enrolled</GlassBadge>}
+        {!isEnrolled && !program.is_locked && program.requires_application && (
+          <GlassBadge variant="default">By Application</GlassBadge>
+        )}
       </div>
 
       <h3 className="font-display text-lg font-semibold text-kalkvit mb-2 group-hover:text-koppar transition-colors">
@@ -76,7 +86,7 @@ function ProgramCard({
         </span>
       </div>
 
-      {isEnrolled && progress > 0 && (
+      {isEnrolled && !isCompleted && progress > 0 && (
         <div className="mb-4">
           <div className="flex items-center justify-between text-sm mb-2">
             <span className="text-kalkvit/60">Progress</span>
@@ -96,6 +106,11 @@ function ProgramCard({
           <GlassButton variant="ghost" className="w-full">
             <Lock className="w-4 h-4" />
             View Program
+          </GlassButton>
+        ) : isCompleted ? (
+          <GlassButton variant="secondary" className="w-full">
+            <Trophy className="w-4 h-4" />
+            View Certificate
           </GlassButton>
         ) : isEnrolled ? (
           <GlassButton variant="primary" className="w-full">
