@@ -435,7 +435,7 @@ function UnreadMessages() {
           {conversations.slice(0, 4).map((convo) => (
             <Link
               key={convo.id}
-              to="/messages"
+              to={`/messages?user=${convo.participant_id || convo.participant?.user_id || ''}`}
               className="flex items-center gap-3 group"
             >
               <GlassAvatar
