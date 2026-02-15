@@ -247,7 +247,7 @@ export function MessagesPage() {
 
     // Fallback: use route state (e.g. from expert pages) to start conversation
     // with someone who isn't in the user's connections list
-    const state = location.state as { participantName?: string; participantAvatar?: string | null; participantType?: string } | null
+    const state = location.state as { participantName?: string; participantAvatar?: string | null; participantType?: string; initialMessage?: string } | null
     if (state?.participantName) {
       handleStartConversationWithMember({
         user_id: targetUserId,
@@ -258,6 +258,15 @@ export function MessagesPage() {
       setSearchParams({}, { replace: true })
     }
   }, [targetUserId, conversationsLoading, connectionsLoading, conversations, connectedMembers, location.state])
+
+  // Pre-fill message input from route state (e.g. from AskExpertButton context)
+  useEffect(() => {
+    const state = location.state as { initialMessage?: string } | null
+    if (state?.initialMessage) {
+      setMessageInput(state.initialMessage)
+      window.history.replaceState({}, '')
+    }
+  }, [location.state])
 
   // Apply optimistic last_message updates to the conversation list.
   // When the user sends a message, the sidebar should immediately show

@@ -1,113 +1,164 @@
 import { useState } from 'react'
-import { GlassButton, GlassModal, GlassModalFooter, GlassTextarea } from './ui'
-import { useCreatePost } from '../lib/api/hooks'
+import { useNavigate } from 'react-router-dom'
+import { GlassButton, GlassModal, GlassModalFooter, GlassAvatar, GlassBadge } from './ui'
+import { useMyExpert } from '../lib/api/hooks/useMyExpert'
+import { useExperts } from '../lib/api/hooks/useExperts'
 import { useAuth } from '../contexts/AuthContext'
-import { HelpCircle, Send } from 'lucide-react'
+import { HelpCircle, Loader2, MessageCircle } from 'lucide-react'
 
 interface AskExpertButtonProps {
   /** Pre-filled context, e.g. "Sleep Protocol — Week 2, Step 3" */
   context?: string
-  /** Protocol slug for automatic tagging */
+  /** Protocol slug (kept for potential future use) */
   protocolSlug?: string
-  /** Circle ID to post in (optional) */
-  circleId?: string
   /** Button size */
   size?: 'sm' | 'md'
 }
 
 /**
- * Contextual button that lets members ask questions to experts.
- * Posts to the community feed with is_expert_question flag.
- * Experts see these in their admin-spa Community Questions feed.
+ * Contextual button that lets members message an expert directly.
+ * If the member has an assigned expert, navigates straight to messages.
+ * Otherwise, shows a picker to choose which expert to contact.
  */
-export function AskExpertButton({ context, circleId }: AskExpertButtonProps) {
+export function AskExpertButton({ context }: AskExpertButtonProps) {
   const { userType } = useAuth()
-  const createPost = useCreatePost()
+  const navigate = useNavigate()
+  const { data: myExpertData, isLoading: myExpertLoading } = useMyExpert()
   const [isOpen, setIsOpen] = useState(false)
-  const [question, setQuestion] = useState('')
-  const [submitted, setSubmitted] = useState(false)
 
   // Only show for member and client types
   if (userType === 'guest') return null
 
-  const handleSubmit = async () => {
-    if (!question.trim()) return
+  const navigateToExpert = (expert: { id: string; name: string; avatar_url: string | null }) => {
+    const initialMessage = context ? `[Context: ${context}]\n\n` : ''
+    navigate(`/messages?user=${expert.id}`, {
+      state: {
+        participantName: expert.name,
+        participantAvatar: expert.avatar_url,
+        participantType: 'expert',
+        initialMessage,
+      },
+    })
+  }
 
-    const content = context
-      ? `[Context: ${context}]\n\n${question}`
-      : question
+  const handleClick = () => {
+    if (myExpertLoading) return
 
-    await createPost.mutateAsync({
-      content,
-      is_expert_question: true,
-      ...(circleId ? { circle_id: circleId } : {}),
-    } as Parameters<typeof createPost.mutateAsync>[0])
-
-    setSubmitted(true)
-    setTimeout(() => {
-      setIsOpen(false)
-      setQuestion('')
-      setSubmitted(false)
-    }, 2000)
+    if (myExpertData?.expert) {
+      navigateToExpert({
+        id: myExpertData.expert.id,
+        name: myExpertData.expert.name,
+        avatar_url: myExpertData.expert.avatar_url,
+      })
+    } else {
+      setIsOpen(true)
+    }
   }
 
   return (
     <>
       <GlassButton
         variant="secondary"
-        onClick={() => setIsOpen(true)}
+        onClick={handleClick}
+        disabled={myExpertLoading}
       >
-        <HelpCircle className="w-4 h-4" />
+        {myExpertLoading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <HelpCircle className="w-4 h-4" />
+        )}
         Ask Expert
       </GlassButton>
 
-      <GlassModal
+      <ExpertPickerModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Ask an Expert"
-        size="md"
-      >
-        {submitted ? (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
-              <Send className="w-8 h-8 text-green-400" />
-            </div>
-            <h3 className="text-kalkvit font-medium text-lg mb-2">Question Sent!</h3>
-            <p className="text-kalkvit/60 text-sm">
-              Our experts will respond in the community feed. You'll get a notification when they reply.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {context && (
-              <div className="px-3 py-2 rounded-lg bg-koppar/5 border border-koppar/20">
-                <span className="text-kalkvit/50 text-xs block mb-0.5">Context</span>
-                <span className="text-kalkvit/80 text-sm">{context}</span>
-              </div>
-            )}
-            <GlassTextarea
-              label="What are you struggling with?"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Describe your question or challenge..."
-              rows={4}
-            />
-            <GlassModalFooter>
-              <GlassButton variant="secondary" onClick={() => setIsOpen(false)}>
-                Cancel
-              </GlassButton>
-              <GlassButton
-                variant="primary"
-                onClick={handleSubmit}
-                disabled={!question.trim() || createPost.isPending}
-              >
-                <Send className="w-4 h-4" />
-                {createPost.isPending ? 'Sending...' : 'Send to Experts'}
-              </GlassButton>
-            </GlassModalFooter>
+        onSelect={(expert) => {
+          setIsOpen(false)
+          navigateToExpert(expert)
+        }}
+      />
+    </>
+  )
+}
+
+function ExpertPickerModal({
+  isOpen,
+  onClose,
+  onSelect,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  onSelect: (expert: { id: string; name: string; avatar_url: string | null }) => void
+}) {
+  const { data: expertsData, isLoading } = useExperts({ limit: 20 })
+  const experts = Array.isArray(expertsData?.data) ? expertsData.data : []
+
+  return (
+    <GlassModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Choose an Expert"
+      size="md"
+    >
+      <div className="max-h-[350px] overflow-y-auto space-y-1">
+        {isLoading && (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 text-koppar animate-spin" />
           </div>
         )}
-      </GlassModal>
-    </>
+
+        {!isLoading && experts.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-kalkvit/50 text-sm">No experts available right now.</p>
+          </div>
+        )}
+
+        {!isLoading && experts.map((expert) => {
+          const initials = expert.name
+            ?.split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2) || '?'
+
+          return (
+            <button
+              key={expert.id}
+              onClick={() => onSelect({
+                id: expert.id,
+                name: expert.name,
+                avatar_url: expert.avatar_url,
+              })}
+              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.06] transition-colors text-left"
+            >
+              <GlassAvatar
+                initials={initials}
+                src={expert.avatar_url}
+                size="md"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-kalkvit truncate">{expert.name}</p>
+                {expert.title && (
+                  <p className="text-xs text-koppar truncate">{expert.title}</p>
+                )}
+              </div>
+              {expert.specialties?.length > 0 && (
+                <GlassBadge variant="default" className="text-xs hidden sm:inline-flex">
+                  {expert.specialties[0]}
+                </GlassBadge>
+              )}
+              <MessageCircle className="w-4 h-4 text-kalkvit/40 flex-shrink-0" />
+            </button>
+          )
+        })}
+      </div>
+
+      <GlassModalFooter>
+        <GlassButton variant="ghost" onClick={onClose}>
+          Cancel
+        </GlassButton>
+      </GlassModalFooter>
+    </GlassModal>
   )
 }
