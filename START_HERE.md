@@ -2,7 +2,7 @@
 
 **Read this ENTIRE document before making any changes to this codebase.**
 
-*Last updated: 2026-02-10*
+*Last updated: 2026-02-15*
 
 ---
 
@@ -114,8 +114,6 @@ npm install
 cp .env.example .env
 
 # 3. Configure .env
-# VITE_SUPABASE_URL=your-supabase-url
-# VITE_SUPABASE_ANON_KEY=your-anon-key
 # VITE_API_URL=http://localhost:3001   (local Go backend)
 # VITE_STRIPE_PUBLISHABLE_KEY=your-stripe-key
 
@@ -285,7 +283,7 @@ User Action → Page Component → React Query Hook → API Client → Go Backen
 2. **React Query for ALL server state** — No manual fetch/useEffect patterns; all API data goes through query hooks
 3. **Glass UI component library** — All UI uses the custom Glass design system (glassmorphism + brand colors)
 4. **Tier-based access control** — Routes are wrapped with `Protected` (auth only) or `PremiumProtected` (coaching tier+)
-5. **Token exchange flow** — Login gets Supabase token, then exchanges it for a Go-issued JWT with user_type
+5. **Token exchange flow** — Login gets GoTrue token, then exchanges it for a Go-issued JWT with user_type
 
 ---
 
@@ -379,7 +377,7 @@ Premium Protected (coaching tier required):
 
 ```
 1. User submits email + password
-2. POST /api/v2/auth/login → Supabase-style tokens
+2. POST /api/v2/auth/login → GoTrue-issued tokens (local self-hosted GoTrue)
 3. POST /api/v2/auth/exchange → Go JWT with user_type (fallback: use original token)
 4. GET /api/v2/auth/me → User profile data
 5. Tokens stored in localStorage
@@ -602,21 +600,30 @@ import './index.css'
 
 ### Glass Morphism Variants
 
+Dark theme glass uses 95% opaque dark backgrounds (5% transparent). Light theme uses white with varying opacity.
+
 ```css
-/* Base Glass — cards, panels */
-background: rgba(255, 255, 255, 0.08);
+/* Base Glass — cards, panels, nav bars */
+background-color: rgba(28, 28, 30, 0.95);   /* dark theme */
 backdrop-filter: blur(16px);
 border: 1px solid rgba(255, 255, 255, 0.15);
 
-/* Elevated Glass — modals, dropdowns */
-background: rgba(255, 255, 255, 0.12);
+/* Elevated Glass — modals, mobile drawer */
+background-color: rgba(28, 28, 30, 0.95);   /* dark theme */
 backdrop-filter: blur(24px);
+border: 1px solid rgba(255, 255, 255, 0.2);
+
+/* Dropdown Glass — context menus, dropdown panels */
+background-color: rgba(28, 28, 30, 0.95);   /* dark theme */
+backdrop-filter: blur(32px);
 border: 1px solid rgba(255, 255, 255, 0.2);
 
 /* Accent Glass — CTAs, featured items */
 background: linear-gradient(135deg, rgba(184, 115, 51, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
 border: 1px solid rgba(184, 115, 51, 0.25);
 ```
+
+These are defined as utility classes (`glass-base`, `glass-elevated`, `glass-dropdown`) in `src/index.css` inside `@layer utilities`. To change opacity globally, edit the `background-color` values there — do NOT use inline styles or media query overrides.
 
 ---
 
@@ -819,10 +826,11 @@ The `MainLayout` component orchestrates the responsive layout automatically. Mos
 
 | Variable | Purpose | Example |
 |----------|---------|---------|
-| `VITE_SUPABASE_URL` | Supabase project URL | `https://onzzadpetfvpfbpfylmt.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon key | (from Supabase dashboard) |
 | `VITE_API_URL` | Go backend URL | `http://localhost:3001` (dev) |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe public key | `pk_test_...` |
+| `VITE_BUG_REPORT_API_URL` | Bug report endpoint | `https://api.claimn.co/api/v2/public/bugs/report` |
+
+**Note:** `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` exist in `.env.example` as legacy entries but are **not used** by the frontend. The backend handles all database access via the Go API. Authentication is handled by a self-hosted GoTrue instance behind the Go API.
 
 ### API URL Auto-Detection
 
@@ -960,7 +968,7 @@ localStorage.setItem('api_debug', '1')
 
 ### NEVER GUESS
 
-Always check the actual source: database schema, claimn-web codebase, migration docs. This has burned us multiple times.
+Always check the actual source: Go API handlers, OpenAPI spec (`api.claimn.co/api/docs`), or `server-infra/claimn-api/` code. This has burned us multiple times.
 
 ### Font Loading (took 10+ failed attempts)
 
@@ -1004,9 +1012,31 @@ The Google Fonts `@import` MUST be the first line in `index.css`, before any Tai
 
 Admin and superadmin users bypass tier requirements automatically via `hasAccess()` in AuthContext and `RequireTier` component.
 
+### No Direct Database Access
+
+The Web DB was migrated from Supabase Cloud to local PostgreSQL (Feb 2026). The frontend has **zero Supabase client dependencies** — no `@supabase/supabase-js`, no direct PostgREST queries, no Realtime subscriptions, no Supabase Storage calls. All data access goes through the Go API (`api.claimn.co`). Never add direct database access to this codebase.
+
+### Glass Opacity — Edit the Utility Classes
+
+Glass morphism opacity is controlled by `glass-base`, `glass-elevated`, and `glass-dropdown` utility classes in `src/index.css` (`@layer utilities`). To change opacity, edit the `background-color: rgba(...)` values there. Do NOT use inline styles, media query overrides, or targeted class overrides — they conflict with Tailwind CSS v4's cascade layer system.
+
 ---
 
-## Database Schema Reference
+## Database & Backend Infrastructure
+
+### Architecture (as of Feb 2026)
+
+The backend has been **fully migrated from Supabase Cloud to a self-hosted stack**:
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Database** | PostgreSQL 16 (local) | All data storage (100+ tables) |
+| **API Gateway** | PostgREST | Database REST API (used internally by Go API) |
+| **Auth** | GoTrue (self-hosted) | Authentication, JWT issuance |
+| **File Storage** | MinIO | Avatar uploads, media files |
+| **API Server** | Go (custom) | Primary API at `api.claimn.co` |
+
+**The frontend does NOT access any of these directly.** All data access goes through the Go API (`/api/v2/*`). There is no Supabase JS client, no direct PostgREST queries, no Realtime subscriptions, and no Supabase Storage calls.
 
 ### `member_profiles` Table
 
@@ -1014,47 +1044,49 @@ Admin and superadmin users bypass tier requirements automatically via `hasAccess
 user_id UUID PRIMARY KEY REFERENCES auth.users(id)
 display_name TEXT
 bio TEXT
-archetype TEXT              -- one of 5 archetypes
-pillar_focus TEXT[]          -- ARRAY of pillar IDs
+archetype TEXT                    -- one of 5 archetypes
+pillar_focus TEXT[]                -- ARRAY of pillar IDs
 city TEXT
 country TEXT
-links JSONB
-visibility JSONB
+links JSONB                       -- social/professional links
+visibility JSONB                  -- field-level visibility settings
 avatar_url TEXT
 whatsapp_number TEXT
+notification_preferences JSONB    -- {"email_notifications": bool, "weekly_digest": bool}
 created_at TIMESTAMPTZ
 updated_at TIMESTAMPTZ
 ```
 
-### Supabase Project References
+### `member_settings` Table
 
-| Database | Project Ref | Region |
-|----------|-------------|--------|
-| Web | `onzzadpetfvpfbpfylmt` | eu-north-1 (Stockholm) |
-| Agent | `ymchipjpncqvhiaxxdnm` | eu-north-1 (Stockholm) |
-| CMS | `nyuzlgpipemixwoiwdvu` | eu-west-1 (Ireland) |
-
-### Supabase CLI Quick Reference
-
-```bash
-# Set access token
-export SUPABASE_CLI_ACCESS_TOKEN=<YOUR_TOKEN>
-
-# List projects
-npx supabase projects list
-
-# Link to Web database
-npx supabase link --project-ref onzzadpetfvpfbpfylmt
-
-# Push migrations (run from claimn-web repo)
-cd /path/to/claimn-web && npx supabase db push
+```sql
+id UUID PRIMARY KEY DEFAULT gen_random_uuid()
+user_id UUID UNIQUE REFERENCES auth.users(id)
+assessment_sharing_consent BOOLEAN DEFAULT true
+created_at TIMESTAMPTZ
+updated_at TIMESTAMPTZ
 ```
+
+### Database Access Rules
+
+1. **All data access goes through the Go API** — never bypass it
+2. **No direct Supabase/PostgREST queries** from the frontend
+3. **No Supabase Realtime** — use polling via React Query if live updates are needed
+4. **No Supabase Storage** — file uploads go through Go API endpoints (e.g., `POST /api/v2/members/avatar`)
+5. **API documentation** is available at `https://api.claimn.co/api/docs` (Swagger UI)
 
 ---
 
 ## Reference Locations
 
-### Migration & Design Docs (in claimn-web)
+### Backend API Documentation
+
+- **Swagger UI:** `https://api.claimn.co/api/docs`
+- **OpenAPI Spec:** `server-infra/claimn-api/handlers/docs/static/openapi.yaml`
+- **Go Handlers:** `server-infra/claimn-api/handlers/v2/members/` (profile, feed, goals, etc.)
+- **Backend START_HERE:** `server-infra/claimn-api/START_HERE.md`
+
+### Migration & Design Docs (in claimn-web — historical reference)
 
 ```
 /claimn-web/docs/migration 2.0/
@@ -1064,7 +1096,7 @@ cd /path/to/claimn-web && npx supabase db push
 ├── MEMBERS_SPA_STATUS_REPORT.md        # Status report
 ```
 
-### Audit & Status Docs (in claimn-web root)
+### Audit & Status Docs (in claimn-web root — historical reference)
 
 ```
 /claimn-web/
@@ -1073,25 +1105,10 @@ cd /path/to/claimn-web && npx supabase db push
 ├── 260202_2300_MEMBERS_NAV_AUDIT.md    # Navigation audit
 ```
 
-### Database Migrations (in claimn-web)
+### Database Migrations (LEGACY — migrated to local PostgreSQL)
 
-```
-/claimn-web/supabase/migrations/
-├── 101_member_profiles.sql
-├── 117_interests.sql
-├── 131_program_assessments.sql
-├── 132_interest_groups.sql
-```
-
-### Working Reference (claimn-web)
-
-```
-/claimn-web/
-├── src/app/globals.css              # Font declarations reference
-├── tailwind.config.ts               # Tailwind config reference
-├── public/fonts/Neutraface_2.ttf    # Font file source
-```
+The database was originally managed via Supabase Cloud with migrations in `claimn-web/supabase/migrations/`. As of Feb 2026, the database runs on a self-hosted PostgreSQL 16 instance. Schema changes are now handled via the backend agent (write to `server-infra/AGENT_PROMPT.md`).
 
 ---
 
-*Compiled from members-spa development, audit reports, and codebase analysis.*
+*Compiled from members-spa development, audit reports, and codebase analysis. Updated Feb 2026 to reflect migration from Supabase Cloud to self-hosted PostgreSQL + GoTrue + MinIO stack.*
