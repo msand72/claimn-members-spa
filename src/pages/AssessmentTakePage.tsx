@@ -188,8 +188,10 @@ export function AssessmentTakePage() {
     return groups
   }, [pillarQuestions])
 
-  // Detect Big Five format: archetype questions without forced-choice options
-  const isBig5Archetype = archetypeQuestions.length > 0 && !archetypeQuestions[0]._optionKeys
+  // Detect Big Five format: archetype questions with a Big5 dimension as pillar_category
+  const BIG5_DIMS = ['conscientiousness', 'extraversion', 'openness', 'agreeableness', 'neuroticism']
+  const isBig5Archetype = archetypeQuestions.length > 0 &&
+    archetypeQuestions.some(q => BIG5_DIMS.includes(q._pillarCategory || ''))
 
   // Group archetype questions by Big Five dimension (when Big Five format)
   const archetypesByDimension = useMemo(() => {

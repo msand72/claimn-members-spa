@@ -43,9 +43,6 @@ export interface AssessmentResult {
 // Big Five Scoring Functions
 // =====================================================
 
-// Max possible Euclidean distance in 5D space with 1-7 scale
-const MAX_POSSIBLE_DISTANCE = Math.sqrt(5 * Math.pow(7 - 1, 2)) // sqrt(180) ≈ 13.42
-
 export interface Big5Profile {
   C: number
   E: number
@@ -97,24 +94,80 @@ export function computeBig5Profile(
   }
 }
 
-// Calculate Euclidean distance between user profile and archetype template
-function euclideanDistance(profile: Big5Profile, template: Record<Big5Dimension, number>): number {
-  return Math.sqrt(
-    Math.pow(profile.C - template.conscientiousness, 2) +
-    Math.pow(profile.E - template.extraversion, 2) +
-    Math.pow(profile.O - template.openness, 2) +
-    Math.pow(profile.A - template.agreeableness, 2) +
-    Math.pow(profile.N - template.neuroticism, 2)
-  )
+// Z-score normalize a Big5 profile to capture shape independent of absolute values
+function zScoreNormalize(profile: Big5Profile): Big5Profile {
+  const values = [profile.C, profile.E, profile.O, profile.A, profile.N]
+  const n = values.length
+  const mean = values.reduce((a, b) => a + b, 0) / n
+  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / n
+  const sd = Math.sqrt(variance)
+
+  // Flat profile — no distinguishing shape
+  if (sd < 0.01) {
+    return { C: 0, E: 0, O: 0, A: 0, N: 0 }
+  }
+
+  return {
+    C: (profile.C - mean) / sd,
+    E: (profile.E - mean) / sd,
+    O: (profile.O - mean) / sd,
+    A: (profile.A - mean) / sd,
+    N: (profile.N - mean) / sd,
+  }
 }
 
-// Calculate match percentages for all archetypes from a Big Five profile
-export function calculateArchetypeMatches(profile: Big5Profile): Record<string, number> {
-  const matches: Record<string, number> = {}
-  for (const [archetype, template] of Object.entries(ARCHETYPE_BIG5_TEMPLATES)) {
-    const distance = euclideanDistance(profile, template)
-    matches[archetype] = Math.round((1 - distance / MAX_POSSIBLE_DISTANCE) * 100)
+// Cosine similarity between two z-scored profiles (-1 to +1)
+function cosineSimilarity(a: Big5Profile, b: Big5Profile): number {
+  const dot = a.C * b.C + a.E * b.E + a.O * b.O + a.A * b.A + a.N * b.N
+  const magA = Math.sqrt(a.C * a.C + a.E * a.E + a.O * a.O + a.A * a.A + a.N * a.N)
+  const magB = Math.sqrt(b.C * b.C + b.E * b.E + b.O * b.O + b.A * b.A + b.N * b.N)
+  if (magA < 0.001 || magB < 0.001) return 0.0
+  return dot / (magA * magB)
+}
+
+// Convert a template from Big5Dimension keys to Big5Profile (C/E/O/A/N keys)
+function templateToProfile(template: Record<Big5Dimension, number>): Big5Profile {
+  return {
+    C: template.conscientiousness,
+    E: template.extraversion,
+    O: template.openness,
+    A: template.agreeableness,
+    N: template.neuroticism,
   }
+}
+
+// Calculate match percentages using z-score normalization + cosine similarity
+// This matches profile SHAPE, not absolute distance, preventing Integrator from always winning
+export function calculateArchetypeMatches(profile: Big5Profile): Record<string, number> {
+  const userZ = zScoreNormalize(profile)
+  const matches: Record<string, number> = {}
+
+  // Match against all archetypes EXCEPT integrator
+  for (const [archetype, template] of Object.entries(ARCHETYPE_BIG5_TEMPLATES)) {
+    if (archetype === 'integrator') continue
+    const templateZ = zScoreNormalize(templateToProfile(template))
+    const similarity = cosineSimilarity(userZ, templateZ)
+    // Convert cosine similarity (-1 to +1) to percentage (0 to 100)
+    let pct = Math.round((similarity + 1) / 2 * 100)
+    if (pct < 0) pct = 0
+    if (pct > 100) pct = 100
+    matches[archetype] = pct
+  }
+
+  // Assign Integrator only if profile is genuinely flat (low variance)
+  const values = [profile.C, profile.E, profile.O, profile.A, profile.N]
+  const mean = values.reduce((a, b) => a + b, 0) / 5
+  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / 5
+  const sd = Math.sqrt(variance)
+
+  if (sd < 0.8) {
+    matches['integrator'] = 85
+  } else if (sd < 1.2) {
+    matches['integrator'] = Math.max(30, Math.round(70 - (sd - 0.8) * 100))
+  } else {
+    matches['integrator'] = 25
+  }
+
   return matches
 }
 
