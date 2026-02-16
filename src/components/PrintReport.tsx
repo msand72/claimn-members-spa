@@ -9,7 +9,6 @@ interface PrintReportProps {
     primaryPercentage: number
     secondaryPercentage: number
     archetypeScores: Record<string, number>
-    isBig5Format: boolean
     pillarScores: Record<PillarId, PillarScore>
     consistencyScore: number
     microInsights: AssessmentInsight[]
@@ -128,7 +127,7 @@ export function PrintReport({ results, contentMap }: PrintReportProps) {
               <tbody>
                 {archetypeEntries.map(([archetype, score]) => {
                   // Big5: scores are already percentages (0-100); Legacy: vote counts (max ~6)
-                  const pct = results.isBig5Format ? Math.round(score) : Math.round((score / 6) * 100)
+                  const pct = Math.round((score / 6) * 100)
                   const displayName = contentMap?.[`${archetype}_name`] || ARCHETYPE_DISPLAY[archetype] || archetype.charAt(0).toUpperCase() + archetype.slice(1)
                   const isPrimary = archetype === primary
                   return (

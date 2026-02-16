@@ -81,7 +81,6 @@ interface DerivedResults {
   primaryPercentage: number
   secondaryPercentage: number
   archetypeScores: Record<string, number>
-  isBig5Format: boolean // true = scores are percentages (0-100), false = vote counts (0-6)
   pillarScores: Record<PillarId, PillarScore>
   pillarPercentages: Record<PillarId, number>
   consistencyScore: number
@@ -198,7 +197,6 @@ export function AssessmentResultsPage() {
       primaryPercentage: 0,
       secondaryPercentage: 0,
       archetypeScores: {},
-      isBig5Format: false,
       pillarScores,
       pillarPercentages,
       consistencyScore: 0,
@@ -254,7 +252,6 @@ export function AssessmentResultsPage() {
     primaryArchetype,
     primaryPercentage,
     archetypeScores,
-    isBig5Format,
     pillarScores,
     pillarPercentages,
     consistencyScore,
@@ -523,8 +520,8 @@ export function AssessmentResultsPage() {
                 .sort(([, a], [, b]) => b - a)
                 .map(([key, score]) => {
                   const info = ARCHETYPE_DISPLAY[key]
-                  // Big5: scores are already percentages (0-100); Legacy: vote counts (max ~6)
-                  const percentage = isBig5Format ? Math.round(score) : Math.round((score / 6) * 100)
+                  // All scores are 0-6 scale; convert to display percentage
+                  const percentage = Math.round((score / 6) * 100)
                   const isPrimary = key === primaryArchetype
 
                   return (
@@ -921,7 +918,6 @@ function deriveFromApiResult(apiResult: {
     primaryPercentage,
     secondaryPercentage,
     archetypeScores,
-    isBig5Format,
     pillarScores,
     pillarPercentages,
     consistencyScore,
