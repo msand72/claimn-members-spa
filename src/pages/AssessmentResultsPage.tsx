@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassToast } from '../components/ui'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
-import type { PillarScore, AssessmentInsight, ArchetypeScores } from '../lib/api/types'
+import type { PillarScore, AssessmentInsight } from '../lib/api/types'
 import {
   calculatePillarScores,
   determineArchetypesFromAnswers,
@@ -826,7 +826,7 @@ function deriveFromApiResult(apiResult: {
   id?: string
   primary_archetype?: string
   secondary_archetype?: string | null
-  archetype_scores?: ArchetypeScores | Record<string, number>
+  archetype_scores?: Record<string, number>
   pillar_scores?: Record<string, PillarScore | number>
   consistency_score?: number | string
   micro_insights?: AssessmentInsight[]
@@ -842,35 +842,22 @@ function deriveFromApiResult(apiResult: {
   const rawSecondary = apiResult.secondary_archetype ?? apiResult.archetypes?.[1] ?? null
   const secondaryArchetype = rawSecondary ? normalizeArchetypeKey(rawSecondary) : null
 
-  // Archetype scores — handle both Big Five nested format and legacy flat format
-  // Big Five: { big5_profile: { C, E, O, A, N }, archetype_match: { achiever: 75, ... } }
-  // Legacy:   { achiever: 3, optimizer: 2, ... } (vote counts)
+  // Archetype scores — flat 0-6 scale for all assessment types
   const archetypeScores: Record<string, number> = {}
-  let isBig5Format = false
   if (apiResult.archetype_scores) {
-    const scores = apiResult.archetype_scores as Record<string, unknown>
-    if (scores.archetype_match && typeof scores.archetype_match === 'object') {
-      // Big Five nested format — use archetype_match values (already percentages)
-      isBig5Format = true
-      for (const [key, val] of Object.entries(scores.archetype_match as Record<string, number>)) {
+    for (const [key, val] of Object.entries(apiResult.archetype_scores)) {
+      if (typeof val === 'number') {
         archetypeScores[normalizeArchetypeKey(key)] = val
-      }
-    } else {
-      // Legacy flat format — vote counts
-      for (const [key, val] of Object.entries(apiResult.archetype_scores)) {
-        if (typeof val === 'number') {
-          archetypeScores[normalizeArchetypeKey(key)] = val
-        }
       }
     }
   }
 
   const primaryScore = archetypeScores[primaryArchetype] ?? 0
   const secondaryScore = secondaryArchetype ? (archetypeScores[secondaryArchetype] ?? 0) : 0
-  // Big Five scores are already percentages; legacy scores are vote counts (max ~6)
-  const primaryPercentage = isBig5Format ? Math.round(primaryScore) : Math.round((primaryScore / 6) * 100)
+  // Scores are 0-6 scale; convert to display percentages
+  const primaryPercentage = Math.round((primaryScore / 6) * 100)
   const secondaryPercentage = secondaryArchetype
-    ? (isBig5Format ? Math.round(secondaryScore) : Math.round((secondaryScore / 6) * 100))
+    ? Math.round((secondaryScore / 6) * 100)
     : 0
 
   // Pillar scores

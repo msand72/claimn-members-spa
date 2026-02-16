@@ -51,6 +51,7 @@ export interface Big5Profile {
   N: number
 }
 
+/** @deprecated Backend now returns flat 0-6 scores for all assessment types */
 export interface Big5ArchetypeScores {
   big5_profile: Big5Profile
   archetype_match: Record<string, number>
@@ -172,20 +173,13 @@ export function calculateArchetypeMatches(profile: Big5Profile): Record<string, 
 }
 
 // Calculate consistency score — profile fit confidence
-// High value = user's Big Five profile closely matches a known archetype template
-export function calculateConsistencyScore(archetypeMatchOrScores: Record<string, number> | Big5ArchetypeScores): number {
-  let matchPercentages: number[]
+// Scores are 0-6 scale; higher best-match → higher consistency
+export function calculateConsistencyScore(scores: Record<string, number>): number {
+  const values = Object.values(scores)
+  if (values.length === 0) return 0.0
 
-  if ('big5_profile' in archetypeMatchOrScores) {
-    matchPercentages = Object.values(archetypeMatchOrScores.archetype_match)
-  } else {
-    matchPercentages = Object.values(archetypeMatchOrScores)
-  }
-
-  if (matchPercentages.length === 0) return 0.0
-
-  const bestMatch = Math.max(...matchPercentages)
-  // Normalize: a 100% match = 1.0 consistency, scale linearly
+  // Convert 0-6 scores to percentages, then normalize
+  const bestMatch = Math.max(...values.map(v => Math.round((v / 6) * 100)))
   const consistency = bestMatch / 100
   return Math.round(consistency * 100) / 100
 }
@@ -342,11 +336,11 @@ function getPillarInsight(archetype: Archetype, pillar: PillarId, level: string)
 }
 
 // Generate integration insights
-// Supports both Big Five archetype_match format and legacy vote-count format
+// Archetype scores are flat 0-6 scale for all assessment types
 export function generateIntegrationInsights(
   primary: Archetype,
   secondary: Archetype | null,
-  archetypeScores: ArchetypeScores | Big5ArchetypeScores,
+  archetypeScores: ArchetypeScores,
   pillarScores: Record<PillarId, PillarScore>
 ): Insight[] {
   const insights: Insight[] = []
@@ -376,40 +370,24 @@ export function generateIntegrationInsights(
     })
   }
 
-  // Archetype dominance analysis
-  if ('big5_profile' in archetypeScores) {
-    // Big Five format: use match percentages
-    const matches = Object.entries(archetypeScores.archetype_match).sort((a, b) => b[1] - a[1])
-    const primaryMatch = matches[0]?.[1] ?? 0
-    const secondaryMatch = matches[1]?.[1] ?? 0
-    const dominanceGap = primaryMatch - secondaryMatch
+  // Archetype dominance analysis — scores are 0-6 scale
+  const sorted = Object.entries(archetypeScores).sort((a, b) => b[1] - a[1])
+  const primaryMatch = sorted[0] ? Math.round((sorted[0][1] / 6) * 100) : 0
+  const secondaryMatch = sorted[1] ? Math.round((sorted[1][1] / 6) * 100) : 0
+  const dominanceGap = primaryMatch - secondaryMatch
 
-    if (dominanceGap < 10) {
-      insights.push({
-        type: 'archetype_balance',
-        title: 'Blended Profile',
-        insight: `Your top two archetypes are closely matched (${primaryMatch}% vs ${secondaryMatch}%), indicating a versatile personality. You draw from multiple strengths depending on context.`,
-      })
-    } else if (primaryMatch >= 75) {
-      insights.push({
-        type: 'archetype_dominance',
-        title: 'Strong Archetype Focus',
-        insight: `Your ${primary} match (${primaryMatch}%) shows a clear personality orientation. This focused identity allows deep mastery but consider developing complementary traits.`,
-      })
-    }
-  } else {
-    // Legacy vote-count format
-    const primaryScore = (archetypeScores as ArchetypeScores)[primary] || 0
-    const totalResponses = Object.values(archetypeScores as ArchetypeScores).reduce((a, b) => a + b, 0)
-    const primaryPercent = totalResponses > 0 ? Math.round((primaryScore / totalResponses) * 100) : 0
-
-    if (primaryPercent >= 70) {
-      insights.push({
-        type: 'archetype_dominance',
-        title: 'Strong Archetype Focus',
-        insight: `Your ${primary} dominance (${primaryPercent}%) creates clear directional focus. This concentrated identity allows for deep mastery but consider developing complementary traits to avoid rigidity.`,
-      })
-    }
+  if (dominanceGap < 10) {
+    insights.push({
+      type: 'archetype_balance',
+      title: 'Blended Profile',
+      insight: `Your top two archetypes are closely matched (${primaryMatch}% vs ${secondaryMatch}%), indicating a versatile personality. You draw from multiple strengths depending on context.`,
+    })
+  } else if (primaryMatch >= 75) {
+    insights.push({
+      type: 'archetype_dominance',
+      title: 'Strong Archetype Focus',
+      insight: `Your ${primary} match (${primaryMatch}%) shows a clear personality orientation. This focused identity allows deep mastery but consider developing complementary traits.`,
+    })
   }
 
   return insights.slice(0, 5)
