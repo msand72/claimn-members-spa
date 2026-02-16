@@ -138,14 +138,13 @@ function templateToProfile(template: Record<Big5Dimension, number>): Big5Profile
 }
 
 // Calculate match percentages using z-score normalization + cosine similarity
-// This matches profile SHAPE, not absolute distance, preventing Integrator from always winning
+// This matches profile SHAPE, not absolute distance
+// All 6 archetypes (including Integrator) use the same algorithm
 export function calculateArchetypeMatches(profile: Big5Profile): Record<string, number> {
   const userZ = zScoreNormalize(profile)
   const matches: Record<string, number> = {}
 
-  // Match against all archetypes EXCEPT integrator
   for (const [archetype, template] of Object.entries(ARCHETYPE_BIG5_TEMPLATES)) {
-    if (archetype === 'integrator') continue
     const templateZ = zScoreNormalize(templateToProfile(template))
     const similarity = cosineSimilarity(userZ, templateZ)
     // Convert cosine similarity (-1 to +1) to percentage (0 to 100)
@@ -153,20 +152,6 @@ export function calculateArchetypeMatches(profile: Big5Profile): Record<string, 
     if (pct < 0) pct = 0
     if (pct > 100) pct = 100
     matches[archetype] = pct
-  }
-
-  // Assign Integrator only if profile is genuinely flat (low variance)
-  const values = [profile.C, profile.E, profile.O, profile.A, profile.N]
-  const mean = values.reduce((a, b) => a + b, 0) / 5
-  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / 5
-  const sd = Math.sqrt(variance)
-
-  if (sd < 0.8) {
-    matches['integrator'] = 85
-  } else if (sd < 1.2) {
-    matches['integrator'] = Math.max(30, Math.round(70 - (sd - 0.8) * 100))
-  } else {
-    matches['integrator'] = 25
   }
 
   return matches
