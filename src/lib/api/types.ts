@@ -1322,6 +1322,40 @@ export interface ClaimnEvent {
     name: string
     avatar_url: string
   }
+  // GO Session extended fields (optional — only present for go_session type)
+  subtitle?: string
+  protocol_name?: string
+  long_description?: string
+  target_audience?: string
+  price_cents?: number
+  currency?: string
+  early_bird_price_cents?: number
+  early_bird_deadline?: string
+  early_bird_spots?: number
+  is_early_bird_active?: boolean
+  early_bird_spots_remaining?: number
+  spots_remaining?: number
+  max_capacity?: number
+  session_number?: number
+  season?: string
+  pillar?: string
+  zoom_url?: string
+  agenda?: GoSessionAgendaBlock[]
+  research_citations?: GoSessionCitation[]
+}
+
+export interface GoSessionAgendaBlock {
+  time_start: number
+  time_end: number
+  label: string
+  description: string
+}
+
+export interface GoSessionCitation {
+  title: string
+  journal: string
+  year: number
+  summary: string
 }
 
 // =====================================================
