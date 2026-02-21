@@ -92,7 +92,7 @@ export function AssessmentPage() {
                 Your Primary Archetype
               </h3>
               <p className="text-kalkvit/60 mb-4">
-                Discover which of the five archetypes best describes your approach to life,
+                Discover which of the six archetypes best describes your approach to life,
                 challenges, and growth.
               </p>
             </div>

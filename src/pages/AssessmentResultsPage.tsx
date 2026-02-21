@@ -905,6 +905,34 @@ function deriveFromApiResult(apiResult: {
     }))
   }
 
+  // Replace server-baked archetype comparison insights with fresh ones
+  // computed from actual scores (server text can become stale after recalculation)
+  const archetypeComparisonTypes = new Set(['archetype_balance', 'archetype_dominance', 'archetype_spectrum'])
+  integrationInsights = integrationInsights.filter(i => !archetypeComparisonTypes.has(i.type))
+
+  const sortedArchetypes = Object.entries(archetypeScores).sort(([, a], [, b]) => b - a)
+  if (sortedArchetypes.length >= 2) {
+    const topPct = Math.round((sortedArchetypes[0][1] / 6) * 100)
+    const secondPct = Math.round((sortedArchetypes[1][1] / 6) * 100)
+    const gap = topPct - secondPct
+    const topName = ARCHETYPE_DISPLAY[sortedArchetypes[0][0]]?.name ?? sortedArchetypes[0][0]
+    const secondName = ARCHETYPE_DISPLAY[sortedArchetypes[1][0]]?.name ?? sortedArchetypes[1][0]
+
+    if (gap < 10) {
+      integrationInsights.push({
+        type: 'archetype_balance',
+        title: 'Blended Profile',
+        insight: `Your top two archetypes are closely matched (${topName}: ${topPct}%, ${secondName}: ${secondPct}%), indicating a versatile personality. You draw from multiple strengths depending on context.`,
+      })
+    } else if (topPct >= 75) {
+      integrationInsights.push({
+        type: 'archetype_dominance',
+        title: 'Strong Archetype Focus',
+        insight: `Your ${topName} match (${topPct}%) shows a clear personality orientation. This focused identity allows deep mastery but consider developing complementary traits.`,
+      })
+    }
+  }
+
   // Overall score
   const pillarValues = Object.values(pillarPercentages)
   const overallScore = pillarValues.length > 0

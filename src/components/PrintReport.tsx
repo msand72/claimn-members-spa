@@ -126,7 +126,7 @@ export function PrintReport({ results, contentMap }: PrintReportProps) {
               </thead>
               <tbody>
                 {archetypeEntries.map(([archetype, score]) => {
-                  // Big5: scores are already percentages (0-100); Legacy: vote counts (max ~6)
+                  // Scores are 0-6 scale; convert to display percentage
                   const pct = Math.round((score / 6) * 100)
                   const displayName = contentMap?.[`${archetype}_name`] || ARCHETYPE_DISPLAY[archetype] || archetype.charAt(0).toUpperCase() + archetype.slice(1)
                   const isPrimary = archetype === primary

@@ -48,7 +48,7 @@ export function OnboardingAssessmentPage() {
             </div>
             <div>
               <h3 className="text-kalkvit font-medium">Discover your archetype</h3>
-              <p className="text-kalkvit/50 text-sm">You'll be mapped to one of five archetypes that shapes your transformation path.</p>
+              <p className="text-kalkvit/50 text-sm">You'll be mapped to one of six archetypes that shapes your transformation path.</p>
             </div>
           </div>
           <div className="flex items-start gap-4">
