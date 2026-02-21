@@ -1042,11 +1042,19 @@ export function ProgramDetailPage() {
                     custom: 'Custom',
                   }
                   const categoryLabels: Record<string, string> = {
-                    physical: 'Physical',
-                    emotional: 'Emotional',
-                    identity: 'Identity',
-                    connection: 'Connection',
-                    mission: 'Mission',
+                    vital_energy: 'Vital Energy',
+                    stress_load: 'Stress Load',
+                    sleep_quality: 'Sleep Quality',
+                  }
+                  // Max scale per biomarker for progress bar width
+                  const categoryMaxScales: Record<string, number> = {
+                    vital_energy: 7,   // SVS avg 1-7
+                    stress_load: 40,   // PSS sum 0-40
+                    sleep_quality: 15, // PSQI composite 0-15
+                  }
+                  const lowerIsBetter: Record<string, boolean> = {
+                    stress_load: true,
+                    sleep_quality: true,
                   }
 
                   return (
@@ -1110,18 +1118,29 @@ export function ProgramDetailPage() {
                             <div className="mb-3 space-y-1.5">
                               {Object.entries(cvcData.scores.category_scores).map(([key, raw]) => {
                                 const value = Number(raw) || 0
+                                const maxScale = categoryMaxScales[key] || 7
+                                const isInverse = lowerIsBetter[key]
+                                // For "lower is better", invert the bar: full bar = 0, empty = maxScale
+                                const barPercent = isInverse
+                                  ? Math.min(((maxScale - value) / maxScale) * 100, 100)
+                                  : Math.min((value / maxScale) * 100, 100)
                                 return (
                                 <div key={key} className="flex items-center gap-2">
-                                  <span className="text-[10px] text-kalkvit/50 w-16 shrink-0 capitalize">
+                                  <span className="text-[10px] text-kalkvit/50 w-20 shrink-0">
                                     {categoryLabels[key] || key}
                                   </span>
                                   <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
                                     <div
-                                      className="h-full rounded-full bg-gradient-to-r from-koppar to-brandAmber transition-all"
-                                      style={{ width: `${Math.min((value / 7) * 100, 100)}%` }}
+                                      className={cn(
+                                        'h-full rounded-full transition-all',
+                                        isInverse
+                                          ? 'bg-gradient-to-r from-skogsgron to-oliv'
+                                          : 'bg-gradient-to-r from-koppar to-brandAmber'
+                                      )}
+                                      style={{ width: `${barPercent}%` }}
                                     />
                                   </div>
-                                  <span className="text-[10px] text-kalkvit/40 w-6 text-right">
+                                  <span className="text-[10px] text-kalkvit/40 w-8 text-right">
                                     {value.toFixed(1)}
                                   </span>
                                 </div>

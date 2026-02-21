@@ -70,6 +70,49 @@ export function useUnregisterFromEvent() {
   })
 }
 
+// =====================================================
+// GO Sessions Member Endpoints
+// =====================================================
+
+export const goSessionKeys = {
+  all: ['go-sessions'] as const,
+  list: (params?: { page?: number; page_size?: number }) =>
+    [...goSessionKeys.all, 'list', params] as const,
+  detail: (id: string) => [...goSessionKeys.all, 'detail', id] as const,
+}
+
+export function useGoSessions(params?: { page?: number; page_size?: number }) {
+  return useQuery({
+    queryKey: goSessionKeys.list(params),
+    queryFn: () =>
+      api.get<PaginatedResponse<ClaimnEvent>>('/members/events/go-sessions', {
+        page: params?.page,
+        page_size: params?.page_size,
+      }),
+  })
+}
+
+export function useGoSession(id: string) {
+  return useQuery({
+    queryKey: goSessionKeys.detail(id),
+    queryFn: () => api.get<ClaimnEvent>(`/members/events/go-sessions/${id}`),
+    enabled: !!id,
+  })
+}
+
+export function useRegisterForGoSession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (sessionId: string) =>
+      api.post<{ success: boolean }>(`/members/events/go-sessions/${sessionId}/register`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: goSessionKeys.all })
+      queryClient.invalidateQueries({ queryKey: eventKeys.all })
+    },
+  })
+}
+
 // Session Pulse (GO Sessions vitality check-in)
 export const pulseKeys = {
   detail: (eventId: string) => [...eventKeys.all, 'pulse', eventId] as const,

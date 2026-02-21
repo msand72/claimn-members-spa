@@ -9,11 +9,12 @@ import {
   GlassModalFooter,
   GlassSelect,
 } from '../components/ui'
-import { KPI_TYPES, TRACKING_FREQUENCIES, PILLARS, PILLAR_IDS } from '../lib/constants'
+import { KPI_TYPES, TRACKING_FREQUENCIES, PILLARS, PILLAR_IDS, LOWER_IS_BETTER_KPIS } from '../lib/constants'
 import { useKPIs, useLogKPI, useCreateKPI, useDeleteKPI, useGoals } from '../lib/api/hooks'
 import type { KPI } from '../lib/api/types'
 import {
   TrendingUp,
+  TrendingDown,
   Plus,
   Activity,
   Moon,
@@ -25,13 +26,19 @@ import {
   Loader2,
   AlertCircle,
   Trash2,
+  Heart,
+  Brain,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { calculateKpiProgress, isKpiOnTarget } from '../lib/kpi-utils'
 import { KPIHistoryChart } from '../components/kpi/KPIHistoryChart'
 
-const getKpiIcon = (kpiType: string) => {
-  switch (kpiType) {
+const getKpiIcon = (kpi: KPI) => {
+  // Biomarker KPIs get specific icons
+  if (kpi.kpi_type === 'svs_score') return Heart
+  if (kpi.kpi_type === 'pss_score') return Brain
+  if (kpi.kpi_type === 'sleep_quality_score') return Moon
+  switch (kpi.type) {
     case 'number':
       return BarChart3
     case 'percentage':
@@ -56,9 +63,11 @@ function KPICard({
   onDelete: (id: string) => void
   isDeleting: boolean
 }) {
-  const Icon = getKpiIcon(kpi.type)
+  const Icon = getKpiIcon(kpi)
   const progress = calculateKpiProgress(kpi.current_value, kpi.target_value)
   const isOnTarget = isKpiOnTarget(kpi.current_value, kpi.target_value)
+  const isLowerBetter = kpi.kpi_type ? LOWER_IS_BETTER_KPIS.has(kpi.kpi_type) : false
+  const TrendIcon = isLowerBetter ? TrendingDown : TrendingUp
 
   return (
     <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
@@ -69,7 +78,14 @@ function KPICard({
           </div>
           <div>
             <h3 className="font-semibold text-kalkvit">{kpi.name}</h3>
-            <span className="text-xs text-kalkvit/50 capitalize">{kpi.frequency}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-kalkvit/50 capitalize">{kpi.frequency}</span>
+              {isLowerBetter && (
+                <span className="text-[10px] text-kalkvit/40 flex items-center gap-0.5">
+                  <TrendIcon className="w-3 h-3" /> lower is better
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -80,7 +96,7 @@ function KPICard({
           {kpi.current_value}
         </span>
         <span className="text-kalkvit/40">
-          {kpi.current_value > kpi.target_value ? '\u2192' : '/'} {kpi.target_value} {kpi.unit}
+          {isLowerBetter ? '\u2192' : '/'} {kpi.target_value} {kpi.unit}
         </span>
       </div>
 
@@ -207,7 +223,7 @@ export function KPIsPage() {
     if (!newKpi.kpiType || !newKpi.targetValue || !newKpi.goalId) return
     setActionError(null)
 
-    const selectedKpiType = [...KPI_TYPES.biological, ...KPI_TYPES.action].find(
+    const selectedKpiType = [...KPI_TYPES.biomarker, ...KPI_TYPES.biological, ...KPI_TYPES.action].find(
       (k) => k.id === newKpi.kpiType
     )
 
@@ -249,6 +265,8 @@ export function KPIsPage() {
 
   const kpiTypeOptions = [
     { value: '', label: 'Select KPI type' },
+    { value: 'divider-biomarker', label: '── Biomarker (CVC) ──', disabled: true },
+    ...KPI_TYPES.biomarker.map((k) => ({ value: k.id, label: k.name })),
     { value: 'divider-bio', label: '── Biological ──', disabled: true },
     ...KPI_TYPES.biological.map((k) => ({ value: k.id, label: k.name })),
     { value: 'divider-action', label: '── Action ──', disabled: true },
