@@ -183,6 +183,7 @@ export {
   useProgramAssessment,
   useSubmitProgramAssessment,
   useProgramAssessmentResults,
+  useProgramCVCStatus,
   useProgramCohort,
   useProgramCompletion,
   useProgramApplication,

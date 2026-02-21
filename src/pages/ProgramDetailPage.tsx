@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs, GlassTabPanel, GlassAvatar } from '../components/ui'
-import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn } from '../lib/api/hooks'
-import type { Sprint, ProgramCohortMember, CheckIn } from '../lib/api/types'
+import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramCVCStatus, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn } from '../lib/api/hooks'
+import type { Sprint, ProgramCohortMember, CheckIn, CVCAssessmentStatus } from '../lib/api/types'
 import { useAuth } from '../contexts/AuthContext'
 import {
   ArrowLeft,
@@ -187,6 +187,12 @@ export function ProgramDetailPage() {
   const assessments = Array.isArray(assessmentsData?.data) ? assessmentsData.data : []
   const assessmentResults = Array.isArray(resultsData?.data) ? resultsData.data : []
   const completedAssessments = assessments.filter((a) => a.is_completed).length
+
+  // CVC status — fetch for enrolled users (provides category score breakdowns)
+  const { data: cvcStatus } = useProgramCVCStatus(
+    isEnrolled ? (id || '') : ''
+  )
+  const cvcAssessments = cvcStatus?.assessments || []
 
   // Cohort — only fetch for enrolled users
   const { data: cohortData } = useProgramCohort(
@@ -1026,11 +1032,21 @@ export function ProgramDetailPage() {
                   const result = assessmentResults.find(
                     (r) => r.assessment_id === assessment.id
                   )
+                  const cvcData = cvcAssessments.find(
+                    (c: CVCAssessmentStatus) => c.assessment_id === assessment.id
+                  )
                   const typeLabels: Record<string, string> = {
                     baseline: 'Baseline',
                     midline: 'Midline',
                     final: 'Final',
                     custom: 'Custom',
+                  }
+                  const categoryLabels: Record<string, string> = {
+                    physical: 'Physical',
+                    emotional: 'Emotional',
+                    identity: 'Identity',
+                    connection: 'Connection',
+                    mission: 'Mission',
                   }
 
                   return (
@@ -1068,12 +1084,16 @@ export function ProgramDetailPage() {
                             {assessment.is_required && (
                               <span className="text-koppar">Required</span>
                             )}
-                            {result && result.score !== null && (
+                            {cvcData?.scores ? (
+                              <span className="text-koppar font-medium">
+                                {Math.round(cvcData.scores.percentage_score)}% vitality
+                              </span>
+                            ) : result && result.score !== null ? (
                               <span className="text-skogsgron">
                                 Score: {result.score}
                                 {result.max_score ? `/${result.max_score}` : ''}
                               </span>
-                            )}
+                            ) : null}
                             {assessment.is_completed && assessment.completed_at && (
                               <span>
                                 Completed{' '}
@@ -1084,6 +1104,28 @@ export function ProgramDetailPage() {
                               </span>
                             )}
                           </div>
+
+                          {/* CVC Category Breakdown */}
+                          {cvcData?.scores?.category_scores && (
+                            <div className="mb-3 space-y-1.5">
+                              {Object.entries(cvcData.scores.category_scores).map(([key, value]) => (
+                                <div key={key} className="flex items-center gap-2">
+                                  <span className="text-[10px] text-kalkvit/50 w-16 shrink-0 capitalize">
+                                    {categoryLabels[key] || key}
+                                  </span>
+                                  <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full bg-gradient-to-r from-koppar to-brandAmber transition-all"
+                                      style={{ width: `${Math.min((value / 7) * 100, 100)}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-[10px] text-kalkvit/40 w-6 text-right">
+                                    {value.toFixed(1)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
 
                           {!assessment.is_completed ? (
                             <Link to={`/programs/${id}/assessment/${assessment.id}`}>
