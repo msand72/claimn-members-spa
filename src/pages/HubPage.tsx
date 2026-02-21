@@ -654,7 +654,7 @@ function NextGoSession() {
 
   return (
     <Link to={`/events/${next.id}`}>
-      <GlassCard variant="accent" className="relative overflow-hidden hover:border-koppar/40 transition-colors !p-5 md:!p-8">
+      <GlassCard variant="accent" className="relative overflow-hidden hover:border-koppar/40 transition-colors p-6 md:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6">
           {/* Icon */}
           <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center shrink-0">
