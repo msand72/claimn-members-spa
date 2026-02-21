@@ -16,6 +16,7 @@ import {
   UserCheck,
   UserMinus,
 } from 'lucide-react'
+import { SessionPulseForm } from '../components/events/SessionPulseForm'
 
 function formatEventDate(iso: string): string {
   const date = new Date(iso)
@@ -300,12 +301,17 @@ export function EventDetailPage() {
                 </>
               )}
 
-              {isPast && (
+              {isPast && !event.is_registered && (
                 <p className="text-center text-sm text-kalkvit/40">
                   This event has already taken place.
                 </p>
               )}
             </GlassCard>
+
+            {/* Session Pulse — past registered GO sessions */}
+            {isPast && event.is_registered && event.event_type === 'go_session' && (
+              <SessionPulseForm eventId={event.id} />
+            )}
           </div>
         </div>
       </div>

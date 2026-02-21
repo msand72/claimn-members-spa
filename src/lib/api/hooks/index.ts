@@ -236,11 +236,14 @@ export {
 // Events
 export {
   eventKeys,
+  pulseKeys,
   useEvents,
   useEvent,
   useMyEvents,
   useRegisterForEvent,
   useUnregisterFromEvent,
+  useSessionPulse,
+  useSubmitSessionPulse,
   type ClaimnEvent,
   type EventsParams,
 } from './useEvents'
