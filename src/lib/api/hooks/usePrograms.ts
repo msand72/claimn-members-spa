@@ -17,6 +17,7 @@ import type {
   EnrollProgramRequest,
   JoinSprintRequest,
   SubmitReviewRequest,
+  CVCStatus,
 } from '../types'
 
 // Query keys
@@ -38,6 +39,7 @@ export const programKeys = {
   cohort: (programId: string) => [...programKeys.all, 'cohort', programId] as const,
   completion: (programId: string) => [...programKeys.all, 'completion', programId] as const,
   application: (programId: string) => [...programKeys.all, 'application', programId] as const,
+  cvcStatus: (programId: string) => [...programKeys.all, 'cvcStatus', programId] as const,
 }
 
 // Extended params for programs
@@ -278,6 +280,8 @@ export function useSubmitProgramAssessment() {
     onSuccess: (_, { programId }) => {
       queryClient.invalidateQueries({ queryKey: programKeys.assessments(programId) })
       queryClient.invalidateQueries({ queryKey: programKeys.assessmentResults(programId) })
+      queryClient.invalidateQueries({ queryKey: programKeys.cvcStatus(programId) })
+      queryClient.invalidateQueries({ queryKey: ['kpis'] })
       queryClient.invalidateQueries({ queryKey: programKeys.all })
     },
   })
@@ -292,6 +296,16 @@ export function useProgramAssessmentResults(programId: string) {
         `/members/programs/${programId}/assessments/submissions`
       ),
     enabled: !!programId,
+  })
+}
+
+// Get CVC (Claimn Vitality Check) status for a program
+export function useProgramCVCStatus(programId: string) {
+  return useQuery({
+    queryKey: programKeys.cvcStatus(programId),
+    queryFn: () => api.get<CVCStatus>(`/members/programs/${programId}/cvc-status`),
+    enabled: !!programId,
+    retry: false,
   })
 }
 

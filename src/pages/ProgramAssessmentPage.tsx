@@ -41,10 +41,6 @@ function ScaleQuestion({
 
   return (
     <div>
-      <div className="flex items-center justify-between text-xs text-kalkvit/40 mb-2">
-        <span>{min}</span>
-        <span>{max}</span>
-      </div>
       <div className="flex gap-2 flex-wrap">
         {points.map((point) => (
           <button
@@ -61,6 +57,10 @@ function ScaleQuestion({
             {point}
           </button>
         ))}
+      </div>
+      <div className="flex items-center justify-between text-xs text-kalkvit/40 mt-1">
+        <span>{question.scale_min_label || min}</span>
+        <span>{question.scale_max_label || max}</span>
       </div>
     </div>
   )
@@ -180,7 +180,11 @@ function QuestionCard({
           <GlassBadge variant="default">{question.category}</GlassBadge>
         )}
       </div>
-      <h3 className="font-medium text-kalkvit mb-4">{question.text}</h3>
+      <h3 className="font-medium text-kalkvit mb-1">{question.text}</h3>
+      {question.description && (
+        <p className="text-xs text-kalkvit/40 mb-4">{question.description}</p>
+      )}
+      {!question.description && <div className="mb-3" />}
 
       {question.question_type === 'scale' && (
         <ScaleQuestion
@@ -306,10 +310,17 @@ export function ProgramAssessmentPage() {
     if (!assessmentId || !programId || !allAnswered) return
     setIsSubmitting(true)
     try {
+      // Build responses array for backend scoring + KPI auto-population
+      const responses = Object.entries(answers).map(([questionId, value]) => ({
+        question_id: questionId,
+        value: typeof value === 'number' ? value : parseFloat(String(value)) || 0,
+        ...(typeof value === 'string' && isNaN(Number(value)) ? { text: value } : {}),
+      }))
+
       const result = await submitMutation.mutateAsync({
         assessmentId,
         programId,
-        data: { answers },
+        data: { answers, responses },
       })
       setSubmittedResult(result)
     } finally {

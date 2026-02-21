@@ -695,13 +695,24 @@ export interface ProgramAssessment {
 export interface ProgramAssessmentQuestion {
   id: string
   text: string
+  description: string | null
   question_type: 'scale' | 'multiple_choice' | 'text' | 'boolean'
   category: string | null
+  subcategory: string | null
   options: ProgramAssessmentOption[] | null
   scale_min: number | null
   scale_max: number | null
+  scale_min_label: string | null
+  scale_max_label: string | null
   weight: number
   sequence_order: number
+  scoring_config: {
+    kpi_type?: string
+    kpi_name?: string
+    target_value?: number
+    unit?: string
+    reverse_scored?: boolean
+  } | null
 }
 
 export interface ProgramAssessmentOption {
@@ -727,6 +738,42 @@ export interface ProgramAssessmentResult {
 
 export interface SubmitProgramAssessmentRequest {
   answers: Record<string, string | number>
+  responses?: { question_id: string; value: number; text?: string }[]
+}
+
+// =====================================================
+// CVC (Claimn Vitality Check) Assessment Status
+// =====================================================
+
+export interface CVCCategoryScores {
+  physical: number
+  emotional: number
+  identity: number
+  connection: number
+  mission: number
+  [key: string]: number
+}
+
+export interface CVCAssessmentStatus {
+  assessment_id: string
+  name: string
+  type: ProgramAssessmentType
+  description: string
+  week_number: number
+  is_completed: boolean
+  completed_at: string | null
+  scores: {
+    total_score: number
+    percentage_score: number
+    category_scores: CVCCategoryScores
+  } | null
+}
+
+export interface CVCStatus {
+  program_id: string
+  enrollment_id: string
+  status: string
+  assessments: CVCAssessmentStatus[]
 }
 
 // =====================================================

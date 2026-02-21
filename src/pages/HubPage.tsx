@@ -654,8 +654,8 @@ function NextGoSession() {
 
   return (
     <Link to={`/events/${next.id}`}>
-      <GlassCard variant="accent" className="relative overflow-hidden hover:border-koppar/40 transition-colors">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+      <GlassCard variant="accent" className="relative overflow-hidden hover:border-koppar/40 transition-colors !p-5 md:!p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6">
           {/* Icon */}
           <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center shrink-0">
             <Zap className="w-6 h-6 text-koppar" />
@@ -663,7 +663,7 @@ function NextGoSession() {
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-2">
               <GlassBadge variant="koppar" className="text-xs">GO Session</GlassBadge>
               {next.pillar && (
                 <GlassBadge variant="default" className="text-xs">{next.pillar}</GlassBadge>
@@ -676,9 +676,9 @@ function NextGoSession() {
               {next.title}
             </h3>
             {next.protocol_name && (
-              <p className="text-sm text-koppar/80 font-medium">{next.protocol_name}</p>
+              <p className="text-sm text-koppar/80 font-medium mt-0.5">{next.protocol_name}</p>
             )}
-            <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-kalkvit/60">
+            <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-kalkvit/60">
               <span className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
                 {dateStr}
