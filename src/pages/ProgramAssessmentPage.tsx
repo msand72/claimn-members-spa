@@ -40,7 +40,7 @@ function ScaleQuestion({
   const points = Array.from({ length: max - min + 1 }, (_, i) => min + i)
 
   return (
-    <div>
+    <div className="inline-flex flex-col">
       <div className="flex gap-2 flex-wrap">
         {points.map((point) => (
           <button
