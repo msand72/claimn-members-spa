@@ -345,6 +345,7 @@ export interface KPI {
   id: string
   goal_id: string
   name: string
+  kpi_type?: string
   type: 'number' | 'percentage' | 'boolean' | 'time'
   target_value: number
   current_value: number
@@ -717,7 +718,7 @@ export interface ProgramAssessmentQuestion {
   id: string
   text: string
   description: string | null
-  question_type: 'scale' | 'multiple_choice' | 'text' | 'boolean'
+  question_type: 'scale' | 'multiple_choice' | 'text' | 'boolean' | 'number'
   category: string | null
   subcategory: string | null
   options: ProgramAssessmentOption[] | null
@@ -728,11 +729,15 @@ export interface ProgramAssessmentQuestion {
   weight: number
   sequence_order: number
   scoring_config: {
-    kpi_type?: string
+    section?: string
+    instrument?: string
+    kpi_type?: string | null
     kpi_name?: string
     target_value?: number
     unit?: string
     reverse_scored?: boolean
+    is_optional?: boolean
+    is_scored?: boolean
   } | null
 }
 
@@ -759,7 +764,7 @@ export interface ProgramAssessmentResult {
 
 export interface SubmitProgramAssessmentRequest {
   answers: Record<string, string | number>
-  responses?: { question_id: string; value: number; text?: string }[]
+  responses: { question_id: string; value: number; text?: string }[]
 }
 
 // =====================================================
@@ -767,11 +772,9 @@ export interface SubmitProgramAssessmentRequest {
 // =====================================================
 
 export interface CVCCategoryScores {
-  physical: number
-  emotional: number
-  identity: number
-  connection: number
-  mission: number
+  vital_energy: number
+  stress_load: number
+  sleep_quality: number
   [key: string]: number
 }
 

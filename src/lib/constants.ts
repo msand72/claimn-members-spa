@@ -106,6 +106,11 @@ export const KPI_TYPES = {
     { id: 'circle_participation', name: 'Circle Participation', unit: 'sessions' },
     { id: 'connection_activities', name: 'Connection Activities', unit: 'activities' },
   ],
+  biomarker: [
+    { id: 'svs_score', name: 'Vital Energy (SVS)', unit: 'avg', lowerIsBetter: false },
+    { id: 'pss_score', name: 'Stress Load (PSS)', unit: 'sum', lowerIsBetter: true },
+    { id: 'sleep_quality_score', name: 'Sleep Quality (PSQI)', unit: 'composite', lowerIsBetter: true },
+  ],
   biological: [
     { id: 'sleep_hours', name: 'Sleep Hours', unit: 'hours' },
     { id: 'sleep_quality', name: 'Sleep Quality', unit: 'scale_1_10' },
@@ -123,9 +128,15 @@ export type KpiType = (typeof KPI_TYPES)[KpiCategory][number]
 
 // Flat list of all KPI type IDs
 export const ALL_KPI_TYPE_IDS = [
+  ...KPI_TYPES.biomarker.map((k) => k.id),
   ...KPI_TYPES.action.map((k) => k.id),
   ...KPI_TYPES.biological.map((k) => k.id),
 ] as const
+
+// Biomarker KPI IDs that use "lower is better" scoring
+export const LOWER_IS_BETTER_KPIS = new Set(
+  KPI_TYPES.biomarker.filter((k) => k.lowerIsBetter).map((k) => k.id)
+)
 
 // Helper to get KPI type by ID
 export const getKpiType = (id: string): KpiType | undefined => {

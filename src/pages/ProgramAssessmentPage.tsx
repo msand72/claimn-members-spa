@@ -126,6 +126,39 @@ function TextQuestion({
   )
 }
 
+function NumberQuestion({
+  question,
+  value,
+  onChange,
+}: {
+  question: ProgramAssessmentQuestion
+  value: number | undefined
+  onChange: (val: number) => void
+}) {
+  const min = question.scale_min ?? 0
+  const max = question.scale_max ?? 24
+  const unit = question.scale_min_label || ''
+
+  return (
+    <div className="flex items-center gap-4">
+      <input
+        type="number"
+        min={min}
+        max={max}
+        step={0.5}
+        value={value ?? ''}
+        onChange={(e) => {
+          const v = parseFloat(e.target.value)
+          if (!isNaN(v)) onChange(v)
+        }}
+        className="w-24 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-center text-lg font-semibold text-kalkvit placeholder:text-kalkvit/30 focus:outline-none focus:border-koppar/40"
+        placeholder="0"
+      />
+      {unit && <span className="text-sm text-kalkvit/50">{unit}</span>}
+    </div>
+  )
+}
+
 function BooleanQuestion({
   value,
   onChange,
@@ -176,9 +209,11 @@ function QuestionCard({
         <span className="text-xs text-kalkvit/40">
           Question {index + 1} of {total}
         </span>
-        {question.category && (
-          <GlassBadge variant="default">{question.category}</GlassBadge>
-        )}
+        <div className="flex items-center gap-2">
+          {question.scoring_config?.is_optional && (
+            <GlassBadge variant="default">Optional</GlassBadge>
+          )}
+        </div>
       </div>
       <h3 className="font-medium text-kalkvit mb-1">{question.text}</h3>
       {question.description && (
@@ -204,6 +239,13 @@ function QuestionCard({
         <TextQuestion
           value={typeof value === 'string' ? value : undefined}
           onChange={(val) => onChange(val)}
+        />
+      )}
+      {question.question_type === 'number' && (
+        <NumberQuestion
+          question={question}
+          value={typeof value === 'number' ? value : undefined}
+          onChange={onChange}
         />
       )}
       {question.question_type === 'boolean' && (
@@ -297,8 +339,50 @@ export function ProgramAssessmentPage() {
     [assessment]
   )
 
+  // Group questions into sections by category
+  const sections = useMemo(() => {
+    const sectionMeta: Record<string, { heading: string; description: string }> = {
+      vital_energy: { heading: 'Vital Energy', description: 'Rate how alive, alert, and energized you feel.' },
+      stress_load: { heading: 'Stress Load', description: 'How unpredictable, uncontrollable, and overloaded does life feel?' },
+      sleep_quality: { heading: 'Sleep Quality', description: 'Sleep quality, duration, and daytime functioning.' },
+      context: { heading: 'Context & Direction', description: 'Optional — share anything relevant about your current state.' },
+    }
+    const categoryOrder = ['vital_energy', 'stress_load', 'sleep_quality', 'context']
+    const grouped = new Map<string, typeof questions>()
+    for (const q of questions) {
+      const cat = q.category || 'other'
+      if (!grouped.has(cat)) grouped.set(cat, [])
+      grouped.get(cat)!.push(q)
+    }
+    // Sort by predefined order, unknowns at end
+    const sorted = [...grouped.entries()].sort(([a], [b]) => {
+      const ia = categoryOrder.indexOf(a)
+      const ib = categoryOrder.indexOf(b)
+      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib)
+    })
+    return sorted.map(([category, qs]) => ({
+      category,
+      ...sectionMeta[category] || { heading: category, description: '' },
+      questions: qs,
+      // Get uniform scale info from first scale question in section
+      scaleInfo: qs.find((q) => q.question_type === 'scale')
+        ? {
+            min: qs.find((q) => q.question_type === 'scale')!.scale_min ?? 0,
+            max: qs.find((q) => q.question_type === 'scale')!.scale_max ?? 7,
+            minLabel: qs.find((q) => q.question_type === 'scale')!.scale_min_label || '',
+            maxLabel: qs.find((q) => q.question_type === 'scale')!.scale_max_label || '',
+          }
+        : null,
+    }))
+  }, [questions])
+
+  // For sections-based assessments, only require non-optional questions
+  const requiredQuestions = questions.filter(
+    (q) => !q.scoring_config?.is_optional
+  )
   const answeredCount = questions.filter((q) => answers[q.id] !== undefined).length
-  const allAnswered = answeredCount === questions.length && questions.length > 0
+  const requiredAnsweredCount = requiredQuestions.filter((q) => answers[q.id] !== undefined).length
+  const allAnswered = requiredAnsweredCount === requiredQuestions.length && requiredQuestions.length > 0
   const progressPercent =
     questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0
 
@@ -476,17 +560,52 @@ export function ProgramAssessmentPage() {
           </div>
         </GlassCard>
 
-        {/* Questions */}
-        {questions.map((question, index) => (
-          <QuestionCard
-            key={question.id}
-            question={question}
-            index={index}
-            total={questions.length}
-            value={answers[question.id]}
-            onChange={(val) => handleAnswer(question.id, val)}
-          />
-        ))}
+        {/* Questions grouped by section */}
+        {sections.length > 1
+          ? sections.map((section, sectionIdx) => {
+              const globalOffset = sections
+                .slice(0, sectionIdx)
+                .reduce((sum, s) => sum + s.questions.length, 0)
+              return (
+                <div key={section.category} className="mb-8">
+                  {/* Section Header */}
+                  <div className="mb-4 mt-2">
+                    <h2 className="font-display text-lg font-bold text-kalkvit mb-1">
+                      {sectionIdx + 1}. {section.heading}
+                    </h2>
+                    {section.description && (
+                      <p className="text-sm text-kalkvit/50">{section.description}</p>
+                    )}
+                    {section.scaleInfo && (
+                      <p className="text-xs text-kalkvit/40 mt-1">
+                        Scale: {section.scaleInfo.min} ({section.scaleInfo.minLabel}) &ndash; {section.scaleInfo.max} ({section.scaleInfo.maxLabel})
+                      </p>
+                    )}
+                  </div>
+
+                  {section.questions.map((question, qIdx) => (
+                    <QuestionCard
+                      key={question.id}
+                      question={question}
+                      index={globalOffset + qIdx}
+                      total={questions.length}
+                      value={answers[question.id]}
+                      onChange={(val) => handleAnswer(question.id, val)}
+                    />
+                  ))}
+                </div>
+              )
+            })
+          : questions.map((question, index) => (
+              <QuestionCard
+                key={question.id}
+                question={question}
+                index={index}
+                total={questions.length}
+                value={answers[question.id]}
+                onChange={(val) => handleAnswer(question.id, val)}
+              />
+            ))}
 
         {/* Submit */}
         {questions.length > 0 && (

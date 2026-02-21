@@ -17,7 +17,15 @@ import {
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-const categories = ['All', 'My Programs', 'Foundation', 'Leadership', 'Mindset', 'Business', 'Finance']
+const categories = [
+  { key: 'All', label: 'All' },
+  { key: 'My Programs', label: 'My Programs' },
+  { key: 'physical', label: 'Physical Performance' },
+  { key: 'emotional', label: 'Emotional & Mental' },
+  { key: 'identity', label: 'Identity & Purpose' },
+  { key: 'connection', label: 'Connection & Leadership' },
+  { key: 'mission', label: 'Mission & Mastery' },
+]
 
 const difficultyColors = {
   Beginner: 'success',
@@ -221,18 +229,18 @@ export function ProgramsPage() {
         </div>
 
         <div className="flex gap-2 flex-wrap mb-8">
-          {categories.map((category) => (
+          {categories.map((cat) => (
             <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
+              key={cat.key}
+              onClick={() => setActiveCategory(cat.key)}
               className={cn(
                 'px-4 py-2 rounded-xl text-sm font-medium transition-all',
-                activeCategory === category
+                activeCategory === cat.key
                   ? 'bg-koppar text-kalkvit'
                   : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1] hover:text-kalkvit'
               )}
             >
-              {category}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -271,7 +279,7 @@ export function ProgramsPage() {
                   ? 'My Programs'
                   : activeCategory === 'All'
                     ? 'Explore Programs'
-                    : activeCategory}
+                    : categories.find((c) => c.key === activeCategory)?.label || activeCategory}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPrograms
