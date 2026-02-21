@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { calculateKpiProgress, isKpiOnTarget } from '../lib/kpi-utils'
+import { KPIHistoryChart } from '../components/kpi/KPIHistoryChart'
 
 const getKpiIcon = (kpiType: string) => {
   switch (kpiType) {
@@ -100,6 +101,9 @@ function KPICard({
           </span>
         </div>
       </div>
+
+      {/* History Chart */}
+      <KPIHistoryChart kpiId={kpi.id} target={kpi.target_value} unit={kpi.unit} className="mt-1 mb-2" />
 
       {/* Actions */}
       <div className="flex items-center justify-between pt-3 border-t border-white/10">

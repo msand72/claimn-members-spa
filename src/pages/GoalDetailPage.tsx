@@ -46,6 +46,7 @@ import {
 import { cn } from '../lib/utils'
 import { AskExpertButton } from '../components/AskExpertButton'
 import { calculateKpiProgress } from '../lib/kpi-utils'
+import { KPIHistoryChart } from '../components/kpi/KPIHistoryChart'
 import { getProtocolSlugFromGoal, stripProtocolTag } from '../lib/protocol-plan'
 
 export function GoalDetailPage() {
@@ -651,6 +652,9 @@ export function GoalDetailPage() {
                         />
                       </div>
                     </div>
+
+                    {/* History Chart */}
+                    <KPIHistoryChart kpiId={kpi.id} target={kpi.target_value} unit={kpi.unit} className="mt-1 mb-2" />
 
                     <div className="flex justify-between text-xs text-kalkvit/40">
                       <span>Type: {kpi.type}</span>
