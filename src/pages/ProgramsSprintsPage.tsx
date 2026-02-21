@@ -37,8 +37,8 @@ function SprintCard({
     completed: { variant: 'default' as const, label: 'Completed', color: 'text-kalkvit/50' },
   }
 
-  const status = statusConfig[sprint.status] || { variant: 'default' as const, label: sprint.status || 'Unknown', color: 'text-kalkvit/50' }
-  const spotsLeft = sprint.max_participants - sprint.participants
+  const status = statusConfig[sprint.status || 'upcoming'] || { variant: 'default' as const, label: sprint.status || 'Unknown', color: 'text-kalkvit/50' }
+  const spotsLeft = (sprint.max_participants ?? 0) - (sprint.participants ?? 0)
 
   const facilitatorInitials = sprint.facilitator?.name
     ?.split(' ')

@@ -374,7 +374,7 @@ export function ProgramDetailPage() {
           </div>
 
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">
-            {program.name}
+            {program.title}
           </h1>
           <p className="text-kalkvit/60 mb-6">{program.description}</p>
 
@@ -528,7 +528,7 @@ export function ProgramDetailPage() {
               <div className="space-y-4 p-4 rounded-xl bg-white/[0.04] border border-white/[0.08]">
                 <h3 className="font-semibold text-kalkvit flex items-center gap-2">
                   <FileText className="w-5 h-5 text-koppar" />
-                  Apply to {program.name}
+                  Apply to {program.title}
                 </h3>
                 <div>
                   <label className="block text-sm font-medium text-kalkvit/70 mb-1.5">
@@ -1108,7 +1108,9 @@ export function ProgramDetailPage() {
                           {/* CVC Category Breakdown */}
                           {cvcData?.scores?.category_scores && (
                             <div className="mb-3 space-y-1.5">
-                              {Object.entries(cvcData.scores.category_scores).map(([key, value]) => (
+                              {Object.entries(cvcData.scores.category_scores).map(([key, raw]) => {
+                                const value = Number(raw) || 0
+                                return (
                                 <div key={key} className="flex items-center gap-2">
                                   <span className="text-[10px] text-kalkvit/50 w-16 shrink-0 capitalize">
                                     {categoryLabels[key] || key}
@@ -1123,7 +1125,8 @@ export function ProgramDetailPage() {
                                     {value.toFixed(1)}
                                   </span>
                                 </div>
-                              ))}
+                                )
+                              })}
                             </div>
                           )}
 

@@ -66,7 +66,7 @@ function ProgramCard({
       </div>
 
       <h3 className="font-display text-lg font-semibold text-kalkvit mb-2 group-hover:text-koppar transition-colors">
-        {program.name}
+        {program.title}
       </h3>
       <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{program.description}</p>
 
@@ -152,7 +152,7 @@ export function ProgramsPage() {
       ? programs.filter((p) => enrolledProgramIds.has(p.id))
       : programs.filter(
           (p) =>
-            (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (p.description || '').toLowerCase().includes(searchQuery.toLowerCase())
         )
 

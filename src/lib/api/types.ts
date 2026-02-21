@@ -154,32 +154,45 @@ export interface CreateCommentRequest {
 // =====================================================
 export interface Conversation {
   id: string
-  participant_id: string
-  participant: {
-    user_id: string
-    display_name: string
-    avatar_url: string | null
-  }
+  // Backend flat format
+  conversation_id?: string
+  other_user_id?: string
+  other_user_name?: string
+  other_user_avatar?: string
   other_user_type?: 'expert' | 'member' | string
-  last_message: {
+  last_message?: string | {
     content: string
     sent_at: string
     is_read: boolean
     sender_id: string
   } | null
+  last_message_at?: string
   unread_count: number
-  updated_at: string
+  updated_at?: string
+  created_at?: string
+  // Frontend nested format (computed from flat fields)
+  participant_id?: string
+  participant?: {
+    user_id: string
+    display_name: string
+    avatar_url: string | null
+  }
 }
 
 export interface Message {
   id: string
-  conversation_id: string
+  conversation_id?: string
   sender_id: string
   recipient_id: string
   content: string
+  body?: string // backend also sends body
   image_url: string | null
-  is_read: boolean
+  is_read?: boolean
+  read_at?: string | null
   created_at: string
+  sender_name?: string
+  sender_avatar?: string
+  sender_type?: 'member' | 'expert' | string
 }
 
 export interface SendMessageRequest {
@@ -490,7 +503,7 @@ export interface CoachingSession {
   title: string
   scheduled_at: string
   duration: number
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'reschedule_requested' | 'cancelled_by_member'
   goals: string[]
   progress: number
   meeting_url: string | null
@@ -561,22 +574,25 @@ export interface CoachingResource extends Resource {
 
 export interface Program {
   id: string
-  name: string
+  title: string
   description: string
+  category: string
+  status?: 'draft' | 'active' | 'archived'
   duration: string
   duration_months?: number
+  difficulty: string
   modules: number
   enrolled_count: number
-  category: string
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced'
   is_locked: boolean
-  tier?: string
+  requires_application?: boolean
   objectives?: string[]
   prerequisites?: string[]
-  requires_application?: boolean
+  tier?: string
   created_by?: string
   created_at: string
   updated_at: string
+  /** @deprecated Use `title` instead — kept for backward compat */
+  name?: string
 }
 
 export interface UserProgram {
@@ -593,24 +609,29 @@ export interface UserProgram {
 export interface Sprint {
   id: string
   program_id: string
+  sprint_number?: number
   title: string
   description: string
-  start_date: string
-  end_date: string
-  duration: string
-  status: 'upcoming' | 'active' | 'completed'
-  sequence_order: number
   focus_area: string | null
-  participants: number
-  max_participants: number
+  duration_weeks?: number
+  sequence_order: number
   goals: string[]
-  progress: number
-  facilitator: {
+  resources?: unknown
+  created_at: string
+  updated_at?: string
+  // Computed/frontend-only fields (may not come from API)
+  status?: 'upcoming' | 'active' | 'completed'
+  start_date?: string
+  end_date?: string
+  duration?: string
+  participants?: number
+  max_participants?: number
+  progress?: number
+  facilitator?: {
     id: string
     name: string
     avatar_url: string | null
   }
-  created_at: string
 }
 
 export interface PeerReview {
@@ -1343,6 +1364,9 @@ export interface CheckIn {
   support_needed: string | null
   commitments_for_next: string | null
   week_rating: number | null
+  mood: number | null
+  energy: number | null
+  stress: number | null
   created_at: string
 }
 
@@ -1352,6 +1376,9 @@ export interface CheckInRequest {
   support_needed?: string
   commitments_for_next?: string
   week_rating?: number
+  mood?: number
+  energy?: number
+  stress?: number
 }
 
 // =====================================================
@@ -1409,17 +1436,24 @@ export interface ClaimnEvent {
 }
 
 export interface GoSessionAgendaBlock {
-  time_start: number
-  time_end: number
-  label: string
-  description: string
+  // Backend format
+  time?: string
+  title?: string
+  duration?: string
+  // Legacy frontend format (kept for compat)
+  time_start?: number
+  time_end?: number
+  label?: string
+  description?: string
 }
 
 export interface GoSessionCitation {
   title: string
-  journal: string
   year: number
-  summary: string
+  // Backend sends url; frontend may also use journal/summary
+  url?: string
+  journal?: string
+  summary?: string
 }
 
 // =====================================================
