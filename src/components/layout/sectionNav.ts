@@ -90,6 +90,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     mode: 'tabs',
     items: [
       { to: '/experts', label: 'Experts', icon: Sparkles },
+      { to: '/events', label: 'Events', icon: Calendar },
       { to: '/book-session', label: 'Book Session', icon: Calendar },
       { to: '/coaching/sessions', label: 'My Sessions', icon: CircleDot },
       { to: '/coaching/session-notes', label: 'Notes', icon: FileText },
@@ -97,7 +98,6 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     ],
     moreItems: [
       { to: '/coaching/quarterly-reviews', label: 'Quarterly Reviews', icon: ClipboardCheck },
-      { to: '/events', label: 'Events', icon: Calendar },
     ],
     allPaths: ['/experts', '/expert-sessions', '/book-session', '/coaching/sessions', '/coaching/session-notes', '/coaching/resources', '/coaching/quarterly-reviews', '/events'],
   },

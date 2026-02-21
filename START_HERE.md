@@ -753,15 +753,16 @@ All reusable UI components live in `src/components/ui/` and follow the Glass des
 
 ## Domain Concepts
 
-### The 5 Archetypes
+### The 6 Archetypes
 
-Member personality types that inform their transformation journey:
+Member personality types determined by Big Five assessment scoring (z-score + cosine similarity matching):
 
 1. **The Achiever** — Goal-oriented, results-driven
 2. **The Optimizer** — Systems thinker, efficiency-focused
 3. **The Networker** — Relationship builder, connector
 4. **The Grinder** — Discipline-focused, consistency-driven
 5. **The Philosopher** — Meaning-seeker, introspective
+6. **The Integrator** — Balanced, holistically developed
 
 ### The 5 Pillars
 
@@ -1044,7 +1045,7 @@ The backend has been **fully migrated from Supabase Cloud to a self-hosted stack
 user_id UUID PRIMARY KEY REFERENCES auth.users(id)
 display_name TEXT
 bio TEXT
-archetype TEXT                    -- one of 5 archetypes
+archetype TEXT                    -- one of 6 archetypes
 pillar_focus TEXT[]                -- ARRAY of pillar IDs
 city TEXT
 country TEXT
