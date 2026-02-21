@@ -140,19 +140,86 @@ export function EventDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Protocol name for GO sessions */}
+            {event.event_type === 'go_session' && event.protocol_name && (
+              <GlassCard variant="base">
+                <p className="font-serif text-lg text-koppar italic">
+                  {event.protocol_name}
+                </p>
+              </GlassCard>
+            )}
+
             {/* Description */}
             <GlassCard variant="base">
               <h2 className="font-display text-lg font-semibold text-kalkvit mb-3">
                 About This Event
               </h2>
               <p className="text-kalkvit/70 leading-relaxed whitespace-pre-line">
-                {event.description}
+                {event.long_description || event.description}
               </p>
             </GlassCard>
+
+            {/* Agenda for GO sessions */}
+            {event.agenda && event.agenda.length > 0 && (
+              <GlassCard variant="base">
+                <h2 className="font-display text-lg font-semibold text-kalkvit mb-4">
+                  Session Agenda
+                </h2>
+                <div className="space-y-3">
+                  {event.agenda.map((block, i) => (
+                    <div key={i} className="flex gap-4">
+                      <span className="text-xs text-koppar font-medium whitespace-nowrap w-16 shrink-0 pt-0.5">
+                        {block.time_start}&ndash;{block.time_end} min
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium text-kalkvit">{block.label}</p>
+                        <p className="text-xs text-kalkvit/50">{block.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </GlassCard>
+            )}
+
+            {/* Research citations for GO sessions */}
+            {event.research_citations && event.research_citations.length > 0 && (
+              <GlassCard variant="base">
+                <h2 className="font-display text-lg font-semibold text-kalkvit mb-4">
+                  Research
+                </h2>
+                <div className="space-y-3">
+                  {event.research_citations.map((citation, i) => (
+                    <div key={i} className="border-l-2 border-koppar/30 pl-3">
+                      <p className="text-sm text-kalkvit/80">{citation.title}</p>
+                      <p className="text-xs text-kalkvit/50">
+                        {citation.journal}, {citation.year} &mdash; {citation.summary}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </GlassCard>
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Zoom link for registered GO sessions */}
+            {event.event_type === 'go_session' && event.is_registered && event.zoom_url && (
+              <GlassCard variant="base" className="border border-koppar/30">
+                <h2 className="font-display text-lg font-semibold text-kalkvit mb-3">
+                  Join Session
+                </h2>
+                <a
+                  href={event.zoom_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-koppar hover:bg-koppar/90 text-kalkvit text-sm font-medium rounded-lg transition-colors w-full justify-center"
+                >
+                  Open Zoom
+                </a>
+              </GlassCard>
+            )}
+
             {/* Facilitator Card */}
             {event.facilitator && (
               <GlassCard variant="base">
