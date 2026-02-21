@@ -79,12 +79,12 @@ function MultipleChoiceQuestion({
 
   return (
     <div className="space-y-2">
-      {options.map((option) => {
+      {options.map((option, idx) => {
         const optionValue = option.value
         const isSelected = value === optionValue
         return (
           <button
-            key={optionValue}
+            key={optionValue || idx}
             type="button"
             onClick={() => onChange(optionValue)}
             className={cn(
