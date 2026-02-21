@@ -653,55 +653,42 @@ function NextGoSession() {
   const hasEarlyBird = next.is_early_bird_active && next.early_bird_price_cents != null
 
   return (
-    <Link to={`/events/${next.id}`}>
-      <GlassCard variant="accent" className="relative overflow-hidden hover:border-koppar/40 transition-colors p-6 md:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6">
-          {/* Icon */}
-          <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center shrink-0">
-            <Zap className="w-6 h-6 text-koppar" />
+    <Link to={`/events/${next.id}`} className="block">
+      <div className="glass-accent rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:border-koppar/40 transition-colors">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-koppar/20 flex items-center justify-center shrink-0">
+            <Zap className="w-4.5 h-4.5 text-koppar" />
           </div>
 
-          {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <GlassBadge variant="koppar" className="text-xs">GO Session</GlassBadge>
-              {next.pillar && (
-                <GlassBadge variant="default" className="text-xs">{next.pillar}</GlassBadge>
-              )}
+            <div className="flex items-center gap-2 mb-0.5">
+              <GlassBadge variant="koppar" className="text-[10px]">GO Session</GlassBadge>
               {hasEarlyBird && (
-                <GlassBadge variant="success" className="text-xs">Early Bird</GlassBadge>
+                <GlassBadge variant="success" className="text-[10px]">Early Bird</GlassBadge>
               )}
             </div>
-            <h3 className="font-display text-lg font-bold text-kalkvit truncate">
+            <h3 className="font-display text-sm font-bold text-kalkvit truncate">
               {next.title}
             </h3>
-            {next.protocol_name && (
-              <p className="text-sm text-koppar/80 font-medium mt-0.5">{next.protocol_name}</p>
-            )}
-            <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-kalkvit/60">
+            <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-kalkvit/60">
               <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" />
+                <Calendar className="w-3 h-3" />
                 {dateStr}
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
+                <Clock className="w-3 h-3" />
                 {timeStr}
               </span>
               <span className="flex items-center gap-1">
-                <Users className="w-3.5 h-3.5" />
-                {spotsLeft > 0 ? `${spotsLeft} spots left` : 'Full'}
+                <Users className="w-3 h-3" />
+                {spotsLeft > 0 ? `${spotsLeft} spots` : 'Full'}
               </span>
             </div>
           </div>
 
-          {/* CTA */}
-          <div className="shrink-0">
-            <GlassButton variant="primary" className="px-5 py-2.5 text-sm whitespace-nowrap">
-              View Session <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </GlassButton>
-          </div>
+          <ArrowRight className="w-4 h-4 text-koppar/60 shrink-0" />
         </div>
-      </GlassCard>
+      </div>
     </Link>
   )
 }
@@ -722,15 +709,13 @@ export function HubPage() {
           <StatsRow />
         </PageErrorBoundary>
 
-        {/* Next GO Session — full width CTA */}
-        <PageErrorBoundary section="NextGoSession">
-          <NextGoSession />
-        </PageErrorBoundary>
-
         {/* 2-column grid: main (2/3) + sidebar (1/3) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main column */}
           <div className="lg:col-span-2 space-y-6">
+            <PageErrorBoundary section="NextGoSession">
+              <NextGoSession />
+            </PageErrorBoundary>
             <PageErrorBoundary section="ExpertSpotlight">
               <ExpertSpotlight />
             </PageErrorBoundary>
