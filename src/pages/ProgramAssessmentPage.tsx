@@ -40,8 +40,8 @@ function ScaleQuestion({
   const points = Array.from({ length: max - min + 1 }, (_, i) => min + i)
 
   return (
-    <div className="inline-flex flex-col">
-      <div className="flex gap-2 flex-wrap">
+    <div className="flex flex-col items-center">
+      <div className="inline-flex gap-2 flex-wrap justify-center">
         {points.map((point) => (
           <button
             key={point}
@@ -58,7 +58,7 @@ function ScaleQuestion({
           </button>
         ))}
       </div>
-      <div className="flex items-center justify-between text-xs text-kalkvit/40 mt-1">
+      <div className="w-full flex items-center justify-between text-xs text-kalkvit/40 mt-1">
         <span>{question.scale_min_label || min}</span>
         <span>{question.scale_max_label || max}</span>
       </div>
