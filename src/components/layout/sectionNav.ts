@@ -58,15 +58,18 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     basePath: '/goals',
     mode: 'stepper',
     items: [
-      { to: '/assessment/results', label: 'Assessment', icon: ClipboardCheck },
       { to: '/goals', label: 'Goals', icon: Target },
-      { to: '/protocols', label: 'Protocols', icon: BookOpen },
+      { to: '/events', label: 'Sessions', icon: Calendar },
       { to: '/action-items', label: 'Actions', icon: CheckSquare },
       { to: '/milestones', label: 'Milestones', icon: Flag },
       { to: '/kpis', label: 'KPIs', icon: BarChart3 },
+      { to: '/assessment/results', label: 'Assessment', icon: ClipboardCheck },
+    ],
+    moreItems: [
+      { to: '/protocols', label: 'Protocols', icon: BookOpen },
       { to: '/accountability', label: 'Accountability', icon: UsersRound },
     ],
-    allPaths: ['/goals', '/kpis', '/action-items', '/protocols', '/my-protocols', '/milestones', '/accountability', '/assessment', '/assessment/results', '/assessment/take'],
+    allPaths: ['/goals', '/kpis', '/action-items', '/protocols', '/my-protocols', '/milestones', '/accountability', '/assessment', '/assessment/results', '/assessment/take', '/events'],
   },
   community: {
     label: 'Community',
@@ -90,7 +93,6 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     mode: 'tabs',
     items: [
       { to: '/experts', label: 'Experts', icon: Sparkles },
-      { to: '/events', label: 'Events', icon: Calendar },
       { to: '/book-session', label: 'Book Session', icon: Calendar },
       { to: '/coaching/sessions', label: 'My Sessions', icon: CircleDot },
       { to: '/coaching/session-notes', label: 'Notes', icon: FileText },
@@ -99,7 +101,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     moreItems: [
       { to: '/coaching/quarterly-reviews', label: 'Quarterly Reviews', icon: ClipboardCheck },
     ],
-    allPaths: ['/experts', '/expert-sessions', '/book-session', '/coaching/sessions', '/coaching/session-notes', '/coaching/resources', '/coaching/quarterly-reviews', '/events'],
+    allPaths: ['/experts', '/expert-sessions', '/book-session', '/coaching/sessions', '/coaching/session-notes', '/coaching/resources', '/coaching/quarterly-reviews'],
   },
   programs: {
     label: 'Programs',

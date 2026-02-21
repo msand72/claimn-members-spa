@@ -15,6 +15,7 @@ import {
   useFeed,
   useConversations,
   useMyEvents,
+  useEvents,
   useCoachingSessions,
   useEnrolledPrograms,
   useDashboardStats,
@@ -42,6 +43,9 @@ import {
   Flame,
   BarChart3,
   Trophy,
+  Clock,
+  Users,
+  Zap,
 } from 'lucide-react'
 
 // ── Helpers ──────────────────────────────────────────
@@ -632,6 +636,76 @@ function MyPrograms() {
   )
 }
 
+// ── NextGoSession (full-width CTA) ───────────────────
+
+function NextGoSession() {
+  const { data, isLoading } = useEvents({ type: 'go_session', status: 'upcoming', limit: 1 })
+
+  const sessions: ClaimnEvent[] = Array.isArray(data?.data) ? data.data : safeArray<ClaimnEvent>(data)
+  const next = sessions[0]
+
+  if (isLoading || !next) return null
+
+  const date = new Date(next.scheduled_date)
+  const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+  const spotsLeft = next.spots_remaining ?? (next.capacity - next.registered_count)
+  const hasEarlyBird = next.is_early_bird_active && next.early_bird_price_cents != null
+
+  return (
+    <Link to={`/events/${next.id}`}>
+      <GlassCard variant="accent" className="relative overflow-hidden hover:border-koppar/40 transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          {/* Icon */}
+          <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center shrink-0">
+            <Zap className="w-6 h-6 text-koppar" />
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <GlassBadge variant="koppar" className="text-xs">GO Session</GlassBadge>
+              {next.pillar && (
+                <GlassBadge variant="default" className="text-xs">{next.pillar}</GlassBadge>
+              )}
+              {hasEarlyBird && (
+                <GlassBadge variant="success" className="text-xs">Early Bird</GlassBadge>
+              )}
+            </div>
+            <h3 className="font-display text-lg font-bold text-kalkvit truncate">
+              {next.title}
+            </h3>
+            {next.protocol_name && (
+              <p className="text-sm text-koppar/80 font-medium">{next.protocol_name}</p>
+            )}
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-kalkvit/60">
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5" />
+                {dateStr}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
+                {timeStr}
+              </span>
+              <span className="flex items-center gap-1">
+                <Users className="w-3.5 h-3.5" />
+                {spotsLeft > 0 ? `${spotsLeft} spots left` : 'Full'}
+              </span>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="shrink-0">
+            <GlassButton variant="primary" className="px-5 py-2.5 text-sm whitespace-nowrap">
+              View Session <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </GlassButton>
+          </div>
+        </div>
+      </GlassCard>
+    </Link>
+  )
+}
+
 // ── HubPage (main) ───────────────────────────────────
 
 export function HubPage() {
@@ -646,6 +720,11 @@ export function HubPage() {
         {/* Stats row — full width */}
         <PageErrorBoundary section="StatsRow">
           <StatsRow />
+        </PageErrorBoundary>
+
+        {/* Next GO Session — full width CTA */}
+        <PageErrorBoundary section="NextGoSession">
+          <NextGoSession />
         </PageErrorBoundary>
 
         {/* 2-column grid: main (2/3) + sidebar (1/3) */}
