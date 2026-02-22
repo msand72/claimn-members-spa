@@ -268,9 +268,14 @@ export {
   useBillingInfo,
   useInvoices,
   useBillingPortal,
+  usePlans,
   type BillingInfo,
   type PaymentMethod,
   type Invoice,
+  type PlanInfo,
+  type PlanPrice,
+  type ExpertSessionPriceInfo,
+  type PlansResponse,
 } from './useBilling'
 
 // Community Questions
