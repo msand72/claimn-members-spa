@@ -73,7 +73,7 @@ export function ShopSuccessPage() {
     )
   }
 
-  const email = verification?.customer_email || 'your@email.com'
+  const email = verification?.customer_email
 
   return (
     <MainLayout>
@@ -105,13 +105,15 @@ export function ShopSuccessPage() {
               <span className="text-kalkvit">Payment confirmed</span>
             </div>
           </div>
-          <div className="pt-4 flex items-center justify-between">
-            <span className="text-sm text-kalkvit/60">Confirmation sent to</span>
-            <span className="text-sm text-kalkvit flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              {email}
-            </span>
-          </div>
+          {email && (
+            <div className="pt-4 flex items-center justify-between">
+              <span className="text-sm text-kalkvit/60">Confirmation sent to</span>
+              <span className="text-sm text-kalkvit flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                {email}
+              </span>
+            </div>
+          )}
         </GlassCard>
 
         {/* What's Next */}
