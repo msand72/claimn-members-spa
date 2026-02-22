@@ -88,18 +88,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             expiresAt = exchangeResponse.expires_at
             userType = exchangeResponse.user.user_type
           } catch {
-            // Fall back to Supabase token if exchange fails
+            // Exchange failed — fall back to Supabase token
           }
 
-          const userData = await fetchCurrentUser(accessToken)
-          const mergedUser = { ...userData, user_type: userType || userData.user_type } as AuthUser
-          setUser(mergedUser)
-          setSession({
-            access_token: accessToken,
-            refresh_token: oauthRefresh,
-            expires_at: expiresAt,
-          })
-          scheduleRefresh()
+          try {
+            const userData = await fetchCurrentUser(accessToken)
+            const mergedUser = { ...userData, user_type: userType || userData.user_type } as AuthUser
+            setUser(mergedUser)
+            setSession({
+              access_token: accessToken,
+              refresh_token: oauthRefresh,
+              expires_at: expiresAt,
+            })
+            scheduleRefresh()
+          } catch {
+            // User not found in backend — surface error to login page
+            sessionStorage.setItem(
+              'oauth_error',
+              'No account found for this email. Please sign in with email and password, or contact support.',
+            )
+          }
           setLoading(false)
           return
         }

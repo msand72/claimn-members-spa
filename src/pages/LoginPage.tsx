@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { sanitizeRedirect } from '../lib/url-validation'
@@ -15,6 +15,15 @@ export function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirect = sanitizeRedirect(searchParams.get('redirect'), '/')
+
+  // Show error from failed OAuth login
+  useEffect(() => {
+    const oauthError = sessionStorage.getItem('oauth_error')
+    if (oauthError) {
+      setError(oauthError)
+      sessionStorage.removeItem('oauth_error')
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

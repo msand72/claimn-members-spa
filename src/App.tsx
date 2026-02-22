@@ -263,29 +263,38 @@ const router = createBrowserRouter([
   },
 ])
 
-// Detect Supabase auth redirects: #access_token=...&type=recovery|signup|magiclink
-if (window.location.hash) {
-  const hashParams = new URLSearchParams(window.location.hash.substring(1))
-  const hashType = hashParams.get('type')
+// Detect Supabase/GoTrue auth redirects: #access_token=...&type=recovery|signup|magiclink
+;(function handleAuthRedirect() {
+  if (!window.location.hash) return
+
+  const rawHash = window.location.hash.substring(1)
+  const hashParams = new URLSearchParams(rawHash)
   const accessToken = hashParams.get('access_token')
 
-  if (accessToken && hashType === 'recovery') {
-    // Password recovery — store token and show reset form
+  if (!accessToken) return
+
+  const hashType = hashParams.get('type')
+
+  if (hashType === 'recovery') {
+    // Password reset flow
     sessionStorage.setItem('recovery_token', accessToken)
-    window.location.hash = ''
+    window.history.replaceState(null, '', '/reset-password')
     window.location.replace('/reset-password')
-  } else if (accessToken && (hashType === 'signup' || hashType === 'magiclink')) {
-    // OAuth login — store tokens for AuthContext to pick up
-    const refreshToken = hashParams.get('refresh_token') || ''
-    const expiresIn = parseInt(hashParams.get('expires_in') || '3600', 10)
-    const expiresAt = Math.floor(Date.now() / 1000) + expiresIn
-    sessionStorage.setItem('oauth_access_token', accessToken)
-    sessionStorage.setItem('oauth_refresh_token', refreshToken)
-    sessionStorage.setItem('oauth_expires_at', String(expiresAt))
-    window.location.hash = ''
-    window.location.replace('/')
+    return
   }
-}
+
+  // Any other hash with access_token = OAuth login (signup, magiclink, or any other type)
+  const refreshToken = hashParams.get('refresh_token') || ''
+  const expiresIn = parseInt(hashParams.get('expires_in') || '3600', 10)
+  const expiresAt = Math.floor(Date.now() / 1000) + expiresIn
+
+  sessionStorage.setItem('oauth_access_token', accessToken)
+  sessionStorage.setItem('oauth_refresh_token', refreshToken)
+  sessionStorage.setItem('oauth_expires_at', String(expiresAt))
+
+  // Clean URL without full page reload — AuthContext will pick up tokens from sessionStorage
+  window.history.replaceState(null, '', '/')
+})()
 
 function App() {
   return (
