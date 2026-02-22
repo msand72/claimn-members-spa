@@ -88,8 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             accessToken = exchangeResponse.access_token
             expiresAt = exchangeResponse.expires_at
             userType = exchangeResponse.user.user_type
-          } catch {
+          } catch (exchangeErr) {
             // Exchange failed — fall back to Supabase token
+            if (import.meta.env.DEV) {
+              console.warn('Token exchange failed during OAuth init, using original token:', exchangeErr)
+            }
           }
 
           // Block guest users — no active subscription
