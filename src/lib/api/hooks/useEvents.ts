@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type PaginatedResponse } from '../client'
-import type { ClaimnEvent, SessionPulse, SubmitPulseRequest } from '../types'
+import type { ClaimnEvent } from '../types'
 
 export type { ClaimnEvent }
 
@@ -195,28 +195,3 @@ export function useRegisterForGoSession() {
   })
 }
 
-// Session Pulse (GO Sessions vitality check-in)
-export const pulseKeys = {
-  detail: (eventId: string) => [...eventKeys.all, 'pulse', eventId] as const,
-}
-
-export function useSessionPulse(eventId: string) {
-  return useQuery({
-    queryKey: pulseKeys.detail(eventId),
-    queryFn: () => api.get<SessionPulse>(`/members/go-sessions/${eventId}/pulse`),
-    enabled: !!eventId,
-    retry: false,
-  })
-}
-
-export function useSubmitSessionPulse() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ eventId, data }: { eventId: string; data: SubmitPulseRequest }) =>
-      api.post<{ success: boolean }>(`/members/go-sessions/${eventId}/pulse`, data),
-    onSuccess: (_, { eventId }) => {
-      queryClient.invalidateQueries({ queryKey: pulseKeys.detail(eventId) })
-    },
-  })
-}
