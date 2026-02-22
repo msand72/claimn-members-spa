@@ -265,6 +265,7 @@ const router = createBrowserRouter([
 
 // Detect Supabase/GoTrue auth redirects: #access_token=...&type=recovery|signup|magiclink
 ;(function handleAuthRedirect() {
+  console.log('[Auth Redirect] Page load:', { href: window.location.href, hash: !!window.location.hash })
   if (!window.location.hash) return
 
   const rawHash = window.location.hash.substring(1)
