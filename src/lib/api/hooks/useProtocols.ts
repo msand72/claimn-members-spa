@@ -6,6 +6,11 @@ import type {
   UpdateProtocolProgressRequest,
   ProtocolTemplate,
   LogProtocolProgressRequest,
+  ProtocolFullProgress,
+  GeneratePlanRequest,
+  GeneratePlanResponse,
+  StartWithPlanRequest,
+  StartWithPlanResponse,
 } from '../types'
 
 // Re-export types from types.ts for barrel compatibility
@@ -22,6 +27,11 @@ export type {
   ImplementationStep,
   ImplementationGuide,
   ProtocolStat,
+  ProtocolFullProgress,
+  GeneratePlanRequest,
+  GeneratePlanResponse,
+  StartWithPlanRequest,
+  StartWithPlanResponse,
 } from '../types'
 
 // Extended params for active protocols
@@ -39,6 +49,7 @@ export const protocolKeys = {
   active: (params?: PaginationParams) => [...protocolKeys.all, 'active', params] as const,
   activeDetail: (id: string) => [...protocolKeys.all, 'active-detail', id] as const,
   library: () => [...protocolKeys.all, 'library'] as const,
+  fullProgress: (slug: string) => [...protocolKeys.all, 'full-progress', slug] as const,
 }
 
 // =====================================================
@@ -116,6 +127,69 @@ export function useLogProtocolProgress() {
   })
 }
 
+/**
+ * Get full progress for an active protocol by slug
+ * GET /api/v2/members/protocols/{slug}/full-progress
+ */
+export function useProtocolFullProgress(slug: string) {
+  return useQuery({
+    queryKey: protocolKeys.fullProgress(slug),
+    queryFn: async () => {
+      const res = await api.get<ProtocolFullProgress | { data: ProtocolFullProgress }>(
+        `/members/protocols/${slug}/full-progress`,
+      )
+      return unwrapData<ProtocolFullProgress>(res)!
+    },
+    enabled: !!slug,
+    retry: (failureCount, error) => !is404Error(error) && failureCount < 3,
+  })
+}
+
+/**
+ * Generate a plan from a protocol template (server-side)
+ * POST /api/v2/members/protocols/{slug}/generate-plan
+ */
+export function useGenerateProtocolPlan() {
+  return useMutation({
+    mutationFn: ({ slug, data }: { slug: string; data?: GeneratePlanRequest }) =>
+      api.post<GeneratePlanResponse>(`/members/protocols/${slug}/generate-plan`, data || {}),
+  })
+}
+
+/**
+ * Start a protocol with a full plan (goal + action items + KPIs) in one call
+ * POST /api/v2/members/protocols/{slug}/start-with-plan
+ */
+export function useStartProtocolWithPlan() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ slug, data }: { slug: string; data: StartWithPlanRequest }) =>
+      api.post<StartWithPlanResponse>(`/members/protocols/${slug}/start-with-plan`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: protocolKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['goals'] })
+      queryClient.invalidateQueries({ queryKey: ['kpis'] })
+    },
+  })
+}
+
+/**
+ * Get featured protocols from the library
+ * Uses GET /api/v2/members/protocols/library and filters by is_featured
+ */
+export function useFeaturedProtocols(limit = 4) {
+  return useQuery({
+    queryKey: protocolKeys.featured(),
+    queryFn: async () => {
+      const res = await api.get<ProtocolTemplate[] | { data: ProtocolTemplate[] }>('/members/protocols/library')
+      return safeArray<ProtocolTemplate>(res)
+        .filter((p) => p.is_featured)
+        .slice(0, limit)
+    },
+  })
+}
+
 // =====================================================
 // LEGACY HOOKS — use the hooks above for new code
 // =====================================================
@@ -166,16 +240,18 @@ export function useProtocolTemplate(slug: string) {
 }
 
 /**
- * Get user's active protocol by slug (filters client-side)
+ * Get user's active protocol by slug — uses direct backend endpoint
+ * GET /api/v2/members/protocols/active/{slug}
  */
 export function useActiveProtocolBySlug(slug: string) {
   return useQuery({
     queryKey: [...protocolKeys.all, 'active-by-slug', slug] as const,
     queryFn: async () => {
       try {
-        const res = await api.get<ActiveProtocol[] | { data: ActiveProtocol[] }>('/members/protocols/active')
-        const protocols = safeArray<ActiveProtocol>(res)
-        return protocols.find(p => p.protocol_slug === slug) || null
+        const res = await api.get<ActiveProtocol | { data: ActiveProtocol }>(
+          `/members/protocols/active/${slug}`,
+        )
+        return unwrapData<ActiveProtocol>(res) || null
       } catch (err) {
         if (is404Error(err)) return null
         throw err

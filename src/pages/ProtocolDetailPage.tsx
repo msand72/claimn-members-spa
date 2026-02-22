@@ -7,13 +7,13 @@ import type { PillarId } from '../lib/constants'
 import {
   useProtocol,
   useActiveProtocolBySlug,
-  useStartProtocol,
+  useProtocolFullProgress,
+  useGenerateProtocolPlan,
+  useStartProtocolWithPlan,
   usePauseProtocol,
   useResumeProtocol,
   useUpdateProtocolProgress,
   useGoals,
-  useCreateGoal,
-  useCreateActionItem,
   type ProtocolWeek,
   type ProtocolSection,
   type ImplementationStep,
@@ -22,6 +22,7 @@ import {
   type TrackingMethod,
   type SuccessMetric,
   type EmergencyProtocol,
+  type GeneratePlanResponse,
 } from '../lib/api/hooks'
 import {
   ChevronLeft,
@@ -50,7 +51,7 @@ import {
 import { cn } from '../lib/utils'
 import { AskExpertButton } from '../components/AskExpertButton'
 import { PlanBuilder } from '../components/PlanBuilder'
-import { generatePlanFromProtocol, getProtocolSlugFromGoal } from '../lib/protocol-plan'
+import { getProtocolSlugFromGoal, generatePlanFromProtocol } from '../lib/protocol-plan'
 import type { SuggestedGoal } from '../lib/protocol-plan'
 
 // Icon mapping for sections
@@ -619,7 +620,8 @@ export function ProtocolDetailPage() {
   const [justStarted, setJustStarted] = useState(false)
   const [showPlanBuilder, setShowPlanBuilder] = useState(false)
   const [planError, setPlanError] = useState<string | null>(null)
-  const [isCreatingPlan, setIsCreatingPlan] = useState(false)
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false)
+  const [generatedPlanData, setGeneratedPlanData] = useState<GeneratePlanResponse | null>(null)
 
   // API hooks
   const {
@@ -633,21 +635,28 @@ export function ProtocolDetailPage() {
     isLoading: isLoadingActive,
   } = useActiveProtocolBySlug(slug || '')
 
-  const startMutation = useStartProtocol()
+  // Full progress data (richer than activeProtocol alone)
+  const { data: fullProgress } = useProtocolFullProgress(
+    activeProtocol ? (slug || '') : '',
+  )
+
+  const generatePlan = useGenerateProtocolPlan()
+  const startWithPlan = useStartProtocolWithPlan()
   const pauseMutation = usePauseProtocol()
   const resumeMutation = useResumeProtocol()
   const progressMutation = useUpdateProtocolProgress()
-  const createGoal = useCreateGoal()
-  const createActionItem = useCreateActionItem()
 
   // Fetch goals to find ones linked to this protocol
+  // Uses full-progress goal first, falls back to tag-matching for legacy protocols
   const { data: goalsData } = useGoals()
   const linkedGoals = useMemo(() => {
+    // If full-progress has a linked goal, use that directly
+    if (fullProgress?.goal) return [fullProgress.goal]
     if (!goalsData || !slug) return []
     const goals = Array.isArray(goalsData) ? goalsData : goalsData?.data
     if (!Array.isArray(goals)) return []
     return goals.filter((g) => getProtocolSlugFromGoal(g.description) === slug)
-  }, [goalsData, slug])
+  }, [fullProgress?.goal, goalsData, slug])
 
   const isLoading = isLoadingProtocol || isLoadingActive
   const error = protocolError
@@ -657,60 +666,87 @@ export function ProtocolDetailPage() {
     ? (progressMutation.variables?.data.task_id ?? null)
     : null
 
-  // Generate suggested plan from protocol template
-  const suggestedPlan = useMemo(() => {
+  // Map server-generated or client-generated plan to PlanBuilder format
+  const suggestedPlan = useMemo((): SuggestedGoal[] => {
+    // If we have server-generated plan data, use it
+    if (generatedPlanData) {
+      const sg = generatedPlanData.suggested_goal
+      return [{
+        title: sg.title,
+        description: sg.description,
+        pillar_id: protocol?.pillar as PillarId | undefined,
+        target_date: sg.target_date,
+        actionItems: (generatedPlanData.suggested_action_items || []).map((item) => ({
+          title: item.title,
+          description: item.description,
+          priority: item.priority || 'medium',
+        })),
+      }]
+    }
+    // Fallback to client-side generation
     if (!protocol) return []
     return generatePlanFromProtocol(protocol)
-  }, [protocol])
+  }, [generatedPlanData, protocol])
 
-  const handleStartClick = () => {
+  const handleStartClick = async () => {
+    if (!slug) return
     setPlanError(null)
-    setShowPlanBuilder(true)
+    setIsGeneratingPlan(true)
+
+    try {
+      // Try server-side plan generation first
+      const plan = await generatePlan.mutateAsync({
+        slug,
+        data: { duration_weeks: protocol?.duration_weeks },
+      })
+      setGeneratedPlanData(plan)
+    } catch {
+      // Fall back to client-side plan generation (suggestedPlan memo handles it)
+      setGeneratedPlanData(null)
+    } finally {
+      setIsGeneratingPlan(false)
+      setShowPlanBuilder(true)
+    }
   }
 
   const handleConfirmPlan = async (goals: SuggestedGoal[]) => {
     if (!slug || !protocol) return
-    setIsCreatingPlan(true)
     setPlanError(null)
 
-    try {
-      // 1. Create goals and their action items
-      for (const goal of goals) {
-        const createdGoal = await createGoal.mutateAsync({
-          title: goal.title,
-          description: goal.description,
-          pillar_id: goal.pillar_id,
-          target_date: goal.target_date,
-        })
+    const goal = goals[0]
+    if (!goal) return
 
-        // Create action items for this goal
-        for (const item of goal.actionItems) {
-          await createActionItem.mutateAsync({
+    try {
+      await startWithPlan.mutateAsync({
+        slug,
+        data: {
+          goal: {
+            title: goal.title,
+            description: goal.description,
+            target_date: goal.target_date,
+          },
+          action_items: goal.actionItems.map((item) => ({
             title: item.title,
             description: item.description,
-            goal_id: createdGoal.id,
             priority: item.priority,
-          })
-        }
-      }
-
-      // 2. Start the protocol (only if not already started)
-      if (!activeProtocol) {
-        await startMutation.mutateAsync({
-          protocol_slug: slug,
-          protocol_name: protocol.title || slug,
-          pillar: protocol.pillar,
-          duration_weeks: protocol.duration_weeks,
-        })
-        setJustStarted(true)
-      }
-
+            accepted: true,
+          })),
+          kpis: (generatedPlanData?.suggested_kpis || []).map((kpi) => ({
+            name: kpi.name,
+            type: kpi.type,
+            unit: kpi.unit,
+            target_value: kpi.target_value,
+            frequency: kpi.frequency,
+            accepted: true,
+          })),
+        },
+      })
+      setJustStarted(true)
       setShowPlanBuilder(false)
+      setGeneratedPlanData(null)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An unexpected error occurred'
       setPlanError(`Failed to create plan: ${msg}`)
-    } finally {
-      setIsCreatingPlan(false)
     }
   }
 
@@ -978,9 +1014,12 @@ export function ProtocolDetailPage() {
                 <p className="text-sm text-kalkvit/60 mb-3">
                   Create goals and action items from this protocol so you know exactly what to do each step of the way.
                 </p>
-                <GlassButton variant="primary" onClick={handleStartClick}>
-                  <ListChecks className="w-4 h-4" />
-                  Create Plan
+                <GlassButton variant="primary" onClick={handleStartClick} disabled={isGeneratingPlan}>
+                  {isGeneratingPlan ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" />Generating Plan...</>
+                  ) : (
+                    <><ListChecks className="w-4 h-4" />Create Plan</>
+                  )}
                 </GlassButton>
               </div>
             </div>
@@ -1094,6 +1133,43 @@ export function ProtocolDetailPage() {
           </div>
         )}
 
+        {/* Protocol KPIs (from full-progress) */}
+        {hasStarted && fullProgress?.kpis && fullProgress.kpis.length > 0 && (
+          <div className="mb-8">
+            <h2 className="font-display text-lg font-semibold text-kalkvit mb-4">
+              Protocol KPIs
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {fullProgress.kpis.map((kpi) => (
+                <Link key={kpi.id} to="/kpis">
+                  <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-koppar/10 flex items-center justify-center">
+                        <TrendingUp className="w-4 h-4 text-koppar" />
+                      </div>
+                      <p className="font-medium text-kalkvit text-sm">{kpi.name}</p>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-display text-xl font-bold text-kalkvit">
+                        {kpi.current_value}
+                      </span>
+                      <span className="text-kalkvit/40 text-sm">
+                        / {kpi.target_value} {kpi.unit}
+                      </span>
+                    </div>
+                    <div className="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-koppar rounded-full transition-all"
+                        style={{ width: `${Math.min((kpi.current_value / (kpi.target_value || 1)) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </GlassCard>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Button */}
         {!hasStarted && (
           <div className="text-center py-8">
@@ -1101,9 +1177,13 @@ export function ProtocolDetailPage() {
               variant="primary"
               className="px-8 py-3"
               onClick={handleStartClick}
+              disabled={isGeneratingPlan}
             >
-              <Play className="w-5 h-5" />
-              Start This Protocol
+              {isGeneratingPlan ? (
+                <><Loader2 className="w-5 h-5 animate-spin" />Generating Plan...</>
+              ) : (
+                <><Play className="w-5 h-5" />Start This Protocol</>
+              )}
             </GlassButton>
             <p className="text-kalkvit/50 text-sm mt-3">
               Begin your transformation journey with this evidence-based protocol
@@ -1115,11 +1195,11 @@ export function ProtocolDetailPage() {
         {protocol && (
           <PlanBuilder
             isOpen={showPlanBuilder}
-            onClose={() => setShowPlanBuilder(false)}
+            onClose={() => { setShowPlanBuilder(false); setGeneratedPlanData(null) }}
             protocolTitle={protocol.title}
             suggestedGoals={suggestedPlan}
             onConfirm={handleConfirmPlan}
-            isSubmitting={isCreatingPlan}
+            isSubmitting={startWithPlan.isPending}
             error={planError}
           />
         )}

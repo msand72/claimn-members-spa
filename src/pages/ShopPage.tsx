@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
 import { ArrowRight, Sparkles, BookOpen, Users, UserCheck, GraduationCap, Loader2 } from 'lucide-react'
-import { useProtocolLibrary, useCircles, useExperts, usePrograms } from '../lib/api/hooks'
+import { useProtocols, useCircles, useExperts, usePrograms } from '../lib/api/hooks'
 
 interface ShopSection {
   id: string
@@ -54,7 +54,7 @@ function ShopSectionCard({ section }: { section: ShopSection }) {
 
 export function ShopPage() {
   // Fetch data from available API endpoints
-  const { data: protocols, isLoading: protocolsLoading } = useProtocolLibrary()
+  const { data: protocols, isLoading: protocolsLoading } = useProtocols()
   const { data: circlesData, isLoading: circlesLoading } = useCircles({ limit: 1 })
   const { data: expertsData, isLoading: expertsLoading } = useExperts({ limit: 1 })
   const { data: programsData, isLoading: programsLoading } = usePrograms({ limit: 1 })
@@ -126,21 +126,6 @@ export function ShopPage() {
           ))}
         </div>
 
-        {/* Featured Content Placeholder */}
-        <GlassCard variant="accent" className="mt-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-koppar" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-kalkvit mb-1">Featured Collections</h3>
-              <p className="text-sm text-kalkvit/60">
-                Curated bundles and special offers are on the way. Stay tuned for exclusive deals on protocols, coaching packages, and premium memberships.
-              </p>
-              <GlassBadge variant="default" className="mt-2 text-xs">Planned</GlassBadge>
-            </div>
-          </div>
-        </GlassCard>
       </div>
     </MainLayout>
   )

@@ -20,7 +20,8 @@ import {
   useEnrolledPrograms,
   useDashboardStats,
   useGoals,
-  useActiveProtocols,
+  useMyActiveProtocols,
+  useFeaturedProtocols,
   safeArray,
   type FeedPost,
   type Expert,
@@ -29,8 +30,11 @@ import {
   type UserProgram,
   type Goal,
   type ActiveProtocol,
+  type ProtocolTemplate,
 } from '../lib/api'
 import type { ClaimnEvent } from '../lib/api/hooks/useEvents'
+import { PILLARS } from '../lib/constants'
+import type { PillarId } from '../lib/constants'
 import {
   Heart,
   MessageCircle,
@@ -278,7 +282,7 @@ function ActiveGoals() {
 // ── ActiveProtocolsList ──────────────────────────────
 
 function ActiveProtocolsList() {
-  const { data, isLoading } = useActiveProtocols({ status: 'active' })
+  const { data, isLoading } = useMyActiveProtocols({ status: 'active' })
   const protocols: ActiveProtocol[] = safeArray<ActiveProtocol>(data)
 
   if (!isLoading && protocols.length === 0) return null
@@ -326,6 +330,68 @@ function ActiveProtocolsList() {
               </span>
             </Link>
           ))}
+        </div>
+      )}
+    </GlassCard>
+  )
+}
+
+// ── FeaturedProtocols ────────────────────────────────
+
+function FeaturedProtocols() {
+  const { data, isLoading } = useFeaturedProtocols(4)
+  const protocols: ProtocolTemplate[] = data ?? []
+
+  if (!isLoading && protocols.length === 0) return null
+
+  return (
+    <GlassCard variant="base">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-koppar" />
+          Featured Protocols
+        </h2>
+        <Link to="/protocols" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+          Browse all <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="space-y-2 p-3 rounded-xl bg-white/[0.03]">
+              <Skeleton className="w-24 h-3" />
+              <Skeleton className="w-full h-3.5" />
+              <Skeleton className="w-3/4 h-3" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {protocols.map((p) => {
+            const pillarId = (p.pillar || 'identity') as PillarId
+            const pillar = PILLARS[pillarId]
+            return (
+              <Link
+                key={p.slug}
+                to={`/protocols/${p.slug}`}
+                className="group p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <GlassBadge variant="koppar" className="text-[10px]">
+                    {pillar?.name || p.pillar}
+                  </GlassBadge>
+                </div>
+                <h4 className="text-sm font-medium text-kalkvit group-hover:text-koppar transition-colors line-clamp-1">
+                  {p.name || p.title}
+                </h4>
+                {p.headline_stat && (
+                  <p className="text-xs text-koppar/80 mt-0.5">{p.headline_stat}</p>
+                )}
+                <p className="text-xs text-kalkvit/50 mt-1 line-clamp-2">{p.description}</p>
+              </Link>
+            )
+          })}
         </div>
       )}
     </GlassCard>
@@ -734,6 +800,9 @@ export function HubPage() {
             </PageErrorBoundary>
             <PageErrorBoundary section="ActiveProtocols">
               <ActiveProtocolsList />
+            </PageErrorBoundary>
+            <PageErrorBoundary section="FeaturedProtocols">
+              <FeaturedProtocols />
             </PageErrorBoundary>
             <PageErrorBoundary section="RecentFeedPosts">
               <RecentFeedPosts />

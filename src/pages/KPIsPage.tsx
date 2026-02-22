@@ -10,7 +10,7 @@ import {
   GlassSelect,
 } from '../components/ui'
 import { KPI_TYPES, TRACKING_FREQUENCIES, PILLARS, PILLAR_IDS, LOWER_IS_BETTER_KPIS } from '../lib/constants'
-import { useKPIs, useLogKPI, useCreateKPI, useDeleteKPI, useGoals } from '../lib/api/hooks'
+import { useKPIs, useKPISummary, useLogKPI, useCreateKPI, useDeleteKPI, useGoals } from '../lib/api/hooks'
 import type { KPI } from '../lib/api/types'
 import {
   TrendingUp,
@@ -18,7 +18,6 @@ import {
   Plus,
   Activity,
   Moon,
-  Flame,
   Calendar,
   ChevronRight,
   BarChart3,
@@ -174,6 +173,7 @@ export function KPIsPage() {
 
   // API hooks
   const { data: kpisData, isLoading, error } = useKPIs()
+  const { data: kpiSummary } = useKPISummary()
   const logKPI = useLogKPI()
   const createKPI = useCreateKPI()
   const deleteKPI = useDeleteKPI()
@@ -255,8 +255,9 @@ export function KPIsPage() {
     return kpi.type === filter
   })
 
-  // Stats
-  const kpisOnTarget = kpis.filter((k) => isKpiOnTarget(k.current_value, k.target_value)).length
+  // Stats — use server-side summary when available, fall back to client-side
+  const kpisOnTarget = kpiSummary?.on_track ?? kpis.filter((k) => isKpiOnTarget(k.current_value, k.target_value)).length
+  const needsAttention = kpiSummary?.needs_attention ?? 0
   const avgProgress = kpis.length > 0
     ? Math.round(
         kpis.reduce((sum, k) => sum + calculateKpiProgress(k.current_value, k.target_value), 0) / kpis.length
@@ -301,7 +302,7 @@ export function KPIsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
             <BarChart3 className="w-6 h-6 text-koppar mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">{kpis.length}</p>
+            <p className="font-display text-2xl font-bold text-kalkvit">{kpiSummary?.total_kpis ?? kpis.length}</p>
             <p className="text-xs text-kalkvit/50">Active KPIs</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
@@ -315,9 +316,9 @@ export function KPIsPage() {
             <p className="text-xs text-kalkvit/50">Avg Progress</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <Flame className="w-6 h-6 text-tegelrod mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">--</p>
-            <p className="text-xs text-kalkvit/50">Best Streak</p>
+            <AlertCircle className="w-6 h-6 text-tegelrod mx-auto mb-2" />
+            <p className="font-display text-2xl font-bold text-kalkvit">{needsAttention}</p>
+            <p className="text-xs text-kalkvit/50">Needs Attention</p>
           </GlassCard>
         </div>
 

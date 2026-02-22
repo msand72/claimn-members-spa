@@ -7,6 +7,7 @@ import type {
   KPI,
   KPILog,
   LogKPIRequest,
+  KPISummary,
 } from '../types'
 
 // Query keys
@@ -24,6 +25,7 @@ export const kpiKeys = {
   detail: (id: string) => [...kpiKeys.all, 'detail', id] as const,
   logs: (kpiId: string, params?: PaginationParams) =>
     [...kpiKeys.all, 'logs', kpiId, params] as const,
+  summary: () => [...kpiKeys.all, 'summary'] as const,
 }
 
 // =====================================================
@@ -200,5 +202,16 @@ export function useDeleteKPI() {
       queryClient.invalidateQueries({ queryKey: kpiKeys.all })
       queryClient.invalidateQueries({ queryKey: goalKeys.all })
     },
+  })
+}
+
+/**
+ * Get KPI summary stats
+ * GET /api/v2/members/kpis/summary
+ */
+export function useKPISummary() {
+  return useQuery({
+    queryKey: kpiKeys.summary(),
+    queryFn: () => api.get<KPISummary>('/members/kpis/summary'),
   })
 }

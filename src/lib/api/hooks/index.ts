@@ -88,6 +88,7 @@ export {
   useCreateKPI,
   useLogKPI,
   useDeleteKPI,
+  useKPISummary,
 } from './useGoals'
 
 // Action Items
@@ -110,6 +111,10 @@ export {
   useProtocol,
   useMyActiveProtocols,
   useLogProtocolProgress,
+  useProtocolFullProgress,
+  useGenerateProtocolPlan,
+  useStartProtocolWithPlan,
+  useFeaturedProtocols,
   // Legacy hooks (deprecated — see JSDoc in useProtocols.ts)
   useActiveProtocols,
   useProtocolLibrary,
@@ -134,6 +139,11 @@ export {
   type TrackingMethod,
   type SuccessMetric,
   type EmergencyProtocol,
+  type ProtocolFullProgress,
+  type GeneratePlanRequest,
+  type GeneratePlanResponse,
+  type StartWithPlanRequest,
+  type StartWithPlanResponse,
 } from './useProtocols'
 
 // Experts & Coaching
