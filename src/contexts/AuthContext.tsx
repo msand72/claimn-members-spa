@@ -68,6 +68,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function init() {
       try {
+        // Check for OAuth tokens from redirect (stored by App.tsx hash handler)
+        const oauthToken = sessionStorage.getItem('oauth_access_token')
+        if (oauthToken) {
+          const oauthRefresh = sessionStorage.getItem('oauth_refresh_token') || ''
+          const oauthExpiresAt = Number(sessionStorage.getItem('oauth_expires_at') || '0')
+          sessionStorage.removeItem('oauth_access_token')
+          sessionStorage.removeItem('oauth_refresh_token')
+          sessionStorage.removeItem('oauth_expires_at')
+
+          // Exchange Supabase OAuth token for Go JWT
+          let accessToken = oauthToken
+          let expiresAt = oauthExpiresAt
+          let userType: UserType = 'member'
+
+          try {
+            const exchangeResponse = await exchangeToken(oauthToken)
+            accessToken = exchangeResponse.access_token
+            expiresAt = exchangeResponse.expires_at
+            userType = exchangeResponse.user.user_type
+          } catch {
+            // Fall back to Supabase token if exchange fails
+          }
+
+          const userData = await fetchCurrentUser(accessToken)
+          const mergedUser = { ...userData, user_type: userType || userData.user_type } as AuthUser
+          setUser(mergedUser)
+          setSession({
+            access_token: accessToken,
+            refresh_token: oauthRefresh,
+            expires_at: expiresAt,
+          })
+          scheduleRefresh()
+          setLoading(false)
+          return
+        }
+
         const token = await getAccessToken()
         if (token) {
           const userData = await fetchCurrentUser(token)

@@ -263,13 +263,27 @@ const router = createBrowserRouter([
   },
 ])
 
-// Detect Supabase recovery redirect: #access_token=...&type=recovery
+// Detect Supabase auth redirects: #access_token=...&type=recovery|signup|magiclink
 if (window.location.hash) {
   const hashParams = new URLSearchParams(window.location.hash.substring(1))
-  if (hashParams.get('type') === 'recovery' && hashParams.get('access_token')) {
-    sessionStorage.setItem('recovery_token', hashParams.get('access_token')!)
+  const hashType = hashParams.get('type')
+  const accessToken = hashParams.get('access_token')
+
+  if (accessToken && hashType === 'recovery') {
+    // Password recovery — store token and show reset form
+    sessionStorage.setItem('recovery_token', accessToken)
     window.location.hash = ''
     window.location.replace('/reset-password')
+  } else if (accessToken && (hashType === 'signup' || hashType === 'magiclink')) {
+    // OAuth login — store tokens for AuthContext to pick up
+    const refreshToken = hashParams.get('refresh_token') || ''
+    const expiresIn = parseInt(hashParams.get('expires_in') || '3600', 10)
+    const expiresAt = Math.floor(Date.now() / 1000) + expiresIn
+    sessionStorage.setItem('oauth_access_token', accessToken)
+    sessionStorage.setItem('oauth_refresh_token', refreshToken)
+    sessionStorage.setItem('oauth_expires_at', String(expiresAt))
+    window.location.hash = ''
+    window.location.replace('/')
   }
 }
 
