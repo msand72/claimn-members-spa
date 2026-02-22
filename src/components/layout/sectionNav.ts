@@ -25,6 +25,7 @@ import {
   FolderOpen,
   Tag,
   ArrowUpCircle,
+  Zap,
 } from 'lucide-react'
 
 export interface SectionNavItem {
@@ -110,6 +111,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     mode: 'tabs',
     items: [
       { to: '/programs', label: 'My Programs', icon: GraduationCap },
+      { to: '/programs/sprints', label: 'Sprints', icon: Zap },
       { to: '/programs/reviews', label: 'Reviews', icon: ClipboardCheck },
     ],
     allPaths: ['/programs', '/programs/sprints', '/programs/reviews'],
@@ -125,7 +127,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
       { to: '/shop/circles', label: 'Circles', icon: Award },
       { to: '/shop/upgrade', label: 'Upgrade', icon: ArrowUpCircle },
     ],
-    allPaths: ['/shop', '/shop/protocols', '/shop/circles', '/shop/upgrade'],
+    allPaths: ['/shop', '/shop/protocols', '/shop/circles', '/shop/upgrade', '/shop/success'],
   },
 }
 

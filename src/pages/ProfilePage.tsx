@@ -270,13 +270,16 @@ export function ProfilePage() {
                   onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
                   disabled={!isEditing}
                 />
-                <GlassInput
-                  label="Email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={user?.email || ''}
-                  disabled
-                />
+                <div>
+                  <GlassInput
+                    label="Email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={user?.email || ''}
+                    disabled
+                  />
+                  <p className="text-xs text-kalkvit/40 mt-1">Contact support to change your email</p>
+                </div>
                 <GlassInput
                   label="City"
                   placeholder="Your city"

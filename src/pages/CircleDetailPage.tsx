@@ -76,7 +76,7 @@ function PostCard({ post }: { post: CirclePost }) {
   }
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/circles/${post.circle_id || ''}/posts/${post.id}`
+    const url = `${window.location.origin}/circles/${post.circle_id || ''}`
     try {
       await navigator.clipboard.writeText(url)
       setShareCopied(true)
