@@ -15,6 +15,40 @@ export const billingKeys = {
   checkout: () => [...billingKeys.all, 'checkout'] as const,
   verify: (sessionId: string) => [...billingKeys.all, 'verify', sessionId] as const,
   invoices: () => [...billingKeys.all, 'invoices'] as const,
+  plans: () => [...billingKeys.all, 'plans'] as const,
+}
+
+// --- Plans API types (returned by GET /members/billing/plans) ---
+
+export interface PlanPrice {
+  price_id: string
+  amount: number
+  amount_cents: number
+  currency: string
+  interval: string
+}
+
+export interface PlanInfo {
+  tier: string
+  name: string
+  description: string
+  monthly: PlanPrice | null
+  annual: PlanPrice | null
+  features: string[]
+}
+
+export interface ExpertSessionPriceInfo {
+  duration: number
+  price_id: string
+  amount: number
+  amount_cents: number
+  currency: string
+  label: string
+}
+
+export interface PlansResponse {
+  plans: PlanInfo[]
+  expert_sessions: ExpertSessionPriceInfo[]
 }
 
 export interface CheckoutRequest {
@@ -112,5 +146,17 @@ export function useBillingPortal() {
   return useMutation({
     mutationFn: () =>
       api.post<{ url: string }>('/members/billing/portal'),
+  })
+}
+
+/**
+ * Fetch available membership plans and expert session prices from the backend.
+ * Prices are fetched from Stripe via the API — the frontend never hardcodes amounts.
+ */
+export function usePlans() {
+  return useQuery({
+    queryKey: billingKeys.plans(),
+    queryFn: () => api.get<PlansResponse>('/members/billing/plans'),
+    staleTime: 60 * 60 * 1000, // 1 hour — prices rarely change
   })
 }

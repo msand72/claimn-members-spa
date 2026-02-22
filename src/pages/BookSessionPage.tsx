@@ -2,18 +2,11 @@ import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect, GlassModal, GlassModalFooter } from '../components/ui'
-import { useExperts, useExpertAvailability, useBookSession, useCheckout } from '../lib/api/hooks'
+import { useExperts, useExpertAvailability, useBookSession, useCheckout, usePlans } from '../lib/api/hooks'
 import type { Expert } from '../lib/api/types'
-import { EXPERT_SESSION_PRICES, type ExpertSessionDuration } from '../config/stripe-prices'
 import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { isAllowedExternalUrl, safeOpenUrl } from '../lib/url-validation'
-
-const sessionTypes = [
-  { value: '45', label: `45 minutes — €${EXPERT_SESSION_PRICES[45].amount}` },
-  { value: '60', label: `60 minutes — €${EXPERT_SESSION_PRICES[60].amount}` },
-  { value: '90', label: `90 minutes — €${EXPERT_SESSION_PRICES[90].amount}` },
-]
 
 function ExpertCardSkeleton() {
   return (
@@ -38,10 +31,12 @@ function ExpertCard({
   expert,
   isSelected,
   onSelect,
+  basePrice,
 }: {
   expert: Expert
   isSelected: boolean
   onSelect: () => void
+  basePrice: number
 }) {
   const initials = expert.name
     .split(' ')
@@ -88,8 +83,12 @@ function ExpertCard({
             </div>
           </div>
           <div className="text-right">
-            <p className="font-display text-xl font-bold text-kalkvit">€{EXPERT_SESSION_PRICES[60].amount}</p>
-            <p className="text-xs text-kalkvit/50">/60 min</p>
+            {basePrice > 0 && (
+              <>
+                <p className="font-display text-xl font-bold text-kalkvit">€{basePrice}</p>
+                <p className="text-xs text-kalkvit/50">/60 min</p>
+              </>
+            )}
             {expert.availability && (
               <p className="text-xs text-skogsgron mt-2">Next: {expert.availability}</p>
             )}
@@ -118,6 +117,32 @@ export function BookSessionPage() {
   // Fetch experts
   const { data: expertsData, isLoading: isLoadingExperts, error: expertsError } = useExperts()
   const experts = Array.isArray(expertsData?.data) ? expertsData.data : []
+
+  // Fetch pricing from backend
+  const { data: plansData } = usePlans()
+  const expertSessions = plansData?.expert_sessions || []
+
+  // Build session type options from API data
+  const sessionTypes = useMemo(() =>
+    expertSessions.map((s) => ({
+      value: String(s.duration),
+      label: `${s.label} — €${s.amount}`,
+    })),
+    [expertSessions]
+  )
+
+  // Get current session price info
+  const sessionDuration = parseInt(sessionType)
+  const sessionPrice = useMemo(() =>
+    expertSessions.find((s) => s.duration === sessionDuration) || null,
+    [expertSessions, sessionDuration]
+  )
+
+  // Base 60min price for expert cards
+  const base60Price = useMemo(() => {
+    const s60 = expertSessions.find((s) => s.duration === 60)
+    return s60?.amount || 0
+  }, [expertSessions])
 
   // Find selected expert
   const selectedExpert = useMemo(
@@ -192,13 +217,10 @@ export function BookSessionPage() {
     return matching.map((a) => ({ time: a.time, available: true }))
   }, [selectedDate, availability])
 
-  const sessionDuration = parseInt(sessionType) as ExpertSessionDuration
-  const sessionPrice = EXPERT_SESSION_PRICES[sessionDuration] || EXPERT_SESSION_PRICES[60]
-
   const handleBook = async () => {
     if (!selectedExpert || !selectedDate || !selectedTime) return
 
-    const priceId = sessionPrice.priceId
+    const priceId = sessionPrice?.price_id
     if (!priceId) {
       setBookingError('Checkout is not configured for this session type. Please contact support.')
       return
@@ -300,6 +322,7 @@ export function BookSessionPage() {
                     setSelectedDate(null)
                     setSelectedTime(null)
                   }}
+                  basePrice={base60Price}
                 />
               ))
             )}
@@ -522,7 +545,7 @@ export function BookSessionPage() {
                     <div className="flex items-center justify-between pt-3 border-t border-white/10">
                       <span className="text-kalkvit/60">Total</span>
                       <span className="font-display text-2xl font-bold text-kalkvit">
-                        €{sessionPrice.amount}
+                        €{sessionPrice?.amount || 0}
                       </span>
                     </div>
                   </div>
@@ -546,7 +569,7 @@ export function BookSessionPage() {
                           {checkoutMutation.isPending ? 'Redirecting...' : 'Booking...'}
                         </>
                       ) : (
-                        `Pay €${sessionPrice.amount} & Book`
+                        `Pay €${sessionPrice?.amount || 0} & Book`
                       )}
                     </GlassButton>
                   </GlassModalFooter>
