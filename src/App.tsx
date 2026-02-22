@@ -263,9 +263,16 @@ const router = createBrowserRouter([
   },
 ])
 
-// Detect Supabase/GoTrue auth redirects: #access_token=...&type=recovery|signup|magiclink
+// Detect Supabase/GoTrue auth errors and redirects
 ;(function handleAuthRedirect() {
-  console.log('[Auth Redirect] Page load:', { href: window.location.href, hash: !!window.location.hash })
+  // Check for GoTrue error in query params (e.g. ?error=server_error&error_description=...)
+  const searchParams = new URLSearchParams(window.location.search)
+  const authError = searchParams.get('error_description') || searchParams.get('error')
+  if (authError) {
+    sessionStorage.setItem('oauth_error', authError.replace(/\+/g, ' '))
+    window.history.replaceState(null, '', '/login')
+  }
+
   if (!window.location.hash) return
 
   const rawHash = window.location.hash.substring(1)
