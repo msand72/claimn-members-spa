@@ -1,10 +1,20 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { api } from '../client'
 
+export interface Invoice {
+  id: string
+  amount: number
+  currency: string
+  status: string
+  invoice_url: string
+  created_at: string
+}
+
 export const billingKeys = {
   all: ['billing'] as const,
   checkout: () => [...billingKeys.all, 'checkout'] as const,
   verify: (sessionId: string) => [...billingKeys.all, 'verify', sessionId] as const,
+  invoices: () => [...billingKeys.all, 'invoices'] as const,
 }
 
 export interface CheckoutRequest {
@@ -44,5 +54,25 @@ export function useVerifyCheckout(sessionId: string) {
       }),
     enabled: !!sessionId,
     retry: false,
+  })
+}
+
+export function useInvoices() {
+  return useQuery({
+    queryKey: billingKeys.invoices(),
+    queryFn: async () => {
+      const data = await api.get<{ invoices?: Invoice[]; data?: Invoice[] }>(
+        '/members/billing/invoices',
+      )
+      const list = data?.invoices ?? data?.data
+      return Array.isArray(list) ? list : []
+    },
+  })
+}
+
+export function useBillingPortal() {
+  return useMutation({
+    mutationFn: () =>
+      api.post<{ url: string }>('/members/billing/portal'),
   })
 }
