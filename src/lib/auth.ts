@@ -193,7 +193,7 @@ export async function forgotPassword(email: string): Promise<void> {
   const res = await authFetch(`${AUTH_BASE()}/forgot-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, redirect_to: 'https://members.claimn.co' }),
   })
 
   if (!res.ok) {
@@ -206,7 +206,7 @@ export async function resetPassword(token: string, password: string): Promise<vo
   const res = await authFetch(`${AUTH_BASE()}/reset-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, password }),
+    body: JSON.stringify({ access_token: token, new_password: password }),
   })
 
   if (!res.ok) {

@@ -263,6 +263,16 @@ const router = createBrowserRouter([
   },
 ])
 
+// Detect Supabase recovery redirect: #access_token=...&type=recovery
+if (window.location.hash) {
+  const hashParams = new URLSearchParams(window.location.hash.substring(1))
+  if (hashParams.get('type') === 'recovery' && hashParams.get('access_token')) {
+    sessionStorage.setItem('recovery_token', hashParams.get('access_token')!)
+    window.location.hash = ''
+    window.location.replace('/reset-password')
+  }
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
