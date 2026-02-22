@@ -265,7 +265,7 @@ const router = createBrowserRouter([
 
 // Detect Supabase/GoTrue auth errors and redirects
 ;(function handleAuthRedirect() {
-  // Check for GoTrue error in query params (e.g. ?error=server_error&error_description=...)
+  // GoTrue returns errors as query params (e.g. ?error=server_error&error_description=...)
   const searchParams = new URLSearchParams(window.location.search)
   const authError = searchParams.get('error_description') || searchParams.get('error')
   if (authError) {

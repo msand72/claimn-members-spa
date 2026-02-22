@@ -82,22 +82,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           let accessToken = oauthToken
           let expiresAt = oauthExpiresAt
           let userType: UserType = 'member'
-          let exchangeFailed = false
 
           try {
             const exchangeResponse = await exchangeToken(oauthToken)
             accessToken = exchangeResponse.access_token
             expiresAt = exchangeResponse.expires_at
             userType = exchangeResponse.user.user_type
-            console.log('[OAuth] Exchange OK:', { userType, email: exchangeResponse.user.email })
-          } catch (err) {
-            exchangeFailed = true
-            console.error('[OAuth] Exchange failed:', err)
+          } catch {
+            // Exchange failed — fall back to Supabase token
           }
 
           // Block guest users — no active subscription
           if (userType === 'guest') {
-            console.warn('[OAuth] Blocked: user_type is guest')
             await authLogout()
             sessionStorage.setItem(
               'oauth_error',
@@ -109,7 +105,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           try {
             const userData = await fetchCurrentUser(accessToken)
-            console.log('[OAuth] User fetched:', { id: userData.id, email: userData.email, user_type: userData.user_type, exchangeFailed })
             const mergedUser = { ...userData, user_type: userType || userData.user_type } as AuthUser
             // Persist tokens to localStorage so session survives page reloads
             storeTokens({
@@ -124,9 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               expires_at: expiresAt,
             })
             scheduleRefresh()
-          } catch (err) {
+          } catch {
             // User not found in backend — surface error to login page
-            console.error('[OAuth] fetchCurrentUser failed:', err)
             await authLogout()
             sessionStorage.setItem(
               'oauth_error',
