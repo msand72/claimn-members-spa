@@ -37,29 +37,14 @@ Members Portal SPA - React 19 + Vite application for CLAIM'N members to access t
 
 When backend changes are needed (new endpoints, schema changes, bug fixes, missing fields), you MUST:
 
-1. **Write a prompt file** in `/Users/maxsandberg/projects/server-infra/AGENT_PROMPT.md`
-2. The prompt file should contain a clear, actionable description that the backend Claude Code agent can execute independently, including:
+1. **Write the prompt directly in the chat** so the user can copy it to the backend agent
+2. Do NOT write prompt files to `server-infra/AGENT_PROMPT.md` or any other file — output the prompt in the conversation
+3. The prompt should be a clear, actionable description that the backend Claude Code agent can execute independently, including:
    - **What** needs to change (specific files, structs, handlers)
    - **Why** (the frontend bug or feature that depends on this)
    - **Exact code changes** with file paths and line references
    - **Verification steps** (how to confirm the fix works)
-3. **Tell the user** that a backend prompt has been written and needs to be run on the backend machine
-
-Example format for `AGENT_PROMPT.md`:
-```markdown
-# Backend Change Request: [Short Title]
-
-## Context
-[Why this change is needed — what frontend feature/bug depends on it]
-
-## Changes Required
-
-### File: `claimn-api/handlers/v2/members/example_handlers.go`
-[Exact description of what to add/modify, with code snippets]
-
-## Verification
-[How to test the change works]
-```
+4. Do NOT explore or read the `server-infra` repo beyond what's needed to write the prompt
 
 ## General Guidelines
 

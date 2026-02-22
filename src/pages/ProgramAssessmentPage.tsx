@@ -77,16 +77,39 @@ function MultipleChoiceQuestion({
 }) {
   const options = question.options ?? []
 
+  // Detect "Select up to N" from description to enable multi-select
+  const maxSelectMatch = question.description?.match(/select up to (\d+)/i)
+  const maxSelections = maxSelectMatch ? parseInt(maxSelectMatch[1], 10) : 1
+  const isMulti = maxSelections > 1
+
+  const selected = isMulti && value ? value.split(',').filter(Boolean) : []
+
+  const handleClick = (optionValue: string) => {
+    if (!isMulti) {
+      onChange(optionValue)
+      return
+    }
+    const current = value ? value.split(',').filter(Boolean) : []
+    if (current.includes(optionValue)) {
+      const next = current.filter((v) => v !== optionValue)
+      onChange(next.join(','))
+    } else if (current.length < maxSelections) {
+      onChange([...current, optionValue].join(','))
+    }
+  }
+
   return (
     <div className="space-y-2">
       {options.map((option, idx) => {
         const optionValue = option.value
-        const isSelected = value === optionValue
+        const isSelected = isMulti
+          ? selected.includes(optionValue)
+          : value === optionValue
         return (
           <button
             key={optionValue || idx}
             type="button"
-            onClick={() => onChange(optionValue)}
+            onClick={() => handleClick(optionValue)}
             className={cn(
               'w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3',
               isSelected

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassInput } from '../components/ui'
 import { BackgroundPattern } from '../components/ui/BackgroundPattern'
 import { Lock, CheckCircle, Eye, EyeOff } from 'lucide-react'
@@ -7,8 +7,7 @@ import { resetPassword } from '../lib/auth'
 
 export function ResetPasswordPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const token = searchParams.get('token') || ''
+  const token = sessionStorage.getItem('recovery_token') || ''
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -47,6 +46,7 @@ export function ResetPasswordPage() {
 
     try {
       await resetPassword(token, password)
+      sessionStorage.removeItem('recovery_token')
       setIsSubmitted(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reset password. The link may have expired.')
