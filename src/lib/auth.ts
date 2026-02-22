@@ -41,7 +41,7 @@ export interface AuthUserResponse {
   avatar_url: string
 }
 
-function storeTokens(tokens: AuthTokens) {
+export function storeTokens(tokens: AuthTokens) {
   localStorage.setItem(TOKEN_KEY, tokens.access_token)
   localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token)
   localStorage.setItem(EXPIRES_AT_KEY, String(tokens.expires_at))

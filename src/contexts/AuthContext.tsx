@@ -5,6 +5,7 @@ import {
   getAccessToken,
   fetchCurrentUser,
   getStoredExpiresAt,
+  storeTokens,
   refreshToken,
   exchangeToken,
   type AuthUserResponse,
@@ -91,9 +92,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Exchange failed — fall back to Supabase token
           }
 
+          // Block guest users — no active subscription
+          if (userType === 'guest') {
+            await authLogout()
+            sessionStorage.setItem(
+              'oauth_error',
+              'No active subscription found for this account. Please purchase a membership first.',
+            )
+            setLoading(false)
+            return
+          }
+
           try {
             const userData = await fetchCurrentUser(accessToken)
             const mergedUser = { ...userData, user_type: userType || userData.user_type } as AuthUser
+            // Persist tokens to localStorage so session survives page reloads
+            storeTokens({
+              access_token: accessToken,
+              refresh_token: oauthRefresh,
+              expires_at: expiresAt,
+            })
             setUser(mergedUser)
             setSession({
               access_token: accessToken,
@@ -103,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             scheduleRefresh()
           } catch {
             // User not found in backend — surface error to login page
+            await authLogout()
             sessionStorage.setItem(
               'oauth_error',
               'No account found for this email. Please sign in with email and password, or contact support.',
@@ -174,6 +193,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (import.meta.env.DEV) {
           console.warn('Token exchange failed, using original token:', exchangeErr)
         }
+      }
+
+      // Block guest users — no active subscription
+      if (userType === 'guest') {
+        await authLogout()
+        return { error: new Error('No active subscription found for this account. Please purchase a membership first.') }
       }
 
       const userData = await fetchCurrentUser(accessToken)
