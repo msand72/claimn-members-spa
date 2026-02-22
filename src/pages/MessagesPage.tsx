@@ -81,7 +81,7 @@ export function MessagesPage() {
   // Use participant_id as conversation key — the API may use user-to-user addressing
   // since conversation_id can be empty from the backend
   const isRealConversation = !!selectedConversation?.id && !selectedConversation.id.startsWith('new-')
-  const conversationKey = isRealConversation ? (selectedConversation.id || selectedConversation.participant_id) : ''
+  const conversationKey = isRealConversation ? (selectedConversation.id || selectedConversation.participant_id || '') : ''
   const {
     data: messagesData,
     isLoading: messagesLoading,
@@ -428,7 +428,7 @@ export function MessagesPage() {
 
     sendMessage.mutate(
       {
-        recipient_id: selectedConversation.participant_id,
+        recipient_id: selectedConversation.participant_id || '',
         content: content || '',
         ...(imageUrl ? { image_url: imageUrl } : {}),
       },
@@ -442,7 +442,7 @@ export function MessagesPage() {
           if (selectedConversation.id.startsWith('new-')) {
             setSelectedConversation({
               ...selectedConversation,
-              id: selectedConversation.participant_id,
+              id: selectedConversation.participant_id || '',
             })
           }
         },
@@ -604,11 +604,11 @@ export function MessagesPage() {
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-kalkvit truncate">{conv.participant?.display_name || 'Unknown'}</span>
                       <span className="text-xs text-kalkvit/40 ml-2 flex-shrink-0">
-                        {formatTimeAgo(conv.updated_at)}
+                        {formatTimeAgo(conv.updated_at || '')}
                       </span>
                     </div>
                     <p className="text-sm text-kalkvit/60 truncate">
-                      {conv.last_message?.content || 'No messages yet'}
+                      {(typeof conv.last_message === 'object' ? conv.last_message?.content : conv.last_message) || 'No messages yet'}
                     </p>
                   </div>
                   {conv.unread_count > 0 && (

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs, GlassTabPanel, GlassAvatar } from '../components/ui'
-import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramCVCStatus, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn } from '../lib/api/hooks'
-import type { Sprint, ProgramCohortMember, CheckIn, CVCAssessmentStatus } from '../lib/api/types'
+import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramCVCStatus, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn, useEvents, useRegisterForEvent, useUnregisterFromEvent } from '../lib/api/hooks'
+import type { Sprint, ProgramCohortMember, CheckIn, CVCAssessmentStatus, ClaimnEvent } from '../lib/api/types'
 import { useAuth } from '../contexts/AuthContext'
 import {
   ArrowLeft,
@@ -32,14 +32,29 @@ import {
   XCircle,
   ListChecks,
   LayoutDashboard,
+  UserCheck,
+  UserMinus,
+  BarChart3,
+  Heart,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-const difficultyColors = {
+function computeSprintStatus(sprint: Sprint): 'upcoming' | 'active' | 'completed' {
+  if (sprint.status) return sprint.status
+  const now = new Date()
+  if (sprint.end_date && new Date(sprint.end_date) < now) return 'completed'
+  if (sprint.start_date && new Date(sprint.start_date) <= now) {
+    if (!sprint.end_date || new Date(sprint.end_date) >= now) return 'active'
+    return 'completed'
+  }
+  return 'upcoming'
+}
+
+const difficultyColors: Record<string, 'success' | 'warning' | 'error'> = {
   Beginner: 'success',
   Intermediate: 'warning',
   Advanced: 'error',
-} as const
+}
 
 function SprintCard({ sprint, index }: { sprint: Sprint; index: number }) {
   const statusConfig = {
@@ -48,7 +63,7 @@ function SprintCard({ sprint, index }: { sprint: Sprint; index: number }) {
     completed: { variant: 'koppar' as const, label: 'Completed' },
   }
 
-  const status = statusConfig[sprint.status] || statusConfig.upcoming
+  const status = statusConfig[sprint.status || 'upcoming'] || statusConfig.upcoming
 
   const facilitatorInitials = sprint.facilitator?.name
     ?.split(' ')
@@ -126,7 +141,7 @@ function SprintCard({ sprint, index }: { sprint: Sprint; index: number }) {
               </div>
             )}
 
-            {sprint.status === 'active' && sprint.progress > 0 && (
+            {sprint.status === 'active' && (sprint.progress ?? 0) > 0 && (
               <div className="mt-3">
                 <div className="flex items-center justify-between text-xs mb-1">
                   <span className="text-kalkvit/50">Progress</span>
@@ -170,12 +185,25 @@ export function ProgramDetailPage() {
   const { data: sprintsData, isLoading: isLoadingSprints } = useSprints(id)
   const enrollMutation = useEnrollProgram()
 
+  // Detect if this is the GO Sessions program
+  const isGoProgram = program?.slug === 'go-sessions-s1' || program?.tier === 'go_sessions'
+
+  // GO Session events — only fetch for GO program
+  const [sessionStatusFilter, setSessionStatusFilter] = useState<'upcoming' | 'past'>('upcoming')
+  const { data: goSessionData, isLoading: isLoadingGoSessions } = useEvents(
+    isGoProgram ? { type: 'go_session', status: sessionStatusFilter } : undefined
+  )
+  const goSessions: ClaimnEvent[] = isGoProgram && Array.isArray(goSessionData?.data) ? goSessionData.data : []
+  const registerMutation = useRegisterForEvent()
+  const unregisterMutation = useUnregisterFromEvent()
+
   const enrolledPrograms = Array.isArray(enrolledData?.data) ? enrolledData.data : []
   const userEnrollment = enrolledPrograms.find((ep) => ep.program_id === id)
   const isEnrolled = !!userEnrollment
   const progress = userEnrollment?.progress || 0
 
-  const sprints = Array.isArray(sprintsData?.data) ? sprintsData.data : []
+  const rawSprints = Array.isArray(sprintsData?.data) ? sprintsData.data : []
+  const sprints = rawSprints.map((s) => ({ ...s, status: computeSprintStatus(s) }))
 
   // Assessments — only fetch for enrolled users
   const { data: assessmentsData, isLoading: isLoadingAssessments } = useProgramAssessments(
@@ -286,11 +314,20 @@ export function ProgramDetailPage() {
     }
   }, [isEnrolled])
 
+  const hasSprints = sprints.length > 0
+
   const tabs = isEnrolled
     ? [
         { value: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-        { value: 'sprints', label: 'Sprints', icon: <Zap className="w-4 h-4" />, badge: sprints.length || undefined },
-        { value: 'assessments', label: 'Assessments', icon: <ClipboardCheck className="w-4 h-4" />, badge: assessments.length || undefined },
+        ...(isGoProgram
+          ? [{ value: 'sessions', label: 'Sessions', icon: <Calendar className="w-4 h-4" /> }]
+          : []),
+        ...(hasSprints
+          ? [{ value: 'sprints', label: 'Sprints', icon: <Zap className="w-4 h-4" />, badge: sprints.length }]
+          : []),
+        ...(isGoProgram
+          ? [{ value: 'vitality', label: 'Vitality', icon: <Heart className="w-4 h-4" /> }]
+          : [{ value: 'assessments', label: 'Assessments', icon: <ClipboardCheck className="w-4 h-4" />, badge: assessments.length || undefined }]),
         ...(hasCommunityContent
           ? [{ value: 'community', label: 'Community', icon: <Users className="w-4 h-4" /> }]
           : []),
@@ -298,7 +335,12 @@ export function ProgramDetailPage() {
       ]
     : [
         { value: 'overview', label: 'Overview', icon: <BookOpen className="w-4 h-4" /> },
-        { value: 'sprints', label: 'Sprints', icon: <Zap className="w-4 h-4" />, badge: sprints.length || undefined },
+        ...(isGoProgram
+          ? [{ value: 'sessions', label: 'Sessions', icon: <Calendar className="w-4 h-4" /> }]
+          : []),
+        ...(hasSprints
+          ? [{ value: 'sprints', label: 'Sprints', icon: <Zap className="w-4 h-4" />, badge: sprints.length }]
+          : []),
       ]
 
   if (isLoading) {
@@ -719,23 +761,156 @@ export function ProgramDetailPage() {
           )}
         </GlassTabPanel>
 
+        {/* Sessions Tab (GO program only) */}
+        {isGoProgram && (
+          <GlassTabPanel value="sessions" activeValue={activeTab}>
+            <div className="space-y-4">
+              {/* Status sub-filter */}
+              <div className="flex gap-2">
+                {(['upcoming', 'past'] as const).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setSessionStatusFilter(status)}
+                    className={cn(
+                      'px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
+                      sessionStatusFilter === status
+                        ? 'bg-koppar/20 text-koppar'
+                        : 'bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit/70'
+                    )}
+                  >
+                    {status === 'upcoming' ? 'Upcoming' : 'Past'}
+                  </button>
+                ))}
+              </div>
+
+              {isLoadingGoSessions ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+                </div>
+              ) : goSessions.length > 0 ? (
+                <div className="space-y-4">
+                  {goSessions.map((session) => {
+                    const isPastSession = new Date(session.scheduled_date) < new Date()
+                    const isSessionFull = session.registered_count >= session.capacity
+                    const date = new Date(session.scheduled_date)
+                    const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                    const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+
+                    return (
+                      <Link key={session.id} to={`/events/${session.id}`} className="block">
+                        <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+                          <div className="flex items-start gap-4">
+                            <div className={cn(
+                              'flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center',
+                              session.is_registered
+                                ? 'bg-skogsgron/20 text-skogsgron'
+                                : 'bg-koppar/20 text-koppar'
+                            )}>
+                              {session.is_registered ? (
+                                <CheckCircle className="w-5 h-5" />
+                              ) : (
+                                <Calendar className="w-5 h-5" />
+                              )}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <h4 className="font-semibold text-kalkvit">{session.title}</h4>
+                                {session.is_registered && (
+                                  <GlassBadge variant="success">Registered</GlassBadge>
+                                )}
+                              </div>
+
+                              {session.protocol_name && (
+                                <p className="text-xs text-koppar italic mb-1">{session.protocol_name}</p>
+                              )}
+
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-kalkvit/50 mb-3">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {dateStr}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {timeStr}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  {session.registered_count}/{session.capacity} spots
+                                </span>
+                              </div>
+
+                              {session.facilitator && (
+                                <div className="flex items-center gap-2 mb-3">
+                                  <GlassAvatar
+                                    src={session.facilitator.avatar_url}
+                                    alt={session.facilitator.name}
+                                    size="sm"
+                                  />
+                                  <span className="text-xs text-kalkvit/60">{session.facilitator.name}</span>
+                                </div>
+                              )}
+
+                              {!isPastSession && (
+                                <div className="flex items-center gap-2" onClick={(e) => e.preventDefault()}>
+                                  {session.is_registered ? (
+                                    <GlassButton
+                                      variant="ghost"
+                                      className="text-xs"
+                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); unregisterMutation.mutate(session.id) }}
+                                    >
+                                      <UserMinus className="w-3 h-3" />
+                                      Unregister
+                                    </GlassButton>
+                                  ) : (
+                                    <GlassButton
+                                      variant="primary"
+                                      className="text-xs"
+                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); registerMutation.mutate(session.id) }}
+                                      disabled={isSessionFull}
+                                    >
+                                      <UserCheck className="w-3 h-3" />
+                                      {isSessionFull ? 'Full' : 'Register'}
+                                    </GlassButton>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </GlassCard>
+                      </Link>
+                    )
+                  })}
+                </div>
+              ) : (
+                <GlassCard variant="base" className="text-center py-12">
+                  <Calendar className="w-8 h-8 text-kalkvit/30 mx-auto mb-3" />
+                  <p className="text-kalkvit/50 text-sm">
+                    No {sessionStatusFilter} GO Sessions available.
+                  </p>
+                </GlassCard>
+              )}
+            </div>
+          </GlassTabPanel>
+        )}
+
         {/* Dashboard Tab (enrolled users only) */}
         {isEnrolled && (
           <GlassTabPanel value="dashboard" activeValue={activeTab}>
             <div className="space-y-6">
-              {/* Sprint Timeline */}
-              <GlassCard variant="base">
-                <h3 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-koppar" />
-                  Sprint Progress
-                </h3>
-                {sprints.length > 0 ? (
+              {/* Sprint Timeline (only if program has sprints) */}
+              {hasSprints && (
+                <GlassCard variant="base">
+                  <h3 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-koppar" />
+                    Sprint Progress
+                  </h3>
                   <div className="flex items-center gap-1">
                     {sprints.map((sprint, i) => (
                       <div key={sprint.id} className="flex items-center flex-1">
-                        <Link
-                          to={`/programs/sprints/${sprint.id}`}
-                          className="group flex flex-col items-center flex-1"
+                        <button
+                          onClick={() => setActiveTab('sprints')}
+                          className="group flex flex-col items-center flex-1 cursor-pointer"
                         >
                           <div
                             className={cn(
@@ -759,7 +934,7 @@ export function ProgramDetailPage() {
                           )}>
                             {sprint.title.split(' ').slice(0, 2).join(' ')}
                           </span>
-                        </Link>
+                        </button>
                         {i < sprints.length - 1 && (
                           <div className={cn(
                             'h-0.5 flex-1 min-w-2 -mt-4',
@@ -769,10 +944,8 @@ export function ProgramDetailPage() {
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-sm text-kalkvit/50">No sprints available yet.</p>
-                )}
-              </GlassCard>
+                </GlassCard>
+              )}
 
               {/* Current Sprint */}
               {activeSprint && (
@@ -805,7 +978,7 @@ export function ProgramDetailPage() {
                       </span>
                     )}
                   </div>
-                  {activeSprint.progress > 0 && (
+                  {(activeSprint.progress ?? 0) > 0 && (
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-kalkvit/50">Progress</span>
@@ -819,25 +992,27 @@ export function ProgramDetailPage() {
                       </div>
                     </div>
                   )}
-                  <Link to={`/programs/sprints/${activeSprint.id}`}>
-                    <GlassButton variant="primary" className="text-sm">
-                      View Sprint
-                      <ArrowRight className="w-4 h-4" />
-                    </GlassButton>
-                  </Link>
+                  <GlassButton variant="primary" className="text-sm" onClick={() => setActiveTab('sprints')}>
+                    View Sprint
+                    <ArrowRight className="w-4 h-4" />
+                  </GlassButton>
                 </GlassCard>
               )}
 
               {/* Quick Stats Row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <GlassCard variant="base" className="text-center !py-4">
-                  <p className="font-display text-2xl font-bold text-kalkvit">{completedSprints}</p>
-                  <p className="text-xs text-kalkvit/50">Sprints Done</p>
-                </GlassCard>
-                <GlassCard variant="base" className="text-center !py-4">
-                  <p className="font-display text-2xl font-bold text-kalkvit">{sprints.length - completedSprints}</p>
-                  <p className="text-xs text-kalkvit/50">Remaining</p>
-                </GlassCard>
+              <div className={cn('grid gap-3', hasSprints ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2')}>
+                {hasSprints && (
+                  <>
+                    <GlassCard variant="base" className="text-center !py-4">
+                      <p className="font-display text-2xl font-bold text-kalkvit">{completedSprints}</p>
+                      <p className="text-xs text-kalkvit/50">Sprints Done</p>
+                    </GlassCard>
+                    <GlassCard variant="base" className="text-center !py-4">
+                      <p className="font-display text-2xl font-bold text-kalkvit">{sprints.length - completedSprints}</p>
+                      <p className="text-xs text-kalkvit/50">Remaining</p>
+                    </GlassCard>
+                  </>
+                )}
                 <GlassCard variant="base" className="text-center !py-4">
                   <p className="font-display text-2xl font-bold text-kalkvit">{completedAssessments}/{assessments.length}</p>
                   <p className="text-xs text-kalkvit/50">Assessments</p>
@@ -1176,6 +1351,175 @@ export function ProgramDetailPage() {
                 </p>
               </GlassCard>
             )}
+          </GlassTabPanel>
+        )}
+
+        {/* Vitality Tab (GO program: Assessments + KPI biomarkers combined) */}
+        {isEnrolled && isGoProgram && (
+          <GlassTabPanel value="vitality" activeValue={activeTab}>
+            <div className="space-y-6">
+              {/* Vitality Checks progress */}
+              {isLoadingAssessments ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+                </div>
+              ) : (
+                <>
+                  <GlassCard variant="base">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-kalkvit flex items-center gap-2">
+                        <ClipboardCheck className="w-5 h-5 text-koppar" />
+                        Vitality Checks
+                      </h3>
+                      <span className="text-sm text-kalkvit/50">
+                        {completedAssessments} of {assessments.length} completed
+                      </span>
+                    </div>
+                    <div className="h-2 bg-white/[0.1] rounded-full overflow-hidden mb-4">
+                      <div
+                        className={cn(
+                          'h-full rounded-full transition-all',
+                          completedAssessments === assessments.length
+                            ? 'bg-skogsgron'
+                            : 'bg-gradient-to-r from-koppar to-brand-amber'
+                        )}
+                        style={{
+                          width: `${assessments.length > 0 ? Math.round((completedAssessments / assessments.length) * 100) : 0}%`,
+                        }}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      {assessments.map((assessment) => {
+                        const cvcData = cvcAssessments.find(
+                          (c: CVCAssessmentStatus) => c.assessment_id === assessment.id
+                        )
+                        const typeLabels: Record<string, string> = {
+                          baseline: 'Pre-Season',
+                          midline: 'Mid-Season',
+                          final: 'Post-Season',
+                        }
+                        return (
+                          <div
+                            key={assessment.id}
+                            className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.04]"
+                          >
+                            {assessment.is_completed ? (
+                              <CheckCircle className="w-5 h-5 text-skogsgron shrink-0" />
+                            ) : (
+                              <Circle className="w-5 h-5 text-kalkvit/30 shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-kalkvit">
+                                {typeLabels[assessment.type] || assessment.name}
+                              </p>
+                              {cvcData?.scores ? (
+                                <p className="text-xs text-skogsgron">
+                                  {Math.round(cvcData.scores.percentage_score)}% vitality
+                                </p>
+                              ) : (
+                                <p className="text-xs text-kalkvit/40">
+                                  {assessment.question_count} questions
+                                </p>
+                              )}
+                            </div>
+                            {!assessment.is_completed ? (
+                              <Link to={`/programs/${id}/assessment/${assessment.id}`}>
+                                <GlassButton variant="primary" className="text-xs">
+                                  Take now
+                                  <ArrowRight className="w-3 h-3" />
+                                </GlassButton>
+                              </Link>
+                            ) : (
+                              <GlassBadge variant="success" className="text-xs">Done</GlassBadge>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </GlassCard>
+
+                  {/* Biomarker Scores — from completed CVC assessments */}
+                  {cvcAssessments.some((c: CVCAssessmentStatus) => c.scores?.category_scores) && (
+                    <GlassCard variant="base">
+                      <h3 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-koppar" />
+                        Biomarker Trends
+                      </h3>
+                      <div className="space-y-4">
+                        {(['vital_energy', 'stress_load', 'sleep_quality'] as const).map((biomarker) => {
+                          const labels: Record<string, string> = {
+                            vital_energy: 'Vital Energy (SVS)',
+                            stress_load: 'Stress Load (PSS)',
+                            sleep_quality: 'Sleep Quality (PSQI)',
+                          }
+                          const maxScales: Record<string, number> = {
+                            vital_energy: 7,
+                            stress_load: 40,
+                            sleep_quality: 15,
+                          }
+                          const isLowerBetter = biomarker === 'stress_load' || biomarker === 'sleep_quality'
+                          const max = maxScales[biomarker]
+
+                          const dataPoints = cvcAssessments
+                            .filter((c: CVCAssessmentStatus) => c.scores?.category_scores?.[biomarker] != null)
+                            .map((c: CVCAssessmentStatus) => ({
+                              label: c.type === 'baseline' ? 'Pre' : c.type === 'midline' ? 'Mid' : 'Post',
+                              value: Number(c.scores!.category_scores![biomarker]),
+                            }))
+
+                          if (dataPoints.length === 0) return null
+
+                          return (
+                            <div key={biomarker}>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-kalkvit/70">{labels[biomarker]}</span>
+                                <span className="text-xs text-kalkvit/40">
+                                  {isLowerBetter ? 'Lower is better' : 'Higher is better'}
+                                </span>
+                              </div>
+                              <div className="flex items-end gap-3">
+                                {dataPoints.map((dp) => {
+                                  const barPct = isLowerBetter
+                                    ? Math.min(((max - dp.value) / max) * 100, 100)
+                                    : Math.min((dp.value / max) * 100, 100)
+                                  return (
+                                    <div key={dp.label} className="flex-1 text-center">
+                                      <span className="text-xs font-medium text-kalkvit block mb-1">
+                                        {dp.value.toFixed(1)}
+                                      </span>
+                                      <div className="h-16 bg-white/[0.06] rounded-lg overflow-hidden flex items-end">
+                                        <div
+                                          className={cn(
+                                            'w-full rounded-lg transition-all',
+                                            isLowerBetter
+                                              ? 'bg-gradient-to-t from-skogsgron to-oliv'
+                                              : 'bg-gradient-to-t from-koppar to-brandAmber'
+                                          )}
+                                          style={{ height: `${barPct}%` }}
+                                        />
+                                      </div>
+                                      <span className="text-[10px] text-kalkvit/40 block mt-1">{dp.label}</span>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <Link to="/kpis" className="mt-4 block">
+                        <GlassButton variant="ghost" className="text-sm w-full">
+                          <BarChart3 className="w-4 h-4" />
+                          View Full KPI Dashboard
+                          <ArrowRight className="w-4 h-4" />
+                        </GlassButton>
+                      </Link>
+                    </GlassCard>
+                  )}
+                </>
+              )}
+            </div>
           </GlassTabPanel>
         )}
 

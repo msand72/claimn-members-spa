@@ -27,7 +27,7 @@ const categories = [
   { key: 'mission', label: 'Mission & Mastery' },
 ]
 
-const difficultyColors = {
+const difficultyColors: Record<string, 'success' | 'warning' | 'error'> = {
   Beginner: 'success',
   Intermediate: 'warning',
   Advanced: 'error',

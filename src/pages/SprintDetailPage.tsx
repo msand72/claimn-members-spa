@@ -201,11 +201,11 @@ export function SprintDetailPage() {
       <MainLayout>
         <div className="max-w-4xl mx-auto">
           <Link
-            to="/programs/sprints"
+            to={sprint?.program_id ? `/programs/${sprint.program_id}` : '/programs/sprints'}
             className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Sprints
+            Back to Program
           </Link>
           <GlassCard variant="base" className="text-center py-12">
             <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
@@ -219,7 +219,7 @@ export function SprintDetailPage() {
     )
   }
 
-  const status = statusConfig[sprint.status] || statusConfig.upcoming
+  const status = statusConfig[sprint.status || 'upcoming'] || statusConfig.upcoming
 
   return (
     <MainLayout>

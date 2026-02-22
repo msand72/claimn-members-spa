@@ -66,7 +66,7 @@ function KPICard({
   const Icon = getKpiIcon(kpi)
   const progress = calculateKpiProgress(kpi.current_value, kpi.target_value)
   const isOnTarget = isKpiOnTarget(kpi.current_value, kpi.target_value)
-  const isLowerBetter = kpi.kpi_type ? LOWER_IS_BETTER_KPIS.has(kpi.kpi_type) : false
+  const isLowerBetter = kpi.kpi_type ? LOWER_IS_BETTER_KPIS.has(kpi.kpi_type as never) : false
   const TrendIcon = isLowerBetter ? TrendingDown : TrendingUp
 
   return (

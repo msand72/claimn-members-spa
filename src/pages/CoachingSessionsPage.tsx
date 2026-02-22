@@ -20,14 +20,18 @@ import {
 import { cn } from '../lib/utils'
 
 function SessionCard({ session }: { session: CoachingSession }) {
-  const statusConfig = {
-    scheduled: { variant: 'koppar' as const, label: 'Scheduled', icon: Calendar },
-    in_progress: { variant: 'warning' as const, label: 'In Progress', icon: Play },
-    completed: { variant: 'success' as const, label: 'Completed', icon: CheckCircle },
-    cancelled: { variant: 'error' as const, label: 'Cancelled', icon: AlertTriangle },
+  const statusConfig: Record<string, { variant: 'koppar' | 'warning' | 'success' | 'error'; label: string; icon: typeof Calendar }> = {
+    scheduled: { variant: 'koppar', label: 'Scheduled', icon: Calendar },
+    confirmed: { variant: 'koppar', label: 'Confirmed', icon: Calendar },
+    in_progress: { variant: 'warning', label: 'In Progress', icon: Play },
+    completed: { variant: 'success', label: 'Completed', icon: CheckCircle },
+    cancelled: { variant: 'error', label: 'Cancelled', icon: AlertTriangle },
+    no_show: { variant: 'error', label: 'No Show', icon: AlertTriangle },
+    reschedule_requested: { variant: 'warning', label: 'Reschedule', icon: Calendar },
+    cancelled_by_member: { variant: 'error', label: 'Cancelled', icon: AlertTriangle },
   }
 
-  const status = statusConfig[session.status]
+  const status = statusConfig[session.status] || statusConfig.scheduled
   const StatusIcon = status.icon
 
   const coachInitials = session.expert

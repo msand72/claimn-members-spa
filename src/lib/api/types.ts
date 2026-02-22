@@ -576,6 +576,7 @@ export interface CoachingResource extends Resource {
 export interface Program {
   id: string
   title: string
+  slug?: string
   description: string
   category: string
   status?: 'draft' | 'active' | 'archived'

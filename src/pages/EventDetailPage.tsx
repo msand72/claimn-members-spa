@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassAvatar } from '../components/ui'
@@ -5,7 +6,11 @@ import {
   useEvent,
   useRegisterForEvent,
   useUnregisterFromEvent,
+  useEnrolledPrograms,
+  usePrograms,
+  useProgramCVCStatus,
 } from '../lib/api/hooks'
+import type { CVCAssessmentStatus } from '../lib/api/types'
 import {
   ArrowLeft,
   Calendar,
@@ -15,6 +20,12 @@ import {
   AlertTriangle,
   UserCheck,
   UserMinus,
+  ClipboardCheck,
+  CheckCircle,
+  Circle,
+  BarChart3,
+  ArrowRight,
+  BookOpen,
 } from 'lucide-react'
 import { SessionPulseForm } from '../components/events/SessionPulseForm'
 
@@ -49,7 +60,39 @@ export function EventDetailPage() {
   const { data: event, isLoading, error } = useEvent(id || '')
   const registerMutation = useRegisterForEvent()
   const unregisterMutation = useUnregisterFromEvent()
-  const isMutating = registerMutation.isPending || unregisterMutation.isPending
+
+  // For GO sessions: find GO program and fetch CVC assessment status
+  const isGoSession = event?.event_type === 'go_session'
+  const { data: programsData } = usePrograms()
+  const { data: enrolledData } = useEnrolledPrograms()
+
+  const { goProgramId, isEnrolled } = useMemo(() => {
+    // Find GO program from programs list (has full slug/tier fields)
+    const programs = Array.isArray(programsData?.data) ? programsData.data : []
+    const goProgram = programs.find(
+      (p) => p.slug === 'go-sessions-s1' || p.tier === 'go_sessions'
+    )
+    const programId = goProgram?.id || ''
+
+    // Check if user is enrolled
+    const enrolled = Array.isArray(enrolledData?.data) ? enrolledData.data : []
+    const enrolledMatch = enrolled.find(
+      (ep) =>
+        ep.program_id === programId ||
+        ep.program?.slug === 'go-sessions-s1' ||
+        ep.program?.tier === 'go_sessions'
+    )
+
+    return {
+      goProgramId: enrolledMatch?.program_id || programId,
+      isEnrolled: !!enrolledMatch,
+    }
+  }, [programsData, enrolledData])
+
+  const { data: cvcStatus } = useProgramCVCStatus(
+    isGoSession && event?.is_registered && isEnrolled ? goProgramId : ''
+  )
+  const cvcAssessments = cvcStatus?.assessments || []
 
   if (isLoading) {
     return (
@@ -95,11 +138,11 @@ export function EventDetailPage() {
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
         <Link
-          to="/events"
+          to={isGoSession && goProgramId ? `/programs/${goProgramId}` : '/events'}
           className="inline-flex items-center gap-1 text-sm text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Events
+          {isGoSession && goProgramId ? 'Back to GO Program' : 'Back to Events'}
         </Link>
 
         {/* Hero Section */}
@@ -221,6 +264,22 @@ export function EventDetailPage() {
               </GlassCard>
             )}
 
+            {/* My GO Program link — registered GO sessions */}
+            {isGoSession && event.is_registered && (
+              <Link to={goProgramId ? `/programs/${goProgramId}` : '/programs'}>
+                <GlassCard variant="base" className="border border-koppar/30 hover:border-koppar/50 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="w-5 h-5 text-koppar" />
+                    <div className="flex-1">
+                      <p className="font-medium text-kalkvit text-sm">My GO Program</p>
+                      <p className="text-xs text-kalkvit/50">Sprints, assessments & progress</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                  </div>
+                </GlassCard>
+              </Link>
+            )}
+
             {/* Facilitator Card */}
             {event.facilitator && (
               <GlassCard variant="base">
@@ -274,13 +333,8 @@ export function EventDetailPage() {
                       variant="ghost"
                       className="w-full"
                       onClick={() => unregisterMutation.mutate(event.id)}
-                      disabled={isMutating}
                     >
-                      {isMutating ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <UserMinus className="w-4 h-4" />
-                      )}
+                      <UserMinus className="w-4 h-4" />
                       Unregister
                     </GlassButton>
                   ) : (
@@ -288,13 +342,9 @@ export function EventDetailPage() {
                       variant="primary"
                       className="w-full"
                       onClick={() => registerMutation.mutate(event.id)}
-                      disabled={isMutating || isFull}
+                      disabled={isFull}
                     >
-                      {isMutating ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <UserCheck className="w-4 h-4" />
-                      )}
+                      <UserCheck className="w-4 h-4" />
                       {isFull ? 'Event Full' : 'Register'}
                     </GlassButton>
                   )}
@@ -307,6 +357,80 @@ export function EventDetailPage() {
                 </p>
               )}
             </GlassCard>
+
+            {/* CVC Assessments — registered GO sessions */}
+            {event.event_type === 'go_session' && event.is_registered && cvcAssessments.length > 0 && (
+              <GlassCard variant="base">
+                <div className="flex items-center gap-2 mb-4">
+                  <ClipboardCheck className="w-5 h-5 text-koppar" />
+                  <h2 className="font-display text-lg font-semibold text-kalkvit">
+                    Vitality Checks
+                  </h2>
+                </div>
+                <div className="space-y-3">
+                  {cvcAssessments.map((assessment: CVCAssessmentStatus) => {
+                    const typeLabels: Record<string, string> = {
+                      baseline: 'Pre-Season',
+                      midline: 'Mid-Season',
+                      final: 'Post-Season',
+                    }
+                    return (
+                      <div
+                        key={assessment.assessment_id}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.04]"
+                      >
+                        {assessment.is_completed ? (
+                          <CheckCircle className="w-5 h-5 text-skogsgron shrink-0" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-kalkvit/30 shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-kalkvit truncate">
+                            {typeLabels[assessment.type] || assessment.name}
+                          </p>
+                          {assessment.is_completed && assessment.scores ? (
+                            <p className="text-xs text-skogsgron">
+                              {Math.round(assessment.scores.percentage_score)}% vitality
+                            </p>
+                          ) : (
+                            <p className="text-xs text-kalkvit/40">Week {assessment.week_number}</p>
+                          )}
+                        </div>
+                        {!assessment.is_completed && goProgramId && (
+                          <Link
+                            to={`/programs/${goProgramId}/assessment/${assessment.assessment_id}`}
+                            className="text-xs text-koppar hover:text-koppar/80 font-medium whitespace-nowrap"
+                          >
+                            Take now
+                          </Link>
+                        )}
+                        {assessment.is_completed && (
+                          <GlassBadge variant="success" className="text-xs shrink-0">
+                            Done
+                          </GlassBadge>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </GlassCard>
+            )}
+
+            {/* KPI Biomarkers link — registered GO sessions */}
+            {event.event_type === 'go_session' && event.is_registered && (
+              <Link to="/kpis">
+                <GlassCard variant="base" className="hover:border-koppar/30 transition-colors group">
+                  <div className="flex items-center gap-3">
+                    <BarChart3 className="w-5 h-5 text-koppar" />
+                    <div className="flex-1">
+                      <p className="font-medium text-kalkvit text-sm">Vitality KPIs</p>
+                      <p className="text-xs text-kalkvit/50">Track your biomarker progress</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                  </div>
+                </GlassCard>
+              </Link>
+            )}
 
             {/* Session Pulse — past registered GO sessions */}
             {isPast && event.is_registered && event.event_type === 'go_session' && (
