@@ -1,11 +1,11 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect, GlassModal, GlassModalFooter } from '../components/ui'
 import { useExperts, useExpertAvailability, useBookSession, useCheckout } from '../lib/api/hooks'
 import type { Expert } from '../lib/api/types'
 import { EXPERT_SESSION_PRICES, type ExpertSessionDuration } from '../config/stripe-prices'
-import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react'
+import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { isAllowedExternalUrl, safeOpenUrl } from '../lib/url-validation'
 
@@ -101,7 +101,6 @@ function ExpertCard({
 }
 
 export function BookSessionPage() {
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const preselectedExpertId = searchParams.get('expert')
 
@@ -109,16 +108,12 @@ export function BookSessionPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [sessionType, setSessionType] = useState('60')
-  const [bookingSuccess, setBookingSuccess] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date()
     return { year: now.getFullYear(), month: now.getMonth() }
   })
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
-  const navTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
-
-  useEffect(() => () => { if (navTimerRef.current) clearTimeout(navTimerRef.current) }, [])
 
   // Fetch experts
   const { data: expertsData, isLoading: isLoadingExperts, error: expertsError } = useExperts()
@@ -266,25 +261,6 @@ export function BookSessionPage() {
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
             </p>
-          </GlassCard>
-        </div>
-      </MainLayout>
-    )
-  }
-
-  if (bookingSuccess) {
-    return (
-      <MainLayout>
-        <div className="max-w-6xl mx-auto">
-          <GlassCard variant="accent" leftBorder={false} className="text-center py-12">
-            <CheckCircle className="w-16 h-16 text-skogsgron mx-auto mb-4" />
-            <h2 className="font-display text-2xl font-bold text-kalkvit mb-2">
-              Session Booked Successfully!
-            </h2>
-            <p className="text-kalkvit/60 mb-4">
-              Your session with {selectedExpert?.name} has been confirmed.
-            </p>
-            <p className="text-sm text-kalkvit/50">Redirecting to your sessions...</p>
           </GlassCard>
         </div>
       </MainLayout>
