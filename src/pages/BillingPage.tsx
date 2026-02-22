@@ -253,8 +253,7 @@ export function BillingPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div>
-                      <p className="text-kalkvit font-medium">{invoice.id}</p>
-                      <p className="text-sm text-kalkvit/50">{formatDate(invoice.created_at)}</p>
+                      <p className="text-kalkvit font-medium">Invoice — {formatDate(invoice.created_at)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
