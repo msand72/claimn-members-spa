@@ -21,7 +21,10 @@ export interface CheckoutRequest {
   price_id: string
   tier?: string
   product?: string
+  mode?: 'subscription' | 'payment'
   max_members?: number
+  expert_id?: string
+  protocol_slug?: string
   success_url?: string
   cancel_url?: string
 }

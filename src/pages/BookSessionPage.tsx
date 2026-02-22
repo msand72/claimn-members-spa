@@ -2,16 +2,17 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect, GlassModal, GlassModalFooter } from '../components/ui'
-import { useExperts, useExpertAvailability, useBookSession } from '../lib/api/hooks'
+import { useExperts, useExpertAvailability, useBookSession, useCheckout } from '../lib/api/hooks'
 import type { Expert } from '../lib/api/types'
+import { EXPERT_SESSION_PRICES, type ExpertSessionDuration } from '../config/stripe-prices'
 import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { safeOpenUrl } from '../lib/url-validation'
+import { isAllowedExternalUrl, safeOpenUrl } from '../lib/url-validation'
 
 const sessionTypes = [
-  { value: '30', label: '30 minutes - Quick Check-in' },
-  { value: '60', label: '60 minutes - Standard Session' },
-  { value: '90', label: '90 minutes - Deep Dive' },
+  { value: '45', label: `45 minutes — €${EXPERT_SESSION_PRICES[45].amount}` },
+  { value: '60', label: `60 minutes — €${EXPERT_SESSION_PRICES[60].amount}` },
+  { value: '90', label: `90 minutes — €${EXPERT_SESSION_PRICES[90].amount}` },
 ]
 
 function ExpertCardSkeleton() {
@@ -87,8 +88,8 @@ function ExpertCard({
             </div>
           </div>
           <div className="text-right">
-            <p className="font-display text-xl font-bold text-kalkvit">${expert.hourly_rate}</p>
-            <p className="text-xs text-kalkvit/50">/hour</p>
+            <p className="font-display text-xl font-bold text-kalkvit">€{EXPERT_SESSION_PRICES[60].amount}</p>
+            <p className="text-xs text-kalkvit/50">/60 min</p>
             {expert.availability && (
               <p className="text-xs text-skogsgron mt-2">Next: {expert.availability}</p>
             )}
@@ -135,8 +136,10 @@ export function BookSessionPage() {
   )
   const availability = availabilityData || []
 
-  // Book session mutation
+  // Book session mutation (internal scheduling)
   const bookSessionMutation = useBookSession()
+  // Stripe checkout mutation (payment)
+  const checkoutMutation = useCheckout()
 
   // Build calendar grid for the displayed month
   const today = new Date()
@@ -194,8 +197,17 @@ export function BookSessionPage() {
     return matching.map((a) => ({ time: a.time, available: true }))
   }, [selectedDate, availability])
 
+  const sessionDuration = parseInt(sessionType) as ExpertSessionDuration
+  const sessionPrice = EXPERT_SESSION_PRICES[sessionDuration] || EXPERT_SESSION_PRICES[60]
+
   const handleBook = async () => {
     if (!selectedExpert || !selectedDate || !selectedTime) return
+
+    const priceId = sessionPrice.priceId
+    if (!priceId) {
+      setBookingError('Checkout is not configured for this session type. Please contact support.')
+      return
+    }
 
     try {
       // Construct the scheduled_at datetime with timezone offset
@@ -203,6 +215,7 @@ export function BookSessionPage() {
       const localDate = new Date(`${selectedDate}T${timeStr}:00`)
       const scheduledAt = localDate.toISOString()
 
+      // First book the time slot internally
       await bookSessionMutation.mutateAsync({
         expert_id: selectedExpert.id,
         scheduled_at: scheduledAt,
@@ -210,13 +223,21 @@ export function BookSessionPage() {
         session_type: 'coaching',
       })
 
-      setShowConfirmModal(false)
-      setBookingSuccess(true)
+      // Then redirect to Stripe for payment
+      const checkoutData = await checkoutMutation.mutateAsync({
+        price_id: priceId,
+        product: 'expert_session',
+        mode: 'payment',
+        expert_id: selectedExpert.id,
+        success_url: `${window.location.origin}/shop/success`,
+        cancel_url: `${window.location.origin}/book-session?expert=${selectedExpert.id}`,
+      })
 
-      // Navigate to sessions page after a short delay
-      navTimerRef.current = setTimeout(() => {
-        navigate('/expert-sessions')
-      }, 2000)
+      if (isAllowedExternalUrl(checkoutData.url)) {
+        window.location.href = checkoutData.url
+      } else {
+        setBookingError('Invalid checkout URL. Please try again or contact support.')
+      }
     } catch (error: any) {
       const msg = error?.error?.message || error?.message || 'Failed to book session. Please try again.'
       setBookingError(msg)
@@ -525,11 +546,11 @@ export function BookSessionPage() {
                     <div className="flex items-center justify-between pt-3 border-t border-white/10">
                       <span className="text-kalkvit/60">Total</span>
                       <span className="font-display text-2xl font-bold text-kalkvit">
-                        ${Math.round(selectedExpert.hourly_rate * (parseInt(sessionType) / 60))}
+                        €{sessionPrice.amount}
                       </span>
                     </div>
                   </div>
-                  {(bookSessionMutation.isError || bookingError) && (
+                  {(bookSessionMutation.isError || checkoutMutation.isError || bookingError) && (
                     <p className="text-xs text-tegelrod mt-3 text-center">
                       {bookingError || 'Failed to book session. Please try again.'}
                     </p>
@@ -541,15 +562,15 @@ export function BookSessionPage() {
                     <GlassButton
                       variant="primary"
                       onClick={handleBook}
-                      disabled={bookSessionMutation.isPending}
+                      disabled={bookSessionMutation.isPending || checkoutMutation.isPending}
                     >
-                      {bookSessionMutation.isPending ? (
+                      {bookSessionMutation.isPending || checkoutMutation.isPending ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          Booking...
+                          {checkoutMutation.isPending ? 'Redirecting...' : 'Booking...'}
                         </>
                       ) : (
-                        'Confirm Booking'
+                        `Pay €${sessionPrice.amount} & Book`
                       )}
                     </GlassButton>
                   </GlassModalFooter>

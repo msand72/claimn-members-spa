@@ -35,6 +35,11 @@ Members Portal SPA - React 19 + Vite application for CLAIM'N members to access t
 
 **The `server-infra` repo is handled by a separate backend agent on a separate on-prem machine. This frontend agent MUST NOT push to or modify `server-infra` directly.**
 
+**IMPORTANT: Always `git pull` the latest `server-infra` repo before reading it for each session** to ensure you're working with the latest backend code:
+```bash
+cd /Users/maxsandberg/projects/server-infra && git pull
+```
+
 When backend changes are needed (new endpoints, schema changes, bug fixes, missing fields), you MUST:
 
 1. **Write the prompt directly in the chat** so the user can copy it to the backend agent
