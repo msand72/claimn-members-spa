@@ -127,9 +127,9 @@ function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading }: { plan: P
       <div className="text-center mb-6">
         <div className={cn(
           'w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center',
-          plan.isCurrent ? 'bg-white/[0.06]' : 'bg-koppar/20'
+          isCurrent ? 'bg-white/[0.06]' : 'bg-koppar/20'
         )}>
-          <Icon className={cn('w-6 h-6', plan.isCurrent ? 'text-kalkvit/50' : 'text-koppar')} />
+          <Icon className={cn('w-6 h-6', isCurrent ? 'text-kalkvit/50' : 'text-koppar')} />
         </div>
         <h3 className="font-display text-2xl font-bold text-kalkvit">{plan.name}</h3>
         <p className="text-sm text-kalkvit/60 mt-1">{plan.description}</p>
@@ -153,7 +153,7 @@ function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading }: { plan: P
         )}
       </div>
 
-      {plan.isCurrent ? (
+      {isCurrent ? (
         <GlassButton variant="ghost" className="w-full mb-6" disabled>
           Current Plan
         </GlassButton>

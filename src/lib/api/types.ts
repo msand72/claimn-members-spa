@@ -368,6 +368,15 @@ export interface LogKPIRequest {
   notes?: string
 }
 
+// KPI Summary (GET /kpis/summary)
+export interface KPISummary {
+  total_kpis: number
+  on_track: number
+  needs_attention: number
+  completed: number
+  kpis: KPI[]
+}
+
 // Action Items
 export interface ActionItem {
   id: string
@@ -1100,6 +1109,86 @@ export interface LogProtocolProgressRequest {
   week: number
   notes?: string
   metrics?: Record<string, number>
+}
+
+// Protocol Full Progress (GET /protocols/{slug}/full-progress)
+export interface ProtocolFullProgress {
+  active_protocol: ActiveProtocol
+  goal: Goal | null
+  action_items_by_week: Record<string, ActionItem[]>
+  kpis: KPI[]
+  weekly_check_ins: {
+    id: string
+    week: number
+    notes?: string
+    metrics?: Record<string, number>
+    created_at: string
+  }[]
+  tracking_methods: TrackingMethod[]
+  success_metrics: SuccessMetric[]
+}
+
+// Generate Plan (POST /protocols/{slug}/generate-plan)
+export interface GeneratePlanRequest {
+  start_date?: string
+  duration_weeks?: number
+}
+
+export interface GeneratePlanResponse {
+  suggested_goal: {
+    title: string
+    description: string
+    target_date?: string
+  }
+  suggested_action_items: {
+    title: string
+    description?: string
+    protocol_week?: number
+    due_date?: string
+    priority?: 'high' | 'medium' | 'low'
+  }[]
+  suggested_kpis: {
+    name: string
+    type?: string
+    unit?: string
+    target_value?: number
+    frequency?: string
+  }[]
+  tracking_methods: TrackingMethod[]
+  success_metrics: SuccessMetric[]
+}
+
+// Start With Plan (POST /protocols/{slug}/start-with-plan)
+export interface StartWithPlanRequest {
+  start_date?: string
+  goal: {
+    title: string
+    description?: string
+    target_date?: string
+  }
+  action_items: {
+    title: string
+    description?: string
+    protocol_week?: number
+    due_date?: string
+    priority?: 'high' | 'medium' | 'low'
+    accepted: boolean
+  }[]
+  kpis: {
+    name: string
+    type?: string
+    unit?: string
+    target_value?: number
+    frequency?: string
+    accepted: boolean
+  }[]
+}
+
+export interface StartWithPlanResponse {
+  active_protocol: ActiveProtocol
+  goal: Goal
+  action_items: ActionItem[]
+  kpis: KPI[]
 }
 
 // =====================================================

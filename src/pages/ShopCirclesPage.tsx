@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { Users, ChevronRight, Loader2, AlertTriangle, Sparkles } from 'lucide-react'
+import { Users, ChevronRight, Loader2, AlertTriangle } from 'lucide-react'
 import { useCircles, useMyCircles } from '../lib/api/hooks'
 import type { Circle } from '../lib/api/types'
 
@@ -138,20 +138,6 @@ export function ShopCirclesPage() {
             </p>
           </GlassCard>
         </div>
-
-        {/* Info Banner - Premium circles coming soon */}
-        <GlassCard variant="base" className="mb-8 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-koppar/20">
-            <Sparkles className="w-6 h-6 text-koppar" />
-          </div>
-          <div>
-            <p className="font-medium text-kalkvit">Premium Circles Coming Soon</p>
-            <p className="text-sm text-kalkvit/60">
-              Paid, curated groups with limited spots, led by verified experts, are in development.
-              Browse available circles below or check back soon for premium options.
-            </p>
-          </div>
-        </GlassCard>
 
         {/* Loading state */}
         {isLoading && (

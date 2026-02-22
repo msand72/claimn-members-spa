@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
 import { Clock, CheckCircle, Lock, ChevronRight, Loader2, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { useProtocolLibrary, useActiveProtocols, type ProtocolTemplate } from '../lib/api/hooks'
+import { useProtocols, useMyActiveProtocols, type ProtocolTemplate } from '../lib/api/hooks'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 
@@ -149,13 +149,13 @@ export function ShopProtocolsPage() {
     data: libraryData,
     isLoading: isLoadingLibrary,
     error: libraryError,
-  } = useProtocolLibrary()
+  } = useProtocols()
 
   const {
     data: activeProtocolsData,
     isLoading: isLoadingActive,
     error: activeError,
-  } = useActiveProtocols()
+  } = useMyActiveProtocols()
 
   const protocolLibrary: ProtocolTemplate[] = Array.isArray(libraryData) ? libraryData
     : Array.isArray((libraryData as unknown as { data: ProtocolTemplate[] })?.data) ? (libraryData as unknown as { data: ProtocolTemplate[] }).data
