@@ -3,6 +3,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassAlert } from '../components/ui'
 import { useCheckout, useSubscription } from '../lib/api/hooks'
 import { isAllowedExternalUrl } from '../lib/url-validation'
+import { MEMBERSHIP_PRICES } from '../config/stripe-prices'
 import {
   Check,
   X,
@@ -40,12 +41,12 @@ interface Plan {
 const plans: Plan[] = [
   {
     id: 'brotherhood',
-    name: 'The Brotherhood',
+    name: MEMBERSHIP_PRICES.brotherhood.monthly.label,
     description: 'Full access + community',
-    price: 19,
-    priceAnnual: 180,
-    priceId: import.meta.env.VITE_STRIPE_PRICE_BROTHERHOOD_MONTHLY ?? '',
-    priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_BROTHERHOOD_ANNUAL ?? '',
+    price: MEMBERSHIP_PRICES.brotherhood.monthly.amount,
+    priceAnnual: MEMBERSHIP_PRICES.brotherhood.annual.amount,
+    priceId: MEMBERSHIP_PRICES.brotherhood.monthly.priceId,
+    priceIdAnnual: MEMBERSHIP_PRICES.brotherhood.annual.priceId,
     icon: Star,
     isPopular: false,
     features: [
@@ -61,12 +62,12 @@ const plans: Plan[] = [
   },
   {
     id: 'coaching',
-    name: 'Expert Guidance',
+    name: MEMBERSHIP_PRICES.coaching.monthly.label,
     description: 'Tactical expertise + Brotherhood',
-    price: 390,
-    priceAnnual: 3480,
-    priceId: import.meta.env.VITE_STRIPE_PRICE_COACHING_MONTHLY ?? '',
-    priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_COACHING_ANNUAL ?? '',
+    price: MEMBERSHIP_PRICES.coaching.monthly.amount,
+    priceAnnual: MEMBERSHIP_PRICES.coaching.annual.amount,
+    priceId: MEMBERSHIP_PRICES.coaching.monthly.priceId,
+    priceIdAnnual: MEMBERSHIP_PRICES.coaching.annual.priceId,
     icon: Zap,
     isPopular: true,
     features: [
@@ -82,12 +83,12 @@ const plans: Plan[] = [
   },
   {
     id: 'programs',
-    name: 'The Forge',
+    name: MEMBERSHIP_PRICES.programs.monthly.label,
     description: 'Identity architecture — by application',
-    price: 1490,
-    priceAnnual: 14125,
-    priceId: import.meta.env.VITE_STRIPE_PRICE_PROGRAMS_MONTHLY ?? '',
-    priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_PROGRAMS_ANNUAL ?? '',
+    price: MEMBERSHIP_PRICES.programs.monthly.amount,
+    priceAnnual: MEMBERSHIP_PRICES.programs.annual.amount,
+    priceId: MEMBERSHIP_PRICES.programs.monthly.priceId,
+    priceIdAnnual: MEMBERSHIP_PRICES.programs.annual.priceId,
     icon: Crown,
     isPopular: false,
     features: [
@@ -213,7 +214,12 @@ export function ShopUpgradePage() {
       return
     }
     checkout.mutate(
-      { price_id: priceId, tier },
+      {
+        price_id: priceId,
+        tier,
+        success_url: `${window.location.origin}/shop/success`,
+        cancel_url: `${window.location.origin}/shop/upgrade`,
+      },
       {
         onSuccess: (data) => {
           if (isAllowedExternalUrl(data.url)) {
