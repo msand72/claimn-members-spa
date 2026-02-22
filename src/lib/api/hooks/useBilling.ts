@@ -57,6 +57,41 @@ export function useVerifyCheckout(sessionId: string) {
   })
 }
 
+export interface PaymentMethod {
+  type: string
+  last4: string
+  brand: string
+  exp_month: number
+  exp_year: number
+}
+
+export interface BillingInfo {
+  subscription: {
+    tier: string
+    status: string
+    current_period_start: string
+    current_period_end: string
+    cancel_at_period_end: boolean
+    amount?: number
+    currency?: string
+    interval?: string
+    features?: string[]
+  }
+  payment_method?: PaymentMethod
+}
+
+/**
+ * Fetch full billing info (subscription + payment method).
+ * Unlike useSubscription, this does NOT swallow errors —
+ * use it on the Billing page where errors must be visible.
+ */
+export function useBillingInfo() {
+  return useQuery({
+    queryKey: [...billingKeys.all, 'info'] as const,
+    queryFn: () => api.get<BillingInfo>('/members/billing'),
+  })
+}
+
 export function useInvoices() {
   return useQuery({
     queryKey: billingKeys.invoices(),

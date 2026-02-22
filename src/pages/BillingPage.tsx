@@ -14,8 +14,8 @@ import {
   Receipt,
   Shield,
 } from 'lucide-react'
-import { useSubscription, useInvoices, useBillingPortal } from '../lib/api/hooks'
-import type { Invoice } from '../lib/api/hooks'
+import { useBillingInfo, useInvoices, useBillingPortal } from '../lib/api/hooks'
+import type { Invoice, PaymentMethod } from '../lib/api/hooks'
 import { isAllowedExternalUrl } from '../lib/url-validation'
 import { cn } from '../lib/utils'
 
@@ -98,10 +98,10 @@ export function BillingPage() {
   const [portalError, setPortalError] = useState<string | null>(null)
 
   const {
-    data: subscription,
-    isLoading: subscriptionLoading,
-    error: subscriptionError,
-  } = useSubscription()
+    data: billingData,
+    isLoading: billingLoading,
+    error: billingError,
+  } = useBillingInfo()
 
   const {
     data: invoices = [],
@@ -128,6 +128,8 @@ export function BillingPage() {
     })
   }
 
+  const subscription = billingData?.subscription
+  const paymentMethod: PaymentMethod | undefined = billingData?.payment_method
   const hasPlan = subscription && subscription.tier !== 'none'
   const isActive = subscription?.status === 'active' || subscription?.status === 'trialing'
 
@@ -157,11 +159,11 @@ export function BillingPage() {
             Current Plan
           </h2>
           <GlassCard variant="accent" leftBorder={false} className="border border-white/[0.1]">
-            {subscriptionLoading ? (
+            {billingLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 text-kalkvit/60 animate-spin" />
               </div>
-            ) : subscriptionError ? (
+            ) : billingError ? (
               <div className="flex items-center gap-3 py-4">
                 <AlertTriangle className="w-5 h-5 text-tegelrod" />
                 <p className="text-kalkvit/60">Failed to load subscription details.</p>
@@ -253,11 +255,11 @@ export function BillingPage() {
             Payment Method
           </h2>
           <GlassCard variant="base" className="border border-white/[0.08]">
-            {subscriptionLoading ? (
+            {billingLoading ? (
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="w-6 h-6 text-kalkvit/60 animate-spin" />
               </div>
-            ) : subscriptionError ? (
+            ) : billingError ? (
               <div className="flex items-center gap-3 py-4">
                 <AlertTriangle className="w-5 h-5 text-tegelrod" />
                 <p className="text-kalkvit/60">Failed to load payment method.</p>
@@ -272,12 +274,25 @@ export function BillingPage() {
                     <CreditCard className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-kalkvit font-medium text-sm">
-                      Card on file
-                    </p>
-                    <p className="text-xs text-kalkvit/40">
-                      Managed through Stripe
-                    </p>
+                    {paymentMethod ? (
+                      <>
+                        <p className="text-kalkvit font-medium text-sm">
+                          {paymentMethod.brand.charAt(0).toUpperCase() + paymentMethod.brand.slice(1)} ···· {paymentMethod.last4}
+                        </p>
+                        <p className="text-xs text-kalkvit/40">
+                          Expires {String(paymentMethod.exp_month).padStart(2, '0')}/{paymentMethod.exp_year}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-kalkvit font-medium text-sm">
+                          No card on file
+                        </p>
+                        <p className="text-xs text-kalkvit/40">
+                          Add a payment method via Stripe
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
                 <GlassButton
@@ -290,7 +305,7 @@ export function BillingPage() {
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
-                      Update
+                      {paymentMethod ? 'Update' : 'Add Card'}
                       <ExternalLink className="w-4 h-4" />
                     </>
                   )}

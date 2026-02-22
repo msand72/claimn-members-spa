@@ -265,8 +265,11 @@ export {
   billingKeys,
   useCheckout,
   useVerifyCheckout,
+  useBillingInfo,
   useInvoices,
   useBillingPortal,
+  type BillingInfo,
+  type PaymentMethod,
   type Invoice,
 } from './useBilling'
 
