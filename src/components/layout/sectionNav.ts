@@ -110,7 +110,6 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     mode: 'tabs',
     items: [
       { to: '/programs', label: 'My Programs', icon: GraduationCap },
-      { to: '/programs/sprints', label: 'Sprints', icon: Target },
       { to: '/programs/reviews', label: 'Reviews', icon: ClipboardCheck },
     ],
     allPaths: ['/programs', '/programs/sprints', '/programs/reviews'],

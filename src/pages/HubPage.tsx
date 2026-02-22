@@ -459,7 +459,7 @@ function UnreadMessages() {
                   )}
                 </div>
                 <p className="text-xs text-kalkvit/50 truncate">
-                  {convo.last_message?.content || 'No messages'}
+                  {(typeof convo.last_message === 'object' ? convo.last_message?.content : convo.last_message) || 'No messages'}
                 </p>
               </div>
             </Link>
@@ -640,11 +640,21 @@ function MyPrograms() {
 
 function NextGoSession() {
   const { data, isLoading } = useEvents({ type: 'go_session', status: 'upcoming', limit: 1 })
+  const { data: enrolledData } = useEnrolledPrograms({ limit: 10 })
 
   const sessions: ClaimnEvent[] = Array.isArray(data?.data) ? data.data : safeArray<ClaimnEvent>(data)
   const next = sessions[0]
 
   if (isLoading || !next) return null
+
+  // Find GO program ID for linking
+  const enrolled: UserProgram[] = safeArray<UserProgram>(enrolledData)
+  const goEnrollment = enrolled.find(
+    (ep) => ep.program?.slug === 'go-sessions-s1' || ep.program?.tier === 'go_sessions'
+  )
+  const goProgramLink = goEnrollment
+    ? `/programs/${goEnrollment.program_id}`
+    : `/events/${next.id}`
 
   const date = new Date(next.scheduled_date)
   const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
@@ -653,7 +663,7 @@ function NextGoSession() {
   const hasEarlyBird = next.is_early_bird_active && next.early_bird_price_cents != null
 
   return (
-    <Link to={`/events/${next.id}`} className="block">
+    <Link to={goProgramLink} className="block">
       <div className="glass-accent rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:border-koppar/40 transition-colors">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-koppar/20 flex items-center justify-center shrink-0">

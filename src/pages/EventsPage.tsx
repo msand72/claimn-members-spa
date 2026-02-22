@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs, GlassAvatar } from '../components/ui'
@@ -7,6 +7,8 @@ import {
   useMyEvents,
   useRegisterForEvent,
   useUnregisterFromEvent,
+  useEnrolledPrograms,
+  usePrograms,
   type ClaimnEvent,
 } from '../lib/api/hooks'
 import {
@@ -18,6 +20,8 @@ import {
   CalendarDays,
   UserCheck,
   UserMinus,
+  Zap,
+  ArrowRight,
 } from 'lucide-react'
 
 function formatEventDate(iso: string): string {
@@ -75,7 +79,6 @@ function CapacityBar({ registered, capacity }: { registered: number; capacity: n
 function EventCard({ event }: { event: ClaimnEvent }) {
   const registerMutation = useRegisterForEvent()
   const unregisterMutation = useUnregisterFromEvent()
-  const isMutating = registerMutation.isPending || unregisterMutation.isPending
   const isFull = event.registered_count >= event.capacity
   const isPast = new Date(event.scheduled_date) < new Date()
 
@@ -97,7 +100,7 @@ function EventCard({ event }: { event: ClaimnEvent }) {
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <GlassBadge variant="koppar" className="text-xs">
-            {event.event_type === 'brotherhood_call' ? 'Brotherhood Call' : 'GO Session'}
+            Brotherhood Call
           </GlassBadge>
           <GlassBadge variant="default" className="text-xs">
             {event.tier_required}
@@ -147,13 +150,8 @@ function EventCard({ event }: { event: ClaimnEvent }) {
                   variant="ghost"
                   className="w-full"
                   onClick={handleUnregister}
-                  disabled={isMutating}
                 >
-                  {isMutating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <UserMinus className="w-4 h-4" />
-                  )}
+                  <UserMinus className="w-4 h-4" />
                   Unregister
                 </GlassButton>
               ) : (
@@ -161,13 +159,9 @@ function EventCard({ event }: { event: ClaimnEvent }) {
                   variant="primary"
                   className="w-full"
                   onClick={handleRegister}
-                  disabled={isMutating || isFull}
+                  disabled={isFull}
                 >
-                  {isMutating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <UserCheck className="w-4 h-4" />
-                  )}
+                  <UserCheck className="w-4 h-4" />
                   {isFull ? 'Full' : 'Register'}
                 </GlassButton>
               )}
@@ -221,7 +215,7 @@ export function EventsPage() {
   const [activeTab, setActiveTab] = useState('brotherhood_call')
   const [statusFilter, setStatusFilter] = useState<'upcoming' | 'past'>('upcoming')
 
-  // API hooks
+  // API hooks — only Brotherhood Calls (GO Sessions live in the Program page)
   const {
     data: brotherhoodData,
     isLoading: isLoadingBrotherhood,
@@ -229,26 +223,45 @@ export function EventsPage() {
   } = useEvents({ type: 'brotherhood_call', status: statusFilter })
 
   const {
-    data: goSessionData,
-    isLoading: isLoadingGo,
-    error: goError,
-  } = useEvents({ type: 'go_session', status: statusFilter })
-
-  const {
     data: myEventsData,
     isLoading: isLoadingMyEvents,
     error: myEventsError,
   } = useMyEvents()
 
+  // Find GO program for the CTA link
+  const { data: programsData } = usePrograms()
+  const { data: enrolledData } = useEnrolledPrograms()
+  const goProgramId = useMemo(() => {
+    const programs = Array.isArray(programsData?.data) ? programsData.data : []
+    const goProgram = programs.find(
+      (p) => p.slug === 'go-sessions-s1' || p.tier === 'go_sessions'
+    )
+    if (!goProgram) return ''
+    const enrolled = Array.isArray(enrolledData?.data) ? enrolledData.data : []
+    const enrolledMatch = enrolled.find(
+      (ep) =>
+        ep.program_id === goProgram.id ||
+        ep.program?.slug === 'go-sessions-s1' ||
+        ep.program?.tier === 'go_sessions'
+    )
+    return enrolledMatch?.program_id || goProgram.id
+  }, [programsData, enrolledData])
+
   const brotherhoodEvents = Array.isArray(brotherhoodData?.data) ? brotherhoodData.data : []
-  const goSessionEvents = Array.isArray(goSessionData?.data) ? goSessionData.data : []
   const myEvents = Array.isArray(myEventsData?.data) ? myEventsData.data : []
 
-  const error = brotherhoodError || goError || myEventsError
+  // Filter my events: only brotherhood calls, by status
+  const filteredMyEvents = myEvents.filter((event) => {
+    if (event.event_type === 'go_session') return false // GO sessions are in program page
+    const eventDate = new Date(event.scheduled_date)
+    const now = new Date()
+    return statusFilter === 'upcoming' ? eventDate >= now : eventDate < now
+  })
+
+  const error = brotherhoodError || myEventsError
 
   const tabs = [
     { value: 'brotherhood_call', label: 'Brotherhood Calls' },
-    { value: 'go_session', label: 'GO Sessions' },
     { value: 'my_events', label: 'My Events' },
   ]
 
@@ -256,13 +269,6 @@ export function EventsPage() {
     { value: 'upcoming', label: 'Upcoming' },
     { value: 'past', label: 'Past' },
   ]
-
-  // Filter my events by status
-  const filteredMyEvents = myEvents.filter((event) => {
-    const eventDate = new Date(event.scheduled_date)
-    const now = new Date()
-    return statusFilter === 'upcoming' ? eventDate >= now : eventDate < now
-  })
 
   if (error) {
     return (
@@ -287,16 +293,16 @@ export function EventsPage() {
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">
-              Events
+              Sessions
             </h1>
             <p className="text-kalkvit/60">
-              Join Brotherhood Calls and GO Sessions to connect and grow
+              Join Brotherhood Calls to connect and grow
             </p>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
             <Users className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
@@ -305,20 +311,35 @@ export function EventsPage() {
             <p className="text-xs text-kalkvit/50">Brotherhood Calls</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <CalendarDays className="w-6 h-6 text-skogsgron mx-auto mb-2" />
-            <p className="font-display text-2xl font-bold text-kalkvit">
-              {isLoadingGo ? '-' : goSessionEvents.length}
-            </p>
-            <p className="text-xs text-kalkvit/50">GO Sessions</p>
-          </GlassCard>
-          <GlassCard variant="base" className="text-center py-4">
             <UserCheck className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
-              {isLoadingMyEvents ? '-' : myEvents.length}
+              {isLoadingMyEvents ? '-' : filteredMyEvents.length}
             </p>
             <p className="text-xs text-kalkvit/50">My Registrations</p>
           </GlassCard>
         </div>
+
+        {/* GO Sessions CTA */}
+        {goProgramId && (
+          <Link to={`/programs/${goProgramId}`} className="block mb-6">
+            <div className="glass-accent rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:border-koppar/40 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-koppar/20 flex items-center justify-center shrink-0">
+                  <Zap className="w-4.5 h-4.5 text-koppar" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display text-sm font-bold text-kalkvit">
+                    GO Sessions
+                  </h3>
+                  <p className="text-xs text-kalkvit/60">
+                    View sessions, sprints, vitality checks & more
+                  </p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-koppar/60 shrink-0" />
+              </div>
+            </div>
+          </Link>
+        )}
 
         {/* Main Tabs */}
         <GlassTabs tabs={tabs} value={activeTab} onChange={setActiveTab} className="mb-6" />
@@ -339,14 +360,6 @@ export function EventsPage() {
             events={brotherhoodEvents}
             isLoading={isLoadingBrotherhood}
             emptyMessage={`No ${statusFilter} Brotherhood Calls`}
-          />
-        )}
-
-        {activeTab === 'go_session' && (
-          <EventsGrid
-            events={goSessionEvents}
-            isLoading={isLoadingGo}
-            emptyMessage={`No ${statusFilter} GO Sessions`}
           />
         )}
 
