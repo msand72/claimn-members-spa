@@ -148,9 +148,9 @@ function StatsRow() {
       />
       <GlassStatsCard
         icon={BarChart3}
-        label="Tracking"
+        label="Connections"
         value={isLoading ? '...' : String(stats?.connections_count ?? 0)}
-        trendLabel="KPIs"
+        trendLabel="network"
       />
       <GlassStatsCard
         icon={Trophy}

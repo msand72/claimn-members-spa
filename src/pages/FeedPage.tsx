@@ -89,7 +89,7 @@ function PostCard({ post }: { post: FeedPost }) {
   }
 
   const handleShare = async () => {
-    const url = window.location.origin + '/feed/' + post.id
+    const url = window.location.origin + '/feed'
     try {
       await navigator.clipboard.writeText(url)
       setShareCopied(true)

@@ -23,7 +23,7 @@ import {
 import { cn } from '../lib/utils'
 import type { ProtocolWeek } from '../lib/api/hooks/useProtocols'
 
-function WeekCard({ week, index, isPurchased }: { week: ProtocolWeek; index: number; isPurchased: boolean }) {
+function WeekCard({ week, index, isPurchased, slug }: { week: ProtocolWeek; index: number; isPurchased: boolean; slug?: string }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
@@ -71,10 +71,12 @@ function WeekCard({ week, index, isPurchased }: { week: ProtocolWeek; index: num
                   <Target className="w-4 h-4 text-koppar" />
                   <span className="text-sm text-kalkvit/70">{task.title}</span>
                 </div>
-                {isPurchased && (
-                  <GlassButton variant="ghost" className="text-xs py-1 px-2">
-                    View
-                  </GlassButton>
+                {isPurchased && slug && (
+                  <Link to={`/protocols/${slug}`}>
+                    <GlassButton variant="ghost" className="text-xs py-1 px-2">
+                      View
+                    </GlassButton>
+                  </Link>
                 )}
               </div>
             ))}
@@ -331,7 +333,7 @@ export function ShopProtocolDetailPage() {
                 <h2 className="font-semibold text-kalkvit mb-4">Curriculum</h2>
                 <div className="space-y-3">
                   {weeks.map((week, i) => (
-                    <WeekCard key={week.week} week={week} index={i} isPurchased={isPurchased} />
+                    <WeekCard key={week.week} week={week} index={i} isPurchased={isPurchased} slug={slug} />
                   ))}
                 </div>
               </GlassCard>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassAlert } from '../components/ui'
-import { useCheckout } from '../lib/api/hooks'
+import { useCheckout, useSubscription } from '../lib/api/hooks'
 import { isAllowedExternalUrl } from '../lib/url-validation'
 import {
   Check,
@@ -30,7 +30,6 @@ interface Plan {
   priceIdAnnual: string
   icon: React.ElementType
   isPopular: boolean
-  isCurrent: boolean
   features: {
     name: string
     included: boolean
@@ -49,7 +48,6 @@ const plans: Plan[] = [
     priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_BROTHERHOOD_ANNUAL ?? '',
     icon: Star,
     isPopular: false,
-    isCurrent: true,
     features: [
       { name: 'Access to ALL 50+ protocols', included: true },
       { name: 'Private community platform', included: true },
@@ -71,7 +69,6 @@ const plans: Plan[] = [
     priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_COACHING_ANNUAL ?? '',
     icon: Zap,
     isPopular: true,
-    isCurrent: false,
     features: [
       { name: 'Everything in Brotherhood', included: true },
       { name: 'Bi-weekly 1:1 expert sessions (60-75 min)', included: true, highlight: true },
@@ -93,7 +90,6 @@ const plans: Plan[] = [
     priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_PROGRAMS_ANNUAL ?? '',
     icon: Crown,
     isPopular: false,
-    isCurrent: false,
     features: [
       { name: 'Everything in Expert Guidance', included: true },
       { name: '6-12 month cohort intensive', included: true, highlight: true },
@@ -107,7 +103,7 @@ const plans: Plan[] = [
   },
 ]
 
-function PlanCard({ plan, isAnnual, onUpgrade, isLoading }: { plan: Plan; isAnnual: boolean; onUpgrade: (priceId: string, tier: string) => void; isLoading: boolean }) {
+function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading }: { plan: Plan; isAnnual: boolean; isCurrent: boolean; onUpgrade: (priceId: string, tier: string) => void; isLoading: boolean }) {
   const price = isAnnual ? Math.round(plan.priceAnnual / 12) : plan.price
   const Icon = plan.icon
 
@@ -207,6 +203,8 @@ export function ShopUpgradePage() {
   const [isAnnual, setIsAnnual] = useState(true)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const checkout = useCheckout()
+  const { data: subscription } = useSubscription()
+  const currentTier = subscription?.tier || 'none'
 
   const handleUpgrade = (priceId: string, tier: string) => {
     setCheckoutError(null)
@@ -277,7 +275,7 @@ export function ShopUpgradePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {plans.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} isAnnual={isAnnual} onUpgrade={handleUpgrade} isLoading={checkout.isPending} />
+            <PlanCard key={plan.id} plan={plan} isAnnual={isAnnual} isCurrent={plan.id === currentTier} onUpgrade={handleUpgrade} isLoading={checkout.isPending} />
           ))}
         </div>
 

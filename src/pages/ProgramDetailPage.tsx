@@ -487,10 +487,12 @@ export function ProgramDetailPage() {
 
           {/* Action button */}
           {program.is_locked ? (
-            <GlassButton variant="ghost" disabled>
-              <Lock className="w-4 h-4" />
-              Unlock with Premium
-            </GlassButton>
+            <Link to="/shop/upgrade">
+              <GlassButton variant="ghost">
+                <Lock className="w-4 h-4" />
+                Unlock with Premium
+              </GlassButton>
+            </Link>
           ) : isCompleted ? (
             <GlassButton
               variant="secondary"
