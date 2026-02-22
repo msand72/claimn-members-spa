@@ -237,7 +237,6 @@ export {
 // Events
 export {
   eventKeys,
-  pulseKeys,
   goSessionKeys,
   useEvents,
   useEvent,
@@ -247,8 +246,6 @@ export {
   useGoSessions,
   useGoSession,
   useRegisterForGoSession,
-  useSessionPulse,
-  useSubmitSessionPulse,
   type ClaimnEvent,
   type EventsParams,
 } from './useEvents'

@@ -368,23 +368,6 @@ export interface LogKPIRequest {
   notes?: string
 }
 
-// Session Pulse (GO Sessions vitality check-in)
-export interface SessionPulse {
-  id: string
-  event_id: string
-  member_id: string
-  energy: number
-  stress: number
-  sleep_hours: number
-  submitted_at: string
-}
-
-export interface SubmitPulseRequest {
-  energy: number
-  stress: number
-  sleep_hours: number
-}
-
 // Action Items
 export interface ActionItem {
   id: string

@@ -27,7 +27,7 @@ import {
   ArrowRight,
   BookOpen,
 } from 'lucide-react'
-import { SessionPulseForm } from '../components/events/SessionPulseForm'
+
 
 function formatEventDate(iso: string): string {
   const date = new Date(iso)
@@ -432,10 +432,7 @@ export function EventDetailPage() {
               </Link>
             )}
 
-            {/* Session Pulse — past registered GO sessions */}
-            {isPast && event.is_registered && event.event_type === 'go_session' && (
-              <SessionPulseForm eventId={event.id} />
-            )}
+
           </div>
         </div>
       </div>
