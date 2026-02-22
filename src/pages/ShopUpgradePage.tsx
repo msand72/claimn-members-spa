@@ -84,7 +84,7 @@ const plans: Plan[] = [
     id: 'programs',
     name: 'The Forge',
     description: 'Identity architecture — by application',
-    price: 1900,
+    price: 1490,
     priceAnnual: 17880,
     priceId: import.meta.env.VITE_STRIPE_PRICE_PROGRAMS_MONTHLY ?? '',
     priceIdAnnual: import.meta.env.VITE_STRIPE_PRICE_PROGRAMS_ANNUAL ?? '',

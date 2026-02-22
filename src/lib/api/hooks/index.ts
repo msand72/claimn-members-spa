@@ -265,6 +265,9 @@ export {
   billingKeys,
   useCheckout,
   useVerifyCheckout,
+  useInvoices,
+  useBillingPortal,
+  type Invoice,
 } from './useBilling'
 
 // Community Questions
