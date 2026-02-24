@@ -15,7 +15,6 @@ import {
   useFeed,
   useConversations,
   useMyEvents,
-  useEvents,
   useCoachingSessions,
   useEnrolledPrograms,
   useDashboardStats,
@@ -47,9 +46,6 @@ import {
   Flame,
   BarChart3,
   Trophy,
-  Clock,
-  Users,
-  Zap,
 } from 'lucide-react'
 
 // ── Helpers ──────────────────────────────────────────
@@ -702,70 +698,74 @@ function MyPrograms() {
   )
 }
 
-// ── NextGoSession (full-width CTA) ───────────────────
+// ── ActivePrograms (enrolled programs list) ──────────
 
-function NextGoSession() {
-  const { data, isLoading } = useEvents({ type: 'go_session', status: 'upcoming', limit: 1 })
-  const { data: enrolledData } = useEnrolledPrograms({ limit: 10 })
+function ActivePrograms() {
+  const { data, isLoading } = useEnrolledPrograms({ limit: 10 })
+  const programs: UserProgram[] = safeArray<UserProgram>(data)
+  const active = programs.filter((up) => up.status === 'enrolled')
 
-  const sessions: ClaimnEvent[] = Array.isArray(data?.data) ? data.data : safeArray<ClaimnEvent>(data)
-  const next = sessions[0]
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="glass-accent rounded-2xl px-4 py-3">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-9 h-9 rounded-lg shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="w-20 h-3" />
+                <Skeleton className="w-40 h-3.5" />
+                <Skeleton className="w-full h-1.5" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
-  if (isLoading || !next) return null
-
-  // Find GO program ID for linking
-  const enrolled: UserProgram[] = safeArray<UserProgram>(enrolledData)
-  const goEnrollment = enrolled.find(
-    (ep) => ep.program?.slug === 'go-sessions-s1' || ep.program?.tier === 'go_sessions'
-  )
-  const goProgramLink = goEnrollment
-    ? `/programs/${goEnrollment.program_id}`
-    : `/events/${next.id}`
-
-  const date = new Date(next.scheduled_date)
-  const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-  const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-  const spotsLeft = next.spots_remaining ?? (next.capacity - next.registered_count)
-  const hasEarlyBird = next.is_early_bird_active && next.early_bird_price_cents != null
+  if (active.length === 0) return null
 
   return (
-    <Link to={goProgramLink} className="block">
-      <div className="glass-accent rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:border-koppar/40 transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-koppar/20 flex items-center justify-center shrink-0">
-            <Zap className="w-4.5 h-4.5 text-koppar" />
-          </div>
+    <div className="space-y-3">
+      {active.map((up) => (
+        <Link key={up.id} to={`/programs/${up.program_id}`} className="block">
+          <div className="glass-accent rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:border-koppar/40 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-koppar/20 flex items-center justify-center shrink-0">
+                <GraduationCap className="w-4.5 h-4.5 text-koppar" />
+              </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <GlassBadge variant="koppar" className="text-[10px]">GO Session</GlassBadge>
-              {hasEarlyBird && (
-                <GlassBadge variant="success" className="text-[10px]">Early Bird</GlassBadge>
-              )}
-            </div>
-            <h3 className="font-display text-sm font-bold text-kalkvit truncate">
-              {next.title}
-            </h3>
-            <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-kalkvit/60">
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {dateStr}
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {timeStr}
-              </span>
-              <span className="flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                {spotsLeft > 0 ? `${spotsLeft} spots` : 'Full'}
-              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  {up.program?.category && (
+                    <GlassBadge variant="koppar" className="text-[10px]">
+                      {up.program.category}
+                    </GlassBadge>
+                  )}
+                </div>
+                <h3 className="font-display text-sm font-bold text-kalkvit truncate">
+                  {up.program?.title || up.program?.name || 'Program'}
+                </h3>
+                <div className="mt-1.5">
+                  <div className="w-full h-1.5 rounded-full bg-white/[0.06]">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-koppar to-koppar/70 transition-all"
+                      style={{ width: `${Math.min(up.progress, 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-kalkvit/40 mt-0.5 block">
+                    {up.progress}% complete
+                  </span>
+                </div>
+              </div>
+
+              <ArrowRight className="w-4 h-4 text-koppar/60 shrink-0" />
             </div>
           </div>
-
-          <ArrowRight className="w-4 h-4 text-koppar/60 shrink-0" />
-        </div>
-      </div>
-    </Link>
+        </Link>
+      ))}
+    </div>
   )
 }
 
@@ -789,8 +789,8 @@ export function HubPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main column */}
           <div className="lg:col-span-2 space-y-6">
-            <PageErrorBoundary section="NextGoSession">
-              <NextGoSession />
+            <PageErrorBoundary section="ActivePrograms">
+              <ActivePrograms />
             </PageErrorBoundary>
             <PageErrorBoundary section="ExpertSpotlight">
               <ExpertSpotlight />
