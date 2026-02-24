@@ -395,8 +395,24 @@ export function ProgramDetailPage() {
     )
   }
 
+  // CVC print report data (top-level so it renders outside tab panels)
+  const printCVCs = cvcAssessments
+    .filter((c: CVCAssessmentStatus) => c.scores?.category_scores)
+    .sort((a: CVCAssessmentStatus, b: CVCAssessmentStatus) => {
+      const order: Record<string, number> = { baseline: 0, midline: 1, final: 2, custom: 3 }
+      return (order[a.type] ?? 3) - (order[b.type] ?? 3)
+    })
+
   return (
     <MainLayout>
+      {/* Print-only CVC report — must be direct child of MainLayout for print CSS */}
+      {printCVCs.length > 0 && (
+        <CVCPrintReport
+          programName={program?.title || 'GO Sessions'}
+          completedCVCs={printCVCs}
+        />
+      )}
+
       <div className="max-w-4xl mx-auto">
         {/* Back link */}
         <Link
@@ -1490,12 +1506,6 @@ export function ProgramDetailPage() {
 
                     return (
                       <>
-                        {/* Print-only report */}
-                        <CVCPrintReport
-                          programName={program?.title || 'GO Sessions'}
-                          completedCVCs={completedCVCs}
-                        />
-
                         {/* Hero — Vitality Index */}
                         <GlassCard variant="elevated">
                           <div className="text-center mb-4">
