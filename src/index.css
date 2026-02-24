@@ -724,7 +724,9 @@ body {
   }
 }
 
-/* Hide print report on screen */
-.print-report {
-  display: none;
+/* Hide print report on screen only */
+@media screen {
+  .print-report {
+    display: none;
+  }
 }
