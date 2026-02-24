@@ -1361,7 +1361,7 @@ export function ProgramDetailPage() {
           <GlassTabPanel value="vitality" activeValue={activeTab}>
             <div className="space-y-6">
               {/* View Vitality Report button */}
-              {cvcAssessments.some((c: CVCAssessmentStatus) => c.is_completed) && (
+              {cvcAssessments.some((c: CVCAssessmentStatus) => c.scores?.category_scores) && (
                 <Link to={`/programs/${id}/vitality-report`}>
                   <GlassButton variant="secondary" className="w-full text-sm">
                     <FileText className="w-4 h-4" />
