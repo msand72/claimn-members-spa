@@ -69,12 +69,13 @@ function PlanCardSkeleton() {
   )
 }
 
-function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading }: {
+function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading, isDisabled }: {
   plan: PlanInfo
   isAnnual: boolean
   isCurrent: boolean
   onUpgrade: (priceId: string, tier: string) => void
   isLoading: boolean
+  isDisabled: boolean
 }) {
   const meta = tierMeta[plan.tier] || { icon: Star, isPopular: false, notIncluded: [] }
   const Icon = meta.icon
@@ -152,7 +153,7 @@ function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading }: {
           variant={meta.isPopular ? 'primary' : 'secondary'}
           className="w-full mb-6"
           onClick={() => onUpgrade(priceId, plan.tier)}
-          disabled={isLoading}
+          disabled={isLoading || isDisabled}
         >
           {isLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -194,6 +195,7 @@ function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading }: {
 export function ShopUpgradePage() {
   const [isAnnual, setIsAnnual] = useState(true)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [checkoutTier, setCheckoutTier] = useState<string | null>(null)
   const checkout = useCheckout()
   const { data: subscription } = useSubscription()
   const { data: plansData, isLoading: isLoadingPlans, error: plansError } = usePlans()
@@ -203,8 +205,10 @@ export function ShopUpgradePage() {
 
   const handleUpgrade = (priceId: string, tier: string) => {
     setCheckoutError(null)
+    setCheckoutTier(tier)
     if (!priceId) {
       setCheckoutError('Checkout is not configured for this plan. Please contact support.')
+      setCheckoutTier(null)
       return
     }
     checkout.mutate(
@@ -224,6 +228,7 @@ export function ShopUpgradePage() {
         },
         onError: () => {
           setCheckoutError('Failed to start checkout. Please try again.')
+          setCheckoutTier(null)
         },
       }
     )
@@ -294,7 +299,8 @@ export function ShopUpgradePage() {
                 isAnnual={isAnnual}
                 isCurrent={plan.tier === currentTier}
                 onUpgrade={handleUpgrade}
-                isLoading={checkout.isPending}
+                isLoading={checkout.isPending && checkoutTier === plan.tier}
+                isDisabled={checkout.isPending && checkoutTier !== plan.tier}
               />
             ))
           )}
