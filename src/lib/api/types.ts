@@ -594,7 +594,7 @@ export interface UserProgram {
   user_id: string
   program_id: string
   progress: number
-  status: 'enrolled' | 'completed' | 'paused'
+  status: 'enrolled' | 'active' | 'completed' | 'paused'
   enrolled_at: string
   completed_at: string | null
   program?: Program
