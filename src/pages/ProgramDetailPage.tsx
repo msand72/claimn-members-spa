@@ -36,8 +36,27 @@ import {
   UserMinus,
   BarChart3,
   Heart,
+  Moon,
+  Shield,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { CVCPrintReport } from '../components/cvc/CVCPrintReport'
+import {
+  BIOMARKER_CONFIGS,
+  BIOMARKER_ORDER,
+  CVC_SHORT_LABELS,
+  type CVCBiomarker,
+} from '../lib/cvc/constants'
+import {
+  interpretBiomarker,
+  interpretVitalityIndex,
+  normalizeScore,
+  computeTrend,
+  type TrendDirection,
+} from '../lib/cvc/interpretation'
 
 function computeSprintStatus(sprint: Sprint): 'upcoming' | 'active' | 'completed' {
   if (sprint.status) return sprint.status
@@ -1360,17 +1379,6 @@ export function ProgramDetailPage() {
         {isEnrolled && isGoProgram && (
           <GlassTabPanel value="vitality" activeValue={activeTab}>
             <div className="space-y-6">
-              {/* View Vitality Report button */}
-              {cvcAssessments.some((c: CVCAssessmentStatus) => c.scores?.category_scores) && (
-                <Link to={`/programs/${id}/vitality-report`}>
-                  <GlassButton variant="secondary" className="w-full text-sm">
-                    <FileText className="w-4 h-4" />
-                    View Vitality Report
-                    <ArrowRight className="w-4 h-4" />
-                  </GlassButton>
-                </Link>
-              )}
-
               {/* Vitality Checks progress */}
               {isLoadingAssessments ? (
                 <div className="flex items-center justify-center py-12">
@@ -1452,84 +1460,245 @@ export function ProgramDetailPage() {
                     </div>
                   </GlassCard>
 
-                  {/* Biomarker Scores — from completed CVC assessments */}
-                  {cvcAssessments.some((c: CVCAssessmentStatus) => c.scores?.category_scores) && (
-                    <GlassCard variant="base">
-                      <h3 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 text-koppar" />
-                        Biomarker Trends
-                      </h3>
-                      <div className="space-y-4">
-                        {(['vital_energy', 'stress_load', 'sleep_quality'] as const).map((biomarker) => {
-                          const labels: Record<string, string> = {
-                            vital_energy: 'Vital Energy (SVS)',
-                            stress_load: 'Stress Load (PSS)',
-                            sleep_quality: 'Sleep Quality (PSQI)',
-                          }
-                          const maxScales: Record<string, number> = {
-                            vital_energy: 7,
-                            stress_load: 40,
-                            sleep_quality: 15,
-                          }
-                          const isLowerBetter = biomarker === 'stress_load' || biomarker === 'sleep_quality'
-                          const max = maxScales[biomarker]
+                  {/* ===== Inline Vitality Report ===== */}
+                  {(() => {
+                    const completedCVCs = cvcAssessments
+                      .filter((c: CVCAssessmentStatus) => c.scores?.category_scores)
+                      .sort((a: CVCAssessmentStatus, b: CVCAssessmentStatus) => {
+                        const order: Record<string, number> = { baseline: 0, midline: 1, final: 2, custom: 3 }
+                        return (order[a.type] ?? 3) - (order[b.type] ?? 3)
+                      })
 
-                          const dataPoints = cvcAssessments
-                            .filter((c: CVCAssessmentStatus) => c.scores?.category_scores?.[biomarker] != null)
-                            .map((c: CVCAssessmentStatus) => ({
-                              label: c.type === 'baseline' ? 'Pre' : c.type === 'midline' ? 'Mid' : 'Post',
-                              value: Number(c.scores!.category_scores![biomarker]),
-                            }))
+                    if (completedCVCs.length === 0) return null
 
-                          if (dataPoints.length === 0) return null
+                    const latest = completedCVCs[completedCVCs.length - 1]
+                    const latestScores = latest.scores!
+                    const vitalityIndex = latestScores.percentage_score ?? 0
+                    const vitalityInterp = interpretVitalityIndex(vitalityIndex)
 
-                          return (
-                            <div key={biomarker}>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-kalkvit/70">{labels[biomarker]}</span>
-                                <span className="text-xs text-kalkvit/40">
-                                  {isLowerBetter ? 'Lower is better' : 'Higher is better'}
+                    const biomarkerIcons: Record<CVCBiomarker, React.ReactNode> = {
+                      vital_energy: <Zap className="w-5 h-5" />,
+                      stress_load: <Shield className="w-5 h-5" />,
+                      sleep_quality: <Moon className="w-5 h-5" />,
+                    }
+
+                    const trendConfig: Record<TrendDirection, { icon: React.ReactNode; label: string; color: string }> = {
+                      improved: { icon: <TrendingUp className="w-4 h-4" />, label: 'Improved', color: 'text-skogsgron' },
+                      declined: { icon: <TrendingDown className="w-4 h-4" />, label: 'Declined', color: 'text-tegelrod' },
+                      stable: { icon: <Minus className="w-4 h-4" />, label: 'Stable', color: 'text-kalkvit/50' },
+                    }
+
+                    return (
+                      <>
+                        {/* Print-only report */}
+                        <CVCPrintReport
+                          programName={program?.title || 'GO Sessions'}
+                          completedCVCs={completedCVCs}
+                        />
+
+                        {/* Hero — Vitality Index */}
+                        <GlassCard variant="elevated">
+                          <div className="text-center mb-4">
+                            <h3 className="font-display text-lg font-semibold text-kalkvit mb-1">
+                              Overall Vitality Index
+                            </h3>
+                            <p className="text-xs text-kalkvit/50">
+                              Composite score across all three biomarkers
+                            </p>
+                          </div>
+
+                          <div className="flex justify-center mb-2">
+                            <div className="relative w-28 h-28">
+                              <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
+                                <circle
+                                  cx="60" cy="60" r="54" fill="none"
+                                  stroke="#B87333"
+                                  strokeWidth="8"
+                                  strokeLinecap="round"
+                                  strokeDasharray={`${(vitalityIndex / 100) * 339.3} 339.3`}
+                                  className="transition-all duration-1000 ease-out"
+                                />
+                              </svg>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="font-display text-3xl font-bold text-koppar">
+                                  {Math.round(vitalityIndex)}%
                                 </span>
                               </div>
-                              <div className="flex items-end gap-3">
-                                {dataPoints.map((dp) => {
-                                  const barPct = isLowerBetter
-                                    ? Math.min(((max - dp.value) / max) * 100, 100)
-                                    : Math.min((dp.value / max) * 100, 100)
-                                  return (
-                                    <div key={dp.label} className="flex-1 text-center">
-                                      <span className="text-xs font-medium text-kalkvit block mb-1">
-                                        {dp.value.toFixed(1)}
-                                      </span>
-                                      <div className="h-16 bg-white/[0.06] rounded-lg overflow-hidden flex items-end">
-                                        <div
-                                          className={cn(
-                                            'w-full rounded-lg transition-all',
-                                            isLowerBetter
-                                              ? 'bg-gradient-to-t from-skogsgron to-oliv'
-                                              : 'bg-gradient-to-t from-koppar to-brandAmber'
-                                          )}
-                                          style={{ height: `${barPct}%` }}
-                                        />
-                                      </div>
-                                      <span className="text-[10px] text-kalkvit/40 block mt-1">{dp.label}</span>
-                                    </div>
-                                  )
-                                })}
-                              </div>
                             </div>
+                          </div>
+                          <div className="text-center mb-4">
+                            <GlassBadge variant={vitalityInterp.variant}>{vitalityInterp.level}</GlassBadge>
+                            <p className="text-xs text-kalkvit/40 mt-2">{vitalityInterp.description}</p>
+                          </div>
+
+                          {/* Quick stat cards */}
+                          <div className="grid grid-cols-3 gap-2">
+                            {BIOMARKER_ORDER.map((key) => {
+                              const config = BIOMARKER_CONFIGS[key]
+                              const raw = latestScores.category_scores?.[key] ?? 0
+                              const interp = interpretBiomarker(key, raw)
+                              return (
+                                <div
+                                  key={key}
+                                  className="text-center p-2 rounded-xl bg-white/[0.04] border border-white/10"
+                                >
+                                  <div className={cn('flex items-center justify-center gap-1 mb-0.5', interp.colorClass)}>
+                                    {biomarkerIcons[key]}
+                                    <span className="text-lg font-bold">{raw.toFixed(1)}</span>
+                                  </div>
+                                  <p className="text-[10px] text-kalkvit/50">{config.label}</p>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </GlassCard>
+
+                        {/* Biomarker Breakdown */}
+                        {BIOMARKER_ORDER.map((key) => {
+                          const config = BIOMARKER_CONFIGS[key]
+                          const raw = latestScores.category_scores?.[key] ?? 0
+                          const interp = interpretBiomarker(key, raw)
+                          const barPct = normalizeScore(key, raw)
+
+                          return (
+                            <GlassCard key={key} variant="base">
+                              <div className="flex items-start gap-3">
+                                <div className={cn(
+                                  'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
+                                  config.lowerIsBetter ? 'bg-skogsgron/20' : 'bg-koppar/20',
+                                )}>
+                                  <div className={config.lowerIsBetter ? 'text-skogsgron' : 'text-koppar'}>
+                                    {biomarkerIcons[key]}
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <h4 className="font-semibold text-kalkvit text-sm">
+                                      {config.label}
+                                      <span className="text-kalkvit/40 font-normal text-xs ml-1">
+                                        ({config.instrument})
+                                      </span>
+                                    </h4>
+                                    <div className="flex items-center gap-1">
+                                      <span className={cn('text-lg font-bold', interp.colorClass)}>
+                                        {raw.toFixed(1)}
+                                      </span>
+                                      <span className="text-xs text-kalkvit/40">/ {config.maxScore}</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <GlassBadge variant={interp.variant}>{interp.level}</GlassBadge>
+                                    <span className="text-[10px] text-kalkvit/30">
+                                      {config.lowerIsBetter ? 'Lower is better' : 'Higher is better'}
+                                    </span>
+                                  </div>
+
+                                  <div className="h-1.5 bg-white/[0.08] rounded-full overflow-hidden mb-2">
+                                    <div
+                                      className={cn(
+                                        'h-full rounded-full transition-all duration-700',
+                                        config.lowerIsBetter
+                                          ? 'bg-gradient-to-r from-skogsgron to-oliv'
+                                          : 'bg-gradient-to-r from-koppar to-brand-amber',
+                                      )}
+                                      style={{ width: `${barPct}%` }}
+                                    />
+                                  </div>
+
+                                  <p className="text-xs text-kalkvit/50">{interp.description}</p>
+                                </div>
+                              </div>
+                            </GlassCard>
                           )
                         })}
-                      </div>
-                      <Link to="/kpis" className="mt-4 block">
-                        <GlassButton variant="ghost" className="text-sm w-full">
-                          <BarChart3 className="w-4 h-4" />
-                          View Full KPI Dashboard
-                          <ArrowRight className="w-4 h-4" />
-                        </GlassButton>
-                      </Link>
-                    </GlassCard>
-                  )}
+
+                        {/* Trends (2+ CVCs) */}
+                        {completedCVCs.length >= 2 && (
+                          <GlassCard variant="elevated">
+                            <h3 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
+                              <BarChart3 className="w-5 h-5 text-koppar" />
+                              Biomarker Trends
+                            </h3>
+                            <div className="space-y-5">
+                              {BIOMARKER_ORDER.map((key) => {
+                                const config = BIOMARKER_CONFIGS[key]
+
+                                const dataPoints = completedCVCs
+                                  .filter((c: CVCAssessmentStatus) => c.scores?.category_scores?.[key] != null)
+                                  .map((c: CVCAssessmentStatus) => ({
+                                    label: CVC_SHORT_LABELS[c.type] || c.type,
+                                    value: Number(c.scores!.category_scores![key]),
+                                  }))
+
+                                if (dataPoints.length < 2) return null
+
+                                const trend = computeTrend(key, dataPoints[0].value, dataPoints[dataPoints.length - 1].value)
+                                const trendInfo = trendConfig[trend]
+
+                                return (
+                                  <div key={key}>
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className={config.lowerIsBetter ? 'text-skogsgron' : 'text-koppar'}>
+                                          {biomarkerIcons[key]}
+                                        </span>
+                                        <span className="text-sm font-medium text-kalkvit">{config.label}</span>
+                                      </div>
+                                      <div className={cn('flex items-center gap-1 text-xs font-medium', trendInfo.color)}>
+                                        {trendInfo.icon}
+                                        {trendInfo.label}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-end gap-3">
+                                      {dataPoints.map((dp) => {
+                                        const bPct = normalizeScore(key, dp.value)
+                                        return (
+                                          <div key={dp.label} className="flex-1 text-center">
+                                            <span className="text-xs font-medium text-kalkvit block mb-1">
+                                              {dp.value.toFixed(1)}
+                                            </span>
+                                            <div className="h-16 bg-white/[0.06] rounded-lg overflow-hidden flex items-end">
+                                              <div
+                                                className={cn(
+                                                  'w-full rounded-lg transition-all duration-500',
+                                                  config.lowerIsBetter
+                                                    ? 'bg-gradient-to-t from-skogsgron to-oliv'
+                                                    : 'bg-gradient-to-t from-koppar to-brand-amber',
+                                                )}
+                                                style={{ height: `${bPct}%` }}
+                                              />
+                                            </div>
+                                            <span className="text-[10px] text-kalkvit/40 block mt-1">{dp.label}</span>
+                                          </div>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </GlassCard>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          <GlassButton variant="secondary" className="text-sm" onClick={() => window.print()}>
+                            <Download className="w-4 h-4" />
+                            Save PDF
+                          </GlassButton>
+                          <Link to="/kpis">
+                            <GlassButton variant="ghost" className="text-sm">
+                              <BarChart3 className="w-4 h-4" />
+                              View KPI Dashboard
+                              <ArrowRight className="w-4 h-4" />
+                            </GlassButton>
+                          </Link>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </>
               )}
             </div>
