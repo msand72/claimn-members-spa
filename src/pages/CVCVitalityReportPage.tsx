@@ -105,7 +105,7 @@ export function CVCVitalityReportPage() {
   const completedCVCs = useMemo(
     () =>
       (cvcStatus?.assessments || [])
-        .filter((a: CVCAssessmentStatus) => a.is_completed && a.scores?.category_scores)
+        .filter((a: CVCAssessmentStatus) => a.scores?.category_scores)
         .sort((a: CVCAssessmentStatus, b: CVCAssessmentStatus) => {
           const order = { baseline: 0, midline: 1, final: 2, custom: 3 }
           return (order[a.type] ?? 3) - (order[b.type] ?? 3)
