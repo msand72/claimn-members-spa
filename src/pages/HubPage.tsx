@@ -707,10 +707,16 @@ function ActivePrograms() {
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="glass-accent rounded-2xl px-4 py-3">
-            <div className="flex items-center gap-3">
+      <GlassCard variant="base">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
+            <GraduationCap className="w-4 h-4 text-koppar" />
+            Active Programs
+          </h2>
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
               <Skeleton className="w-9 h-9 rounded-lg shrink-0" />
               <div className="flex-1 space-y-1.5">
                 <Skeleton className="w-20 h-3" />
@@ -718,20 +724,29 @@ function ActivePrograms() {
                 <Skeleton className="w-full h-1.5" />
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </GlassCard>
     )
   }
 
   if (active.length === 0) return null
 
   return (
-    <div className="space-y-3">
-      {active.map((up) => (
-        <Link key={up.id} to={`/programs/${up.program_id}`} className="block">
-          <div className="glass-accent rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:border-koppar/40 transition-colors">
-            <div className="flex items-center gap-3">
+    <GlassCard variant="base">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
+          <GraduationCap className="w-4 h-4 text-koppar" />
+          Active Programs
+        </h2>
+        <Link to="/programs" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+          View all <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+      <div className="space-y-3">
+        {active.map((up) => (
+          <Link key={up.id} to={`/programs/${up.program_id}`} className="block group">
+            <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/[0.04] transition-colors">
               <div className="w-9 h-9 rounded-lg bg-koppar/20 flex items-center justify-center shrink-0">
                 <GraduationCap className="w-4.5 h-4.5 text-koppar" />
               </div>
@@ -762,10 +777,10 @@ function ActivePrograms() {
 
               <ArrowRight className="w-4 h-4 text-koppar/60 shrink-0" />
             </div>
-          </div>
-        </Link>
-      ))}
-    </div>
+          </Link>
+        ))}
+      </div>
+    </GlassCard>
   )
 }
 
