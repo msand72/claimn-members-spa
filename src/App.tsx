@@ -39,6 +39,7 @@ function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }>) {
 const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'))
 const ForgotPasswordPage = lazyWithRetry(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazyWithRetry(() => import('./pages/ResetPasswordPage'))
+const ActivateAccountPage = lazyWithRetry(() => import('./pages/ActivateAccountPage'))
 
 // Pages - Core
 const HubPage = lazyWithRetry(() => import('./pages/HubPage'))
@@ -181,6 +182,7 @@ const router = createBrowserRouter([
       { path: '/login', element: <LoginPage /> },
       { path: '/forgot-password', element: <ForgotPasswordPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
+      { path: '/activate', element: <ActivateAccountPage /> },
 
       // Protected routes - Onboarding (no sidebar layout)
       { path: '/onboarding', element: <Protected><OnboardingWelcomePage /></Protected> },
@@ -288,6 +290,14 @@ const router = createBrowserRouter([
     sessionStorage.setItem('recovery_token', accessToken)
     window.history.replaceState(null, '', '/reset-password')
     window.location.replace('/reset-password')
+    return
+  }
+
+  if (hashType === 'invite') {
+    // New account activation — prompt user to set a password
+    sessionStorage.setItem('invite_token', accessToken)
+    window.history.replaceState(null, '', '/activate')
+    window.location.replace('/activate')
     return
   }
 
