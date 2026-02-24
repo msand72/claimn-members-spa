@@ -495,11 +495,10 @@ body {
   }
 
   .print-report {
-    position: fixed;
+    position: absolute;
     left: 0;
     top: 0;
     width: 100%;
-    z-index: 99999;
     display: block;
     font-family: Georgia, 'Times New Roman', serif;
     color: #000;
