@@ -703,7 +703,7 @@ function MyPrograms() {
 function ActivePrograms() {
   const { data, isLoading } = useEnrolledPrograms({ limit: 10 })
   const programs: UserProgram[] = safeArray<UserProgram>(data)
-  const active = programs.filter((up) => up.status === 'enrolled')
+  const active = programs.filter((up) => up.status === 'enrolled' || up.status === 'active')
 
   if (isLoading) {
     return (
