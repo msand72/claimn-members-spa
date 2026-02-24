@@ -71,6 +71,7 @@ const ProgramDetailPage = lazyWithRetry(() => import('./pages/ProgramDetailPage'
 const ProgramsSprintsPage = lazyWithRetry(() => import('./pages/ProgramsSprintsPage'))
 const SprintDetailPage = lazyWithRetry(() => import('./pages/SprintDetailPage'))
 const ProgramAssessmentPage = lazyWithRetry(() => import('./pages/ProgramAssessmentPage'))
+const CVCVitalityReportPage = lazyWithRetry(() => import('./pages/CVCVitalityReportPage'))
 const ProgramsReviewsPage = lazyWithRetry(() => import('./pages/ProgramsReviewsPage'))
 
 // Pages - Events
@@ -218,6 +219,7 @@ const router = createBrowserRouter([
       { path: '/programs/sprints/:id', element: <Protected><SprintDetailPage /></Protected> },
       { path: '/programs/reviews', element: <Protected><ProgramsReviewsPage /></Protected> },
       { path: '/programs/:id/assessment/:assessmentId', element: <Protected><ProgramAssessmentPage /></Protected> },
+      { path: '/programs/:id/vitality-report', element: <Protected><CVCVitalityReportPage /></Protected> },
       { path: '/programs/:id', element: <Protected><ProgramDetailPage /></Protected> },
 
       // Protected routes - Events

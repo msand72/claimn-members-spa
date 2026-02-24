@@ -709,6 +709,19 @@ body {
     color: #999;
     text-align: center;
   }
+
+  /* CVC Vitality Report print classes */
+  .print-vitality-hero {
+    text-align: center;
+    font-size: 48pt;
+    font-weight: 700;
+    margin: 1rem 0;
+  }
+  .print-vitality-label {
+    font-size: 14pt;
+    color: #666;
+    text-align: center;
+  }
 }
 
 /* Hide print report on screen */

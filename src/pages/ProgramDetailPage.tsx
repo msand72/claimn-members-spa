@@ -1360,6 +1360,17 @@ export function ProgramDetailPage() {
         {isEnrolled && isGoProgram && (
           <GlassTabPanel value="vitality" activeValue={activeTab}>
             <div className="space-y-6">
+              {/* View Vitality Report button */}
+              {cvcAssessments.some((c: CVCAssessmentStatus) => c.is_completed) && (
+                <Link to={`/programs/${id}/vitality-report`}>
+                  <GlassButton variant="secondary" className="w-full text-sm">
+                    <FileText className="w-4 h-4" />
+                    View Vitality Report
+                    <ArrowRight className="w-4 h-4" />
+                  </GlassButton>
+                </Link>
+              )}
+
               {/* Vitality Checks progress */}
               {isLoadingAssessments ? (
                 <div className="flex items-center justify-center py-12">
