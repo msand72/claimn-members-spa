@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { PageErrorBoundary } from '../components/PageErrorBoundary'
@@ -17,6 +18,7 @@ import {
   useMyEvents,
   useCoachingSessions,
   useEnrolledPrograms,
+  usePrograms,
   useDashboardStats,
   useGoals,
   useMyActiveProtocols,
@@ -27,6 +29,7 @@ import {
   type Conversation,
   type CoachingSession,
   type UserProgram,
+  type Program,
   type Goal,
   type ActiveProtocol,
   type ProtocolTemplate,
@@ -702,8 +705,17 @@ function MyPrograms() {
 
 function ActivePrograms() {
   const { data, isLoading } = useEnrolledPrograms({ limit: 10 })
-  const programs: UserProgram[] = safeArray<UserProgram>(data)
-  const active = programs.filter((up) => up.status === 'enrolled' || up.status === 'active')
+  const { data: programsData } = usePrograms({ limit: 50 })
+  const enrollments: UserProgram[] = safeArray<UserProgram>(data)
+  const active = enrollments.filter((up) => up.status === 'enrolled' || up.status === 'active')
+
+  // Build lookup map: program_id → Program
+  const programMap = useMemo(() => {
+    const map = new Map<string, Program>()
+    const list = (programsData as { data?: Program[] })?.data ?? []
+    for (const p of list) map.set(p.id, p)
+    return map
+  }, [programsData])
 
   if (isLoading) {
     return (
@@ -744,7 +756,9 @@ function ActivePrograms() {
         </Link>
       </div>
       <div className="space-y-3">
-        {active.map((up) => (
+        {active.map((up) => {
+          const prog = programMap.get(up.program_id)
+          return (
           <Link key={up.id} to={`/programs/${up.program_id}`} className="block group">
             <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/[0.04] transition-colors">
               <div className="w-9 h-9 rounded-lg bg-koppar/20 flex items-center justify-center shrink-0">
@@ -752,15 +766,15 @@ function ActivePrograms() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  {up.program?.category && (
+                {prog?.category && (
+                  <div className="flex items-center gap-2 mb-0.5">
                     <GlassBadge variant="koppar" className="text-[10px]">
-                      {up.program.category}
+                      {prog.category}
                     </GlassBadge>
-                  )}
-                </div>
+                  </div>
+                )}
                 <h3 className="font-display text-sm font-bold text-kalkvit truncate">
-                  {up.program?.title || up.program?.name || 'Program'}
+                  {prog?.title || up.program?.title || up.program?.name || 'Program'}
                 </h3>
                 <div className="mt-1.5">
                   <div className="w-full h-1.5 rounded-full bg-white/[0.06]">
@@ -778,7 +792,8 @@ function ActivePrograms() {
               <ArrowRight className="w-4 h-4 text-koppar/60 shrink-0" />
             </div>
           </Link>
-        ))}
+          )
+        })}
       </div>
     </GlassCard>
   )
