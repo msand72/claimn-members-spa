@@ -405,13 +405,11 @@ export function ProgramDetailPage() {
 
   return (
     <MainLayout>
-      {/* Print-only CVC report — must be direct child of MainLayout for print CSS */}
-      {printCVCs.length > 0 && (
-        <CVCPrintReport
-          programName={program?.title || 'GO Sessions'}
-          completedCVCs={printCVCs}
-        />
-      )}
+      {/* Print-only CVC report — always rendered so print CSS can find it */}
+      <CVCPrintReport
+        programName={program?.title || 'GO Sessions'}
+        completedCVCs={printCVCs}
+      />
 
       <div className="max-w-4xl mx-auto print:hidden">
         {/* Back link */}
