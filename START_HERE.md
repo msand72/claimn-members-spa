@@ -2,7 +2,7 @@
 
 **Read this ENTIRE document before making any changes to this codebase.**
 
-*Last updated: 2026-02-15*
+*Last updated: 2026-02-24*
 
 ---
 
@@ -38,7 +38,7 @@ The CLAIM'N Members SPA is a **React single-page application** for the CLAIM'N m
 - **Production URL:** `https://members.claimn.co`
 - **Backend API:** `https://api.claimn.co` (Go-based, separate repo)
 - **52 pages**, **26 API hook files**, **14 Glass UI components**
-- **87+ Go API endpoints** integrated via `/api/v2/members/*`
+- **~474 Go API endpoints** (181 documented in OpenAPI) across `/api/v2/auth/*`, `/api/v2/public/*`, `/api/v2/members/*`, `/api/v2/admin/*`, `/api/v2/expert/*`
 
 ---
 
@@ -377,12 +377,14 @@ Premium Protected (coaching tier required):
 
 ```
 1. User submits email + password
-2. POST /api/v2/auth/login → GoTrue-issued tokens (local self-hosted GoTrue)
-3. POST /api/v2/auth/exchange → Go JWT with user_type (fallback: use original token)
-4. GET /api/v2/auth/me → User profile data
+2. POST /api/v2/auth/login → GoTrue-issued tokens (self-hosted GoTrue v2.186.0 on port 9999)
+3. POST /api/v2/auth/exchange → Go JWT with user_type claim (fallback: use original token)
+4. GET /api/v2/auth/me → User profile data (dual JWT validation: tries GoTrue first, falls back to Go JWT)
 5. Tokens stored in localStorage
 6. Auto-refresh scheduled 5 minutes before expiry
 ```
+
+**Dual JWT system:** The API supports two JWT types. GoTrue tokens (from login) are used briefly during the login flow. Go-issued JWTs (from `/auth/exchange`, containing `user_type`) are used for all subsequent API calls. The middleware (`auth_v2.go`) tries GoTrue validation first, then falls back to Go JWT validation.
 
 ### Key Files
 
@@ -1015,7 +1017,7 @@ Admin and superadmin users bypass tier requirements automatically via `hasAccess
 
 ### No Direct Database Access
 
-The Web DB was migrated from Supabase Cloud to local PostgreSQL (Feb 2026). The frontend has **zero Supabase client dependencies** — no `@supabase/supabase-js`, no direct PostgREST queries, no Realtime subscriptions, no Supabase Storage calls. All data access goes through the Go API (`api.claimn.co`). Never add direct database access to this codebase.
+All 4 databases (Web, Agent, CMS, VanTG) run on local PostgreSQL 16 with PostgREST, fully migrated from Supabase Cloud (Feb 2026). The frontend has **zero Supabase client dependencies** — no `@supabase/supabase-js`, no direct PostgREST queries, no Realtime subscriptions, no Supabase Storage calls. All data access goes through the Go API (`api.claimn.co`). Never add direct database access to this codebase.
 
 ### Glass Opacity — Edit the Utility Classes
 
@@ -1027,15 +1029,65 @@ Glass morphism opacity is controlled by `glass-base`, `glass-elevated`, and `gla
 
 ### Architecture (as of Feb 2026)
 
-The backend has been **fully migrated from Supabase Cloud to a self-hosted stack**:
+The backend runs on a **fully self-hosted stack** on a primary Windows server with a Hetzner standby/failover server:
+
+```
+                     Cloudflare Edge (DNS + Tunnel routing)
+                              |
+            +--------+--------+--------+---------+
+            |        |        |        |         |
+       api.claimn  agents.  app.    api.vantg  n8n.claimn
+         .co      claimn   claimn    .dk        .co
+                   .co      .co
+            |        |       |        |          |
+         +-----------+-------+--------+    +------------------+    +------------------+
+         |    PM2 Process Manager     |    | Docker: n8n      |    | Docker: local-   |
+         +---------------------------+    +------------------+    | services         |
+         | claimn-backend  :3001 (Go)|    | n8n      :5678   |    +------------------+
+         | claimn-agents   :3006 (Go)|    | n8n-pg   :5432   |    | caddy  :3200-3203|
+         | cloudflare-tunnel         |    | bugfix-pg:5433   |    | postgrest ×4     |
+         +---------------------------+    +------------------+    | gotrue ×2 :9999/8|
+                    |                                             | minio    :9000   |
+                    |                                             | redis    :6379   |
+         +---------------------------+                            | infisical:8080   |
+         | Local PostgreSQL 16       |                            | imgproxy :8081   |
+         | (4 databases)             |                            +------------------+
+         |---------------------------|
+         | claimn_web    (via :3202) |
+         | claimn_agent  (via :3200) |
+         | claimn_cms    (via :3203) |
+         | vantg         (via :3201) |
+         +---------------------------+
+                    |
+         +---------------------------+
+         | Hetzner Standby (replica) |
+         | PostgreSQL 16 (read-only) |
+         | WAL streaming replication |
+         | Auto-failover via CF LB   |
+         +---------------------------+
+```
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Database** | PostgreSQL 16 (local) | All data storage (100+ tables) |
-| **API Gateway** | PostgREST | Database REST API (used internally by Go API) |
-| **Auth** | GoTrue (self-hosted) | Authentication, JWT issuance |
-| **File Storage** | MinIO | Avatar uploads, media files |
-| **API Server** | Go (custom) | Primary API at `api.claimn.co` |
+| **API Server** | Go 1.24 (custom) | Primary API at `api.claimn.co` (~474 endpoints) |
+| **AI Agents** | Go (separate repo `claimn-agentic-ai`) | AI agents at `agents.claimn.co` (assessment, coaching, bug fix pipeline) |
+| **Database** | PostgreSQL 16 (local) × 4 databases | All data storage |
+| **API Gateway** | PostgREST v12.2.3 × 4 + Caddy proxy | Database REST API (used internally by Go API) |
+| **Auth** | GoTrue v2.186.0 × 2 (port 9999 for Web, 9998 for CMS) | Authentication, JWT issuance |
+| **File Storage** | MinIO (S3-compatible, port 9000) | Avatar uploads, media files |
+| **Image Processing** | imgproxy | On-the-fly image resizing for CMS |
+| **Workflows** | n8n (Docker) | Automated workflows, bug report pipeline |
+| **Secrets** | Infisical (Docker) | Centralized secrets management |
+| **Failover** | Hetzner VPS + Cloudflare Load Balancing | PostgreSQL streaming replica, auto-failover (~60s detection) |
+
+### Four Databases
+
+| Name | PostgREST Port | Purpose |
+|------|---------------|---------|
+| **Web** (`claimn_web`) | `:3202` + GoTrue `:9999` + MinIO `:9000` | Member profiles, programs, content, billing |
+| **Agent** (`claimn_agent`) | `:3200` | AI agent tasks, bug reports, workflows |
+| **CMS** (`claimn_cms`) | `:3203` + GoTrue `:9998` + Storage API | Blog posts, pages, media |
+| **VanTG** (`vantg`) | `:3201` | Market data (separate product) |
 
 **The frontend does NOT access any of these directly.** All data access goes through the Go API (`/api/v2/*`). There is no Supabase JS client, no direct PostgREST queries, no Realtime subscriptions, and no Supabase Storage calls.
 
@@ -1074,7 +1126,7 @@ updated_at TIMESTAMPTZ
 2. **No direct Supabase/PostgREST queries** from the frontend
 3. **No Supabase Realtime** — use polling via React Query if live updates are needed
 4. **No Supabase Storage** — file uploads go through Go API endpoints (e.g., `POST /api/v2/members/avatar`)
-5. **API documentation** is available at `https://api.claimn.co/api/docs` (Swagger UI)
+5. **API documentation** is available at `https://api.claimn.co/api/docs` (Swagger UI, HTTP Basic Auth protected, 181 of ~474 endpoints documented)
 
 ---
 
@@ -1082,10 +1134,14 @@ updated_at TIMESTAMPTZ
 
 ### Backend API Documentation
 
-- **Swagger UI:** `https://api.claimn.co/api/docs`
-- **OpenAPI Spec:** `server-infra/claimn-api/handlers/docs/static/openapi.yaml`
-- **Go Handlers:** `server-infra/claimn-api/handlers/v2/members/` (profile, feed, goals, etc.)
+- **Swagger UI:** `https://api.claimn.co/api/docs` (HTTP Basic Auth protected)
+- **OpenAPI Spec:** `server-infra/claimn-api/handlers/docs/static/openapi.yaml` (133 KB, 181 of ~474 endpoints documented)
+- **Go Handlers:** `server-infra/claimn-api/handlers/v2/members/` (27+ handler files, ~162 member endpoints)
+- **Admin Handlers:** `server-infra/claimn-api/handlers/v2/admin/` (39+ handler files, ~233 admin endpoints)
+- **Auth Handlers:** `server-infra/claimn-api/handlers/v2/auth/` (3 files: auth, exchange, stripe)
+- **Routes Registration:** `server-infra/claimn-api/handlers/routes.go` (~474 HandleFunc calls)
 - **Backend START_HERE:** `server-infra/claimn-api/START_HERE.md`
+- **AI Agents:** `claimn-agentic-ai/` (separate repo — assessment, coaching, bug fix agents)
 
 ### Migration & Design Docs (in claimn-web — historical reference)
 
@@ -1112,4 +1168,4 @@ The database was originally managed via Supabase Cloud with migrations in `claim
 
 ---
 
-*Compiled from members-spa development, audit reports, and codebase analysis. Updated Feb 2026 to reflect migration from Supabase Cloud to self-hosted PostgreSQL + GoTrue + MinIO stack.*
+*Compiled from members-spa development, audit reports, and codebase analysis. Updated Feb 24, 2026 to reflect full self-hosted stack: 4 PostgreSQL databases, PostgREST v12.2.3 ×4, GoTrue v2.186.0 ×2, MinIO, imgproxy, n8n, Infisical, Hetzner failover with Cloudflare Load Balancing, and ~474 Go API endpoints.*
