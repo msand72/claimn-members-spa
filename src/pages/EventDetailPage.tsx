@@ -62,7 +62,7 @@ export function EventDetailPage() {
   const unregisterMutation = useUnregisterFromEvent()
 
   // For GO sessions: find GO program and fetch CVC assessment status
-  const isGoSession = event?.event_type === 'go_session'
+  const isGoSession = event?.event_type === 'session'
   const { data: programsData } = usePrograms()
   const { data: enrolledData } = useEnrolledPrograms()
 
@@ -185,7 +185,7 @@ export function EventDetailPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Protocol name for GO sessions */}
-            {event.event_type === 'go_session' && event.protocol_name && (
+            {event.event_type === 'session' && event.protocol_name && (
               <GlassCard variant="base">
                 <p className="font-serif text-lg text-koppar italic">
                   {event.protocol_name}
@@ -248,7 +248,7 @@ export function EventDetailPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Zoom link for registered GO sessions */}
-            {event.event_type === 'go_session' && event.is_registered && event.zoom_url && (
+            {event.event_type === 'session' && event.is_registered && event.zoom_url && (
               <GlassCard variant="base" className="border border-koppar/30">
                 <h2 className="font-display text-lg font-semibold text-kalkvit mb-3">
                   Join Session
@@ -359,7 +359,7 @@ export function EventDetailPage() {
             </GlassCard>
 
             {/* CVC Assessments — registered GO sessions */}
-            {event.event_type === 'go_session' && event.is_registered && cvcAssessments.length > 0 && (
+            {event.event_type === 'session' && event.is_registered && cvcAssessments.length > 0 && (
               <GlassCard variant="base">
                 <div className="flex items-center gap-2 mb-4">
                   <ClipboardCheck className="w-5 h-5 text-koppar" />
@@ -417,7 +417,7 @@ export function EventDetailPage() {
             )}
 
             {/* KPI Biomarkers link — registered GO sessions */}
-            {event.event_type === 'go_session' && event.is_registered && (
+            {event.event_type === 'session' && event.is_registered && (
               <Link to="/kpis">
                 <GlassCard variant="base" className="hover:border-koppar/30 transition-colors group">
                   <div className="flex items-center gap-3">

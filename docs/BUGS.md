@@ -284,9 +284,9 @@ The following backend endpoints exist in the OpenAPI spec but are **not consumed
 | `/members/events/brotherhood-calls` | GET | Frontend uses generic `/events` with `type` filter |
 | `/members/events/brotherhood-calls/{id}` | GET | Same |
 | `/members/events/brotherhood-calls/{id}/register` | POST | Same |
-| `/members/events/go-sessions` | GET | Same |
-| `/members/events/go-sessions/{id}` | GET | Same |
-| `/members/events/go-sessions/{id}/register` | POST | Same |
+| `/members/events/sessions` | GET | Same |
+| `/members/events/sessions/{id}` | GET | Same |
+| `/members/events/sessions/{id}/register` | POST | Same |
 | `/members/milestones` | POST | Milestone creation not in frontend |
 | `/members/milestones/{id}` | PUT/DELETE | Full milestone CRUD not in frontend |
 | `/members/accountability/groups` | GET/POST | Group listing/creation via `/groups` sub-route not used |

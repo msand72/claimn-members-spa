@@ -210,7 +210,7 @@ export function ProgramDetailPage() {
   // GO Session events — only fetch for GO program
   const [sessionStatusFilter, setSessionStatusFilter] = useState<'upcoming' | 'past'>('upcoming')
   const { data: goSessionData, isLoading: isLoadingGoSessions } = useEvents(
-    isGoProgram ? { type: 'go_session', status: sessionStatusFilter } : undefined
+    isGoProgram ? { type: 'session', status: sessionStatusFilter } : undefined
   )
   const goSessions: ClaimnEvent[] = isGoProgram && Array.isArray(goSessionData?.data) ? goSessionData.data : []
   const registerMutation = useRegisterForEvent()
