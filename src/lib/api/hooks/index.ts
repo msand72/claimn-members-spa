@@ -247,15 +247,15 @@ export {
 // Events
 export {
   eventKeys,
-  goSessionKeys,
+  sessionKeys,
   useEvents,
   useEvent,
   useMyEvents,
   useRegisterForEvent,
   useUnregisterFromEvent,
-  useGoSessions,
-  useGoSession,
-  useRegisterForGoSession,
+  useSessions,
+  useSession,
+  useRegisterForSession,
   type ClaimnEvent,
   type EventsParams,
 } from './useEvents'

@@ -1476,7 +1476,7 @@ export interface Interest {
 
 export interface ClaimnEvent {
   id: string
-  event_type: 'brotherhood_call' | 'go_session'
+  event_type: 'brotherhood_call' | 'session'
   title: string
   description: string
   scheduled_date: string
@@ -1489,7 +1489,7 @@ export interface ClaimnEvent {
     name: string
     avatar_url: string
   }
-  // GO Session extended fields (optional — only present for go_session type)
+  // Session extended fields (optional — only present for session type)
   subtitle?: string
   protocol_name?: string
   long_description?: string
@@ -1507,11 +1507,11 @@ export interface ClaimnEvent {
   season?: string
   pillar?: string
   zoom_url?: string
-  agenda?: GoSessionAgendaBlock[]
-  research_citations?: GoSessionCitation[]
+  agenda?: SessionAgendaBlock[]
+  research_citations?: SessionCitation[]
 }
 
-export interface GoSessionAgendaBlock {
+export interface SessionAgendaBlock {
   // Backend format
   time?: string
   title?: string
@@ -1523,7 +1523,7 @@ export interface GoSessionAgendaBlock {
   description?: string
 }
 
-export interface GoSessionCitation {
+export interface SessionCitation {
   title: string
   year: number
   // Backend sends url; frontend may also use journal/summary

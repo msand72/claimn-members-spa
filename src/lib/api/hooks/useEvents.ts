@@ -5,7 +5,7 @@ import type { ClaimnEvent } from '../types'
 export type { ClaimnEvent }
 
 export interface EventsParams {
-  type?: 'brotherhood_call' | 'go_session'
+  type?: 'brotherhood_call' | 'session'
   status?: 'upcoming' | 'past'
   page?: number
   limit?: number
@@ -132,64 +132,64 @@ export function useUnregisterFromEvent() {
 }
 
 // =====================================================
-// GO Sessions Member Endpoints
+// Sessions Member Endpoints
 // =====================================================
 
-export const goSessionKeys = {
-  all: ['go-sessions'] as const,
+export const sessionKeys = {
+  all: ['sessions'] as const,
   list: (params?: { page?: number; page_size?: number }) =>
-    [...goSessionKeys.all, 'list', params] as const,
-  detail: (id: string) => [...goSessionKeys.all, 'detail', id] as const,
+    [...sessionKeys.all, 'list', params] as const,
+  detail: (id: string) => [...sessionKeys.all, 'detail', id] as const,
 }
 
-export function useGoSessions(params?: { page?: number; page_size?: number }) {
+export function useSessions(params?: { page?: number; page_size?: number }) {
   return useQuery({
-    queryKey: goSessionKeys.list(params),
+    queryKey: sessionKeys.list(params),
     queryFn: () =>
-      api.get<PaginatedResponse<ClaimnEvent>>('/members/events/go-sessions', {
+      api.get<PaginatedResponse<ClaimnEvent>>('/members/events/sessions', {
         page: params?.page,
         page_size: params?.page_size,
       }),
   })
 }
 
-export function useGoSession(id: string) {
+export function useSession(id: string) {
   return useQuery({
-    queryKey: goSessionKeys.detail(id),
-    queryFn: () => api.get<ClaimnEvent>(`/members/events/go-sessions/${id}`),
+    queryKey: sessionKeys.detail(id),
+    queryFn: () => api.get<ClaimnEvent>(`/members/events/sessions/${id}`),
     enabled: !!id,
   })
 }
 
-export function useRegisterForGoSession() {
+export function useRegisterForSession() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (sessionId: string) =>
-      api.post<{ success: boolean }>(`/members/events/go-sessions/${sessionId}/register`),
+      api.post<{ success: boolean }>(`/members/events/sessions/${sessionId}/register`),
     onMutate: async (sessionId) => {
-      await queryClient.cancelQueries({ queryKey: goSessionKeys.all })
+      await queryClient.cancelQueries({ queryKey: sessionKeys.all })
       await queryClient.cancelQueries({ queryKey: eventKeys.all })
       optimisticToggleRegistration(queryClient, sessionId, true)
-      // Also update go-session detail cache
-      const previousGoDetail = queryClient.getQueryData<ClaimnEvent>(goSessionKeys.detail(sessionId))
-      if (previousGoDetail) {
-        queryClient.setQueryData<ClaimnEvent>(goSessionKeys.detail(sessionId), {
-          ...previousGoDetail,
+      // Also update session detail cache
+      const previousDetail = queryClient.getQueryData<ClaimnEvent>(sessionKeys.detail(sessionId))
+      if (previousDetail) {
+        queryClient.setQueryData<ClaimnEvent>(sessionKeys.detail(sessionId), {
+          ...previousDetail,
           is_registered: true,
-          registered_count: previousGoDetail.registered_count + 1,
+          registered_count: previousDetail.registered_count + 1,
         })
       }
-      return { previousGoDetail }
+      return { previousDetail }
     },
     onError: (_err, sessionId, context) => {
       optimisticToggleRegistration(queryClient, sessionId, false)
-      if (context?.previousGoDetail) {
-        queryClient.setQueryData(goSessionKeys.detail(sessionId), context.previousGoDetail)
+      if (context?.previousDetail) {
+        queryClient.setQueryData(sessionKeys.detail(sessionId), context.previousDetail)
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: goSessionKeys.all })
+      queryClient.invalidateQueries({ queryKey: sessionKeys.all })
       queryClient.invalidateQueries({ queryKey: eventKeys.all })
     },
   })

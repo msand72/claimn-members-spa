@@ -252,7 +252,7 @@ export function EventsPage() {
 
   // Filter my events: only brotherhood calls, by status
   const filteredMyEvents = myEvents.filter((event) => {
-    if (event.event_type === 'go_session') return false // GO sessions are in program page
+    if (event.event_type === 'session') return false // Sessions are in program page
     const eventDate = new Date(event.scheduled_date)
     const now = new Date()
     return statusFilter === 'upcoming' ? eventDate >= now : eventDate < now
