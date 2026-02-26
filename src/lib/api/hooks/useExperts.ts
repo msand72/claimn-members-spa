@@ -102,6 +102,8 @@ export function useExpertAvailability(expertId: string) {
           id: r.id,
           day: r.day_of_week || '',
           time: `${fmtTime(r.start_time)} – ${fmtTime(r.end_time)}`,
+          startTime: fmtTime(r.start_time),
+          endTime: fmtTime(r.end_time),
         }))
     },
     enabled: !!expertId,

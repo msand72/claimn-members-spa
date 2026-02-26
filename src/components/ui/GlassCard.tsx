@@ -2,7 +2,7 @@ import { cn } from '../../lib/utils'
 import type { ReactNode } from 'react'
 
 interface GlassCardProps {
-  variant?: 'base' | 'elevated' | 'accent'
+  variant?: 'base' | 'elevated' | 'accent' | 'selected'
   children: ReactNode
   className?: string
   leftBorder?: boolean
@@ -20,6 +20,7 @@ export function GlassCard({
     base: 'glass-base',
     elevated: 'glass-elevated',
     accent: 'glass-accent',
+    selected: 'glass-selected',
   }
 
   return (

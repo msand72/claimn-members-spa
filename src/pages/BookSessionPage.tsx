@@ -48,11 +48,11 @@ function ExpertCard({
   return (
     <button onClick={onSelect} className="w-full text-left">
       <GlassCard
-        variant={isSelected ? 'accent' : 'base'}
+        variant={isSelected ? 'selected' : 'base'}
         leftBorder={false}
         className={cn(
           'cursor-pointer transition-all',
-          isSelected ? 'ring-2 ring-koppar' : 'hover:border-koppar/30'
+          !isSelected && 'hover:border-koppar/30'
         )}
       >
         <div className="flex items-start gap-4">
@@ -83,9 +83,9 @@ function ExpertCard({
             </div>
           </div>
           <div className="text-right">
-            {basePrice > 0 && (
+            {(basePrice > 0 || expert.hourly_rate > 0) && (
               <>
-                <p className="font-display text-xl font-bold text-kalkvit">€{basePrice}</p>
+                <p className="font-display text-xl font-bold text-kalkvit">€{basePrice > 0 ? basePrice : expert.hourly_rate}</p>
                 <p className="text-xs text-kalkvit/50">/60 min</p>
               </>
             )}
@@ -122,33 +122,54 @@ export function BookSessionPage() {
   const { data: plansData } = usePlans()
   const expertSessions = plansData?.expert_sessions || []
 
-  // Build session type options from API data
-  const sessionTypes = useMemo(() =>
-    expertSessions.map((s) => ({
-      value: String(s.duration),
-      label: `${s.label} — €${s.amount}`,
-    })),
-    [expertSessions]
+  // Find selected expert
+  const selectedExpert = useMemo(
+    () => experts.find((e) => e.id === selectedExpertId) || null,
+    [experts, selectedExpertId]
   )
 
-  // Get current session price info
+  // Compute the price for the current session, falling back to expert's hourly_rate
   const sessionDuration = parseInt(sessionType)
-  const sessionPrice = useMemo(() =>
-    expertSessions.find((s) => s.duration === sessionDuration) || null,
-    [expertSessions, sessionDuration]
-  )
+
+  // Always match by duration — price_id is needed for checkout even when amount is 0
+  const sessionPrice = useMemo(() => {
+    return expertSessions.find((s) => s.duration === sessionDuration) || null
+  }, [expertSessions, sessionDuration])
+
+  // Fallback price based on expert's hourly_rate * duration
+  const fallbackPrice = useMemo(() => {
+    if (!selectedExpert) return 0
+    return Math.round(selectedExpert.hourly_rate * (sessionDuration / 60))
+  }, [selectedExpert, sessionDuration])
+
+  // The actual display price
+  const displayPrice = sessionPrice?.amount || fallbackPrice
+
+  // Build session type options — use API prices when available, else expert rate
+  const sessionTypes = useMemo(() => {
+    const rate = selectedExpert?.hourly_rate || 0
+    if (expertSessions.length > 0) {
+      return expertSessions.map((s) => {
+        const price = s.amount > 0 ? s.amount : Math.round(rate * (s.duration / 60))
+        return {
+          value: String(s.duration),
+          label: `${s.label} — €${price}`,
+        }
+      })
+    }
+    // No API data at all: generate from expert's hourly_rate
+    return [
+      { value: '45', label: `45 min — €${Math.round(rate * 0.75)}` },
+      { value: '60', label: `60 min — €${rate}` },
+      { value: '90', label: `90 min — €${Math.round(rate * 1.5)}` },
+    ]
+  }, [expertSessions, selectedExpert])
 
   // Base 60min price for expert cards
   const base60Price = useMemo(() => {
     const s60 = expertSessions.find((s) => s.duration === 60)
     return s60?.amount || 0
   }, [expertSessions])
-
-  // Find selected expert
-  const selectedExpert = useMemo(
-    () => experts.find((e) => e.id === selectedExpertId) || null,
-    [experts, selectedExpertId]
-  )
 
   // Fetch availability for selected expert
   const { data: availabilityData, isLoading: isLoadingAvailability } = useExpertAvailability(
@@ -207,15 +228,33 @@ export function BookSessionPage() {
   // When expert has no availability configured, treat all future dates as available
   const hasAvailabilityConstraints = availableDays.size > 0
 
-  // Get time slots for selected date from availability (match by day-of-week)
+  // Generate discrete time slots for selected date based on session duration
   const timeSlotsForDate = useMemo(() => {
     if (!selectedDate || !availability.length) return []
     const dayOfWeek = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })
     const matching = availability.filter(
       (a) => a.day.toLowerCase() === dayOfWeek.toLowerCase(),
     )
-    return matching.map((a) => ({ time: a.time, available: true }))
-  }, [selectedDate, availability])
+    const duration = sessionDuration || 60
+    const slots: { time: string; available: boolean }[] = []
+    for (const a of matching) {
+      if (!a.startTime || !a.endTime) continue
+      const [startH, startM] = a.startTime.split(':').map(Number)
+      const [endH, endM] = a.endTime.split(':').map(Number)
+      const startMinutes = startH * 60 + startM
+      const endMinutes = endH * 60 + endM
+      // Generate slots that fit within the availability window
+      for (let m = startMinutes; m + duration <= endMinutes; m += duration) {
+        const h = Math.floor(m / 60)
+        const min = m % 60
+        const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+        const ampm = h < 12 ? 'AM' : 'PM'
+        const timeStr = `${hour12}:${String(min).padStart(2, '0')} ${ampm}`
+        slots.push({ time: timeStr, available: true })
+      }
+    }
+    return slots
+  }, [selectedDate, availability, sessionDuration])
 
   const handleBook = async () => {
     if (!selectedExpert || !selectedDate || !selectedTime) return
@@ -240,14 +279,19 @@ export function BookSessionPage() {
         session_type: 'coaching',
       })
 
+      // Use production URL for Stripe redirects (Stripe live mode requires HTTPS)
+      const baseUrl = window.location.hostname === 'localhost'
+        ? 'https://members.claimn.co'
+        : window.location.origin
+
       // Then redirect to Stripe for payment
       const checkoutData = await checkoutMutation.mutateAsync({
         price_id: priceId,
         product: 'expert_session',
         mode: 'payment',
         expert_id: selectedExpert.id,
-        success_url: `${window.location.origin}/shop/success`,
-        cancel_url: `${window.location.origin}/book-session?expert=${selectedExpert.id}`,
+        success_url: `${baseUrl}/shop/success`,
+        cancel_url: `${baseUrl}/book-session?expert=${selectedExpert.id}`,
       })
 
       if (isAllowedExternalUrl(checkoutData.url)) {
@@ -545,7 +589,7 @@ export function BookSessionPage() {
                     <div className="flex items-center justify-between pt-3 border-t border-white/10">
                       <span className="text-kalkvit/60">Total</span>
                       <span className="font-display text-2xl font-bold text-kalkvit">
-                        €{sessionPrice?.amount || 0}
+                        €{displayPrice}
                       </span>
                     </div>
                   </div>
@@ -569,7 +613,7 @@ export function BookSessionPage() {
                           {checkoutMutation.isPending ? 'Redirecting...' : 'Booking...'}
                         </>
                       ) : (
-                        `Pay €${sessionPrice?.amount || 0} & Book`
+                        `Pay €${displayPrice} & Book`
                       )}
                     </GlassButton>
                   </GlassModalFooter>
