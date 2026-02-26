@@ -76,7 +76,7 @@ function ProgramCard({
       <h3 className="font-display text-lg font-semibold text-kalkvit mb-2 group-hover:text-koppar transition-colors">
         {program.title}
       </h3>
-      <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{program.description}</p>
+      <div className="text-sm text-kalkvit/60 mb-4 line-clamp-2 [&>p]:mb-0" dangerouslySetInnerHTML={{ __html: program.description }} />
 
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">

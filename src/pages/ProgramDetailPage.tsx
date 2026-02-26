@@ -451,7 +451,7 @@ export function ProgramDetailPage() {
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">
             {program.title}
           </h1>
-          <p className="text-kalkvit/60 mb-6">{program.description}</p>
+          <div className="text-kalkvit/60 mb-6 [&>p]:mb-0" dangerouslySetInnerHTML={{ __html: program.description }} />
 
           {/* Stats row */}
           <div className="flex flex-wrap items-center gap-6 text-sm text-kalkvit/50 mb-6">
