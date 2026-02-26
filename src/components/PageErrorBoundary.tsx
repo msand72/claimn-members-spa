@@ -70,25 +70,25 @@ class PageErrorBoundaryInner extends Component<InnerProps, State> {
       const label = this.props.section || 'This section'
       return (
         <div className="flex items-center justify-center min-h-[300px] p-6">
-          <div className="bg-[var(--bg-card)] backdrop-blur-[16px] border border-[var(--border-color)] rounded-2xl p-8 max-w-md w-full text-center shadow-lg">
+          <div className="backdrop-blur-[24px] rounded-2xl p-8 max-w-md w-full text-center shadow-lg bg-[rgba(30,30,35,0.85)] border border-white/15">
             <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-tegelrod/20 flex items-center justify-center">
               <AlertTriangle className="w-7 h-7 text-tegelrod" />
             </div>
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
+            <h2 className="text-lg font-semibold text-kalkvit mb-2">
               {label} encountered an error
             </h2>
-            <p className="text-sm text-[var(--text-secondary)] mb-1">
+            <p className="text-sm text-kalkvit/60 mb-1">
               {this.state.error?.message || 'An unexpected error occurred.'}
             </p>
             {import.meta.env.DEV && this.state.error?.stack && (
-              <pre className="text-xs text-[var(--text-muted)] mt-2 mb-4 text-left overflow-auto max-h-32 bg-black/10 dark:bg-black/20 rounded-lg p-2">
+              <pre className="text-xs text-kalkvit/40 mt-2 mb-4 text-left overflow-auto max-h-32 bg-black/20 rounded-lg p-2">
                 {this.state.error.stack.split('\n').slice(0, 5).join('\n')}
               </pre>
             )}
             <div className="mt-4 flex items-center justify-center gap-3 flex-wrap">
               <button
                 onClick={this.handleRetry}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] hover:opacity-80 transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-white/10 border border-white/15 text-kalkvit hover:bg-white/15 transition-all"
               >
                 <RefreshCw className="w-4 h-4" />
                 Try Again

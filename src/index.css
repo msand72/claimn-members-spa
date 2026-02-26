@@ -109,6 +109,13 @@ body {
     box-shadow: 0 0 80px rgba(184, 115, 51, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
+  .glass-selected {
+    @apply backdrop-blur-[24px];
+    background: linear-gradient(135deg, rgba(184, 115, 51, 0.25) 0%, rgba(184, 115, 51, 0.10) 100%);
+    border: 2px solid rgba(184, 115, 51, 0.7);
+    box-shadow: 0 0 30px rgba(184, 115, 51, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
   /* Light theme glass variants */
   .light .glass-base {
     @apply bg-white/70 backdrop-blur-[16px] border border-black/[0.08];
@@ -130,6 +137,13 @@ body {
     background: linear-gradient(135deg, rgba(184, 115, 51, 0.12) 0%, rgba(255, 255, 255, 0.3) 100%);
     border: 1px solid rgba(184, 115, 51, 0.35);
     box-shadow: 0 0 80px rgba(184, 115, 51, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .light .glass-selected {
+    @apply backdrop-blur-[24px];
+    background: linear-gradient(135deg, rgba(184, 115, 51, 0.2) 0%, rgba(184, 115, 51, 0.08) 100%);
+    border: 2px solid rgba(184, 115, 51, 0.6);
+    box-shadow: 0 0 30px rgba(184, 115, 51, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
   }
 }
 

@@ -487,6 +487,8 @@ export interface ExpertAvailabilitySlot {
   id: string
   day: string
   time: string
+  startTime: string
+  endTime: string
 }
 
 export interface CoachingSession {
