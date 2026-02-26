@@ -279,19 +279,14 @@ export function BookSessionPage() {
         session_type: 'coaching',
       })
 
-      // Use production URL for Stripe redirects (Stripe live mode requires HTTPS)
-      const baseUrl = window.location.hostname === 'localhost'
-        ? 'https://members.claimn.co'
-        : window.location.origin
-
       // Then redirect to Stripe for payment
       const checkoutData = await checkoutMutation.mutateAsync({
         price_id: priceId,
         product: 'expert_session',
         mode: 'payment',
         expert_id: selectedExpert.id,
-        success_url: `${baseUrl}/shop/success`,
-        cancel_url: `${baseUrl}/book-session?expert=${selectedExpert.id}`,
+        success_url: `${window.location.origin}/shop/success`,
+        cancel_url: `${window.location.origin}/book-session?expert=${selectedExpert.id}`,
       })
 
       if (isAllowedExternalUrl(checkoutData.url)) {
