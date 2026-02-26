@@ -548,14 +548,14 @@ export function AssessmentTakePage() {
                                 </div>
 
                                 {/* 1-7 Scale */}
-                                <div className="flex gap-2">
+                                <div className="flex gap-1 sm:gap-2">
                                   {q.options.map((option, idx) => {
                                     const isSelected = selectedIndex === idx
                                     return (
                                       <label
                                         key={idx}
                                         className={cn(
-                                          'flex-1 flex items-center justify-center h-12 rounded-lg border-2 cursor-pointer transition-all font-display text-lg font-semibold',
+                                          'flex-1 flex items-center justify-center h-9 sm:h-12 rounded-lg border-2 cursor-pointer transition-all font-display text-base sm:text-lg font-semibold',
                                           isSelected
                                             ? 'border-koppar bg-koppar text-kalkvit shadow-md scale-105'
                                             : 'border-white/10 bg-white/[0.04] text-kalkvit/60 hover:border-koppar/40 hover:bg-koppar/5'
