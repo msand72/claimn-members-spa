@@ -41,14 +41,14 @@ function ScaleQuestion({
 
   return (
     <div className="flex flex-col items-center">
-      <div className="inline-flex gap-2 flex-wrap justify-center">
+      <div className="flex gap-1 sm:gap-2 w-full">
         {points.map((point) => (
           <button
             key={point}
             type="button"
             onClick={() => onChange(point)}
             className={cn(
-              'w-10 h-10 rounded-xl text-sm font-medium transition-all',
+              'flex-1 h-9 sm:h-10 rounded-xl text-sm font-medium transition-all',
               value === point
                 ? 'bg-koppar text-white shadow-lg shadow-koppar/20'
                 : 'bg-white/[0.06] text-kalkvit/60 hover:bg-white/[0.1] hover:text-kalkvit'
