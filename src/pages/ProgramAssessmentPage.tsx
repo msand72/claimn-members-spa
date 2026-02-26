@@ -349,6 +349,7 @@ export function ProgramAssessmentPage() {
   const [submittedResult, setSubmittedResult] =
     useState<ProgramAssessmentResult | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [retaking, setRetaking] = useState(false)
 
   const {
     data: assessment,
@@ -471,8 +472,8 @@ export function ProgramAssessmentPage() {
     )
   }
 
-  // If already completed, show a message and redirect back
-  if (assessment.is_completed && !submittedResult) {
+  // If already completed, show a message with option to retake
+  if (assessment.is_completed && !submittedResult && !retaking) {
     return (
       <MainLayout>
         <div className="max-w-3xl mx-auto">
@@ -497,12 +498,17 @@ export function ProgramAssessmentPage() {
                 : 'a previous date'}
               .
             </p>
-            <Link to={`/programs/${programId}`}>
-              <GlassButton variant="secondary">
-                <ArrowLeft className="w-4 h-4" />
-                Back to Program
+            <div className="flex gap-3 justify-center">
+              <Link to={`/programs/${programId}`}>
+                <GlassButton variant="secondary">
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Program
+                </GlassButton>
+              </Link>
+              <GlassButton variant="primary" onClick={() => setRetaking(true)}>
+                Retake Assessment
               </GlassButton>
-            </Link>
+            </div>
           </GlassCard>
         </div>
       </MainLayout>
