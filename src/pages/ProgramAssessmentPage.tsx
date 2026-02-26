@@ -21,7 +21,6 @@ import {
   Loader2,
   AlertTriangle,
   ClipboardCheck,
-  Trophy,
   Circle,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
@@ -165,14 +164,16 @@ function NumberQuestion({
   return (
     <div className="flex items-center gap-4">
       <input
-        type="number"
+        type="text"
+        inputMode="decimal"
         min={min}
         max={max}
-        step={0.5}
         value={value ?? ''}
         onChange={(e) => {
-          const v = parseFloat(e.target.value)
-          if (!isNaN(v)) onChange(v)
+          const raw = e.target.value.replace(',', '.')
+          if (raw === '' || raw === '.') return onChange(0)
+          const v = parseFloat(raw)
+          if (!isNaN(v) && v >= min && v <= max) onChange(v)
         }}
         className="w-24 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-center text-lg font-semibold text-kalkvit placeholder:text-kalkvit/30 focus:outline-none focus:border-koppar/40"
         placeholder="0"
@@ -288,23 +289,25 @@ function ResultsView({
   result: ProgramAssessmentResult
   programId: string
 }) {
+  // Only show score box when there's a meaningful score (not async-computed CVC)
+  const hasScore = result.score !== null && result.score > 0
   const scorePercent =
-    result.max_score && result.max_score > 0
+    hasScore && result.max_score && result.max_score > 0
       ? Math.round((result.score ?? 0) / result.max_score * 100)
       : null
 
   return (
     <div className="space-y-6">
       <GlassCard variant="elevated" className="text-center">
-        <Trophy className="w-12 h-12 text-koppar mx-auto mb-4" />
+        <CheckCircle className="w-12 h-12 text-skogsgron mx-auto mb-4" />
         <h2 className="font-display text-2xl font-bold text-kalkvit mb-2">
           Assessment Complete
         </h2>
         <p className="text-kalkvit/60 mb-6">
-          Your responses have been recorded.
+          Your responses have been recorded.{!hasScore && ' Your results will be available on the program page shortly.'}
         </p>
 
-        {result.score !== null && (
+        {hasScore && (
           <div className="inline-flex flex-col items-center p-6 rounded-2xl bg-white/[0.06] mb-6">
             <span className="font-display text-4xl font-bold text-koppar">
               {result.score}
