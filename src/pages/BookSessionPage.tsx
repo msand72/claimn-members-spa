@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect, GlassModal, GlassModalFooter } from '../components/ui'
-import { useExperts, useExpertAvailability, useBookSession, useCheckout, usePlans } from '../lib/api/hooks'
+import { useExperts, useExpertAvailability, useAvailableSlots, useBookSession, useCheckout, usePlans, expertKeys } from '../lib/api/hooks'
+import { useQueryClient } from '@tanstack/react-query'
 import type { Expert } from '../lib/api/types'
 import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
@@ -113,6 +114,7 @@ export function BookSessionPage() {
   })
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   // Fetch experts
   const { data: expertsData, isLoading: isLoadingExperts, error: expertsError } = useExperts()
@@ -177,6 +179,13 @@ export function BookSessionPage() {
   )
   const availability = availabilityData || []
 
+  // Fetch server-computed available slots (conflict-free) — returns null if endpoint not deployed
+  const { data: serverSlots, isLoading: isLoadingServerSlots } = useAvailableSlots(
+    selectedExpertId || '',
+    selectedDate || '',
+    sessionDuration,
+  )
+
   // Book session mutation (internal scheduling)
   const bookSessionMutation = useBookSession()
   // Stripe checkout mutation (payment)
@@ -228,9 +237,30 @@ export function BookSessionPage() {
   // When expert has no availability configured, treat all future dates as available
   const hasAvailabilityConstraints = availableDays.size > 0
 
-  // Generate discrete time slots for selected date based on session duration
+  // Generate discrete time slots for selected date
+  // Prefer server-computed slots (conflict-free); fall back to client-side generation
   const timeSlotsForDate = useMemo(() => {
-    if (!selectedDate || !availability.length) return []
+    if (!selectedDate) return []
+
+    // Use server-computed slots when available (they exclude already-booked times)
+    if (serverSlots?.slots) {
+      return serverSlots.slots.map((s) => {
+        // start_local is RFC3339 in member's timezone — parse time from the ISO string directly
+        // to avoid browser timezone re-conversion (e.g. "2026-03-10T09:00:00+01:00" → 09:00)
+        const timeMatch = s.start_local.match(/T(\d{2}):(\d{2})/)
+        const h = timeMatch ? parseInt(timeMatch[1], 10) : 0
+        const min = timeMatch ? parseInt(timeMatch[2], 10) : 0
+        const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+        const ampm = h < 12 ? 'AM' : 'PM'
+        return {
+          time: `${hour12}:${String(min).padStart(2, '0')} ${ampm}`,
+          available: s.available,
+        }
+      })
+    }
+
+    // Fallback: client-side slot generation from recurring availability windows
+    if (!availability.length) return []
     const dayOfWeek = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })
     const matching = availability.filter(
       (a) => a.day.toLowerCase() === dayOfWeek.toLowerCase(),
@@ -243,7 +273,6 @@ export function BookSessionPage() {
       const [endH, endM] = a.endTime.split(':').map(Number)
       const startMinutes = startH * 60 + startM
       const endMinutes = endH * 60 + endM
-      // Generate slots that fit within the availability window
       for (let m = startMinutes; m + duration <= endMinutes; m += duration) {
         const h = Math.floor(m / 60)
         const min = m % 60
@@ -254,7 +283,7 @@ export function BookSessionPage() {
       }
     }
     return slots
-  }, [selectedDate, availability, sessionDuration])
+  }, [selectedDate, serverSlots, availability, sessionDuration])
 
   const handleBook = async () => {
     if (!selectedExpert || !selectedDate || !selectedTime) return
@@ -295,8 +324,21 @@ export function BookSessionPage() {
         setBookingError('Invalid checkout URL. Please try again or contact support.')
       }
     } catch (error: any) {
-      const msg = error?.error?.message || error?.message || 'Failed to book session. Please try again.'
-      setBookingError(msg)
+      const code = error?.error?.code || error?.code || ''
+      const status = error?.status || error?.response?.status
+      if (status === 409 || code === 'SLOT_UNAVAILABLE') {
+        setBookingError('This time slot is no longer available. Please choose another time.')
+        // Refresh available slots so the UI reflects the current state
+        if (selectedExpertId && selectedDate) {
+          queryClient.invalidateQueries({
+            queryKey: expertKeys.availableSlots(selectedExpertId, selectedDate, sessionDuration),
+          })
+        }
+        setSelectedTime(null)
+      } else {
+        const msg = error?.error?.message || error?.message || 'Failed to book session. Please try again.'
+        setBookingError(msg)
+      }
     }
   }
 
@@ -480,8 +522,12 @@ export function BookSessionPage() {
             {/* Time Selection — only show internal picker when expert has no external calendar */}
             {!selectedExpert?.calendar_url && (
               <GlassCard variant="base">
-                <h3 className="font-semibold text-kalkvit mb-4">Select Time</h3>
-                {isLoadingAvailability && selectedExpertId ? (
+                <h3 className="font-semibold text-kalkvit mb-1">Select Time</h3>
+              {serverSlots?.member_timezone && (
+                <p className="text-xs text-kalkvit/40 mb-3">Times shown in {serverSlots.member_timezone}</p>
+              )}
+              {!serverSlots?.member_timezone && <div className="mb-3" />}
+                {(isLoadingAvailability || isLoadingServerSlots) && selectedExpertId ? (
                   <div className="flex items-center justify-center py-4">
                     <Loader2 className="w-6 h-6 text-koppar animate-spin" />
                   </div>

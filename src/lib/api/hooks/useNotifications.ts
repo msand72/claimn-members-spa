@@ -18,6 +18,7 @@ export function useNotifications(params?: NotificationsParams) {
         limit: params?.limit ?? 20,
         read: params?.read,
       }),
+    refetchInterval: 60_000, // Poll every 60s for new notifications
   })
 }
 

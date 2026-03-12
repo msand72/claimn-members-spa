@@ -75,7 +75,7 @@ export function MessagesPage() {
     data: conversationsData,
     isLoading: conversationsLoading,
     error: conversationsError,
-  } = useConversations({ limit: 50 })
+  } = useConversations({ limit: 50 }, { polling: true })
 
   // Fetch messages for selected conversation (skip for synthetic new- conversations)
   // Use participant_id as conversation key — the API may use user-to-user addressing

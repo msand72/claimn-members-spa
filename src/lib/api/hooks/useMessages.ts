@@ -13,7 +13,8 @@ export const messageKeys = {
 }
 
 // Get conversations
-export function useConversations(params?: PaginationParams, options?: { enabled?: boolean }) {
+// Poll every 15s when enabled to provide near-real-time message updates
+export function useConversations(params?: PaginationParams, options?: { enabled?: boolean; polling?: boolean }) {
   return useQuery({
     queryKey: messageKeys.conversations(params),
     queryFn: () =>
@@ -23,6 +24,7 @@ export function useConversations(params?: PaginationParams, options?: { enabled?
         sort: params?.sort,
       }),
     enabled: options?.enabled ?? true,
+    refetchInterval: options?.polling ? 15_000 : undefined,
   })
 }
 
@@ -69,6 +71,7 @@ export function useConversationMessages(
     },
     enabled: !!conversationId,
     retry: false, // Don't auto-retry since we handle 404 manually
+    refetchInterval: conversationId ? 10_000 : undefined, // Poll every 10s for new messages
   })
 }
 

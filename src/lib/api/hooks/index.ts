@@ -154,6 +154,7 @@ export {
   useExpert,
   useExpertTestimonials,
   useExpertAvailability,
+  useAvailableSlots,
   useCoachingSessions,
   useCoachingSession,
   useBookSession,
@@ -161,6 +162,8 @@ export {
   useRescheduleSession,
   useSessionNotes,
   useUpdateSessionNotes,
+  useSessionReview,
+  useSubmitReview,
   type ExpertsParams,
   type SessionsParams,
 } from './useExperts'
@@ -294,6 +297,13 @@ export {
   useMyExpert,
   type MyExpertData,
 } from './useMyExpert'
+
+// Coach Request
+export {
+  coachRequestKeys,
+  useCoachRequest,
+  useSubmitCoachRequest,
+} from './useCoachRequest'
 
 // Notifications
 export {

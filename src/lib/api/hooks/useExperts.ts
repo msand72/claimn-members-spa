@@ -4,9 +4,12 @@ import type {
   Expert,
   ExpertTestimonial,
   ExpertAvailabilityRaw,
+  AvailableSlotsResponse,
   CoachingSession,
   SessionNote,
+  SessionReview,
   BookSessionRequest,
+  SubmitReviewRequest,
   UpdateSessionNoteRequest,
 } from '../types'
 
@@ -17,6 +20,8 @@ export const expertKeys = {
   detail: (id: string) => [...expertKeys.all, 'detail', id] as const,
   testimonials: (id: string) => [...expertKeys.all, 'testimonials', id] as const,
   availability: (id: string) => [...expertKeys.all, 'availability', id] as const,
+  availableSlots: (id: string, date: string, duration: number) =>
+    [...expertKeys.all, 'available-slots', id, date, duration] as const,
 }
 
 export const coachingKeys = {
@@ -24,6 +29,7 @@ export const coachingKeys = {
   sessions: (params?: SessionsParams) => [...coachingKeys.all, 'sessions', params] as const,
   session: (id: string) => [...coachingKeys.all, 'session', id] as const,
   notes: (sessionId: string) => [...coachingKeys.all, 'notes', sessionId] as const,
+  review: (sessionId: string) => [...coachingKeys.all, 'review', sessionId] as const,
 }
 
 // Extended params for experts
@@ -110,11 +116,36 @@ export function useExpertAvailability(expertId: string) {
   })
 }
 
+// Get available slots for a specific date (server-computed, conflict-free)
+// Falls back gracefully — returns null if endpoint doesn't exist yet (404)
+export function useAvailableSlots(expertId: string, date: string, duration: number = 60) {
+  return useQuery({
+    queryKey: expertKeys.availableSlots(expertId, date, duration),
+    queryFn: async () => {
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+        return await api.get<AvailableSlotsResponse>(
+          `/members/experts/${expertId}/available-slots`,
+          { date, duration, timezone: tz },
+        )
+      } catch (err) {
+        // 404 = endpoint not deployed yet → return null so UI falls back to client-side slots
+        if (is404Error(err)) return null
+        throw err
+      }
+    },
+    enabled: !!expertId && !!date,
+    retry: (failureCount, error) => !is404Error(error) && failureCount < 1,
+    staleTime: 2 * 60 * 1000, // 2 minutes — slots can change as others book
+  })
+}
+
 // =====================================================
 // Coaching Session Hooks
 // =====================================================
 
 // Get all coaching sessions
+// Polls every 60s to pick up status changes (reschedule responses, cancellations)
 export function useCoachingSessions(params?: SessionsParams) {
   return useQuery({
     queryKey: coachingKeys.sessions(params),
@@ -125,6 +156,7 @@ export function useCoachingSessions(params?: SessionsParams) {
         sort: params?.sort,
         status: params?.status,
       }),
+    refetchInterval: 60_000,
   })
 }
 
@@ -218,6 +250,41 @@ export function useUpdateSessionNotes() {
     }) => api.put<SessionNote>(`/members/coaching/sessions/${sessionId}/notes`, data),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: coachingKeys.notes(sessionId) })
+    },
+  })
+}
+
+// =====================================================
+// Session Review Hooks
+// =====================================================
+
+// Get member's review for a session (returns null if not reviewed yet)
+export function useSessionReview(sessionId: string) {
+  return useQuery({
+    queryKey: coachingKeys.review(sessionId),
+    queryFn: async () => {
+      try {
+        return await api.get<SessionReview>(`/members/coaching/sessions/${sessionId}/review`)
+      } catch (err) {
+        if (is404Error(err)) return null
+        throw err
+      }
+    },
+    enabled: !!sessionId,
+    retry: (failureCount, error) => !is404Error(error) && failureCount < 1,
+  })
+}
+
+// Submit a review for a completed session
+export function useSubmitReview() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ sessionId, data }: { sessionId: string; data: SubmitReviewRequest }) =>
+      api.post<SessionReview>(`/members/coaching/sessions/${sessionId}/review`, data),
+    onSuccess: (_, { sessionId }) => {
+      queryClient.invalidateQueries({ queryKey: coachingKeys.review(sessionId) })
+      queryClient.invalidateQueries({ queryKey: coachingKeys.all })
     },
   })
 }

@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ComponentType } from 'react'
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -64,7 +64,7 @@ const ShopUpgradePage = lazyWithRetry(() => import('./pages/ShopUpgradePage'))
 const ShopSuccessPage = lazyWithRetry(() => import('./pages/ShopSuccessPage'))
 const BookSessionPage = lazyWithRetry(() => import('./pages/BookSessionPage'))
 const ExpertsPage = lazyWithRetry(() => import('./pages/ExpertsPage'))
-const ExpertSessionsPage = lazyWithRetry(() => import('./pages/ExpertSessionsPage'))
+// ExpertSessionsPage removed — merged into CoachingSessionsPage (3.1)
 const ExpertProfilePage = lazyWithRetry(() => import('./pages/ExpertProfilePage'))
 const ProgramsPage = lazyWithRetry(() => import('./pages/ProgramsPage'))
 const ProgramDetailPage = lazyWithRetry(() => import('./pages/ProgramDetailPage'))
@@ -230,8 +230,8 @@ const router = createBrowserRouter([
       { path: '/coaching/session-notes', element: <Protected><SessionNotesPage /></Protected> },
       { path: '/coaching/quarterly-reviews', element: <Protected><QuarterlyReviewsPage /></Protected> },
 
-      // Protected routes - Expert Sessions
-      { path: '/expert-sessions', element: <Protected><ExpertSessionsPage /></Protected> },
+      // Redirect old expert-sessions route to unified sessions page
+      { path: '/expert-sessions', element: <Navigate to="/coaching/sessions" replace /> },
 
       // Protected routes - Assessment (all tiers)
       { path: '/assessment', element: <Protected><AssessmentPage /></Protected> },
