@@ -153,6 +153,92 @@ export const handlers = [
   http.get(`${API_BASE}/members/subscription`, () =>
     HttpResponse.json({ tier: 'free', status: 'active' })
   ),
+
+  // My Expert
+  http.get(`${API_BASE}/members/my-expert`, () =>
+    HttpResponse.json({
+      expert: {
+        id: 'expert-1',
+        display_name: 'Dr. Smith',
+        email: 'smith@example.com',
+        specialty: 'Leadership',
+        bio: 'Expert leadership coach',
+        avatar_url: null,
+        rating: 4.8,
+        reviews_count: 12,
+      },
+      assigned: true,
+      next_session: {
+        id: 'session-1',
+        session_date: new Date(Date.now() + 86400000).toISOString(),
+        session_type: 'coaching',
+        title: 'Weekly Check-in',
+        status: 'scheduled',
+      },
+    })
+  ),
+
+  // Coach Match Request
+  http.get(`${API_BASE}/members/expert-match-request`, () =>
+    HttpResponse.json({ error: { code: 'NOT_FOUND', message: 'Not found' } }, { status: 404 })
+  ),
+
+  http.post(`${API_BASE}/members/expert-match-request`, async ({ request }) => {
+    const body = await request.json() as Record<string, unknown>
+    return HttpResponse.json(
+      {
+        id: 'match-req-1',
+        status: 'pending',
+        preferred_specialties: body.preferred_specialties,
+        goals: body.goals,
+        availability_preferences: body.availability_preferences,
+        notes: body.notes,
+        created_at: new Date().toISOString(),
+      },
+      { status: 201 },
+    )
+  }),
+
+  // Session Review
+  http.get(`${API_BASE}/members/coaching/sessions/:id/review`, () =>
+    HttpResponse.json({ error: { code: 'NOT_FOUND', message: 'Not found' } }, { status: 404 })
+  ),
+
+  http.post(`${API_BASE}/members/coaching/sessions/:id/review`, async ({ request }) => {
+    const body = await request.json() as Record<string, unknown>
+    return HttpResponse.json(
+      {
+        id: 'review-1',
+        session_id: 'session-1',
+        member_id: 'user-1',
+        expert_id: 'expert-1',
+        rating: body.rating,
+        comment: body.comment,
+        created_at: new Date().toISOString(),
+      },
+      { status: 201 },
+    )
+  }),
+
+  // Reschedule
+  http.patch(`${API_BASE}/members/coaching/sessions/:id/reschedule`, () =>
+    HttpResponse.json({ success: true })
+  ),
 ]
+
+export const mockMyExpert = {
+  expert: {
+    id: 'expert-1',
+    display_name: 'Dr. Smith',
+    email: 'smith@example.com',
+    specialty: 'Leadership',
+    bio: 'Expert leadership coach',
+    avatar_url: null,
+    rating: 4.8,
+    reviews_count: 12,
+  },
+  assigned: true,
+  next_session: null,
+}
 
 export { mockProfile, mockSession, mockFeedPost, mockConversation, mockMessage }

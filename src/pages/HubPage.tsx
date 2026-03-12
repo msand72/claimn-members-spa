@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { PageErrorBoundary } from '../components/PageErrorBoundary'
@@ -8,6 +8,8 @@ import {
   GlassBadge,
   GlassButton,
   GlassStatsCard,
+  GlassModal,
+  GlassTextarea,
 } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
 import {
@@ -23,6 +25,9 @@ import {
   useGoals,
   useMyActiveProtocols,
   useFeaturedProtocols,
+  useMyExpert,
+  useCoachRequest,
+  useSubmitCoachRequest,
   safeArray,
   type FeedPost,
   type Expert,
@@ -49,6 +54,12 @@ import {
   Flame,
   BarChart3,
   Trophy,
+  Star,
+  Video,
+  UserCircle,
+  Loader2,
+  CheckCircle,
+  Send,
 } from 'lucide-react'
 
 // ── Helpers ──────────────────────────────────────────
@@ -799,6 +810,232 @@ function ActivePrograms() {
   )
 }
 
+// ── MyCoachCard ─────────────────────────────────────
+
+function MyCoachCard() {
+  const { data, isLoading } = useMyExpert()
+  const { data: coachRequest } = useCoachRequest()
+  const submitRequest = useSubmitCoachRequest()
+  const [showRequestModal, setShowRequestModal] = useState(false)
+  const [requestGoals, setRequestGoals] = useState('')
+  const [requestNotes, setRequestNotes] = useState('')
+  const expert = data?.expert
+
+  const handleSubmitRequest = () => {
+    if (!requestGoals.trim()) return
+    submitRequest.mutate(
+      {
+        preferred_specialties: [],
+        goals: requestGoals.split('\n').map((g) => g.trim()).filter(Boolean),
+        availability_preferences: '',
+        notes: requestNotes.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setShowRequestModal(false)
+          setRequestGoals('')
+          setRequestNotes('')
+        },
+      },
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <GlassCard variant="accent">
+        <div className="flex items-center gap-4 animate-pulse">
+          <Skeleton className="w-14 h-14 rounded-full shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="w-20 h-3" />
+            <Skeleton className="w-32 h-4" />
+            <Skeleton className="w-24 h-3" />
+          </div>
+        </div>
+      </GlassCard>
+    )
+  }
+
+  if (!expert) {
+    // Pending request state
+    if (coachRequest?.status === 'pending') {
+      return (
+        <GlassCard variant="base">
+          <div className="text-center py-4">
+            <Loader2 className="w-10 h-10 text-koppar mx-auto mb-2 animate-spin" />
+            <p className="text-kalkvit text-sm font-medium mb-1">Finding your coach</p>
+            <p className="text-kalkvit/50 text-xs">
+              We&apos;re matching you with the perfect coach based on your goals.
+            </p>
+          </div>
+        </GlassCard>
+      )
+    }
+
+    return (
+      <>
+        <GlassCard variant="base">
+          <div className="text-center py-4">
+            <UserCircle className="w-10 h-10 text-kalkvit/15 mx-auto mb-2" />
+            <p className="text-kalkvit/50 text-sm mb-3">No coach assigned yet</p>
+            <div className="flex flex-col gap-2">
+              <GlassButton
+                variant="primary"
+                className="px-4 py-2 text-xs w-full"
+                onClick={() => setShowRequestModal(true)}
+              >
+                <Send className="w-3.5 h-3.5" />
+                Request a Coach
+              </GlassButton>
+              <Link to="/experts">
+                <GlassButton variant="secondary" className="px-4 py-2 text-xs w-full">
+                  Browse Experts
+                </GlassButton>
+              </Link>
+            </div>
+          </div>
+        </GlassCard>
+
+        <GlassModal
+          isOpen={showRequestModal}
+          onClose={() => setShowRequestModal(false)}
+          title="Request a Coach"
+          description="Tell us about your goals and we'll match you with the right coach."
+          size="md"
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-kalkvit mb-1">
+                What are your goals?
+              </label>
+              <GlassTextarea
+                value={requestGoals}
+                onChange={(e) => setRequestGoals(e.target.value)}
+                placeholder="Enter each goal on a new line, e.g.:&#10;Improve leadership skills&#10;Better work-life balance&#10;Career transition"
+                rows={4}
+              />
+              <p className="text-xs text-kalkvit/40 mt-1">One goal per line</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-kalkvit mb-1">
+                Anything else we should know? <span className="text-kalkvit/40">(optional)</span>
+              </label>
+              <GlassTextarea
+                value={requestNotes}
+                onChange={(e) => setRequestNotes(e.target.value)}
+                placeholder="Preferred schedule, coaching style, specific challenges..."
+                rows={3}
+              />
+            </div>
+
+            {submitRequest.isError && (
+              <p className="text-xs text-tegelrod text-center">
+                {(submitRequest.error as any)?.error?.code === 'ALREADY_PENDING'
+                  ? 'You already have a pending coach request.'
+                  : (submitRequest.error as any)?.error?.message || 'Failed to submit request. Please try again.'}
+              </p>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <GlassButton
+                variant="secondary"
+                className="flex-1"
+                onClick={() => setShowRequestModal(false)}
+              >
+                Cancel
+              </GlassButton>
+              <GlassButton
+                variant="primary"
+                className="flex-1"
+                onClick={handleSubmitRequest}
+                disabled={!requestGoals.trim() || submitRequest.isPending}
+              >
+                {submitRequest.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+                {submitRequest.isPending ? 'Submitting...' : 'Submit Request'}
+              </GlassButton>
+            </div>
+          </div>
+        </GlassModal>
+      </>
+    )
+  }
+
+  const nextSession = data?.next_session
+
+  return (
+    <GlassCard variant="accent" className="relative overflow-hidden">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
+          <Star className="w-4 h-4 text-koppar" />
+          My Coach
+        </h2>
+        <Link to={`/experts/${expert.id}`} className="text-xs text-koppar hover:text-koppar/80 transition-colors">
+          View profile
+        </Link>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <GlassAvatar
+          src={expert.avatar_url ?? undefined}
+          initials={getInitials(expert.display_name)}
+          size="lg"
+          className="ring-2 ring-koppar/30"
+        />
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display text-base font-bold text-kalkvit truncate">
+            {expert.display_name}
+          </h3>
+          {expert.specialty && (
+            <p className="text-xs text-koppar truncate">{expert.specialty}</p>
+          )}
+          {(expert.rating != null && expert.rating > 0) && (
+            <div className="flex items-center gap-1 mt-0.5">
+              <Star className="w-3 h-3 text-koppar fill-koppar" />
+              <span className="text-xs text-kalkvit/60">
+                {expert.rating.toFixed(1)}
+                {expert.reviews_count ? ` (${expert.reviews_count})` : ''}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Next session */}
+      {nextSession && (
+        <Link
+          to="/coaching/sessions"
+          className="mt-3 flex items-center gap-2 p-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] transition-colors"
+        >
+          <Calendar className="w-4 h-4 text-koppar shrink-0" />
+          <span className="text-xs text-kalkvit/70 truncate">
+            Next session: {formatEventDate(nextSession.session_date)}
+          </span>
+        </Link>
+      )}
+
+      {/* Quick actions */}
+      <div className="mt-3 flex gap-2">
+        <Link to={`/messages?user=${expert.id}`} className="flex-1">
+          <GlassButton variant="secondary" className="w-full text-xs py-2">
+            <MessageCircle className="w-3.5 h-3.5" />
+            Message
+          </GlassButton>
+        </Link>
+        <Link to={`/book-session?expert=${expert.id}`} className="flex-1">
+          <GlassButton variant="primary" className="w-full text-xs py-2">
+            <Video className="w-3.5 h-3.5" />
+            Book Session
+          </GlassButton>
+        </Link>
+      </div>
+    </GlassCard>
+  )
+}
+
 // ── HubPage (main) ───────────────────────────────────
 
 export function HubPage() {
@@ -841,6 +1078,9 @@ export function HubPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            <PageErrorBoundary section="MyCoach">
+              <MyCoachCard />
+            </PageErrorBoundary>
             <PageErrorBoundary section="UnreadMessages">
               <UnreadMessages />
             </PageErrorBoundary>

@@ -491,6 +491,28 @@ export interface ExpertAvailabilitySlot {
   endTime: string
 }
 
+/** A concrete bookable time slot from the available-slots endpoint */
+export interface AvailableSlot {
+  start_time: string
+  end_time: string
+  start_local: string
+  end_local: string
+  available: boolean
+}
+
+/** Response from GET /members/experts/{id}/available-slots */
+export interface AvailableSlotsResponse {
+  expert_id: string
+  expert_name: string
+  expert_timezone: string
+  date: string
+  duration_minutes: number
+  member_timezone: string
+  slots: AvailableSlot[]
+  calendar_connected: boolean
+  provider: string | null
+}
+
 export interface CoachingSession {
   id: string
   user_id: string
@@ -505,6 +527,10 @@ export interface CoachingSession {
   has_notes: boolean
   has_recording: boolean
   recording_url: string | null
+  reschedule_proposed_at: string | null
+  reschedule_reason: string | null
+  reschedule_requested_at: string | null
+  reschedule_response_message: string | null
   created_at: string
   updated_at: string
   expert?: Expert
@@ -524,6 +550,21 @@ export interface SessionActionItem {
   id: string
   text: string
   completed: boolean
+}
+
+export interface SessionReview {
+  id: string
+  session_id: string
+  member_id: string
+  expert_id: string
+  rating: number
+  comment: string | null
+  created_at: string
+}
+
+export interface SubmitReviewRequest {
+  rating: number
+  comment?: string
 }
 
 export interface BookSessionRequest {
@@ -1299,16 +1340,44 @@ export interface OnboardingState {
 export interface MyExpertData {
   expert: {
     id: string
-    name: string
-    bio: string
-    avatar_url: string
-    specializations: string
-  }
+    display_name: string
+    email: string
+    specialty: string | null
+    bio: string | null
+    avatar_url: string | null
+    rating?: number
+    reviews_count?: number
+  } | null
+  assigned: boolean
   next_session: {
     id: string
     session_date: string
-    status: string
+    session_type?: string
+    title?: string
+    status?: string
   } | null
+}
+
+// =====================================================
+// Expert Match Request
+// =====================================================
+
+export interface ExpertMatchRequest {
+  preferred_specialties: string[]
+  goals: string[]
+  availability_preferences: string
+  notes?: string
+}
+
+export interface ExpertMatchRequestResponse {
+  id: string
+  status: 'pending' | 'matched' | 'rejected'
+  preferred_specialties: string[]
+  goals: string[]
+  availability_preferences: string
+  notes?: string
+  created_at: string
+  matched_expert_id?: string
 }
 
 // =====================================================

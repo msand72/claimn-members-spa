@@ -47,7 +47,7 @@ export function AskExpertButton({ context }: AskExpertButtonProps) {
     if (myExpertData?.expert) {
       navigateToExpert({
         id: myExpertData.expert.id,
-        name: myExpertData.expert.name,
+        name: myExpertData.expert.display_name,
         avatar_url: myExpertData.expert.avatar_url,
       })
     } else {
