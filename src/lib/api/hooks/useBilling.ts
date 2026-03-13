@@ -125,7 +125,14 @@ export interface BillingInfo {
 export function useBillingInfo() {
   return useQuery({
     queryKey: [...billingKeys.all, 'info'] as const,
-    queryFn: () => api.get<BillingInfo>('/members/billing'),
+    queryFn: async () => {
+      const response = await api.get<BillingInfo | { data: BillingInfo }>('/members/billing')
+      // Backend wraps response in { data: ... } — unwrap if needed
+      if (response && 'data' in response && (response as { data: BillingInfo }).data?.subscription) {
+        return (response as { data: BillingInfo }).data
+      }
+      return response as BillingInfo
+    },
   })
 }
 
