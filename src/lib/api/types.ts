@@ -720,7 +720,7 @@ export interface MemberSprintProgress {
   updated_at: string
 }
 
-export interface SubmitReviewRequest {
+export interface SubmitPeerReviewRequest {
   rating: number
   feedback: string
   strengths?: string[]
