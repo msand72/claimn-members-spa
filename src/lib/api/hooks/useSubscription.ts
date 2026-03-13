@@ -22,8 +22,12 @@ export function useSubscription() {
     queryKey: subscriptionKeys.info(),
     queryFn: async () => {
       try {
-        const response = await api.get<BillingResponse>('/members/billing')
-        return response.subscription
+        const response = await api.get<BillingResponse | { data: BillingResponse }>('/members/billing')
+        // Backend wraps response in { data: ... } — unwrap if needed
+        const billing = (response && 'data' in response && (response as { data: BillingResponse }).data?.subscription)
+          ? (response as { data: BillingResponse }).data
+          : response as BillingResponse
+        return billing.subscription
       } catch {
         // If billing endpoint fails, return a default "none" subscription
         return {
