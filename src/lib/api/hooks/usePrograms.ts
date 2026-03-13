@@ -16,7 +16,7 @@ import type {
   SubmitProgramAssessmentRequest,
   EnrollProgramRequest,
   JoinSprintRequest,
-  SubmitReviewRequest,
+  SubmitPeerReviewRequest,
   CVCStatus,
 } from '../types'
 
@@ -411,7 +411,7 @@ export function useSubmitPeerReview() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ reviewId, data }: { reviewId: string; data: SubmitReviewRequest }) =>
+    mutationFn: ({ reviewId, data }: { reviewId: string; data: SubmitPeerReviewRequest }) =>
       api.put<PeerReview>(`/members/programs/reviews/${reviewId}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: programKeys.reviews() })
