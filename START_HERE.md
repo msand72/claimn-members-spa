@@ -55,6 +55,8 @@ The CLAIM'N Members SPA is a **React single-page application** for the CLAIM'N m
 
 If you need backend changes (new endpoints, schema changes), **write a prompt file** to `/Users/maxsandberg/projects/server-infra/AGENT_PROMPT.md` with the exact changes needed. The backend agent runs on a separate on-prem machine and will execute the prompt independently. Never push to or directly modify `server-infra`. See CLAUDE.md "Backend Change Requests" section for the full protocol.
 
+**IMPORTANT: Always pull `server-infra` after backend changes.** When the backend agent has made changes (new endpoints, schema updates, bug fixes), you MUST run `cd /Users/maxsandberg/projects/server-infra && git pull` before reading any backend code. The backend agent pushes directly to `main`, so your local copy goes stale after every backend change. Failing to pull means you'll read outdated code and make wrong assumptions.
+
 ---
 
 ## 📚 External API Integration Protocol
