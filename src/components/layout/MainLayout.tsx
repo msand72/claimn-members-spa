@@ -6,6 +6,7 @@ import { BackgroundPattern } from '../ui/BackgroundPattern'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { useCurrentSection } from './sectionNav'
 import { SectionTopBar } from './SectionTopBar'
+import { usePlans } from '../../lib/api/hooks'
 
 interface MainLayoutProps {
   children: ReactNode
@@ -13,6 +14,8 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const section = useCurrentSection()
+  // Prefetch plans data so the Upgrade page loads instantly (Stripe round-trip is slow)
+  usePlans()
 
   return (
     <div className="min-h-screen bg-glass-dark dark:bg-glass-dark light:bg-kalkvit transition-colors duration-300 overflow-x-hidden">
