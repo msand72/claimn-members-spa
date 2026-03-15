@@ -69,10 +69,15 @@ function PlanCardSkeleton() {
   )
 }
 
-function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading, isDisabled }: {
+const TIER_LEVELS: Record<string, number> = {
+  none: 0, free: 0, brotherhood: 1, coaching: 2, programs: 3,
+}
+
+function PlanCard({ plan, isAnnual, isCurrent, currentTier, onUpgrade, isLoading, isDisabled }: {
   plan: PlanInfo
   isAnnual: boolean
   isCurrent: boolean
+  currentTier: string
   onUpgrade: (priceId: string, tier: string) => void
   isLoading: boolean
   isDisabled: boolean
@@ -80,6 +85,7 @@ function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading, isDisabled 
   const meta = tierMeta[plan.tier] || { icon: Star, isPopular: false, notIncluded: [] }
   const Icon = meta.icon
   const isProgramsTier = plan.tier === 'programs'
+  const isDowngrade = (TIER_LEVELS[plan.tier] ?? 0) < (TIER_LEVELS[currentTier] ?? 0)
 
   const monthlyPrice = plan.monthly?.amount || 0
   const annualPrice = plan.annual?.amount || 0
@@ -150,15 +156,24 @@ function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading, isDisabled 
       </div>
 
       {isProgramsTier ? (
-        <Link to="/programs">
-          <GlassButton variant="secondary" className="w-full mb-6">
-            Browse Programs
-            <ArrowRight className="w-4 h-4" />
-          </GlassButton>
-        </Link>
+        <>
+          {isCurrent && (
+            <p className="text-center text-sm font-medium text-koppar mb-2">Current Plan</p>
+          )}
+          <Link to="/programs">
+            <GlassButton variant="secondary" className="w-full mb-6">
+              Browse Programs
+              <ArrowRight className="w-4 h-4" />
+            </GlassButton>
+          </Link>
+        </>
       ) : isCurrent ? (
         <GlassButton variant="ghost" className="w-full mb-6" disabled>
           Current Plan
+        </GlassButton>
+      ) : isDowngrade ? (
+        <GlassButton variant="ghost" className="w-full mb-6 opacity-50" disabled>
+          Included in your plan
         </GlassButton>
       ) : (
         <GlassButton
@@ -310,6 +325,7 @@ export function ShopUpgradePage() {
                 plan={plan}
                 isAnnual={isAnnual}
                 isCurrent={plan.tier === currentTier}
+                currentTier={currentTier}
                 onUpgrade={handleUpgrade}
                 isLoading={checkout.isPending && checkoutTier === plan.tier}
                 isDisabled={checkout.isPending && checkoutTier !== plan.tier}
