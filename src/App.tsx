@@ -9,6 +9,7 @@ import { BugReportPanel } from './components/BugReportPanel'
 import { BugReportToast } from './components/BugReportToast'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { RequireUserType } from './components/RequireUserType'
+import { RequireTier } from './components/RequireTier'
 import { RouteErrorBoundary } from './components/RouteErrorBoundary'
 import { PageErrorBoundary } from './components/PageErrorBoundary'
 import { LoadingSpinner } from './components/LoadingSpinner'
@@ -154,12 +155,12 @@ function Protected({ children }: { children: React.ReactNode }) {
   )
 }
 
-/** Premium routes require client or expert user_type (bought a protocol or expert session) */
+/** Premium routes require coaching tier or above (brotherhood < coaching < programs) */
 function PremiumProtected({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
       <PageErrorBoundary>
-        <RequireUserType types={['client', 'expert']}>{children}</RequireUserType>
+        <RequireTier minTier="coaching">{children}</RequireTier>
       </PageErrorBoundary>
     </ProtectedRoute>
   )

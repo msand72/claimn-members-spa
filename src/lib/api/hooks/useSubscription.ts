@@ -17,29 +17,46 @@ export const subscriptionKeys = {
  * Fetch the current user's subscription info.
  * Returns tier, status, and billing details.
  */
+const FALLBACK_SUB: SubscriptionInfo = {
+  tier: 'none',
+  status: 'inactive',
+  current_period_start: '',
+  current_period_end: '',
+  cancel_at_period_end: false,
+}
+
 export function useSubscription() {
   return useQuery({
     queryKey: subscriptionKeys.info(),
     queryFn: async () => {
       try {
-        const response = await api.get<BillingResponse | { data: BillingResponse }>('/members/billing')
-        // Backend wraps response in { data: ... } — unwrap if needed
-        const billing = (response && 'data' in response && (response as { data: BillingResponse }).data?.subscription)
-          ? (response as { data: BillingResponse }).data
-          : response as BillingResponse
-        return billing.subscription
-      } catch {
-        // If billing endpoint fails, return a default "none" subscription
-        return {
-          tier: 'none' as SubscriptionTier,
-          status: 'inactive',
-          current_period_start: '',
-          current_period_end: '',
-          cancel_at_period_end: false,
+        const response = await api.get<Record<string, unknown>>('/members/billing')
+        // Backend wraps in { data: { subscription: {...}, plan: {...} } }
+        const root = (response as any)?.data ?? response
+        const sub = root?.subscription
+        if (sub && typeof sub === 'object' && 'tier' in sub) {
+          const rawTier = String((sub as any).tier || 'none')
+          // Backend returns "free" for no subscription; normalize to "none"
+          const tier = (rawTier === 'free' ? 'none' : rawTier) as SubscriptionTier
+          return {
+            tier,
+            status: String((sub as any).status || 'inactive'),
+            current_period_start: String((sub as any).current_period_start || ''),
+            current_period_end: String((sub as any).current_period_end || ''),
+            cancel_at_period_end: Boolean((sub as any).cancel_at_period_end),
+          } as SubscriptionInfo
         }
+        if (import.meta.env.DEV) {
+          console.warn('[useSubscription] Unexpected billing response:', response)
+        }
+        return FALLBACK_SUB
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.error('[useSubscription] Billing fetch failed:', err)
+        }
+        return FALLBACK_SUB
       }
     },
-    // Uses QueryClient global default (STALE_TIME.DEFAULT = 5 min)
     retry: 1,
   })
 }
