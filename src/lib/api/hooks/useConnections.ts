@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type PaginatedResponse, type PaginationParams } from '../client'
 import type { Connection, CreateConnectionRequest } from '../types'
+import { networkKeys } from './useNetwork'
 
 // Query keys
 export const connectionKeys = {
@@ -42,10 +43,18 @@ export function useSendConnectionRequest() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateConnectionRequest) =>
-      api.post<Connection>('/members/connections', data),
+    mutationFn: async (data: CreateConnectionRequest) => {
+      try {
+        return await api.post<Connection>('/members/connections', data)
+      } catch (err: any) {
+        // 409 = connection already exists — treat as success
+        if (err?.status === 409) return {} as Connection
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: connectionKeys.all })
+      queryClient.invalidateQueries({ queryKey: networkKeys.all })
     },
   })
 }
@@ -59,6 +68,7 @@ export function useAcceptConnection() {
       api.put<Connection>(`/members/connections/${connectionId}/accept`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: connectionKeys.all })
+      queryClient.invalidateQueries({ queryKey: networkKeys.all })
     },
   })
 }
@@ -72,6 +82,7 @@ export function useRejectConnection() {
       api.put<Connection>(`/members/connections/${connectionId}/reject`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: connectionKeys.all })
+      queryClient.invalidateQueries({ queryKey: networkKeys.all })
     },
   })
 }
@@ -85,6 +96,7 @@ export function useRemoveConnection() {
       api.delete(`/members/connections/${connectionId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: connectionKeys.all })
+      queryClient.invalidateQueries({ queryKey: networkKeys.all })
     },
   })
 }
