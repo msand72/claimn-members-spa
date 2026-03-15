@@ -4,9 +4,6 @@ import type { SubscriptionTier, SubscriptionInfo } from '../types'
 
 export type { SubscriptionTier, SubscriptionInfo }
 
-interface BillingResponse {
-  subscription: SubscriptionInfo
-}
 
 export const subscriptionKeys = {
   all: ['subscription'] as const,
