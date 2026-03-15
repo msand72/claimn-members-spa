@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSearchParams, useLocation } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { safeOpenUrl } from '../lib/url-validation'
@@ -130,7 +130,7 @@ export function MessagesPage() {
   // We use other_user_id as the conversation identifier in that case, since the
   // useConversationMessages hook handles 404 fallback to user-based lookup.
   const rawConversations: Record<string, unknown>[] = Array.isArray(conversationsData?.data) ? conversationsData.data as unknown as Record<string, unknown>[] : []
-  const conversations: Conversation[] = rawConversations.map((raw) => {
+  const conversations: Conversation[] = useMemo(() => rawConversations.map((raw) => {
     // Prefer real conversation_id, fall back to other_user_id
     const conversationId = (raw.conversation_id as string) || (raw.id as string) || ''
     const otherUserId = (raw.other_user_id as string) || (raw.participant_id as string) || ''
@@ -155,7 +155,7 @@ export function MessagesPage() {
       unread_count: (raw.unread_count as number) || 0,
       updated_at: (raw.last_message_at as string) || (raw.updated_at as string) || (raw.created_at as string) || '',
     }
-  })
+  }), [conversationsData])
 
   // Normalize messages: backend may return 'body' instead of 'content'
   const rawMessages = Array.isArray(messagesData?.data) ? messagesData.data : []
@@ -208,7 +208,7 @@ export function MessagesPage() {
   // Build connected members from connections API.
   // API uses 'addressee_id' (not 'recipient_id') and provides 'is_requester' convenience flag.
   const rawConnections: Record<string, unknown>[] = Array.isArray(connectionsData?.data) ? connectionsData.data as unknown as Record<string, unknown>[] : []
-  const connectedMembers = rawConnections.map((conn) => {
+  const connectedMembers = useMemo(() => rawConnections.map((conn) => {
     const isRequester = conn.is_requester === true || conn.requester_id === user?.id
     const otherId = isRequester
       ? ((conn.addressee_id as string) || (conn.recipient_id as string) || '')
@@ -220,18 +220,25 @@ export function MessagesPage() {
       avatar_url: (otherProfile?.avatar_url as string) || null,
       archetype: (otherProfile?.archetype as string) || null,
     }
-  })
+  }), [connectionsData, user?.id])
 
-  // Auto-select conversation when navigating with ?user= param
+  // Auto-select conversation when navigating with ?user= param.
+  // Uses a ref to track whether we've already handled this targetUserId
+  // to prevent re-running on every render (conversations array changes).
   const targetUserId = searchParams.get('user')
+  const handledTargetRef = useRef<string | null>(null)
   useEffect(() => {
     if (!targetUserId || conversationsLoading || connectionsLoading) return
-    // Already selected this user
-    if (selectedConversation?.participant_id === targetUserId) return
+    // Already handled this exact targetUserId — don't re-run
+    if (handledTargetRef.current === targetUserId) return
 
-    // Try to find existing conversation
-    const existing = conversations.find((conv) => conv.participant_id === targetUserId)
+    // Try to find existing conversation — match against participant_id OR participant.user_id
+    // (expert IDs from the experts table may differ from user IDs in conversations)
+    const existing = conversations.find(
+      (conv) => conv.participant_id === targetUserId || conv.participant?.user_id === targetUserId
+    )
     if (existing) {
+      handledTargetRef.current = targetUserId
       setSelectedConversation(existing)
       setSearchParams({}, { replace: true })
       return
@@ -240,24 +247,42 @@ export function MessagesPage() {
     // Try to find member in network and create synthetic conversation
     const member = connectedMembers.find((m) => m.user_id === targetUserId)
     if (member) {
+      handledTargetRef.current = targetUserId
       handleStartConversationWithMember(member)
       setSearchParams({}, { replace: true })
       return
     }
 
     // Fallback: use route state (e.g. from expert pages) to start conversation
-    // with someone who isn't in the user's connections list
+    // with someone who isn't in the user's connections list.
+    // Also match by name against existing conversations to avoid creating duplicates.
     const state = location.state as { participantName?: string; participantAvatar?: string | null; participantType?: string; initialMessage?: string } | null
     if (state?.participantName) {
-      handleStartConversationWithMember({
-        user_id: targetUserId,
-        display_name: state.participantName,
-        avatar_url: state.participantAvatar ?? null,
-        other_user_type: state.participantType,
-      })
+      // Check if there's already a conversation with this person by name
+      const existingByName = conversations.find(
+        (conv) => conv.participant?.display_name === state.participantName
+      )
+      handledTargetRef.current = targetUserId
+      if (existingByName) {
+        setSelectedConversation(existingByName)
+      } else {
+        handleStartConversationWithMember({
+          user_id: targetUserId,
+          display_name: state.participantName,
+          avatar_url: state.participantAvatar ?? null,
+          other_user_type: state.participantType,
+        })
+      }
       setSearchParams({}, { replace: true })
     }
   }, [targetUserId, conversationsLoading, connectionsLoading, conversations, connectedMembers, location.state])
+
+  // Reset the handled ref when navigating away and back
+  useEffect(() => {
+    if (!targetUserId) {
+      handledTargetRef.current = null
+    }
+  }, [targetUserId])
 
   // Pre-fill message input from route state (e.g. from AskExpertButton context)
   useEffect(() => {
@@ -471,9 +496,12 @@ export function MessagesPage() {
 
   // Start a new conversation with a connected member
   const handleStartConversationWithMember = (member: { user_id: string; display_name: string; avatar_url: string | null; other_user_type?: string }) => {
-    // Check if a conversation already exists with this person
+    // Check if a conversation already exists with this person (match by ID or name)
     const existing = conversations.find(
-      (conv) => conv.participant_id === member.user_id
+      (conv) =>
+        conv.participant_id === member.user_id ||
+        conv.participant?.user_id === member.user_id ||
+        conv.participant?.display_name === member.display_name
     )
 
     if (existing) {
@@ -514,13 +542,13 @@ export function MessagesPage() {
 
   return (
     <MainLayout>
-      <div className="h-[calc(100vh-8rem)] lg:h-[calc(100vh-6rem)]">
-        <div className="mb-4 lg:mb-6">
-          <h1 className="font-display text-2xl lg:text-3xl font-bold text-kalkvit mb-1 lg:mb-2">Messages</h1>
+      <div className="flex flex-col h-[calc(100vh-13rem)] lg:h-[calc(100vh-8.5rem)]">
+        <div className="mb-3 lg:mb-4 flex-shrink-0">
+          <h1 className="font-display text-2xl lg:text-3xl font-bold text-kalkvit mb-1">Messages</h1>
           <p className="text-sm lg:text-base text-kalkvit/60">Connect with community members</p>
         </div>
 
-        <div className="h-[calc(100%-4rem)] lg:h-[calc(100%-5rem)] lg:flex lg:gap-6">
+        <div className="flex-1 min-h-0 lg:flex lg:gap-6">
           {/* Conversations List - hidden on mobile when chat is selected */}
           <GlassCard
             variant="base"
