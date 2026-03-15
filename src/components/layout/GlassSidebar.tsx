@@ -46,7 +46,7 @@ export function GlassSidebar() {
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
 
   return (
-    <aside className="w-[260px] h-screen fixed top-0 left-0 flex flex-col z-40 bg-[#1a1816]/80 backdrop-blur-2xl border-r border-white/[0.06]">
+    <aside className="w-[260px] h-screen fixed top-0 left-0 flex flex-col z-40 glass-base !rounded-none border-r border-white/10">
       {/* Logo */}
       <div className="px-5 pt-6 pb-4 shrink-0">
         <div className="flex items-center gap-2.5">
@@ -84,7 +84,7 @@ export function GlassSidebar() {
       </div>
 
       {/* Divider */}
-      <div className="mx-4 border-t border-white/[0.06]" />
+      <div className="mx-4 border-t border-white/10" />
 
       {/* Main Navigation */}
       <nav className="flex-1 py-2 px-3 overflow-y-auto">
@@ -117,7 +117,7 @@ export function GlassSidebar() {
         </div>
 
         {/* Account Section */}
-        <div className="mt-4 pt-3 border-t border-white/[0.06]">
+        <div className="mt-4 pt-3 border-t border-white/10">
           <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-kalkvit/25">Account</p>
           <div className="space-y-0.5">
             {accountNav.map((item) => (
@@ -144,7 +144,7 @@ export function GlassSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-3 border-t border-white/[0.06] shrink-0 space-y-0.5">
+      <div className="px-3 py-3 border-t border-white/10 shrink-0 space-y-0.5">
         <button
           onClick={openManualReport}
           className={cn(
