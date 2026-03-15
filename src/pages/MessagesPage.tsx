@@ -764,10 +764,10 @@ export function MessagesPage() {
                 </div>
 
                 {/* Message Input */}
-                <div className="p-3 lg:p-4 border-t border-white/10">
+                <div className="px-4 py-3 lg:px-6 lg:py-4 border-t border-white/10">
                   {/* Image preview */}
                   {pendingImage && (
-                    <div className="mb-2 relative inline-block">
+                    <div className="mb-3 relative inline-block">
                       <img
                         src={pendingImage.preview}
                         alt="Preview"
@@ -781,7 +781,7 @@ export function MessagesPage() {
                       </button>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 lg:gap-3">
+                  <div className="flex items-end gap-3">
                     {/* Hidden file input */}
                     <input
                       ref={imageInputRef}
@@ -793,33 +793,35 @@ export function MessagesPage() {
                     <button
                       onClick={() => imageInputRef.current?.click()}
                       disabled={isUploading}
-                      className="p-3 rounded-xl transition-all flex-shrink-0 bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit hover:bg-white/[0.1]"
+                      className="p-2.5 rounded-xl transition-all flex-shrink-0 text-kalkvit/40 hover:text-kalkvit hover:bg-white/[0.06]"
                     >
                       <ImagePlus className="w-5 h-5" />
                     </button>
-                    <GlassInput
-                      placeholder="Type a message..."
-                      className="flex-1"
-                      value={messageInput}
-                      onChange={(e) => setMessageInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                    />
-                    <button
-                      onClick={handleSendMessage}
-                      disabled={(!messageInput.trim() && !pendingImage) || isUploading || sendMessage.isPending}
-                      className={cn(
-                        'p-3 rounded-xl transition-all flex-shrink-0',
-                        (messageInput.trim() || pendingImage) && !isUploading && !sendMessage.isPending
-                          ? 'bg-koppar text-kalkvit hover:bg-koppar/80'
-                          : 'bg-white/[0.06] text-kalkvit/30 cursor-not-allowed'
-                      )}
-                    >
-                      {isUploading ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <Send className="w-5 h-5" />
-                      )}
-                    </button>
+                    <div className="flex-1 relative">
+                      <GlassInput
+                        placeholder="Type a message..."
+                        className="w-full pr-12 py-3 text-base"
+                        value={messageInput}
+                        onChange={(e) => setMessageInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                      />
+                      <button
+                        onClick={handleSendMessage}
+                        disabled={(!messageInput.trim() && !pendingImage) || isUploading || sendMessage.isPending}
+                        className={cn(
+                          'absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all',
+                          (messageInput.trim() || pendingImage) && !isUploading && !sendMessage.isPending
+                            ? 'bg-koppar text-kalkvit hover:bg-koppar/80'
+                            : 'text-kalkvit/20 cursor-not-allowed'
+                        )}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <Send className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </>
