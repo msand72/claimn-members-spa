@@ -8,6 +8,7 @@ import type {
   SubmitAssessmentRequest,
   AssessmentContentMap,
 } from '../types'
+import { profileKeys } from './useProfile'
 
 // Query keys
 export const assessmentKeys = {
@@ -146,10 +147,33 @@ export function useSubmitAssessment() {
       const result = (response as any).results ?? response
       return normalizeAssessmentResult(result as AssessmentResult)
     },
-    onSuccess: (_, { assessmentId }) => {
+    onSuccess: (result, { assessmentId }) => {
       queryClient.invalidateQueries({ queryKey: assessmentKeys.all })
       queryClient.invalidateQueries({ queryKey: assessmentKeys.results(assessmentId) })
       queryClient.invalidateQueries({ queryKey: assessmentKeys.latestResult() })
+
+      // Auto-sync assessment results to member profile so they don't have to re-enter manually
+      if (result?.primary_archetype || result?.pillar_scores) {
+        const profileUpdate: Record<string, unknown> = {}
+        if (result.primary_archetype) {
+          profileUpdate.archetype = result.primary_archetype
+        }
+        if (result.pillar_scores) {
+          // Pick top 3 pillars by score as the pillar_focus
+          const sorted = Object.entries(result.pillar_scores)
+            .sort(([, a], [, b]) => (b.raw ?? 0) - (a.raw ?? 0))
+            .slice(0, 3)
+            .map(([pillar]) => pillar)
+          if (sorted.length > 0) {
+            profileUpdate.pillar_focus = sorted
+          }
+        }
+        if (Object.keys(profileUpdate).length > 0) {
+          api.put('/members/profile', profileUpdate)
+            .then(() => queryClient.invalidateQueries({ queryKey: profileKeys.current() }))
+            .catch(() => {}) // Silent fail — profile sync is best-effort
+        }
+      }
     },
   })
 }
