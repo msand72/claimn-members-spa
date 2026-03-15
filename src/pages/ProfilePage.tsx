@@ -218,29 +218,26 @@ export function ProfilePage() {
             <GlassCard variant="elevated" className="mb-6">
               <div className="flex items-center gap-3 md:gap-6">
                 <div className="relative">
-                  <GlassAvatar initials={initials} size="xl" />
+                  <GlassAvatar src={profile?.avatar_url} initials={initials} size="xl" />
                   {uploadAvatar.isPending && (
                     <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
                       <Loader2 className="w-6 h-6 animate-spin text-kalkvit" />
                     </div>
                   )}
-                  {isEditing && (
-                    <>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        ref={fileInputRef}
-                        onChange={handleAvatarChange}
-                        className="hidden"
-                      />
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="absolute bottom-0 right-0 p-2 rounded-full bg-koppar text-kalkvit hover:bg-koppar/80 transition-colors"
-                      >
-                        <Camera className="w-4 h-4" />
-                      </button>
-                    </>
-                  )}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    ref={fileInputRef}
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadAvatar.isPending}
+                    className="absolute bottom-0 right-0 p-2 rounded-full bg-koppar text-kalkvit hover:bg-koppar/80 transition-colors"
+                  >
+                    <Camera className="w-4 h-4" />
+                  </button>
                 </div>
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-kalkvit">{displayName}</h2>
@@ -399,10 +396,19 @@ export function ProfilePage() {
                       type="checkbox"
                       className="sr-only peer"
                       checked={formData.email_notifications}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email_notifications: e.target.checked })
-                      }
-                      disabled={!isEditing}
+                      onChange={(e) => {
+                        const val = e.target.checked
+                        setFormData((prev) => ({ ...prev, email_notifications: val }))
+                        if (!isEditing) {
+                          updateProfile.mutate({
+                            notification_preferences: {
+                              email_notifications: val,
+                              weekly_digest: formData.weekly_digest,
+                            },
+                          })
+                        }
+                      }}
+                      disabled={updateProfile.isPending}
                     />
                     <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-kalkvit after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-koppar"></div>
                   </label>
@@ -417,10 +423,19 @@ export function ProfilePage() {
                       type="checkbox"
                       className="sr-only peer"
                       checked={formData.weekly_digest}
-                      onChange={(e) =>
-                        setFormData({ ...formData, weekly_digest: e.target.checked })
-                      }
-                      disabled={!isEditing}
+                      onChange={(e) => {
+                        const val = e.target.checked
+                        setFormData((prev) => ({ ...prev, weekly_digest: val }))
+                        if (!isEditing) {
+                          updateProfile.mutate({
+                            notification_preferences: {
+                              email_notifications: formData.email_notifications,
+                              weekly_digest: val,
+                            },
+                          })
+                        }
+                      }}
+                      disabled={updateProfile.isPending}
                     />
                     <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-kalkvit after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-koppar"></div>
                   </label>
