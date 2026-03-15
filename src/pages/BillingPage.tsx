@@ -36,13 +36,8 @@ function formatDate(dateStr: string): string {
 }
 
 function formatTier(tier: string): string {
-  const names: Record<string, string> = {
-    brotherhood: 'The Brotherhood',
-    coaching: 'Expert Guidance',
-    programs: 'The Forge',
-    none: 'Free',
-  }
-  return names[tier] || tier.charAt(0).toUpperCase() + tier.slice(1)
+  if (!tier || tier === 'none') return 'Free'
+  return tier.charAt(0).toUpperCase() + tier.slice(1)
 }
 
 function StatusBadge({ status, cancelAtPeriodEnd }: { status: string; cancelAtPeriodEnd: boolean }) {

@@ -46,7 +46,7 @@ export function useSubscription() {
 
 /**
  * Helper to check if a tier has access to premium features.
- * Premium = coaching or programs tier.
+ * Premium = coaching tier or above.
  */
 export function hasPremiumAccess(tier: SubscriptionTier): boolean {
   return tier === 'coaching' || tier === 'programs'

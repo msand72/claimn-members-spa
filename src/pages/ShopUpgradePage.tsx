@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassAlert } from '../components/ui'
 import { useCheckout, useSubscription, usePlans } from '../lib/api/hooks'
@@ -9,7 +10,7 @@ import {
   X,
   Star,
   Zap,
-  Crown,
+  GraduationCap,
   ArrowRight,
   Shield,
   Users,
@@ -31,10 +32,10 @@ const tierMeta: Record<string, { icon: React.ElementType; isPopular: boolean; no
   coaching: {
     icon: Zap,
     isPopular: true,
-    notIncluded: ['Forge cohort access'],
+    notIncluded: [],
   },
   programs: {
-    icon: Crown,
+    icon: GraduationCap,
     isPopular: false,
     notIncluded: [],
   },
@@ -46,7 +47,6 @@ const highlightedFeatures = new Set([
   'Monthly Brotherhood Circles (8-12 ppl)',
   'Quarterly 2-day intensives',
   '6-12 month cohort intensive',
-  'Forge Sessions (2-day, 4-6x/year)',
   'Protocol Sprints with field application',
 ])
 
@@ -79,6 +79,7 @@ function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading, isDisabled 
 }) {
   const meta = tierMeta[plan.tier] || { icon: Star, isPopular: false, notIncluded: [] }
   const Icon = meta.icon
+  const isProgramsTier = plan.tier === 'programs'
 
   const monthlyPrice = plan.monthly?.amount || 0
   const annualPrice = plan.annual?.amount || 0
@@ -120,7 +121,11 @@ function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading, isDisabled 
       </div>
 
       <div className="text-center mb-6">
-        {monthlyPrice === 0 ? (
+        {isProgramsTier ? (
+          <p className="font-display text-lg font-medium text-kalkvit/70">
+            Pricing varies per program
+          </p>
+        ) : monthlyPrice === 0 ? (
           <p className="font-display text-4xl font-bold text-kalkvit">Free</p>
         ) : isAnnual ? (
           <>
@@ -144,7 +149,14 @@ function PlanCard({ plan, isAnnual, isCurrent, onUpgrade, isLoading, isDisabled 
         )}
       </div>
 
-      {isCurrent ? (
+      {isProgramsTier ? (
+        <Link to="/programs">
+          <GlassButton variant="secondary" className="w-full mb-6">
+            Browse Programs
+            <ArrowRight className="w-4 h-4" />
+          </GlassButton>
+        </Link>
+      ) : isCurrent ? (
         <GlassButton variant="ghost" className="w-full mb-6" disabled>
           Current Plan
         </GlassButton>
