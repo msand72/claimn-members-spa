@@ -112,7 +112,7 @@ function PostCard({ post }: { post: FeedPost }) {
     setShowReportModal(true)
   }
 
-  const authorName = post.author?.display_name || 'Anonymous'
+  const authorName = post.author_name || post.author?.display_name || 'Anonymous'
   const initials = authorName
     .split(' ')
     .map((n: string) => n[0])
@@ -238,7 +238,7 @@ function PostCard({ post }: { post: FeedPost }) {
               {!commentsLoading && comments.length > 0 && (
                 <div className="space-y-3 mb-4">
                   {comments.map((comment) => {
-                    const cName = comment.author?.display_name || 'Anonymous'
+                    const cName = comment.author_name || comment.author?.display_name || 'Anonymous'
                     const cInitials = cName
                       .split(' ')
                       .map((n: string) => n[0])
