@@ -7,7 +7,7 @@ import type { Expert } from '../lib/api/types'
 import { Search, Star, Calendar, MessageCircle, Loader2, AlertTriangle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-const specialtyFilters = ['All', 'Leadership', 'Mindset', 'Business', 'Wellness', 'Finance', 'Communication']
+// Specialty filters are derived from actual expert data — see below in ExpertsPage
 
 function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expert: Expert) => void }) {
   const initials = expert.name
@@ -133,10 +133,27 @@ export function ExpertsPage() {
     error,
   } = useExperts({
     search: debouncedSearch || undefined,
-    specialty: activeFilter !== 'All' ? activeFilter : undefined,
   })
 
-  const experts = Array.isArray(expertsData?.data) ? expertsData.data : []
+  const allExperts = Array.isArray(expertsData?.data) ? expertsData.data : []
+
+  // Build specialty filters from actual expert data
+  const specialtyFilters = ['All', ...Array.from(
+    new Set(allExperts.flatMap((e) => e.specialties || []))
+  ).sort()]
+
+  // Reset filter if selected specialty no longer exists in data
+  useEffect(() => {
+    if (activeFilter !== 'All' && !specialtyFilters.includes(activeFilter)) {
+      setActiveFilter('All')
+    }
+  }, [specialtyFilters.join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Client-side specialty filter
+  const experts = activeFilter !== 'All'
+    ? allExperts.filter((e) => e.specialties?.includes(activeFilter))
+    : allExperts
+
   // Sort so top-rated experts appear first
   const sortedExperts = [...experts].sort((a, b) => {
     if (a.is_top_rated && !b.is_top_rated) return -1
