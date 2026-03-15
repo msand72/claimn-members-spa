@@ -9,11 +9,9 @@ interface RequireTierProps {
   fallback?: 'upgrade' | 'redirect'
 }
 
-const TIER_NAMES: Record<SubscriptionTier, string> = {
-  none: 'Free',
-  brotherhood: 'Brotherhood',
-  coaching: 'Expert Guidance',
-  programs: 'The Forge',
+function tierDisplayName(tier: SubscriptionTier): string {
+  if (!tier || tier === 'none') return 'Free'
+  return tier.charAt(0).toUpperCase() + tier.slice(1)
 }
 
 /**
@@ -74,10 +72,10 @@ export function RequireTier({ minTier, children, fallback = 'upgrade' }: Require
 
         {/* Description */}
         <p className="text-jordbrun dark:text-kalkvit/60 mb-2">
-          This feature requires <span className="text-koppar font-medium">{TIER_NAMES[minTier]}</span> membership or higher.
+          This feature requires <span className="text-koppar font-medium">{tierDisplayName(minTier)}</span> membership or higher.
         </p>
         <p className="text-jordbrun/60 dark:text-kalkvit/40 text-sm mb-8">
-          You're currently on the <span className="text-jordbrun dark:text-kalkvit/60">{TIER_NAMES[userTier]}</span> plan.
+          You're currently on the <span className="text-jordbrun dark:text-kalkvit/60">{tierDisplayName(userTier)}</span> plan.
         </p>
 
         {/* Features preview */}

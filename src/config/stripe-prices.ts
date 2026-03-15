@@ -7,10 +7,6 @@ export const MEMBERSHIP_PRICES = {
     monthly: { priceId: import.meta.env.VITE_STRIPE_PRICE_COACHING_MONTHLY ?? '', amount: 390, label: 'Expert Guidance' },
     annual:  { priceId: import.meta.env.VITE_STRIPE_PRICE_COACHING_ANNUAL ?? '', amount: 3480, label: 'Expert Guidance' },
   },
-  programs: {
-    monthly: { priceId: import.meta.env.VITE_STRIPE_PRICE_PROGRAMS_MONTHLY ?? '', amount: 1490, label: 'The Forge' },
-    annual:  { priceId: import.meta.env.VITE_STRIPE_PRICE_PROGRAMS_ANNUAL ?? '', amount: 14125, label: 'The Forge' },
-  },
 } as const
 
 export const EXPERT_SESSION_PRICES = {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
@@ -17,14 +17,10 @@ import {
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
-const categories = [
+// Base tabs — dynamic category tabs are appended from program data
+const BASE_TABS = [
   { key: 'All', label: 'All' },
   { key: 'My Programs', label: 'My Programs' },
-  { key: 'physical', label: 'Physical Performance' },
-  { key: 'emotional', label: 'Emotional & Mental' },
-  { key: 'identity', label: 'Identity & Purpose' },
-  { key: 'connection', label: 'Connection & Leadership' },
-  { key: 'mission', label: 'Mission & Mastery' },
 ]
 
 const difficultyColors: Record<string, 'success' | 'warning' | 'error'> = {
@@ -138,13 +134,12 @@ function ProgramCard({
 export function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+  // Fetch all programs — filtering is done client-side so we can derive category tabs
   const {
     data: programsData,
     isLoading: isLoadingPrograms,
     error: programsError,
   } = usePrograms({
-    category:
-      activeCategory !== 'All' && activeCategory !== 'My Programs' ? activeCategory : undefined,
     search: searchQuery || undefined,
   })
 
@@ -155,14 +150,23 @@ export function ProgramsPage() {
 
   const enrolledProgramIds = new Set(enrolledPrograms.map((ep) => ep.program_id))
 
+  // Build category tabs dynamically from program data
+  const categories = useMemo(() => {
+    const uniqueCategories = Array.from(
+      new Set(programs.map((p) => p.category).filter(Boolean))
+    ).sort()
+    return [
+      ...BASE_TABS,
+      ...uniqueCategories.map((cat) => ({ key: cat, label: cat })),
+    ]
+  }, [programs])
+
   const filteredPrograms =
     activeCategory === 'My Programs'
       ? programs.filter((p) => enrolledProgramIds.has(p.id))
-      : programs.filter(
-          (p) =>
-            (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (p.description || '').toLowerCase().includes(searchQuery.toLowerCase())
-        )
+      : activeCategory !== 'All'
+        ? programs.filter((p) => p.category === activeCategory)
+        : programs
 
   const myPrograms = programs.filter((p) => enrolledProgramIds.has(p.id))
   const totalProgress =
@@ -282,9 +286,7 @@ export function ProgramsPage() {
                     : categories.find((c) => c.key === activeCategory)?.label || activeCategory}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPrograms
-                  .filter((p) => activeCategory !== 'All' || !enrolledProgramIds.has(p.id))
-                  .map((program) => (
+                {filteredPrograms.map((program) => (
                     <ProgramCard
                       key={program.id}
                       program={program}
