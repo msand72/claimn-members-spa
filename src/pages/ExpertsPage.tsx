@@ -17,59 +17,80 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expert:
     .toUpperCase()
     .slice(0, 2)
 
+  const hasReviews = expert.reviews_count > 0
+  const hasSessions = expert.total_sessions > 0
+  const hasStats = hasReviews || hasSessions
+  const hasPrice = expert.hourly_rate > 0
+
   return (
-    <GlassCard variant="base" className="group hover:border-koppar/30 transition-colors">
-      <Link to={`/experts/${expert.id}`} className="block">
-        <div className="flex items-start gap-4 mb-4">
+    <GlassCard variant="base" className="group hover:border-koppar/30 transition-colors flex flex-col">
+      <Link to={`/experts/${expert.id}`} className="block flex-1">
+        {/* Header: avatar + name + badge */}
+        <div className="flex items-start gap-4 mb-3">
           {expert.avatar_url ? (
             <img
               src={expert.avatar_url}
               alt={expert.name}
-              className="w-16 h-16 rounded-xl object-cover"
+              className="w-14 h-14 rounded-xl object-cover shrink-0"
             />
           ) : (
-            <GlassAvatar initials={initials} size="xl" />
+            <GlassAvatar initials={initials} size="lg" />
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-kalkvit truncate group-hover:text-koppar transition-colors">{expert.name}</h3>
+              <h3 className="font-semibold text-kalkvit group-hover:text-koppar transition-colors">{expert.name}</h3>
               {expert.is_top_rated && <GlassBadge variant="koppar">Top Rated</GlassBadge>}
-              <span className="ml-auto font-display text-lg font-bold text-kalkvit whitespace-nowrap">
-                ${expert.hourly_rate}<span className="text-xs font-normal text-kalkvit/50"> /hour</span>
-              </span>
             </div>
-            <p className="text-sm text-koppar truncate">{expert.title}</p>
+            {expert.title && (
+              <p className="text-sm text-koppar mt-0.5 line-clamp-2">{expert.title}</p>
+            )}
           </div>
         </div>
 
-        <p className="text-sm text-kalkvit/70 mb-3 line-clamp-2">{expert.bio}</p>
+        {/* Bio */}
+        {expert.bio && (
+          <p className="text-sm text-kalkvit/70 mb-3 line-clamp-3">{expert.bio}</p>
+        )}
 
-        <div className="flex flex-wrap gap-1 mb-4">
-          {expert.specialties.slice(0, 3).map((s) => (
-            <GlassBadge key={s} variant="default" className="text-xs">
-              {s}
-            </GlassBadge>
-          ))}
-          {expert.specialties.length > 3 && (
-            <GlassBadge variant="default" className="text-xs">
-              +{expert.specialties.length - 3}
-            </GlassBadge>
-          )}
-        </div>
+        {/* Specialties */}
+        {expert.specialties.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {expert.specialties.slice(0, 4).map((s) => (
+              <GlassBadge key={s} variant="default" className="text-xs">
+                {s}
+              </GlassBadge>
+            ))}
+            {expert.specialties.length > 4 && (
+              <GlassBadge variant="default" className="text-xs">
+                +{expert.specialties.length - 4}
+              </GlassBadge>
+            )}
+          </div>
+        )}
 
-        <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
-          <span className="flex items-center gap-1">
-            <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
-            {expert.rating} ({expert.reviews_count})
-          </span>
-          <span>{expert.total_sessions} sessions</span>
-        </div>
+        {/* Stats — only show if there are actual reviews or sessions */}
+        {hasStats && (
+          <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-3">
+            {hasReviews && (
+              <span className="flex items-center gap-1">
+                <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
+                {expert.rating} ({expert.reviews_count})
+              </span>
+            )}
+            {hasSessions && <span>{expert.total_sessions} sessions</span>}
+          </div>
+        )}
       </Link>
 
-      <div className="flex items-center justify-between gap-2 pt-4 border-t border-white/10">
-        <span className="text-xs text-skogsgron truncate">
-          {expert.availability || 'Contact for availability'}
-        </span>
+      {/* Footer: price + actions */}
+      <div className="flex items-center justify-between gap-2 pt-3 border-t border-white/10 mt-auto">
+        {hasPrice ? (
+          <span className="font-display text-lg font-bold text-kalkvit whitespace-nowrap">
+            ${expert.hourly_rate}<span className="text-xs font-normal text-kalkvit/50"> /hour</span>
+          </span>
+        ) : (
+          <span className="text-xs text-kalkvit/40">Contact for pricing</span>
+        )}
         <div className="flex gap-2 shrink-0">
           <GlassButton variant="ghost" className="p-2" onClick={() => onMessage(expert)}>
             <MessageCircle className="w-4 h-4" />
