@@ -110,12 +110,17 @@ export interface FeedPost {
   content: string
   image_url: string | null
   interest_group_id: string | null
+  post_type?: string
+  visibility?: string
   likes_count: number
   comments_count: number
   is_liked: boolean
   created_at: string
   updated_at: string
-  // Populated fields
+  // Flat author fields from API
+  author_name?: string
+  author_avatar?: string
+  // Nested author object (legacy)
   author?: {
     user_id: string
     display_name: string
@@ -137,6 +142,8 @@ export interface FeedComment {
   user_id: string
   content: string
   created_at: string
+  author_name?: string
+  author_avatar?: string
   // Populated fields
   author?: {
     user_id: string
