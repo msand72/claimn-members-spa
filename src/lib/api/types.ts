@@ -967,7 +967,7 @@ export interface PillarScore {
 }
 
 // Archetype scores as stored in DB (JSONB shape)
-// Keys are archetype names as stored in DB (e.g. "The Achiever", "The Optimizer")
+// Keys are archetype names as stored in DB (e.g. "achiever", "optimizer")
 export type ArchetypeScores = Record<string, number>
 
 // Integration insight from scoring engine
@@ -1000,6 +1000,20 @@ export interface AssessmentInsight {
   development_pillar?: string
 }
 
+export interface RiskBehaviorDomainScore {
+  average: number
+  level: 'low' | 'moderate' | 'elevated'
+  count: number
+}
+
+export interface RiskBehaviorScores {
+  domains: Record<string, RiskBehaviorDomainScore>
+  composite_score: number
+  composite_level: 'low' | 'moderate' | 'elevated'
+  category_scores?: Record<string, number>
+  domain_levels?: Record<string, string>
+}
+
 export interface AssessmentResult {
   id: string
   assessment_id: string
@@ -1010,6 +1024,7 @@ export interface AssessmentResult {
   consistency_score: number
   micro_insights: AssessmentInsight[]
   integration_insights: AssessmentInsight[]
+  risk_behavior_scores?: RiskBehaviorScores
   calculated_at: string
   // Legacy fields for backward compatibility during migration
   archetypes?: string[]
@@ -1024,7 +1039,7 @@ export interface AssessmentResult {
 // Structured submit format matching backend scoring engine
 export interface ArchetypeResponse {
   questionKey: string
-  archetype?: string // Old forced-choice format (e.g. "The Achiever")
+  archetype?: string // Old forced-choice format (e.g. "achiever")
   value?: string // Big Five Likert format: "1"-"7"
   pillar_category?: string // Big Five dimension (e.g. "conscientiousness")
 }
@@ -1035,9 +1050,16 @@ export interface PillarResponse {
   value: number // 1-7
 }
 
+export interface RiskBehaviorResponse {
+  questionKey: string
+  value: string // "1"-"5"
+  domain: string // e.g. "sleep_recovery", "substance_use"
+}
+
 export interface SubmitAssessmentRequest {
   archetypeResponses: ArchetypeResponse[]
   pillarResponses: PillarResponse[]
+  riskBehaviorResponses?: RiskBehaviorResponse[]
   backgroundData?: Record<string, string>
 }
 

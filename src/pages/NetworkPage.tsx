@@ -23,7 +23,7 @@ import {
   useRejectConnection,
   type NetworkMember,
 } from '../lib/api'
-import { ARCHETYPES, PILLARS, type PillarId } from '../lib/constants'
+import { ARCHETYPES, ARCHETYPE_LABELS, PILLARS, type PillarId, type Archetype } from '../lib/constants'
 
 /** Map pillar color tokens to Tailwind bg/text class pairs */
 const PILLAR_STYLES: Record<string, { bg: string; text: string; border: string }> = {
@@ -51,7 +51,7 @@ function PillarBadge({ pillarId }: { pillarId: string }) {
 
 const ITEMS_PER_PAGE = 12
 
-const archetypeFilters = ['All Archetypes', ...ARCHETYPES]
+const archetypeFilters = ['All Archetypes', ...ARCHETYPES] as const
 
 function MemberCard({ member }: { member: NetworkMember }) {
   const navigate = useNavigate()
@@ -104,7 +104,7 @@ function MemberCard({ member }: { member: NetworkMember }) {
             <h3 className="font-semibold text-kalkvit truncate">{displayName}</h3>
             {member.archetype && (
               <GlassBadge variant="koppar" className="text-xs hidden sm:inline-flex">
-                {member.archetype}
+                {ARCHETYPE_LABELS[member.archetype as Archetype] ?? member.archetype}
               </GlassBadge>
             )}
           </div>
@@ -298,7 +298,7 @@ export function NetworkPage() {
                     : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1] hover:text-kalkvit'
                 )}
               >
-                {archetype}
+                {archetype === 'All Archetypes' ? archetype : (ARCHETYPE_LABELS[archetype as Archetype] ?? archetype)}
               </button>
             ))}
           </div>

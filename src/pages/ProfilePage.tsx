@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { useCurrentProfile, useUpdateProfile, useUploadAvatar, useAssessmentSharing, useUpdateAssessmentSharing } from '../lib/api/hooks'
 import { useInterests, useMemberInterests, useUpdateMemberInterests } from '../hooks/useInterests'
-import { ARCHETYPES, PILLARS, PILLAR_IDS } from '../lib/constants'
+import { ARCHETYPES, ARCHETYPE_LABELS, PILLARS, PILLAR_IDS } from '../lib/constants'
 import type { Archetype, PillarId } from '../lib/constants'
 import type { UpdateProfileRequest } from '../lib/api/types'
 import { Camera, Save, Loader2, AlertTriangle, Check } from 'lucide-react'
@@ -155,7 +155,7 @@ export function ProfilePage() {
   // Options for dropdowns
   const archetypeOptions = [
     { value: '', label: 'Select your archetype' },
-    ...ARCHETYPES.map((arch) => ({ value: arch, label: arch })),
+    ...ARCHETYPES.map((arch) => ({ value: arch, label: ARCHETYPE_LABELS[arch] })),
   ]
 
   const pillarItems = PILLAR_IDS.map((id) => ({
@@ -245,7 +245,7 @@ export function ProfilePage() {
                   <div className="flex items-center gap-2 mt-2">
                     {formData.archetype && (
                       <span className="px-2 py-0.5 rounded-md bg-koppar/20 text-koppar text-sm">
-                        {formData.archetype}
+                        {ARCHETYPE_LABELS[formData.archetype] ?? formData.archetype}
                       </span>
                     )}
                     <span className="text-sm text-koppar">Brotherhood Member</span>

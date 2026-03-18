@@ -3,27 +3,30 @@
 // These must stay in sync across all CLAIM'N applications
 
 // ============================================
-// ARCHETYPES - The 5 CLAIM'N male archetypes
+// ARCHETYPES - The 6 CLAIM'N male archetypes
 // ============================================
 export const ARCHETYPES = [
-  'The Achiever',
-  'The Optimizer',
-  'The Networker',
-  'The Grinder',
-  'The Philosopher',
-  'The Integrator',
+  'achiever',
+  'optimizer',
+  'networker',
+  'grinder',
+  'philosopher',
+  'integrator',
 ] as const
 
 export type Archetype = (typeof ARCHETYPES)[number]
 
-export const ARCHETYPE_DISPLAY_NAMES: Record<string, string> = {
-  achiever: 'The Achiever',
-  optimizer: 'The Optimizer',
-  networker: 'The Networker',
-  grinder: 'The Grinder',
-  philosopher: 'The Philosopher',
-  integrator: 'The Integrator',
+export const ARCHETYPE_LABELS: Record<Archetype, string> = {
+  achiever: 'Achiever',
+  optimizer: 'Optimizer',
+  networker: 'Networker',
+  grinder: 'Grinder',
+  philosopher: 'Philosopher',
+  integrator: 'Integrator',
 }
+
+/** @deprecated Use ARCHETYPE_LABELS instead */
+export const ARCHETYPE_DISPLAY_NAMES = ARCHETYPE_LABELS as Record<string, string>
 
 // Big Five personality dimensions used for archetype scoring
 export const BIG5_DIMENSIONS = [

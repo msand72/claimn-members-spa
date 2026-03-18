@@ -2,7 +2,7 @@
 // Scale: 1-7 Likert (matching PHP original and claimn-web reference)
 // Primary scoring is done server-side; this is for offline fallback only
 
-import { PILLARS, ARCHETYPE_BIG5_TEMPLATES, ARCHETYPE_DISPLAY_NAMES, BIG5_DIMENSIONS } from '../constants'
+import { PILLARS, ARCHETYPE_BIG5_TEMPLATES, BIG5_DIMENSIONS } from '../constants'
 import type { Archetype, PillarId, Big5Dimension } from '../constants'
 
 export interface PillarScore {
@@ -442,8 +442,8 @@ export function determineArchetypesFromAnswers(
     const matches = calculateArchetypeMatches(profile)
     const sorted = Object.entries(matches)
       .sort((a, b) => b[1] - a[1])
-      .map(([key]) => ARCHETYPE_DISPLAY_NAMES[key] || capitalize(key))
-    return sorted.length > 0 ? sorted : ['The Integrator']
+      .map(([key]) => key)
+    return sorted.length > 0 ? sorted : ['integrator']
   }
 
   // Legacy forced-choice scoring
@@ -468,9 +468,9 @@ export function determineArchetypesFromAnswers(
   const sorted = Object.entries(archetypeScores)
     .sort((a, b) => b[1] - a[1])
     .filter(([, score]) => score > 0)
-    .map(([key]) => ARCHETYPE_DISPLAY_NAMES[key] || capitalize(key))
+    .map(([key]) => key)
 
-  return sorted.length > 0 ? sorted : ['The Achiever']
+  return sorted.length > 0 ? sorted : ['achiever']
 }
 
 // Generate simple micro insights for pillar scores (percentage-based)
