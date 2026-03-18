@@ -43,6 +43,19 @@ const BIG5_NAMES: Record<string, string> = {
   neuroticism: 'Neuroticism',
 }
 
+/** Risk behavior domain display names */
+const RISK_DOMAIN_NAMES: Record<string, string> = {
+  sleep_recovery: 'Sleep & Recovery',
+  substance_use: 'Substance Use',
+  emotional_avoidance: 'Emotional Avoidance',
+  work_life: 'Work-Life Balance',
+  health_neglect: 'Health Neglect',
+  impulsivity: 'Impulsivity',
+  social_withdrawal: 'Social Withdrawal',
+  anger_conflict: 'Anger & Conflict',
+  risk_taking: 'Risk Taking',
+}
+
 /** Big Five dimension descriptions */
 const BIG5_DESCRIPTIONS: Record<string, string> = {
   conscientiousness: 'How you approach structure, discipline, and follow-through',
@@ -57,7 +70,7 @@ const BIG5_DESCRIPTIONS: Record<string, string> = {
  */
 interface EnrichedQuestion extends LocalAssessmentQuestion {
   _questionKey: string
-  _questionType: 'archetype' | 'pillar' | 'background'
+  _questionType: 'archetype' | 'pillar' | 'background' | 'risk_behavior'
   _pillarCategory?: string
   _optionKeys?: string[]
   _backgroundOptions?: { value: string; text: string }[]
@@ -99,6 +112,22 @@ function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): EnrichedQ
           label: opt.option_text ?? opt.label ?? `Option ${idx + 1}`,
         }))
         optionKeys = q.options.map((opt, i) => opt.option_value ?? String(opt.value ?? i))
+      } else if (questionType === 'risk_behavior') {
+        if (q.options && q.options.length > 0) {
+          options = q.options.map((opt) => ({
+            value: Number(opt.option_value ?? opt.value) || 0,
+            label: opt.option_text ?? opt.label ?? '',
+          }))
+        } else {
+          // Fallback 1-5 scale
+          options = [
+            { value: 1, label: '1' },
+            { value: 2, label: '2' },
+            { value: 3, label: '3' },
+            { value: 4, label: '4' },
+            { value: 5, label: '5' },
+          ]
+        }
       } else if (questionType === 'pillar') {
         if (q.options && q.options.length > 0 && typeof q.options[0].value === 'number') {
           options = q.options.map((opt) => ({
@@ -130,7 +159,7 @@ function transformApiQuestions(apiQuestions: ApiAssessmentQuestion[]): EnrichedQ
 
       return {
         id: q.id,
-        section: (questionType === 'archetype' ? 'archetype' : questionType === 'pillar' ? 'pillar' : 'background') as LocalAssessmentQuestion['section'],
+        section: (questionType === 'archetype' ? 'archetype' : questionType === 'pillar' ? 'pillar' : questionType === 'risk_behavior' ? 'pillar' : 'background') as LocalAssessmentQuestion['section'],
         ...(pillarCategory ? { pillar: pillarCategory as LocalAssessmentQuestion['pillar'] } : {}),
         question: questionText,
         options,
@@ -176,6 +205,7 @@ export function AssessmentTakePage() {
   const backgroundQuestions = useMemo(() => questions.filter((q) => q._questionType === 'background'), [questions])
   const archetypeQuestions = useMemo(() => questions.filter((q) => q._questionType === 'archetype'), [questions])
   const pillarQuestions = useMemo(() => questions.filter((q) => q._questionType === 'pillar'), [questions])
+  const riskBehaviorQuestions = useMemo(() => questions.filter((q) => q._questionType === 'risk_behavior'), [questions])
 
   // Group pillar questions by pillar category
   const pillarsByCategory = useMemo(() => {
@@ -187,6 +217,17 @@ export function AssessmentTakePage() {
     }
     return groups
   }, [pillarQuestions])
+
+  // Group risk behavior questions by domain
+  const riskByDomain = useMemo(() => {
+    const groups: Record<string, EnrichedQuestion[]> = {}
+    for (const q of riskBehaviorQuestions) {
+      const domain = q._pillarCategory || 'other'
+      if (!groups[domain]) groups[domain] = []
+      groups[domain].push(q)
+    }
+    return groups
+  }, [riskBehaviorQuestions])
 
   // Detect Big Five format: archetype questions with a Big5 dimension as pillar_category
   const BIG5_DIMS = ['conscientiousness', 'extraversion', 'openness', 'agreeableness', 'neuroticism']
@@ -285,6 +326,7 @@ export function AssessmentTakePage() {
 
     const archetypeResponses: { questionKey: string; archetype?: string; value?: string; pillar_category?: string }[] = []
     const pillarResponses: { questionKey: string; pillar: PillarId; value: number }[] = []
+    const riskBehaviorResponses: { questionKey: string; value: string; domain: string }[] = []
     const backgroundData: Record<string, string> = {}
 
     for (const q of questions) {
@@ -295,6 +337,15 @@ export function AssessmentTakePage() {
         const textVal = textAnswers[q.id]
         if (textVal) {
           backgroundData[q._questionKey] = textVal
+        }
+      } else if (q._questionType === 'risk_behavior') {
+        const value = q.options[selectedIndex]?.value
+        if (value !== undefined) {
+          riskBehaviorResponses.push({
+            questionKey: q._questionKey,
+            value: String(value),
+            domain: q._pillarCategory || '',
+          })
         }
       } else if (q._questionType === 'archetype') {
         if (q._optionKeys && q._optionKeys.length > 0) {
@@ -348,7 +399,7 @@ export function AssessmentTakePage() {
     submitMutation.mutate(
       {
         assessmentId,
-        data: { archetypeResponses, pillarResponses, backgroundData },
+        data: { archetypeResponses, pillarResponses, riskBehaviorResponses, backgroundData },
       },
       {
         onSuccess: () => {
@@ -673,6 +724,78 @@ export function AssessmentTakePage() {
                             </div>
 
                             {/* 1-7 Scale */}
+                            <div className="flex gap-2">
+                              {q.options.map((option, idx) => {
+                                const isSelected = selectedIndex === idx
+                                return (
+                                  <label
+                                    key={idx}
+                                    className={cn(
+                                      'flex-1 flex items-center justify-center h-12 rounded-lg border-2 cursor-pointer transition-all font-display text-lg font-semibold',
+                                      isSelected
+                                        ? 'border-koppar bg-koppar text-kalkvit shadow-md scale-105'
+                                        : 'border-white/10 bg-white/[0.04] text-kalkvit/60 hover:border-koppar/40 hover:bg-koppar/5'
+                                    )}
+                                  >
+                                    <input
+                                      type="radio"
+                                      name={q.id}
+                                      checked={isSelected}
+                                      onChange={() => handleAnswer(q.id, idx)}
+                                      className="sr-only"
+                                    />
+                                    {option.value}
+                                  </label>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
+          )}
+
+          {/* ============================================= */}
+          {/* Risk Behavior Section */}
+          {/* ============================================= */}
+          {riskBehaviorQuestions.length > 0 && (
+            <GlassCard variant="elevated">
+              <div className="mb-6">
+                <h2 className="font-display text-2xl font-bold text-kalkvit mb-2">
+                  Risk Behavior Profile
+                </h2>
+                <p className="text-kalkvit/60">
+                  Rate each statement honestly — there are no right or wrong answers. This helps identify behavioral patterns that may impact your wellbeing.
+                </p>
+              </div>
+
+              <div className="space-y-8">
+                {Object.entries(riskByDomain).map(([domain, domainQs]) => (
+                  <div key={domain} className="border-t border-white/10 pt-6 first:border-t-0 first:pt-0">
+                    <h3 className="font-display text-xl font-semibold text-koppar mb-4">
+                      {RISK_DOMAIN_NAMES[domain] || domain}
+                    </h3>
+
+                    <div className="space-y-6">
+                      {domainQs.map((q) => {
+                        const selectedIndex = answers[q.id]
+                        return (
+                          <div key={q.id} className="bg-white/[0.04] rounded-xl p-4">
+                            <div className="mb-3">
+                              <p className="text-kalkvit/90">{q.question}</p>
+                            </div>
+
+                            {/* Scale labels from first/last option */}
+                            <div className="flex justify-between text-xs text-kalkvit/40 mb-2 px-1">
+                              <span>{q.options[0]?.label || ''}</span>
+                              <span>{q.options[q.options.length - 1]?.label || ''}</span>
+                            </div>
+
+                            {/* 1-5 Scale */}
                             <div className="flex gap-2">
                               {q.options.map((option, idx) => {
                                 const isSelected = selectedIndex === idx

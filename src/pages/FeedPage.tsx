@@ -130,7 +130,7 @@ function PostCard({ post }: { post: FeedPost }) {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold text-kalkvit">{authorName}</span>
                 {post.author?.archetype && (
-                  <GlassBadge variant="koppar">{post.author.archetype}</GlassBadge>
+                  <GlassBadge variant="koppar">{post.author.archetype.charAt(0).toUpperCase() + post.author.archetype.slice(1)}</GlassBadge>
                 )}
               </div>
               <div className="flex items-center gap-2 text-sm text-kalkvit/50 flex-wrap">

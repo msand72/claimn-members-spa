@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   ARCHETYPES,
-  ARCHETYPE_DISPLAY_NAMES,
+  ARCHETYPE_LABELS,
   PILLAR_IDS,
   PILLARS,
   getPillar,
@@ -23,18 +23,18 @@ describe('ARCHETYPES', () => {
   })
 
   it('includes all expected archetypes', () => {
-    expect(ARCHETYPES).toContain('The Achiever')
-    expect(ARCHETYPES).toContain('The Optimizer')
-    expect(ARCHETYPES).toContain('The Networker')
-    expect(ARCHETYPES).toContain('The Grinder')
-    expect(ARCHETYPES).toContain('The Philosopher')
-    expect(ARCHETYPES).toContain('The Integrator')
+    expect(ARCHETYPES).toContain('achiever')
+    expect(ARCHETYPES).toContain('optimizer')
+    expect(ARCHETYPES).toContain('networker')
+    expect(ARCHETYPES).toContain('grinder')
+    expect(ARCHETYPES).toContain('philosopher')
+    expect(ARCHETYPES).toContain('integrator')
   })
 
-  it('has matching display names', () => {
-    expect(Object.keys(ARCHETYPE_DISPLAY_NAMES)).toHaveLength(6)
-    expect(ARCHETYPE_DISPLAY_NAMES['achiever']).toBe('The Achiever')
-    expect(ARCHETYPE_DISPLAY_NAMES['integrator']).toBe('The Integrator')
+  it('has matching display labels', () => {
+    expect(Object.keys(ARCHETYPE_LABELS)).toHaveLength(6)
+    expect(ARCHETYPE_LABELS['achiever']).toBe('Achiever')
+    expect(ARCHETYPE_LABELS['integrator']).toBe('Integrator')
   })
 })
 
@@ -89,7 +89,7 @@ describe('KPI_TYPES', () => {
 
   it('ALL_KPI_TYPE_IDS matches total', () => {
     expect(ALL_KPI_TYPE_IDS).toHaveLength(
-      KPI_TYPES.action.length + KPI_TYPES.biological.length
+      KPI_TYPES.biomarker.length + KPI_TYPES.action.length + KPI_TYPES.biological.length
     )
   })
 })

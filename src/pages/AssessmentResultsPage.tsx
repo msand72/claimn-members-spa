@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassToast } from '../components/ui'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
-import type { PillarScore, AssessmentInsight } from '../lib/api/types'
+import type { PillarScore, AssessmentInsight, RiskBehaviorScores } from '../lib/api/types'
 import {
   calculatePillarScores,
   determineArchetypesFromAnswers,
@@ -53,12 +53,12 @@ const PILLAR_ICONS: Record<PillarId, React.ReactNode> = {
 
 // Fallback display names — content API (DB) takes priority when available
 const ARCHETYPE_DISPLAY: Record<string, { name: string; subtitle: string }> = {
-  achiever: { name: 'The Achiever', subtitle: 'Results-Driven, Goal-Oriented' },
-  optimizer: { name: 'The Optimizer', subtitle: 'Systems-Focused, Efficiency-Driven' },
-  networker: { name: 'The Networker', subtitle: 'Connection-Builder, Relationship-Focused' },
-  grinder: { name: 'The Grinder', subtitle: 'Discipline-Driven, Relentless Worker' },
-  philosopher: { name: 'The Philosopher', subtitle: 'Deep Thinker, Meaning-Seeker' },
-  integrator: { name: 'The Integrator', subtitle: 'Balanced, Holistically Developed' },
+  achiever: { name: 'Achiever', subtitle: 'Results-Driven, Goal-Oriented' },
+  optimizer: { name: 'Optimizer', subtitle: 'Systems-Focused, Efficiency-Driven' },
+  networker: { name: 'Networker', subtitle: 'Connection-Builder, Relationship-Focused' },
+  grinder: { name: 'Grinder', subtitle: 'Discipline-Driven, Relentless Worker' },
+  philosopher: { name: 'Philosopher', subtitle: 'Deep Thinker, Meaning-Seeker' },
+  integrator: { name: 'Integrator', subtitle: 'Balanced, Holistically Developed' },
 }
 
 const INSIGHT_TYPE_STYLES: Record<string, { icon: React.ReactNode; color: string }> = {
@@ -74,6 +74,19 @@ const INSIGHT_TYPE_STYLES: Record<string, { icon: React.ReactNode; color: string
 // Types for derived data
 // =====================================================
 
+/** Risk behavior domain display names */
+const RISK_DOMAIN_LABELS: Record<string, string> = {
+  sleep_recovery: 'Sleep & Recovery',
+  substance_use: 'Substance Use',
+  emotional_avoidance: 'Emotional Avoidance',
+  work_life: 'Work-Life Balance',
+  health_neglect: 'Health Neglect',
+  impulsivity: 'Impulsivity',
+  social_withdrawal: 'Social Withdrawal',
+  anger_conflict: 'Anger & Conflict',
+  risk_taking: 'Risk Taking',
+}
+
 interface DerivedResults {
   resultId?: string
   primaryArchetype: string // lowercase key
@@ -87,6 +100,7 @@ interface DerivedResults {
   microInsights: AssessmentInsight[]
   integrationInsights: AssessmentInsight[]
   overallScore: number
+  riskBehaviorScores?: RiskBehaviorScores
 }
 
 // =====================================================
@@ -612,6 +626,109 @@ export function AssessmentResultsPage() {
         )}
 
         {/* ============================================= */}
+        {/* Section 6b: Risk Behavior Profile */}
+        {/* ============================================= */}
+        {results.riskBehaviorScores && results.riskBehaviorScores.domains && (
+          <GlassCard variant="base" className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-koppar/10">
+                <Shield className="w-5 h-5 text-koppar" />
+              </div>
+              <div>
+                <h2 className="font-display text-xl font-bold text-kalkvit">
+                  Risk Behavior Profile
+                </h2>
+                <p className="text-xs text-kalkvit/50">
+                  Behavioral patterns that may impact your wellbeing
+                </p>
+              </div>
+            </div>
+
+            {/* Composite score */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 mb-6">
+              <div className="text-center min-w-[60px]">
+                <p className={cn(
+                  'text-2xl font-bold',
+                  results.riskBehaviorScores.composite_level === 'low' ? 'text-skogsgron' :
+                  results.riskBehaviorScores.composite_level === 'moderate' ? 'text-brandAmber' : 'text-tegelrod'
+                )}>
+                  {results.riskBehaviorScores.composite_score.toFixed(1)}
+                </p>
+                <p className="text-[10px] text-kalkvit/40">/ 5.0</p>
+              </div>
+              <div>
+                <p className="text-sm text-kalkvit font-medium">
+                  Overall Risk Level:{' '}
+                  <GlassBadge
+                    variant={
+                      results.riskBehaviorScores.composite_level === 'low' ? 'success' :
+                      results.riskBehaviorScores.composite_level === 'moderate' ? 'koppar' : 'warning'
+                    }
+                    className="text-xs ml-1"
+                  >
+                    {results.riskBehaviorScores.composite_level}
+                  </GlassBadge>
+                </p>
+                <p className="text-xs text-kalkvit/50 mt-0.5">
+                  {results.riskBehaviorScores.composite_level === 'low'
+                    ? 'Your behavioral patterns are generally supportive of wellbeing.'
+                    : results.riskBehaviorScores.composite_level === 'moderate'
+                      ? 'Some behavioral patterns could benefit from attention.'
+                      : 'Several behavioral patterns may be impacting your wellbeing.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Domain breakdown */}
+            <div className="space-y-3">
+              {Object.entries(results.riskBehaviorScores.domains)
+                .sort(([, a], [, b]) => b.average - a.average)
+                .map(([domain, score]) => {
+                  const percentage = Math.round((score.average / 5) * 100)
+                  return (
+                    <div key={domain}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-kalkvit/70">
+                          {RISK_DOMAIN_LABELS[domain] || domain}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <GlassBadge
+                            variant={
+                              score.level === 'low' ? 'success' :
+                              score.level === 'moderate' ? 'koppar' : 'warning'
+                            }
+                            className="text-xs"
+                          >
+                            {score.level}
+                          </GlassBadge>
+                          <span className={cn(
+                            'text-sm font-medium',
+                            score.level === 'low' ? 'text-skogsgron' :
+                            score.level === 'moderate' ? 'text-brandAmber' : 'text-tegelrod'
+                          )}>
+                            {score.average.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-all duration-700',
+                            score.level === 'low' ? 'bg-skogsgron' :
+                            score.level === 'moderate' ? 'bg-gradient-to-r from-brandAmber to-koppar' :
+                            'bg-tegelrod'
+                          )}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+          </GlassCard>
+        )}
+
+        {/* ============================================= */}
         {/* Section 7: Development Focus Areas */}
         {/* ============================================= */}
         <GlassCard variant="base" className="mb-8">
@@ -814,7 +931,7 @@ export function AssessmentResultsPage() {
 // Helper: Derive results from API AssessmentResult
 // =====================================================
 
-/** Normalize an archetype key from DB format ("The Achiever") to lowercase ("achiever") */
+/** Normalize an archetype key to lowercase (handles legacy "The Achiever" format) */
 function normalizeArchetypeKey(key: string): string {
   return key.replace(/^The\s+/i, '').toLowerCase()
 }
@@ -828,6 +945,7 @@ function deriveFromApiResult(apiResult: {
   consistency_score?: number | string
   micro_insights?: AssessmentInsight[]
   integration_insights?: AssessmentInsight[]
+  risk_behavior_scores?: RiskBehaviorScores
   // Legacy
   archetypes?: string[]
   overall_score?: number
@@ -952,6 +1070,7 @@ function deriveFromApiResult(apiResult: {
     microInsights,
     integrationInsights,
     overallScore,
+    riskBehaviorScores: apiResult.risk_behavior_scores,
   }
 }
 

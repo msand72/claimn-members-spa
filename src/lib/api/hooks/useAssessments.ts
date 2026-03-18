@@ -194,8 +194,8 @@ export function useSubmitAssessment() {
  * `{ resultId, primary, pillarScores, archetypeScores, ... }` → mapped to snake_case.
  *
  * **Format 3 — Legacy array (old results):**
- * `{ archetypes: ["The Achiever", "The Optimizer"] }` → maps first two entries to
- * primary/secondary archetype with "The " prefix stripped and lowercased.
+ * `{ archetypes: ["achiever", "optimizer"] }` → maps first two entries to
+ * primary/secondary archetype (legacy "The " prefix stripped if present).
  *
  * TODO: Once the backend standardizes all responses to snake_case (Format 1), this
  * function can be replaced with a simple identity return.
@@ -222,6 +222,7 @@ function normalizeAssessmentResult(result: AssessmentResult): AssessmentResult {
     result.consistency_score = raw.consistencyScore ?? raw.consistency_score ?? result.consistency_score ?? 0
     result.micro_insights = raw.microInsights ?? raw.micro_insights ?? result.micro_insights ?? []
     result.integration_insights = raw.integrationInsights ?? raw.integration_insights ?? result.integration_insights ?? []
+    result.risk_behavior_scores = raw.riskBehaviorScores ?? raw.risk_behavior_scores ?? result.risk_behavior_scores
     return result
   }
 

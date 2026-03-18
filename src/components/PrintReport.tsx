@@ -19,12 +19,12 @@ interface PrintReportProps {
 }
 
 const ARCHETYPE_DISPLAY: Record<string, string> = {
-  achiever: 'The Achiever',
-  optimizer: 'The Optimizer',
-  networker: 'The Networker',
-  grinder: 'The Grinder',
-  philosopher: 'The Philosopher',
-  integrator: 'The Integrator',
+  achiever: 'Achiever',
+  optimizer: 'Optimizer',
+  networker: 'Networker',
+  grinder: 'Grinder',
+  philosopher: 'Philosopher',
+  integrator: 'Integrator',
 }
 
 export function PrintReport({ results, contentMap }: PrintReportProps) {

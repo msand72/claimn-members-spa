@@ -37,11 +37,12 @@ const PILLAR_ICONS: Record<PillarId, React.ReactNode> = {
 }
 
 const ARCHETYPE_DISPLAY: Record<string, string> = {
-  achiever: 'The Achiever',
-  optimizer: 'The Optimizer',
-  networker: 'The Networker',
-  grinder: 'The Grinder',
-  philosopher: 'The Philosopher',
+  achiever: 'Achiever',
+  optimizer: 'Optimizer',
+  networker: 'Networker',
+  grinder: 'Grinder',
+  philosopher: 'Philosopher',
+  integrator: 'Integrator',
 }
 
 interface DerivedResults {
@@ -124,7 +125,7 @@ export function OnboardingResultsPage() {
         }
       }
 
-      // Primary archetype display — normalize DB keys ("The Achiever" → "achiever") for lookup
+      // Primary archetype display — normalize DB keys to lowercase for lookup
       const rawPrimary = apiResult.primary_archetype ?? apiResult.archetypes?.[0] ?? null
       const rawSecondary = apiResult.secondary_archetype ?? apiResult.archetypes?.[1] ?? null
       const normalizeKey = (k: string) => k.replace(/^The\s+/i, '').toLowerCase()
