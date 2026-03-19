@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs, GlassTabPanel, GlassAvatar } from '../components/ui'
 import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramCVCStatus, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn, useEvents, useRegisterForEvent, useUnregisterFromEvent } from '../lib/api/hooks'
@@ -184,7 +184,11 @@ function SprintCard({ sprint, index }: { sprint: Sprint; index: number }) {
 export function ProgramDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState('overview')
+  const location = useLocation()
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = location.hash.replace('#', '')
+    return hash || 'overview'
+  })
   const [isEnrolling, setIsEnrolling] = useState(false)
   const [checkInForm, setCheckInForm] = useState({
     progress_update: '',
@@ -326,12 +330,15 @@ export function ProgramDetailPage() {
   const activeSprint = sprints.find((s) => s.status === 'active')
   const hasCommunityContent = !!cohort || !!programGroup
 
-  // Default enrolled users to dashboard tab
+  // Sync tab with URL hash
   useEffect(() => {
-    if (isEnrolled && activeTab === 'overview') {
+    const hash = location.hash.replace('#', '')
+    if (hash && hash !== activeTab) {
+      setActiveTab(hash)
+    } else if (!hash && isEnrolled && activeTab === 'overview') {
       setActiveTab('dashboard')
     }
-  }, [isEnrolled])
+  }, [isEnrolled, location.hash])
 
   const hasSprints = sprints.length > 0
 
@@ -529,7 +536,7 @@ export function ProgramDetailPage() {
           ) : isCompleted ? (
             <GlassButton
               variant="secondary"
-              onClick={() => setActiveTab('sprints')}
+              onClick={() => { setActiveTab('sprints'); window.history.replaceState(null, '', '#sprints') }}
             >
               <BookOpen className="w-4 h-4" />
               Review Material
@@ -690,7 +697,7 @@ export function ProgramDetailPage() {
         <GlassTabs
           tabs={tabs}
           value={activeTab}
-          onChange={setActiveTab}
+          onChange={(tab: string) => { setActiveTab(tab); window.history.replaceState(null, '', `#${tab}`) }}
           variant="underline"
           fullWidth
           className="mb-6"
@@ -944,7 +951,7 @@ export function ProgramDetailPage() {
                     {sprints.map((sprint, i) => (
                       <div key={sprint.id} className="flex items-center flex-1">
                         <button
-                          onClick={() => setActiveTab('sprints')}
+                          onClick={() => { setActiveTab('sprints'); window.history.replaceState(null, '', '#sprints') }}
                           className="group flex flex-col items-center flex-1 cursor-pointer"
                         >
                           <div
@@ -1027,7 +1034,7 @@ export function ProgramDetailPage() {
                       </div>
                     </div>
                   )}
-                  <GlassButton variant="primary" className="text-sm" onClick={() => setActiveTab('sprints')}>
+                  <GlassButton variant="primary" className="text-sm" onClick={() => { setActiveTab('sprints'); window.history.replaceState(null, '', '#sprints') }}>
                     View Sprint
                     <ArrowRight className="w-4 h-4" />
                   </GlassButton>
@@ -1152,7 +1159,7 @@ export function ProgramDetailPage() {
                   <GlassButton
                     variant="ghost"
                     className="text-sm mt-3"
-                    onClick={() => setActiveTab('community')}
+                    onClick={() => { setActiveTab('community'); window.history.replaceState(null, '', '#community') }}
                   >
                     View All
                     <ArrowRight className="w-4 h-4" />
