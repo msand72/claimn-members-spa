@@ -937,7 +937,7 @@ export interface AssessmentQuestion {
   id: string
   question_key: string
   question_text: string
-  question_type: 'archetype' | 'pillar' | 'background'
+  question_type: 'archetype' | 'pillar' | 'background' | 'risk_behavior'
   pillar_category?: PillarId
   is_reverse_scored?: boolean
   sort_order: number
