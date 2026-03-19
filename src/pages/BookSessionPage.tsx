@@ -76,7 +76,7 @@ function ExpertCard({
               </span>
             </div>
             <div className="flex flex-wrap gap-1 mt-2">
-              {expert.specialties.slice(0, 2).map((s) => (
+              {expert.specialties.map((s) => (
                 <GlassBadge key={s} variant="default" className="text-xs">
                   {s}
                 </GlassBadge>
