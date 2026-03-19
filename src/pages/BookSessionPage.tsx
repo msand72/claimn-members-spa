@@ -198,7 +198,7 @@ export function BookSessionPage() {
   const calendarDays = useMemo(() => {
     const { year, month } = calendarMonth
     const firstDay = new Date(year, month, 1)
-    const startOffset = firstDay.getDay() // 0=Sun
+    const startOffset = (firstDay.getDay() + 6) % 7 // Monday=0
     const daysInMonth = new Date(year, month + 1, 0).getDate()
 
     const cells: (null | { dateStr: string; day: number })[] = []
@@ -446,7 +446,7 @@ export function BookSessionPage() {
                 </div>
                 {/* Weekday headers */}
                 <div className="grid grid-cols-7 mb-1">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
                     <div key={d} className="text-center text-[11px] text-kalkvit/40 py-1">{d}</div>
                   ))}
                 </div>

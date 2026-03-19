@@ -51,6 +51,19 @@ When backend changes are needed (new endpoints, schema changes, bug fixes, missi
    - **Verification steps** (how to confirm the fix works)
 4. Do NOT explore or read the `server-infra` repo beyond what's needed to write the prompt
 
+## ⛔ CRITICAL: API Errors = Backend Prompt FIRST
+
+**When an API call returns a 4xx/5xx error, NEVER try to "fix" it by changing the frontend payload, renaming fields, or working around the issue.** The backend owns the schema and the API contract.
+
+**Instead, you MUST:**
+1. Log/display the full error details (status code, response body, request payload) so the cause is clear
+2. Check `server-infra` to understand what the backend expects (handlers, DB columns, migrations)
+3. **Write a backend agent prompt** describing the fix needed (missing column, broken handler, missing endpoint, etc.)
+4. Present the prompt to the user so they can give it to the backend agent
+5. Only AFTER the backend is confirmed fixed should you adjust the frontend if needed
+
+**Why:** The frontend and backend must evolve together. Silently changing field names or removing payload fields to avoid errors creates hidden mismatches that cause worse bugs later. The backend agent needs to know about failures so it can fix them properly.
+
 ## General Guidelines
 
 - Always read files before editing them
