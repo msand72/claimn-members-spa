@@ -158,7 +158,7 @@ function NumberQuestion({
   onChange: (val: number) => void
 }) {
   const min = question.scale_min ?? 0
-  const max = question.scale_max ?? 24
+  const max = question.scale_max ?? 999
   const unit = question.scale_min_label || ''
 
   return (
