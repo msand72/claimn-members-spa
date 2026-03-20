@@ -69,7 +69,7 @@ export function OnboardingWelcomePage() {
           <div className="relative">
             <GlassAvatar
               initials={initials}
-              src={profile?.avatar_url ?? undefined}
+              avatarUrl={profile?.avatar_url}
               size="xl"
               className="w-24 h-24 text-3xl"
             />

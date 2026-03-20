@@ -691,7 +691,7 @@ export function AssessmentTakePage() {
               <div className="space-y-8">
                 {Object.entries(pillarsByCategory).map(([pillarId, pillarQs]) => (
                   <div key={pillarId} className="border-t border-white/10 pt-6 first:border-t-0 first:pt-0">
-                    <h3 className={cn('font-display text-xl font-semibold mb-4', PILLAR_COLORS[pillarId as keyof typeof PILLAR_COLORS] || 'text-koppar')}>
+                    <h3 className={cn('font-display text-xl font-semibold mb-4', PILLAR_COLORS[pillarId] || 'text-koppar')}>
                       {PILLAR_NAMES[pillarId] || PILLARS[pillarId as keyof typeof PILLARS]?.name || pillarId}
                     </h3>
 

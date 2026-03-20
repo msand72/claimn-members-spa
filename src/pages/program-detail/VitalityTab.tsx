@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassBadge } from '../../components/ui'
 import {
+  Heart,
   Moon,
   Shield,
   TrendingUp,
