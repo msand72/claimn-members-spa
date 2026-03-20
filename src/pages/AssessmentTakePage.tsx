@@ -12,7 +12,7 @@ import type {
 import { Check, Loader2, AlertCircle, ChevronUp } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
-import { PILLARS } from '../lib/constants'
+import { PILLARS, PILLAR_TEXT_COLORS } from '../lib/constants'
 
 const PROGRESS_KEY = 'claimn_assessment_progress'
 
@@ -26,13 +26,7 @@ const PILLAR_NAMES: Record<string, string> = {
 }
 
 /** Pillar accent colors */
-const PILLAR_COLORS: Record<string, string> = {
-  identity: 'text-koppar',
-  emotional: 'text-oliv',
-  physical: 'text-jordbrun',
-  connection: 'text-kalkvit/80',
-  mission: 'text-koppar',
-}
+const PILLAR_COLORS = PILLAR_TEXT_COLORS
 
 /** Big Five dimension display names */
 const BIG5_NAMES: Record<string, string> = {

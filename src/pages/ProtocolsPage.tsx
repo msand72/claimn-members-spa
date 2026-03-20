@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { PILLARS, PILLAR_IDS } from '../lib/constants'
+import { PILLARS, PILLAR_IDS, PILLAR_ICON_COMPONENTS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import {
   useProtocols,
@@ -17,21 +17,11 @@ import {
   AlertTriangle,
   Sparkles,
   Target,
-  Brain,
-  Heart,
-  Users,
-  Compass,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 // Pillar icon mapping
-const PILLAR_ICONS: Record<string, React.ElementType> = {
-  identity: Compass,
-  emotional: Brain,
-  physical: Heart,
-  connection: Users,
-  mission: Target,
-}
+const PILLAR_ICONS = PILLAR_ICON_COMPONENTS
 
 // Filter tabs including 'all'
 const FILTER_TABS = [

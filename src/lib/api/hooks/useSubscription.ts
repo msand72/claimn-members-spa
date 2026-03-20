@@ -55,6 +55,8 @@ export function useSubscription() {
       }
     },
     retry: 1,
+    refetchOnWindowFocus: true,
+    staleTime: 60_000, // consider fresh for 1 minute
   })
 }
 

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCurrentProfile, useUpdateProfile, useUploadAvatar } from '../../lib/api/hooks'
+import { validateImageFile } from '../../lib/image-utils'
 import { useUpdateOnboarding } from '../../lib/api/hooks/useOnboarding'
 import { OnboardingLayout } from './OnboardingLayout'
 import { GlassCard, GlassInput, GlassButton, GlassAvatar } from '../../components/ui'
@@ -79,7 +80,10 @@ export function OnboardingWelcomePage() {
               className="hidden"
               onChange={async (e) => {
                 const file = e.target.files?.[0]
-                if (file) await uploadAvatar.mutateAsync(file)
+                if (!file) return
+                const error = validateImageFile(file, { maxSizeMB: 5 })
+                if (error) { alert(error); return }
+                await uploadAvatar.mutateAsync(file)
               }}
             />
             <button
