@@ -389,7 +389,7 @@ function FeaturedProtocols() {
                 to={`/protocols/${p.slug}`}
                 className="group p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors relative overflow-hidden"
               >
-                <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] rotate-12 pointer-events-none" />
+                <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] pointer-events-none" />
                 <div className="flex items-center gap-2 mb-1">
                   <GlassBadge variant="koppar" className="text-[10px]">
                     {pillar?.name || p.pillar}
@@ -688,7 +688,7 @@ function MyPrograms() {
       ) : (
         <div className="space-y-3">
           {programs.slice(0, 3).map((up) => (
-            <Link key={up.id} to="/programs" className="block group">
+            <Link key={up.id} to={`/programs/${up.program_id}`} className="block group">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-kalkvit truncate">
                   {up.program?.name || 'Program'}
@@ -1022,7 +1022,7 @@ function MyCoachCard() {
 
       {/* Quick actions */}
       <div className="mt-3 flex gap-2">
-        <Link to={`/messages?user=${expert.id}`} className="flex-1">
+        <Link to={`/messages?user=${expert.user_id || expert.id}`} className="flex-1">
           <GlassButton variant="secondary" className="w-full text-xs py-2">
             <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
             Message

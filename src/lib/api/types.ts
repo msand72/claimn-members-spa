@@ -452,6 +452,7 @@ export interface UpdateProtocolProgressRequest {
 
 export interface Expert {
   id: string
+  user_id: string
   name: string
   title: string
   bio: string
@@ -1373,6 +1374,7 @@ export interface OnboardingState {
 export interface MyExpertData {
   expert: {
     id: string
+    user_id?: string
     display_name: string
     email: string
     specialty: string | null

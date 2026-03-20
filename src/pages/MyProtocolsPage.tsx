@@ -5,6 +5,7 @@ import { GlassCard, GlassButton, GlassBadge, GlassTabs } from '../components/ui'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import { PillarIcon } from '../components/icons'
+import { PILLAR_CONFIG } from '../tokens/pillars'
 import {
   useMyActiveProtocols,
   useProtocols,
@@ -59,11 +60,11 @@ function ActiveProtocolCard({
 
   return (
     <GlassCard variant="elevated" pillar={pillarId} className="mb-4 relative overflow-hidden">
-      <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] rotate-12 pointer-events-none" />
+      <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] pointer-events-none" />
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-koppar/10 flex items-center justify-center flex-shrink-0">
-            <PillarIcon pillar={pillarId} size={32} className="text-koppar" />
+          <div className="w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center" style={{ backgroundColor: PILLAR_CONFIG[pillarId]?.colorLo }}>
+            <PillarIcon pillar={pillarId} size={32} />
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -182,7 +183,7 @@ function CompletedProtocolCard({
 
   return (
     <GlassCard variant="base" pillar={pillarId} className="mb-4 relative overflow-hidden">
-      <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] rotate-12 pointer-events-none" />
+      <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] pointer-events-none" />
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-skogsgron/10 flex items-center justify-center flex-shrink-0">
