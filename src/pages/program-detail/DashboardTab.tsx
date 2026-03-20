@@ -4,13 +4,9 @@ import {
   Zap,
   CheckCircle,
   Target,
-  BarChart3,
   ClipboardCheck,
   ArrowRight,
-  Star,
   Calendar,
-  Loader2,
-  Users,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import type {

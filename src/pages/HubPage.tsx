@@ -42,7 +42,6 @@ import {
 import type { ClaimnEvent } from '../lib/api/hooks/useEvents'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
-import { PILLAR_IMAGES, STAT_IMAGES, BG_IMAGES } from '../lib/wellness-images'
 import {
   Heart,
   MessageCircle,
@@ -118,13 +117,7 @@ function WelcomeBanner() {
 
   return (
     <GlassCard variant="accent" className="relative overflow-hidden">
-      <img
-        src={BG_IMAGES.growth}
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover opacity-[0.07] pointer-events-none"
-        loading="lazy"
-      />
-      <div className="relative flex items-center gap-4 sm:gap-6">
+      <div className="flex items-center gap-4 sm:gap-6">
         <GlassAvatar
           src={profile?.avatar_url ?? undefined}
           initials={getInitials(displayName)}
@@ -160,28 +153,24 @@ function StatsRow() {
         icon={Target}
         label="Active Goals"
         value={isLoading ? '...' : String(stats?.goals_active ?? goalsCount)}
-        bgImage={STAT_IMAGES.goals}
       />
       <GlassStatsCard
         icon={Flame}
         label="Streak"
         value={isLoading ? '...' : String(stats?.current_streak ?? 0)}
         trendLabel="days"
-        bgImage={STAT_IMAGES.streak}
       />
       <GlassStatsCard
         icon={BarChart3}
         label="Connections"
         value={isLoading ? '...' : String(stats?.connections_count ?? 0)}
         trendLabel="network"
-        bgImage={STAT_IMAGES.connections}
       />
       <GlassStatsCard
         icon={Trophy}
         label="Days Active"
         value={isLoading ? '...' : String(stats?.days_since_joined ?? 0)}
         trendLabel="journey"
-        bgImage={STAT_IMAGES.active}
       />
     </div>
   )
@@ -396,17 +385,9 @@ function FeaturedProtocols() {
               <Link
                 key={p.slug}
                 to={`/protocols/${p.slug}`}
-                className="group relative p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors overflow-hidden"
+                className="group p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors"
               >
-                {PILLAR_IMAGES[pillarId] && (
-                  <img
-                    src={PILLAR_IMAGES[pillarId]}
-                    alt=""
-                    className="absolute right-1 top-1 w-12 h-12 object-cover opacity-[0.15] pointer-events-none rounded-lg"
-                    loading="lazy"
-                  />
-                )}
-                <div className="relative flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1">
                   <GlassBadge variant="koppar" className="text-[10px]">
                     {pillar?.name || p.pillar}
                   </GlassBadge>
