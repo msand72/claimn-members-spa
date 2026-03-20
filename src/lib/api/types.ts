@@ -219,6 +219,10 @@ export interface Circle {
   member_count: number
   is_member: boolean
   is_admin: boolean
+  is_premium?: boolean
+  price_amount?: number | null
+  price_currency?: string
+  max_members?: number | null
   created_at: string
 }
 
