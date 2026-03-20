@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { GlassButton } from './GlassButton'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 interface GlassModalProps {
   isOpen: boolean
@@ -33,38 +34,21 @@ export function GlassModal({
   closeOnOverlayClick = true,
   className,
 }: GlassModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null)
+  const modalRef = useFocusTrap(isOpen)
 
   // Handle escape key
   useEffect(() => {
+    if (!isOpen) return
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose()
-      }
+      if (e.key === 'Escape') onClose()
     }
-
     document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+    document.body.style.overflow = 'hidden'
     return () => {
+      document.removeEventListener('keydown', handleEscape)
       document.body.style.overflow = ''
     }
-  }, [isOpen])
-
-  // Focus trap
-  useEffect(() => {
-    if (isOpen && modalRef.current) {
-      modalRef.current.focus()
-    }
-  }, [isOpen])
+  }, [isOpen, onClose])
 
   if (!isOpen) return null
 
