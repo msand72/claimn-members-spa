@@ -4,6 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs, GlassTabPanel, GlassAvatar } from '../components/ui'
 import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramCVCStatus, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn, useEvents, useRegisterForEvent, useUnregisterFromEvent } from '../lib/api/hooks'
 import type { Sprint, ProgramCohortMember, CheckIn, CVCAssessmentStatus, ClaimnEvent } from '../lib/api/types'
+import { sanitizeHtml } from '../lib/sanitize'
 import { useAuth } from '../contexts/AuthContext'
 import {
   ArrowLeft,
@@ -458,7 +459,7 @@ export function ProgramDetailPage() {
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">
             {program.title}
           </h1>
-          <div className="text-kalkvit/60 mb-6 [&>p]:mb-0" dangerouslySetInnerHTML={{ __html: program.description }} />
+          <div className="text-kalkvit/60 mb-6 [&>p]:mb-0" dangerouslySetInnerHTML={{ __html: sanitizeHtml(program.description) }} />
 
           {/* Stats row */}
           <div className="flex flex-wrap items-center gap-6 text-sm text-kalkvit/50 mb-6">

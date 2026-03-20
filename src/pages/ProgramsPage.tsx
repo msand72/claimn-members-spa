@@ -4,6 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
 import { usePrograms, useEnrolledPrograms } from '../lib/api/hooks'
 import type { Program, UserProgram } from '../lib/api/types'
+import { sanitizeHtml } from '../lib/sanitize'
 import {
   Search,
   Clock,
@@ -72,7 +73,7 @@ function ProgramCard({
       <h3 className="font-display text-lg font-semibold text-kalkvit mb-2 group-hover:text-koppar transition-colors">
         {program.title}
       </h3>
-      <div className="text-sm text-kalkvit/60 mb-4 line-clamp-2 [&>p]:mb-0" dangerouslySetInnerHTML={{ __html: program.description }} />
+      <div className="text-sm text-kalkvit/60 mb-4 line-clamp-2 [&>p]:mb-0" dangerouslySetInnerHTML={{ __html: sanitizeHtml(program.description) }} />
 
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
