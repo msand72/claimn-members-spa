@@ -59,7 +59,8 @@ function ActiveProtocolCard({
   const isPaused = active.status === 'paused'
 
   return (
-    <GlassCard variant="elevated" className="mb-4">
+    <GlassCard variant="elevated" pillar={pillarId} className="mb-4 relative overflow-hidden">
+      <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] rotate-12 pointer-events-none" />
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-koppar/10 flex items-center justify-center flex-shrink-0">
@@ -181,7 +182,8 @@ function CompletedProtocolCard({
   const pillar = PILLARS[pillarId] || PILLARS.identity
 
   return (
-    <GlassCard variant="base" className="mb-4">
+    <GlassCard variant="base" pillar={pillarId} className="mb-4 relative overflow-hidden">
+      <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] rotate-12 pointer-events-none" />
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-skogsgron/10 flex items-center justify-center flex-shrink-0">

@@ -43,8 +43,10 @@ function ProtocolCard({
     <Link to={`/protocols/${protocol.slug}`}>
       <GlassCard
         variant="base"
-        className="h-full hover:border-koppar/30 transition-all hover:scale-[1.02] cursor-pointer p-5 md:p-7"
+        pillar={pillarId}
+        className="h-full hover:border-koppar/30 transition-all hover:scale-[1.02] cursor-pointer p-5 md:p-7 relative overflow-hidden"
       >
+        <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] rotate-12 pointer-events-none" />
         <div className="flex items-center justify-between mb-4 gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-koppar/10 flex items-center justify-center">

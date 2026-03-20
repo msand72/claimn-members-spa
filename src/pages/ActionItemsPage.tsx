@@ -34,6 +34,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { PillarDot } from '../components/icons'
 
 function ActionItemCard({
   item,
@@ -80,6 +81,7 @@ function ActionItemCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-2">
+            {pillarId && <PillarDot pillar={pillarId} />}
             {pillar && (
               <GlassBadge variant="koppar" className="text-xs">
                 {pillar.name}

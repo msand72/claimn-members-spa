@@ -10,6 +10,7 @@ import {
   GlassTextarea,
 } from '../components/ui'
 import { useAccountabilityGroup, useLeaveAccountabilityGroup, useCreateCheckIn } from '../lib/api/hooks'
+import { EmptyAccountability } from '../components/ui/EmptyStateIllustration'
 import {
   Users,
   MessageCircle,
@@ -84,7 +85,7 @@ export function AccountabilityPage() {
           </div>
 
           <GlassCard variant="elevated" className="text-center py-16">
-            <Users className="w-16 h-16 text-koppar mx-auto mb-6" />
+            <EmptyAccountability className="w-[140px] h-[140px] mx-auto mb-4 text-kalkvit" />
             <h2 className="font-display text-2xl font-bold text-kalkvit mb-3">
               No Accountability Group Yet
             </h2>
