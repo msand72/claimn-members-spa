@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { PILLARS, PILLAR_ICON_COMPONENTS } from '../lib/constants'
+import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
+import { PillarIcon } from '../components/icons'
 import {
   useProtocol,
   useActiveProtocolBySlug,
@@ -69,7 +70,6 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
   trending: TrendingUp,
 }
 
-const PILLAR_ICONS = PILLAR_ICON_COMPONENTS
 
 function StatsCardsRow({ stats }: { stats: ProtocolStat[] }) {
   if (!stats || stats.length === 0) return null
@@ -810,7 +810,6 @@ export function ProtocolDetailPage() {
 
   const pillarId = (protocol.pillar || 'identity') as PillarId
   const pillar = PILLARS[pillarId] || PILLARS.identity
-  const PillarIcon = PILLAR_ICONS[pillarId] || Target
   const isActive = activeProtocol && activeProtocol.status === 'active'
   const isPaused = activeProtocol && activeProtocol.status === 'paused'
   const hasStarted = !!activeProtocol
@@ -905,7 +904,7 @@ export function ProtocolDetailPage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-koppar/10 flex items-center justify-center">
-                  <PillarIcon className="w-5 h-5 text-koppar" />
+                  <PillarIcon pillar={pillarId} size={32} className="text-koppar" />
                 </div>
                 <GlassBadge variant="koppar">{pillar.name}</GlassBadge>
                 {isActive && (

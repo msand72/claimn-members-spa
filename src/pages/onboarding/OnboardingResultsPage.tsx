@@ -17,24 +17,13 @@ import {
   ArrowRight,
   Loader2,
   Sparkles,
-  Compass,
-  Brain,
-  Heart,
-  Users,
-  Target,
   TrendingUp,
   AlertCircle,
   ExternalLink,
 } from 'lucide-react'
+import { PillarIcon } from '../../components/icons'
 import { cn } from '../../lib/utils'
 
-const PILLAR_ICONS: Record<PillarId, React.ReactNode> = {
-  identity: <Compass className="w-5 h-5" />,
-  emotional: <Brain className="w-5 h-5" />,
-  physical: <Heart className="w-5 h-5" />,
-  connection: <Users className="w-5 h-5" />,
-  mission: <Target className="w-5 h-5" />,
-}
 
 const ARCHETYPE_DISPLAY: Record<string, string> = {
   achiever: 'Achiever',
@@ -302,7 +291,7 @@ export function OnboardingResultsPage() {
                       : 'bg-white/10 text-kalkvit/60'
                   )}
                 >
-                  {PILLAR_ICONS[pillarId]}
+                  <PillarIcon pillar={pillarId} size={32} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1.5">

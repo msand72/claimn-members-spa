@@ -186,12 +186,12 @@ export function GoalsPage() {
     : 0
 
   const pillarOptions = [
-    { value: '', label: 'Select a pillar (optional)' },
+    { value: '', label: 'Select a pillar *' },
     ...PILLAR_IDS.map((id) => ({ value: id, label: PILLARS[id].name })),
   ]
 
   const handleCreateGoal = async () => {
-    if (!newGoal.title.trim()) return
+    if (!newGoal.title.trim() || !newGoal.pillar_id) return
     setCreateError(null)
 
     // Embed protocol tag in description if a protocol is selected

@@ -42,6 +42,7 @@ import {
 import type { ClaimnEvent } from '../lib/api/hooks/useEvents'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
+import { HubHeroArt } from '../components/ui/HubHeroArt'
 import {
   Heart,
   MessageCircle,
@@ -117,7 +118,8 @@ function WelcomeBanner() {
 
   return (
     <GlassCard variant="accent" className="relative overflow-hidden">
-      <div className="flex items-center gap-4 sm:gap-6">
+      <HubHeroArt className="absolute right-0 top-0 bottom-0 opacity-70 text-kalkvit pointer-events-none hidden sm:block" />
+      <div className="relative flex items-center gap-4 sm:gap-6">
         <GlassAvatar
           src={profile?.avatar_url ?? undefined}
           initials={getInitials(displayName)}

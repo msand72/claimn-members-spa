@@ -18,11 +18,6 @@ import {
   useAssessmentContent,
 } from '../lib/api/hooks/useAssessments'
 import {
-  Compass,
-  Brain,
-  Heart,
-  Users,
-  Target,
   ArrowRight,
   Download,
   Share2,
@@ -34,8 +29,10 @@ import {
   BarChart3,
   Zap,
   Shield,
+  Users,
   Loader2,
 } from 'lucide-react'
+import { PillarIcon } from '../components/icons'
 import { cn } from '../lib/utils'
 import { PrintReport } from '../components/PrintReport'
 
@@ -43,13 +40,6 @@ import { PrintReport } from '../components/PrintReport'
 // Constants
 // =====================================================
 
-const PILLAR_ICONS: Record<PillarId, React.ReactNode> = {
-  identity: <Compass className="w-5 h-5" />,
-  emotional: <Brain className="w-5 h-5" />,
-  physical: <Heart className="w-5 h-5" />,
-  connection: <Users className="w-5 h-5" />,
-  mission: <Target className="w-5 h-5" />,
-}
 
 // Fallback display names — content API (DB) takes priority when available
 const ARCHETYPE_DISPLAY: Record<string, { name: string; subtitle: string }> = {
@@ -401,7 +391,7 @@ export function AssessmentResultsPage() {
                           : 'bg-white/10 text-kalkvit/60'
                       )}
                     >
-                      {PILLAR_ICONS[pillarId]}
+                      <PillarIcon pillar={pillarId} size={32} />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">

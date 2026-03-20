@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { PILLARS, PILLAR_IDS, PILLAR_ICON_COMPONENTS } from '../lib/constants'
+import { PILLARS, PILLAR_IDS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
+import { PillarIcon } from '../components/icons'
 import {
   useProtocols,
   useMyActiveProtocols,
@@ -16,12 +17,8 @@ import {
   Loader2,
   AlertTriangle,
   Sparkles,
-  Target,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
-
-// Pillar icon mapping
-const PILLAR_ICONS = PILLAR_ICON_COMPONENTS
 
 // Filter tabs including 'all'
 const FILTER_TABS = [
@@ -38,7 +35,6 @@ function ProtocolCard({
 }) {
   const pillarId = (protocol.pillar || 'identity') as PillarId
   const pillar = PILLARS[pillarId] || PILLARS.identity
-  const PillarIcon = PILLAR_ICONS[pillarId] || Target
 
   // Use headline_stat if available, otherwise fall back to stat
   const headlineStat = protocol.headline_stat || protocol.stat || ''
@@ -52,7 +48,7 @@ function ProtocolCard({
         <div className="flex items-center justify-between mb-4 gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-koppar/10 flex items-center justify-center">
-              <PillarIcon className="w-4.5 h-4.5 text-koppar" />
+              <PillarIcon pillar={pillarId} size={32} className="text-koppar" />
             </div>
             <GlassBadge variant="koppar" className="text-xs whitespace-nowrap">
               {pillar.name}

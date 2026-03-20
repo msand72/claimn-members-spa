@@ -2,27 +2,16 @@ import { Link, Navigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
 import { PILLARS, ARCHETYPES } from '../lib/constants'
+import type { PillarId } from '../lib/constants'
 import { useLatestAssessmentResult } from '../lib/api/hooks/useAssessments'
 import {
   ClipboardCheck,
   Clock,
-  Target,
-  Brain,
-  Heart,
-  Users,
-  Compass,
   ArrowRight,
   Sparkles,
   Loader2,
 } from 'lucide-react'
-
-const pillarIcons = {
-  identity: Compass,
-  emotional: Brain,
-  physical: Heart,
-  connection: Users,
-  mission: Target,
-}
+import { PillarIcon } from '../components/icons'
 
 export function AssessmentPage() {
   const { data: latestResult, isLoading } = useLatestAssessmentResult()
@@ -112,20 +101,17 @@ export function AssessmentPage() {
             Five Pillar Scores
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {Object.entries(PILLARS).map(([id, pillar]) => {
-              const Icon = pillarIcons[id as keyof typeof pillarIcons]
-              return (
+            {Object.entries(PILLARS).map(([id, pillar]) => (
                 <div
                   key={id}
                   className="p-4 rounded-xl bg-white/[0.04] border border-white/10 text-center"
                 >
                   <div className="w-10 h-10 rounded-lg bg-koppar/20 flex items-center justify-center mx-auto mb-3">
-                    <Icon className="w-5 h-5 text-koppar" />
+                    <PillarIcon pillar={id as PillarId} size={32} className="text-koppar" />
                   </div>
                   <p className="text-sm font-medium text-kalkvit">{pillar.name}</p>
                 </div>
-              )
-            })}
+              ))}
           </div>
         </GlassCard>
 
