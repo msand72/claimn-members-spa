@@ -16,6 +16,7 @@ import { ARCHETYPES, ARCHETYPE_LABELS, PILLARS, PILLAR_IDS } from '../lib/consta
 import type { Archetype, PillarId } from '../lib/constants'
 import type { UpdateProfileRequest } from '../lib/api/types'
 import { Camera, Save, Loader2, AlertTriangle, Check } from 'lucide-react'
+import { validateImageFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
 
 export function ProfilePage() {
@@ -95,6 +96,9 @@ export function ProfilePage() {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    const validationError = validateImageFile(file, { maxSizeMB: 5 })
+    if (validationError) { setSaveStatus('error'); return }
 
     try {
       await uploadAvatar.mutateAsync(file)
