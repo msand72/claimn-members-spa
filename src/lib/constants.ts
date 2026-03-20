@@ -98,6 +98,28 @@ export const PILLAR_IDS = ['identity', 'emotional', 'physical', 'connection', 'm
 // Helper to get pillar by ID
 export const getPillar = (id: PillarId): Pillar => PILLARS[id]
 
+// Pillar icon components — import from lucide-react
+// Usage: const Icon = PILLAR_ICON_COMPONENTS[pillarId]
+import { Compass, Brain, Heart, Users as UsersIcon, Target } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+
+export const PILLAR_ICON_COMPONENTS: Record<PillarId, LucideIcon> = {
+  identity: Compass,
+  emotional: Brain,
+  physical: Heart,
+  connection: UsersIcon,
+  mission: Target,
+}
+
+// Pillar text color classes (Tailwind)
+export const PILLAR_TEXT_COLORS: Record<PillarId, string> = {
+  identity: 'text-koppar',
+  emotional: 'text-oliv',
+  physical: 'text-jordbrun',
+  connection: 'text-kalkvit/80',
+  mission: 'text-koppar',
+}
+
 // ============================================
 // KPI TYPES - Trackable metrics
 // ============================================

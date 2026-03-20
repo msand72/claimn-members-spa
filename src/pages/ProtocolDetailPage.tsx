@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { PILLARS } from '../lib/constants'
+import { PILLARS, PILLAR_ICON_COMPONENTS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import {
   useProtocol,
@@ -69,14 +69,7 @@ const SECTION_ICONS: Record<string, React.ElementType> = {
   trending: TrendingUp,
 }
 
-// Pillar icon mapping
-const PILLAR_ICONS: Record<string, React.ElementType> = {
-  identity: Compass,
-  emotional: Brain,
-  physical: Heart,
-  connection: Users,
-  mission: Target,
-}
+const PILLAR_ICONS = PILLAR_ICON_COMPONENTS
 
 function StatsCardsRow({ stats }: { stats: ProtocolStat[] }) {
   if (!stats || stats.length === 0) return null

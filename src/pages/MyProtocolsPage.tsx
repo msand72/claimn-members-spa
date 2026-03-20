@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs } from '../components/ui'
-import { PILLARS } from '../lib/constants'
+import { PILLARS, PILLAR_ICON_COMPONENTS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import {
   useMyActiveProtocols,
@@ -26,20 +26,9 @@ import {
   Loader2,
   AlertTriangle,
   Archive,
-  Compass,
-  Brain,
-  Heart,
-  Users,
 } from 'lucide-react'
 
-// Pillar icon mapping
-const PILLAR_ICONS: Record<string, React.ElementType> = {
-  identity: Compass,
-  emotional: Brain,
-  physical: Heart,
-  connection: Users,
-  mission: Target,
-}
+const PILLAR_ICONS = PILLAR_ICON_COMPONENTS
 
 function ActiveProtocolCard({
   active,
