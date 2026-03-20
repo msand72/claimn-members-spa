@@ -21,6 +21,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { EmptySessions } from '../components/ui/EmptyStateIllustration'
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -446,6 +447,7 @@ export function CoachingSessionsPage() {
           ))
         ) : (
           <GlassCard variant="base" className="text-center py-12">
+            <EmptySessions className="w-[140px] h-[140px] mx-auto mb-4 text-kalkvit" />
             <p className="text-kalkvit/60">No sessions found.</p>
             <Link to="/book-session">
               <GlassButton variant="primary" className="mt-4">

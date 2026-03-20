@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs } from '../components/ui'
-import { PILLARS, PILLAR_ICON_COMPONENTS } from '../lib/constants'
+import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
+import { PillarIcon } from '../components/icons'
 import {
   useMyActiveProtocols,
   useProtocols,
@@ -28,8 +29,6 @@ import {
   Archive,
 } from 'lucide-react'
 
-const PILLAR_ICONS = PILLAR_ICON_COMPONENTS
-
 function ActiveProtocolCard({
   active,
   protocol,
@@ -47,7 +46,6 @@ function ActiveProtocolCard({
 }) {
   const pillarId = (protocol?.pillar || 'identity') as PillarId
   const pillar = PILLARS[pillarId] || PILLARS.identity
-  const PillarIcon = PILLAR_ICONS[pillarId] || Target
 
   // Calculate total weeks from protocol template or use a default
   const weeks = protocol?.weeks || []
@@ -61,11 +59,12 @@ function ActiveProtocolCard({
   const isPaused = active.status === 'paused'
 
   return (
-    <GlassCard variant="elevated" className="mb-4">
+    <GlassCard variant="elevated" pillar={pillarId} className="mb-4 relative overflow-hidden">
+      <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] rotate-12 pointer-events-none" />
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-koppar/10 flex items-center justify-center flex-shrink-0">
-            <PillarIcon className="w-5 h-5 text-koppar" />
+            <PillarIcon pillar={pillarId} size={32} className="text-koppar" />
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -183,7 +182,8 @@ function CompletedProtocolCard({
   const pillar = PILLARS[pillarId] || PILLARS.identity
 
   return (
-    <GlassCard variant="base" className="mb-4">
+    <GlassCard variant="base" pillar={pillarId} className="mb-4 relative overflow-hidden">
+      <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] rotate-12 pointer-events-none" />
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-skogsgron/10 flex items-center justify-center flex-shrink-0">

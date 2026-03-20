@@ -44,6 +44,8 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { PillarBadge } from '../components/icons'
+import type { PillarId } from '../lib/constants'
 import { AskExpertButton } from '../components/AskExpertButton'
 import { calculateKpiProgress } from '../lib/kpi-utils'
 import { KPIHistoryChart } from '../components/kpi/KPIHistoryChart'
@@ -328,6 +330,7 @@ export function GoalDetailPage() {
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3 flex-wrap">
+              {goal.pillar_id && <PillarBadge pillar={goal.pillar_id as PillarId} size="sm" />}
               {pillar && <GlassBadge variant="koppar">{pillar.name}</GlassBadge>}
               <GlassBadge
                 variant={goal.status === 'completed' ? 'success' : goal.status === 'archived' ? 'warning' : 'default'}

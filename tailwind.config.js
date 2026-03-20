@@ -22,6 +22,12 @@ export default {
         skogsgron: '#6B8E6F',
         // Glass background color
         'glass-dark': '#0A0A0B',
+        // Pillar accent colors
+        'pillar-identity': '#B87333',
+        'pillar-emotional': '#A1B1C6',
+        'pillar-physical': '#6B8E6F',
+        'pillar-connection': '#8A7264',
+        'pillar-mission': '#6E8077',
       },
       fontFamily: {
         display: ['var(--font-neutraface)', 'Montserrat', 'sans-serif'],

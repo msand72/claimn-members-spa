@@ -42,6 +42,8 @@ import {
 import type { ClaimnEvent } from '../lib/api/hooks/useEvents'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
+import { HubHeroArt } from '../components/ui/HubHeroArt'
+import { PillarIcon } from '../components/icons'
 import {
   Heart,
   MessageCircle,
@@ -117,7 +119,8 @@ function WelcomeBanner() {
 
   return (
     <GlassCard variant="accent" className="relative overflow-hidden">
-      <div className="flex items-center gap-4 sm:gap-6">
+      <HubHeroArt className="absolute right-0 top-0 bottom-0 opacity-70 text-kalkvit pointer-events-none hidden sm:block" />
+      <div className="relative flex items-center gap-4 sm:gap-6">
         <GlassAvatar
           src={profile?.avatar_url ?? undefined}
           initials={getInitials(displayName)}
@@ -385,8 +388,9 @@ function FeaturedProtocols() {
               <Link
                 key={p.slug}
                 to={`/protocols/${p.slug}`}
-                className="group p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors"
+                className="group p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors relative overflow-hidden"
               >
+                <PillarIcon pillar={pillarId} size={80} className="absolute top-2 right-2 opacity-[0.10] rotate-12 pointer-events-none" />
                 <div className="flex items-center gap-2 mb-1">
                   <GlassBadge variant="koppar" className="text-[10px]">
                     {pillar?.name || p.pillar}

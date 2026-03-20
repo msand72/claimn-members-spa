@@ -29,6 +29,7 @@ import {
   Brain,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { EmptyKPIs } from '../components/ui/EmptyStateIllustration'
 import { calculateKpiProgress, isKpiOnTarget } from '../lib/kpi-utils'
 import { KPIHistoryChart } from '../components/kpi/KPIHistoryChart'
 
@@ -381,7 +382,7 @@ export function KPIsPage() {
         {/* Empty State */}
         {!isLoading && !error && kpis.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
-            <BarChart3 className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <EmptyKPIs className="w-[140px] h-[140px] mx-auto mb-4 text-kalkvit" />
             <h3 className="font-medium text-kalkvit mb-2">No KPIs yet</h3>
             <p className="text-kalkvit/50 text-sm mb-4">
               Start tracking your progress by adding KPIs to your goals

@@ -31,6 +31,8 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { PillarBadge } from '../components/icons'
+import { EmptyGoals } from '../components/ui/EmptyStateIllustration'
 
 function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) => void }) {
   const pillar = goal.pillar_id ? PILLARS[goal.pillar_id] : null
@@ -41,10 +43,13 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
   const cleanDescription = stripProtocolTag(goal.description)
 
   return (
-    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+    <GlassCard variant="base" pillar={goal.pillar_id as PillarId} className="hover:border-koppar/30 transition-colors">
       <Link to={`/goals/${goal.id}`} className="block">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2 flex-wrap">
+            {goal.pillar_id && (
+              <PillarBadge pillar={goal.pillar_id as PillarId} size="sm" />
+            )}
             {pillar && (
               <GlassBadge variant="koppar" className="text-xs">
                 {pillar.name}
@@ -186,12 +191,12 @@ export function GoalsPage() {
     : 0
 
   const pillarOptions = [
-    { value: '', label: 'Select a pillar (optional)' },
+    { value: '', label: 'Select a pillar *' },
     ...PILLAR_IDS.map((id) => ({ value: id, label: PILLARS[id].name })),
   ]
 
   const handleCreateGoal = async () => {
-    if (!newGoal.title.trim()) return
+    if (!newGoal.title.trim() || !newGoal.pillar_id) return
     setCreateError(null)
 
     // Embed protocol tag in description if a protocol is selected
@@ -345,7 +350,7 @@ export function GoalsPage() {
         {/* Empty State */}
         {!isLoading && !error && goals.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
-            <Target className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <EmptyGoals className="w-[140px] h-[140px] mx-auto mb-4 text-kalkvit" />
             <h3 className="font-medium text-kalkvit mb-2">No goals yet</h3>
             <p className="text-kalkvit/50 text-sm mb-4">
               Create your first goal to start tracking your transformation

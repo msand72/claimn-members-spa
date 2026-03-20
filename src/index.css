@@ -17,15 +17,23 @@
   /* Dark mode: cream white #F9F7F4 = 249, 247, 244 */
   --color-kalkvit: 249 247 244;
 
-  /* Text colors */
+  /* Text colors — contrast-corrected for WCAG AA */
   --text-primary: #F9F7F4;
-  --text-secondary: rgba(249, 247, 244, 0.7);
-  --text-muted: rgba(249, 247, 244, 0.5);
+  --text-secondary: rgba(249, 247, 244, 0.80);
+  --text-muted: rgba(249, 247, 244, 0.55);
 
   /* Background */
   --bg-primary: #0A0A0B;
   --bg-card: rgba(255, 255, 255, 0.08);
+  --card-bg: #232326;
   --border-color: rgba(255, 255, 255, 0.15);
+
+  /* Pillar accent colors */
+  --pillar-identity: #B87333;
+  --pillar-emotional: #A1B1C6;
+  --pillar-physical: #6B8E6F;
+  --pillar-connection: #8A7264;
+  --pillar-mission: #6E8077;
 }
 
 /* Light theme overrides */
@@ -39,11 +47,12 @@
   --color-kalkvit: 28 28 30;
 
   --text-primary: #1C1C1E;
-  --text-secondary: rgba(28, 28, 30, 0.7);
-  --text-muted: rgba(28, 28, 30, 0.5);
+  --text-secondary: rgba(28, 28, 30, 0.78);
+  --text-muted: rgba(28, 28, 30, 0.54);
 
   --bg-primary: #F9F7F4;
   --bg-card: rgba(255, 255, 255, 0.6);
+  --card-bg: rgba(255, 255, 255, 0.72);
   --border-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -82,61 +91,64 @@ body {
   min-height: 100vh;
 }
 
-/* Glass utilities — dark theme: 95% opaque (5% transparent) */
+/* Glass utilities — refined per design spec v1.0 */
 @layer utilities {
   .glass-base {
-    @apply backdrop-blur-[16px] border border-white/[0.15];
-    background-color: rgba(28, 28, 30, 0.95);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    @apply backdrop-blur-[16px] border border-white/[0.10];
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.30);
   }
 
   .glass-elevated {
-    @apply backdrop-blur-[24px] border border-white/[0.2];
-    background-color: rgba(28, 28, 30, 0.95);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    @apply backdrop-blur-[24px] border border-white/[0.15];
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   }
 
   .glass-dropdown {
-    @apply backdrop-blur-[32px] border border-white/[0.2];
-    background-color: rgba(28, 28, 30, 0.95);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    @apply backdrop-blur-[32px] border border-white/[0.15];
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   }
 
   .glass-accent {
-    @apply backdrop-blur-[24px];
-    background: linear-gradient(135deg, rgba(184, 115, 51, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+    @apply backdrop-blur-[20px];
+    background: linear-gradient(135deg, rgba(184, 115, 51, 0.10) 0%, rgba(255, 255, 255, 0.04) 100%);
     border: 1px solid rgba(184, 115, 51, 0.25);
-    box-shadow: 0 0 80px rgba(184, 115, 51, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 60px rgba(184, 115, 51, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .glass-selected {
     @apply backdrop-blur-[24px];
     background: linear-gradient(135deg, rgba(184, 115, 51, 0.25) 0%, rgba(184, 115, 51, 0.10) 100%);
-    border: 2px solid rgba(184, 115, 51, 0.7);
+    border: 2px solid rgba(184, 115, 51, 0.70);
     box-shadow: 0 0 30px rgba(184, 115, 51, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 
-  /* Light theme glass variants */
+  /* Light theme glass variants — cards float above surface */
   .light .glass-base {
-    @apply bg-white/70 backdrop-blur-[16px] border border-black/[0.08];
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    background: rgba(255,255,255,0.70);
+    @apply backdrop-blur-[16px] border border-black/[0.09];
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
 
   .light .glass-elevated {
-    @apply bg-white/90 backdrop-blur-[24px] border border-black/[0.1];
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
+    background: rgba(255,255,255,0.85);
+    @apply backdrop-blur-[24px] border border-black/[0.12];
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   }
 
   .light .glass-dropdown {
-    @apply bg-white/95 backdrop-blur-[32px] border border-black/[0.1];
+    background: rgba(255,255,255,0.90);
+    @apply backdrop-blur-[32px] border border-black/[0.10];
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
   }
 
   .light .glass-accent {
-    @apply backdrop-blur-[24px];
-    background: linear-gradient(135deg, rgba(184, 115, 51, 0.12) 0%, rgba(255, 255, 255, 0.3) 100%);
-    border: 1px solid rgba(184, 115, 51, 0.35);
-    box-shadow: 0 0 80px rgba(184, 115, 51, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    @apply backdrop-blur-[20px];
+    background: linear-gradient(135deg, rgba(184, 115, 51, 0.08) 0%, rgba(255, 255, 255, 0.60) 100%);
+    border: 1px solid rgba(184, 115, 51, 0.22);
+    box-shadow: 0 0 40px rgba(184, 115, 51, 0.08);
   }
 
   .light .glass-selected {

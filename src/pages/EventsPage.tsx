@@ -17,12 +17,12 @@ import {
   Users,
   Loader2,
   AlertTriangle,
-  CalendarDays,
   UserCheck,
   UserMinus,
   Zap,
   ArrowRight,
 } from 'lucide-react'
+import { EmptyEvents } from '../components/ui/EmptyStateIllustration'
 
 function formatEventDate(iso: string): string {
   const date = new Date(iso)
@@ -193,7 +193,7 @@ function EventsGrid({
   if (events.length === 0) {
     return (
       <GlassCard variant="base" className="text-center py-12">
-        <CalendarDays className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+        <EmptyEvents className="w-[140px] h-[140px] mx-auto mb-4 text-kalkvit" />
         <h3 className="font-medium text-kalkvit mb-2">{emptyMessage}</h3>
         <p className="text-kalkvit/50 text-sm">
           Check back later for upcoming events.
