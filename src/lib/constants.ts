@@ -56,35 +56,40 @@ export const PILLARS = {
   identity: {
     id: 'identity',
     name: 'Identity & Purpose',
-    color: 'koppar',
+    color: 'pillar-identity',
+    hex: '#B87333',
     icon: 'Compass',
     description: 'Clarify your values, purpose, and strategic life direction',
   },
   emotional: {
     id: 'emotional',
     name: 'Emotional & Mental',
-    color: 'oliv',
+    color: 'pillar-emotional',
+    hex: '#A1B1C6',
     icon: 'Brain',
     description: 'Build stress resilience, emotional regulation, and mental clarity',
   },
   physical: {
     id: 'physical',
     name: 'Physical & Vital',
-    color: 'jordbrun',
+    color: 'pillar-physical',
+    hex: '#6B8E6F',
     icon: 'Heart',
     description: 'Optimize sleep, nutrition, and physical performance',
   },
   connection: {
     id: 'connection',
     name: 'Connection & Leadership',
-    color: 'charcoal',
+    color: 'pillar-connection',
+    hex: '#8A7264',
     icon: 'Users',
     description: 'Develop meaningful relationships and leadership presence',
   },
   mission: {
     id: 'mission',
     name: 'Mission & Mastery',
-    color: 'koppar',
+    color: 'pillar-mission',
+    hex: '#6E8077',
     icon: 'Target',
     description: 'Achieve flow states, deliberate practice, and mastery tracking',
   },
@@ -111,13 +116,13 @@ export const PILLAR_ICON_COMPONENTS: Record<PillarId, LucideIcon> = {
   mission: Target,
 }
 
-// Pillar text color classes (Tailwind)
+// Pillar text color classes (Tailwind) — distinct per pillar
 export const PILLAR_TEXT_COLORS: Record<PillarId, string> = {
-  identity: 'text-koppar',
-  emotional: 'text-oliv',
-  physical: 'text-jordbrun',
-  connection: 'text-kalkvit/80',
-  mission: 'text-koppar',
+  identity: 'text-pillar-identity',
+  emotional: 'text-pillar-emotional',
+  physical: 'text-pillar-physical',
+  connection: 'text-pillar-connection',
+  mission: 'text-pillar-mission',
 }
 
 // ============================================

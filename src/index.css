@@ -17,15 +17,23 @@
   /* Dark mode: cream white #F9F7F4 = 249, 247, 244 */
   --color-kalkvit: 249 247 244;
 
-  /* Text colors */
+  /* Text colors — contrast-corrected for WCAG AA */
   --text-primary: #F9F7F4;
-  --text-secondary: rgba(249, 247, 244, 0.7);
-  --text-muted: rgba(249, 247, 244, 0.5);
+  --text-secondary: rgba(249, 247, 244, 0.80);
+  --text-muted: rgba(249, 247, 244, 0.55);
 
   /* Background */
   --bg-primary: #0A0A0B;
   --bg-card: rgba(255, 255, 255, 0.08);
+  --card-bg: #232326;
   --border-color: rgba(255, 255, 255, 0.15);
+
+  /* Pillar accent colors */
+  --pillar-identity: #B87333;
+  --pillar-emotional: #A1B1C6;
+  --pillar-physical: #6B8E6F;
+  --pillar-connection: #8A7264;
+  --pillar-mission: #6E8077;
 }
 
 /* Light theme overrides */
@@ -39,11 +47,12 @@
   --color-kalkvit: 28 28 30;
 
   --text-primary: #1C1C1E;
-  --text-secondary: rgba(28, 28, 30, 0.7);
-  --text-muted: rgba(28, 28, 30, 0.5);
+  --text-secondary: rgba(28, 28, 30, 0.78);
+  --text-muted: rgba(28, 28, 30, 0.54);
 
   --bg-primary: #F9F7F4;
   --bg-card: rgba(255, 255, 255, 0.6);
+  --card-bg: rgba(255, 255, 255, 0.72);
   --border-color: rgba(0, 0, 0, 0.1);
 }
 
