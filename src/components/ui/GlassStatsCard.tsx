@@ -9,7 +9,6 @@ interface GlassStatsCardProps {
   trend?: string
   trendLabel?: string
   className?: string
-  bgImage?: string
 }
 
 export function GlassStatsCard({
@@ -19,19 +18,10 @@ export function GlassStatsCard({
   trend,
   trendLabel,
   className,
-  bgImage,
 }: GlassStatsCardProps) {
   return (
-    <GlassCard variant="accent" leftBorder={false} className={cn('relative overflow-hidden', className)}>
-      {bgImage && (
-        <img
-          src={bgImage}
-          alt=""
-          className="absolute right-0 top-0 w-20 h-20 object-cover opacity-[0.12] pointer-events-none rounded-bl-2xl"
-          loading="lazy"
-        />
-      )}
-      <div className="relative flex items-start gap-4">
+    <GlassCard variant="accent" leftBorder={false} className={className}>
+      <div className="flex items-start gap-4">
         <div className="bg-sandbeige/10 p-3.5 rounded-[14px]">
           <Icon size={28} color={colors.koppar} />
         </div>
