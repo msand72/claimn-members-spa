@@ -111,71 +111,70 @@ body {
   min-height: 100vh;
 }
 
-/* Glass utilities — refined per design spec v1.0 */
+/* Glass utilities — clean, flat, matching reference HTML */
 @layer utilities {
+  /* ── Dark theme ── */
   .glass-base {
-    @apply backdrop-blur-[16px] border border-white/[0.10];
+    backdrop-filter: blur(12px);
     background: rgba(255,255,255,0.05);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.30);
+    border: 1px solid rgba(255,255,255,0.10);
   }
 
   .glass-elevated {
-    @apply backdrop-blur-[24px] border border-white/[0.15];
+    backdrop-filter: blur(16px);
     background: rgba(255,255,255,0.08);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255,255,255,0.12);
   }
 
   .glass-dropdown {
-    @apply backdrop-blur-[32px] border border-white/[0.15];
-    background: rgba(255,255,255,0.08);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(20px);
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
   }
 
   .glass-accent {
-    @apply backdrop-blur-[20px];
-    background: linear-gradient(135deg, rgba(184, 115, 51, 0.10) 0%, rgba(255, 255, 255, 0.04) 100%);
-    border: 1px solid rgba(184, 115, 51, 0.25);
-    box-shadow: 0 0 60px rgba(184, 115, 51, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(184, 115, 51, 0.28);
   }
 
   .glass-selected {
-    @apply backdrop-blur-[24px];
-    background: linear-gradient(135deg, rgba(184, 115, 51, 0.25) 0%, rgba(184, 115, 51, 0.10) 100%);
-    border: 2px solid rgba(184, 115, 51, 0.70);
-    box-shadow: 0 0 30px rgba(184, 115, 51, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    background: rgba(184, 115, 51, 0.12);
+    border: 1px solid rgba(184, 115, 51, 0.28);
   }
 
-  /* Light theme glass variants — cards float above surface */
+  /* ── Light theme — clean flat cards ── */
   .light .glass-base {
-    background: rgba(255,255,255,0.70);
-    @apply backdrop-blur-[16px] border border-black/[0.09];
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(12px);
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(0,0,0,0.09);
   }
 
   .light .glass-elevated {
+    backdrop-filter: blur(16px);
     background: rgba(255,255,255,0.85);
-    @apply backdrop-blur-[24px] border border-black/[0.12];
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0,0,0,0.09);
   }
 
   .light .glass-dropdown {
-    background: rgba(255,255,255,0.90);
-    @apply backdrop-blur-[32px] border border-black/[0.10];
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(20px);
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(0,0,0,0.09);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
 
   .light .glass-accent {
-    @apply backdrop-blur-[20px];
-    background: linear-gradient(135deg, rgba(184, 115, 51, 0.08) 0%, rgba(255, 255, 255, 0.60) 100%);
+    backdrop-filter: blur(12px);
+    background: rgba(255,255,255,0.72);
     border: 1px solid rgba(184, 115, 51, 0.22);
-    box-shadow: 0 0 40px rgba(184, 115, 51, 0.08);
   }
 
   .light .glass-selected {
-    @apply backdrop-blur-[24px];
-    background: linear-gradient(135deg, rgba(184, 115, 51, 0.2) 0%, rgba(184, 115, 51, 0.08) 100%);
-    border: 2px solid rgba(184, 115, 51, 0.6);
-    box-shadow: 0 0 30px rgba(184, 115, 51, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    background: rgba(184, 115, 51, 0.08);
+    border: 1px solid rgba(184, 115, 51, 0.28);
   }
 }
 
