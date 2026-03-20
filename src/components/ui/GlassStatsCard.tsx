@@ -22,27 +22,33 @@ export function GlassStatsCard({
 }: GlassStatsCardProps) {
   return (
     <GlassCard variant="accent" leftBorder={false} className={className}>
-      <div className="font-display text-[10px] font-bold tracking-[0.14em] uppercase text-kalkvit/55 mb-2">
-        {label}
-      </div>
-      <div className="font-display text-4xl font-bold text-kalkvit leading-none">
-        {value}
-      </div>
-      {trend && (
-        <div
-          className={cn(
-            'text-[11px] mt-2 font-display font-medium',
-            trend.startsWith('+') ? 'text-skogsgron' : 'text-tegelrod'
+      <div className="flex items-stretch gap-4">
+        {/* Left: label + number */}
+        <div className="flex-1 min-w-0">
+          <div className="font-display text-[10px] font-bold tracking-[0.14em] uppercase text-kalkvit/55 mb-2">
+            {label}
+          </div>
+          <div className="font-display text-4xl font-bold text-kalkvit leading-none">
+            {value}
+          </div>
+          {trend && (
+            <div
+              className={cn(
+                'text-[11px] mt-2 font-display font-medium',
+                trend.startsWith('+') ? 'text-skogsgron' : 'text-tegelrod'
+              )}
+            >
+              {trend} {trendLabel}
+            </div>
           )}
-        >
-          {trend} {trendLabel}
         </div>
-      )}
-      {visual && (
-        <div className="mt-4 h-[36px] opacity-60">
-          {visual}
-        </div>
-      )}
+        {/* Right: SVG visual */}
+        {visual && (
+          <div className="flex items-center justify-center w-[60px] flex-shrink-0 opacity-50">
+            {visual}
+          </div>
+        )}
+      </div>
     </GlassCard>
   )
 }
