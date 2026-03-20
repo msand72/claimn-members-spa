@@ -47,18 +47,6 @@ export function StreakBarsVisual({ className }: VisualProps) {
         strokeDasharray="3 3"
       />
 
-      {/* Ghost label */}
-      <text
-        x="156"
-        y="38"
-        fill="currentColor"
-        opacity="0.35"
-        fontSize="7"
-        fontFamily="inherit"
-        letterSpacing="1.5"
-      >
-        DAYS
-      </text>
     </svg>
   );
 }
@@ -297,18 +285,6 @@ export function CalendarHeatmapVisual({ className }: VisualProps) {
         ))
       )}
 
-      {/* Ghost label */}
-      <text
-        x="160"
-        y="36"
-        fill="currentColor"
-        opacity="0.35"
-        fontSize="7"
-        fontFamily="inherit"
-        letterSpacing="1.2"
-      >
-        Active
-      </text>
     </svg>
   );
 }
@@ -392,18 +368,6 @@ export function DunbarClusterVisual({ className }: VisualProps) {
       {/* Center dot */}
       <circle cx={cx} cy={cy} r="2.5" fill="#8A7264" opacity="1" />
 
-      {/* Label */}
-      <text
-        x="140"
-        y="25"
-        fill="currentColor"
-        opacity="0.35"
-        fontSize="7"
-        fontFamily="inherit"
-        letterSpacing="0.8"
-      >
-        5 intimate
-      </text>
     </svg>
   );
 }
