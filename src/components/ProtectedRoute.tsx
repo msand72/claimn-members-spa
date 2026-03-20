@@ -1,35 +1,18 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useOnboardingState } from '../lib/api/hooks/useOnboarding'
-import { useSubscription } from '../lib/api/hooks/useSubscription'
 import { ArrowPathIcon } from '@heroicons/react/24/outline'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
-// Routes accessible without an active subscription
-const SUBSCRIPTION_EXEMPT_ROUTES = [
-  '/shop/upgrade',
-  '/shop/success',
-  '/billing',
-  '/profile',
-  '/onboarding',
-]
-
-function isSubscriptionExempt(pathname: string): boolean {
-  return SUBSCRIPTION_EXEMPT_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(route + '/')
-  )
-}
-
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const location = useLocation()
   const { data: onboarding, isLoading: onboardingLoading } = useOnboardingState()
-  const { data: subscription, isLoading: subscriptionLoading } = useSubscription()
 
-  if (loading || onboardingLoading || subscriptionLoading) {
+  if (loading || onboardingLoading) {
     return (
       <div className="min-h-screen bg-glass-dark flex items-center justify-center">
         <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
@@ -50,16 +33,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/" replace />
   }
 
-  // Subscription gate: users without an active subscription get redirected to upgrade page
-  if (!isSubscriptionExempt(location.pathname)) {
-    const tier = subscription?.tier || 'none'
-    const status = subscription?.status || 'inactive'
-    const hasActiveSubscription = tier !== 'none' && (status === 'active' || status === 'trialing')
-
-    if (!hasActiveSubscription) {
-      return <Navigate to="/shop/upgrade" replace />
-    }
-  }
-
+  // Tier-specific gating is handled by RequireTier / PremiumProtected on individual routes
   return <>{children}</>
 }
