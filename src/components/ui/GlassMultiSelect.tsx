@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { cn } from '../../lib/utils'
-import { ChevronDown, Check, X } from 'lucide-react'
+import { ChevronDownIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 interface MultiSelectItem {
   value: string
@@ -103,7 +103,7 @@ export function GlassMultiSelect({
                 >
                   {item.label}
                   {!disabled && (
-                    <X
+                    <XMarkIcon
                       className="w-3 h-3 cursor-pointer hover:text-kalkvit transition-colors"
                       onClick={(e) => removeItem(e, item.value)}
                     />
@@ -116,7 +116,7 @@ export function GlassMultiSelect({
               </span>
             )}
           </div>
-          <ChevronDown
+          <ChevronDownIcon
             className={cn(
               'w-4 h-4 text-kalkvit/50 transition-transform flex-shrink-0',
               isOpen && 'rotate-180'
@@ -159,7 +159,7 @@ export function GlassMultiSelect({
                         : 'border-white/30'
                     )}
                   >
-                    {isSelected && <Check className="w-3 h-3 text-kalkvit" />}
+                    {isSelected && <CheckIcon className="w-3 h-3 text-kalkvit" />}
                   </div>
                   {item.icon && <span className="flex-shrink-0">{item.icon}</span>}
                   <div className="flex-1 min-w-0">

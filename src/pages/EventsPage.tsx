@@ -12,16 +12,16 @@ import {
   type ClaimnEvent,
 } from '../lib/api/hooks'
 import {
-  Calendar,
-  Clock,
-  Users,
-  Loader2,
-  AlertTriangle,
-  UserCheck,
-  UserMinus,
-  Zap,
-  ArrowRight,
-} from 'lucide-react'
+  CalendarIcon,
+  ClockIcon,
+  UserGroupIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  UserPlusIcon as UserCheckIcon,
+  UserMinusIcon,
+  BoltIcon,
+  ArrowRightIcon,
+} from '@heroicons/react/24/outline'
 import { EmptyEvents } from '../components/ui/EmptyStateIllustration'
 
 function formatEventDate(iso: string): string {
@@ -113,13 +113,13 @@ function EventCard({ event }: { event: ClaimnEvent }) {
         {/* Date & Time */}
         <div className="flex items-center gap-4 text-sm text-kalkvit/60 mb-2">
           <span className="flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5" />
+            <CalendarIcon className="w-3.5 h-3.5" />
             {formatEventDate(event.scheduled_date)}
           </span>
         </div>
         <div className="flex items-center gap-4 text-sm text-kalkvit/60 mb-4">
           <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
+            <ClockIcon className="w-3.5 h-3.5" />
             {formatEventTime(event.scheduled_date)}
           </span>
           <span className="text-kalkvit/40">|</span>
@@ -151,7 +151,7 @@ function EventCard({ event }: { event: ClaimnEvent }) {
                   className="w-full"
                   onClick={handleUnregister}
                 >
-                  <UserMinus className="w-4 h-4" />
+                  <UserMinusIcon className="w-4 h-4" />
                   Unregister
                 </GlassButton>
               ) : (
@@ -161,7 +161,7 @@ function EventCard({ event }: { event: ClaimnEvent }) {
                   onClick={handleRegister}
                   disabled={isFull}
                 >
-                  <UserCheck className="w-4 h-4" />
+                  <UserCheckIcon className="w-4 h-4" />
                   {isFull ? 'Full' : 'Register'}
                 </GlassButton>
               )}
@@ -185,7 +185,7 @@ function EventsGrid({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+        <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
       </div>
     )
   }
@@ -275,7 +275,7 @@ export function EventsPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load events</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -304,14 +304,14 @@ export function EventsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
-            <Users className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <UserGroupIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {isLoadingBrotherhood ? '-' : brotherhoodEvents.length}
             </p>
             <p className="text-xs text-kalkvit/50">Brotherhood Calls</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <UserCheck className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <UserCheckIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {isLoadingMyEvents ? '-' : filteredMyEvents.length}
             </p>
@@ -325,7 +325,7 @@ export function EventsPage() {
             <div className="glass-accent rounded-2xl px-4 py-3 md:px-5 md:py-4 hover:border-koppar/40 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-koppar/20 flex items-center justify-center shrink-0">
-                  <Zap className="w-4.5 h-4.5 text-koppar" />
+                  <BoltIcon className="w-4.5 h-4.5 text-koppar" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display text-sm font-bold text-kalkvit">
@@ -335,7 +335,7 @@ export function EventsPage() {
                     View sessions, sprints, vitality checks & more
                   </p>
                 </div>
-                <ArrowRight className="w-4 h-4 text-koppar/60 shrink-0" />
+                <ArrowRightIcon className="w-4 h-4 text-koppar/60 shrink-0" />
               </div>
             </div>
           </Link>

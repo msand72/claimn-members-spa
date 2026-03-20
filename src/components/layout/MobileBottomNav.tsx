@@ -1,6 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { cn } from '../../lib/utils'
-import { Home, TrendingUp, Users, Sparkles, User } from 'lucide-react'
+import { HomeIcon, ArrowTrendingUpIcon, UserGroupIcon, SparklesIcon, UserIcon } from '@heroicons/react/24/outline'
 import { SECTION_NAV } from './sectionNav'
 
 interface NavItem {
@@ -12,11 +12,11 @@ interface NavItem {
 }
 
 const bottomNavItems: NavItem[] = [
-  { to: '/', icon: Home, label: 'Home' },
-  { to: '/goals', icon: TrendingUp, label: 'Growth', sectionKey: 'growth' },
-  { to: '/feed', icon: Users, label: 'Community', sectionKey: 'community' },
-  { to: '/experts', icon: Sparkles, label: 'Coaching', sectionKey: 'coaching' },
-  { to: '/profile', icon: User, label: 'Profile' },
+  { to: '/', icon: HomeIcon, label: 'Home' },
+  { to: '/goals', icon: ArrowTrendingUpIcon, label: 'Growth', sectionKey: 'growth' },
+  { to: '/feed', icon: UserGroupIcon, label: 'Community', sectionKey: 'community' },
+  { to: '/experts', icon: SparklesIcon, label: 'Coaching', sectionKey: 'coaching' },
+  { to: '/profile', icon: UserIcon, label: 'Profile' },
 ]
 
 function isSectionActive(pathname: string, sectionKey: string): boolean {

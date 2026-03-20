@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { safeOpenUrl } from '../lib/url-validation'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge, GlassButton, GlassModal, GlassModalFooter, GlassToast } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, Send, MoreVertical, ArrowLeft, Loader2, MessageCircle, Plus, ImagePlus, X, Flag } from 'lucide-react'
+import { MagnifyingGlassIcon, PaperAirplaneIcon, EllipsisVerticalIcon, ArrowLeftIcon, ArrowPathIcon, ChatBubbleLeftIcon, PlusIcon, PhotoIcon, XMarkIcon, FlagIcon } from '@heroicons/react/24/outline'
 import { api } from '../lib/api/client'
 import { validateImageFile, compressMessageImage, blobToFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
@@ -563,7 +563,7 @@ export function MessagesPage() {
             <div className="p-3 lg:p-4 border-b border-white/10">
               <div className="flex items-center gap-2 mb-0">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kalkvit/40" />
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kalkvit/40" />
                   <GlassInput
                     placeholder="Search conversations..."
                     className="pl-10"
@@ -576,7 +576,7 @@ export function MessagesPage() {
                   className="flex-shrink-0 p-2.5 rounded-xl bg-koppar text-kalkvit hover:bg-koppar/80 transition-all"
                   title="New conversation"
                 >
-                  <Plus className="w-5 h-5" />
+                  <PlusIcon className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -584,7 +584,7 @@ export function MessagesPage() {
               {/* Loading state */}
               {conversationsLoading && (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+                  <ArrowPathIcon className="w-6 h-6 text-koppar animate-spin" />
                 </div>
               )}
 
@@ -598,7 +598,7 @@ export function MessagesPage() {
               {/* Empty state */}
               {!conversationsLoading && !conversationsError && filteredConversations.length === 0 && (
                 <div className="p-4 text-center">
-                  <MessageCircle className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
+                  <ChatBubbleLeftIcon className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
                   <p className="text-kalkvit/50 text-sm">
                     {searchQuery ? 'No conversations found' : 'No messages yet'}
                   </p>
@@ -667,7 +667,7 @@ export function MessagesPage() {
                       onClick={handleBack}
                       className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit"
                     >
-                      <ArrowLeft className="w-5 h-5" />
+                      <ArrowLeftIcon className="w-5 h-5" />
                     </button>
                     <div className="relative flex-shrink-0">
                       <GlassAvatar initials={getInitials(selectedConversation.participant?.display_name || 'Unknown')} size="md" />
@@ -682,7 +682,7 @@ export function MessagesPage() {
                       onClick={() => setShowHeaderMenu((prev) => !prev)}
                       className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/60 hover:text-kalkvit"
                     >
-                      <MoreVertical className="w-5 h-5" />
+                      <EllipsisVerticalIcon className="w-5 h-5" />
                     </button>
                     {showHeaderMenu && (
                       <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl glass-dropdown py-1 shadow-lg">
@@ -710,7 +710,7 @@ export function MessagesPage() {
                   {/* Loading state */}
                   {messagesLoading && (
                     <div className="flex justify-center py-8">
-                      <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+                      <ArrowPathIcon className="w-6 h-6 text-koppar animate-spin" />
                     </div>
                   )}
 
@@ -772,7 +772,7 @@ export function MessagesPage() {
                           )}
                         </div>
                         {isSending && (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-kalkvit/40 flex-shrink-0 mb-2" />
+                          <ArrowPathIcon className="w-3.5 h-3.5 animate-spin text-kalkvit/40 flex-shrink-0 mb-2" />
                         )}
                         {!isOwn && !msg._optimistic && (
                           <button
@@ -780,7 +780,7 @@ export function MessagesPage() {
                             className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-kalkvit/60 transition-all flex-shrink-0 mb-2"
                             title="Report message"
                           >
-                            <Flag className="w-3 h-3" />
+                            <FlagIcon className="w-3 h-3" />
                           </button>
                         )}
                       </div>
@@ -805,7 +805,7 @@ export function MessagesPage() {
                         onClick={clearPendingImage}
                         className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-tegelrod rounded-full flex items-center justify-center"
                       >
-                        <X className="w-3 h-3 text-kalkvit" />
+                        <XMarkIcon className="w-3 h-3 text-kalkvit" />
                       </button>
                     </div>
                   )}
@@ -823,7 +823,7 @@ export function MessagesPage() {
                       disabled={isUploading}
                       className="p-2.5 rounded-xl transition-all flex-shrink-0 text-kalkvit/40 hover:text-kalkvit hover:bg-white/[0.06]"
                     >
-                      <ImagePlus className="w-5 h-5" />
+                      <PhotoIcon className="w-5 h-5" />
                     </button>
                     <div className="flex-1 relative">
                       <GlassInput
@@ -844,9 +844,9 @@ export function MessagesPage() {
                         )}
                       >
                         {isUploading ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <ArrowPathIcon className="w-5 h-5 animate-spin" />
                         ) : (
-                          <Send className="w-5 h-5" />
+                          <PaperAirplaneIcon className="w-5 h-5" />
                         )}
                       </button>
                     </div>
@@ -855,11 +855,11 @@ export function MessagesPage() {
               </>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-kalkvit/40 p-4 text-center gap-4">
-                <MessageCircle className="w-12 h-12 text-kalkvit/20" />
+                <ChatBubbleLeftIcon className="w-12 h-12 text-kalkvit/20" />
                 <p>Select a conversation to start messaging</p>
                 <GlassButton
                   variant="secondary"
-                  icon={Plus}
+                  icon={PlusIcon}
                   onClick={() => setShowNewConversationModal(true)}
                 >
                   New Conversation
@@ -884,7 +884,7 @@ export function MessagesPage() {
         <div className="space-y-4">
           {/* Search connections */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kalkvit/40" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-kalkvit/40" />
             <GlassInput
               placeholder="Search connections..."
               className="pl-10"
@@ -897,7 +897,7 @@ export function MessagesPage() {
           <div className="max-h-[300px] overflow-y-auto -mx-1 px-1 space-y-1">
             {connectionsLoading && (
               <div className="flex justify-center py-6">
-                <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+                <ArrowPathIcon className="w-6 h-6 text-koppar animate-spin" />
               </div>
             )}
 

@@ -7,29 +7,28 @@ import type { ClaimnEvent } from '../lib/api/types'
 import { sanitizeHtml } from '../lib/sanitize'
 import { useAuth } from '../contexts/AuthContext'
 import {
-  ArrowLeft,
-  Clock,
-  Users,
-  CheckCircle,
-  Lock,
-  ArrowRight,
-  Loader2,
-  AlertTriangle,
-  BookOpen,
-  Zap,
-  Calendar,
-  GraduationCap,
-  ClipboardCheck,
-  Send,
-  Award,
-  Download,
-  FileText,
-  Clock3,
-  XCircle,
-  ListChecks,
-  LayoutDashboard,
-  Heart,
-} from 'lucide-react'
+  ArrowLeftIcon,
+  ClockIcon,
+  UserGroupIcon,
+  CheckCircleIcon,
+  LockClosedIcon,
+  ArrowRightIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  BookOpenIcon,
+  BoltIcon,
+  CalendarIcon,
+  AcademicCapIcon,
+  ClipboardDocumentCheckIcon,
+  PaperAirplaneIcon,
+  TrophyIcon,
+  ArrowDownTrayIcon,
+  DocumentTextIcon,
+  XCircleIcon,
+  ListBulletIcon,
+  Squares2X2Icon,
+  HeartIcon,
+} from '@heroicons/react/24/outline'
 import { CVCPrintReport } from '../components/cvc/CVCPrintReport'
 import type { CVCAssessmentStatus } from '../lib/api/types'
 import {
@@ -212,28 +211,28 @@ export function ProgramDetailPage() {
 
   const tabs = isEnrolled
     ? [
-        { value: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+        { value: 'dashboard', label: 'Dashboard', icon: <Squares2X2Icon className="w-4 h-4" /> },
         ...(isGoProgram
-          ? [{ value: 'sessions', label: 'Sessions', icon: <Calendar className="w-4 h-4" /> }]
+          ? [{ value: 'sessions', label: 'Sessions', icon: <CalendarIcon className="w-4 h-4" /> }]
           : []),
         ...(hasSprints
-          ? [{ value: 'sprints', label: 'Sprints', icon: <Zap className="w-4 h-4" />, badge: sprints.length }]
+          ? [{ value: 'sprints', label: 'Sprints', icon: <BoltIcon className="w-4 h-4" />, badge: sprints.length }]
           : []),
         ...(isGoProgram
-          ? [{ value: 'vitality', label: 'Vitality', icon: <Heart className="w-4 h-4" /> }]
-          : [{ value: 'assessments', label: 'Assessments', icon: <ClipboardCheck className="w-4 h-4" />, badge: assessments.length || undefined }]),
+          ? [{ value: 'vitality', label: 'Vitality', icon: <HeartIcon className="w-4 h-4" /> }]
+          : [{ value: 'assessments', label: 'Assessments', icon: <ClipboardDocumentCheckIcon className="w-4 h-4" />, badge: assessments.length || undefined }]),
         ...(hasCommunityContent
-          ? [{ value: 'community', label: 'Community', icon: <Users className="w-4 h-4" /> }]
+          ? [{ value: 'community', label: 'Community', icon: <UserGroupIcon className="w-4 h-4" /> }]
           : []),
-        { value: 'overview', label: 'Overview', icon: <BookOpen className="w-4 h-4" /> },
+        { value: 'overview', label: 'Overview', icon: <BookOpenIcon className="w-4 h-4" /> },
       ]
     : [
-        { value: 'overview', label: 'Overview', icon: <BookOpen className="w-4 h-4" /> },
+        { value: 'overview', label: 'Overview', icon: <BookOpenIcon className="w-4 h-4" /> },
         ...(isGoProgram
-          ? [{ value: 'sessions', label: 'Sessions', icon: <Calendar className="w-4 h-4" /> }]
+          ? [{ value: 'sessions', label: 'Sessions', icon: <CalendarIcon className="w-4 h-4" /> }]
           : []),
         ...(hasSprints
-          ? [{ value: 'sprints', label: 'Sprints', icon: <Zap className="w-4 h-4" />, badge: sprints.length }]
+          ? [{ value: 'sprints', label: 'Sprints', icon: <BoltIcon className="w-4 h-4" />, badge: sprints.length }]
           : []),
       ]
 
@@ -241,7 +240,7 @@ export function ProgramDetailPage() {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       </MainLayout>
     )
@@ -255,11 +254,11 @@ export function ProgramDetailPage() {
             to="/programs"
             className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4" />
             Back to Programs
           </Link>
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Program not found</h3>
             <p className="text-kalkvit/50 text-sm">
               This program may have been removed or the link is incorrect.
@@ -292,7 +291,7 @@ export function ProgramDetailPage() {
           to="/programs"
           className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Back to Programs
         </Link>
 
@@ -309,7 +308,7 @@ export function ProgramDetailPage() {
             )}
             {isCompleted ? (
               <GlassBadge variant="koppar">
-                <Award className="w-3 h-3" />
+                <TrophyIcon className="w-3 h-3" />
                 Completed
               </GlassBadge>
             ) : isEnrolled ? (
@@ -317,7 +316,7 @@ export function ProgramDetailPage() {
             ) : null}
             {program.is_locked && (
               <GlassBadge variant="default">
-                <Lock className="w-3 h-3" />
+                <LockClosedIcon className="w-3 h-3" />
                 Premium
               </GlassBadge>
             )}
@@ -331,15 +330,15 @@ export function ProgramDetailPage() {
           {/* Stats row */}
           <div className="flex flex-wrap items-center gap-6 text-sm text-kalkvit/50 mb-6">
             <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-koppar" />
+              <ClockIcon className="w-4 h-4 text-koppar" />
               {program.duration || `${program.duration_months} months`}
             </span>
             <span className="flex items-center gap-1.5">
-              <GraduationCap className="w-4 h-4 text-koppar" />
+              <AcademicCapIcon className="w-4 h-4 text-koppar" />
               {program.modules} modules
             </span>
             <span className="flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-koppar" />
+              <UserGroupIcon className="w-4 h-4 text-koppar" />
               {(program.enrolled_count ?? 0).toLocaleString()} enrolled
             </span>
           </div>
@@ -348,7 +347,7 @@ export function ProgramDetailPage() {
           {isCompleted && (
             <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-koppar/10 to-brand-amber/10 border border-koppar/20">
               <div className="flex items-center gap-3 mb-2">
-                <Award className="w-6 h-6 text-koppar" />
+                <TrophyIcon className="w-6 h-6 text-koppar" />
                 <h3 className="font-semibold text-kalkvit">Program Completed!</h3>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-sm text-kalkvit/60">
@@ -369,7 +368,7 @@ export function ProgramDetailPage() {
                   className="mt-3 inline-block"
                 >
                   <GlassButton variant="primary" className="text-sm">
-                    <Download className="w-4 h-4" />
+                    <ArrowDownTrayIcon className="w-4 h-4" />
                     Download Certificate
                   </GlassButton>
                 </a>
@@ -397,7 +396,7 @@ export function ProgramDetailPage() {
           {program.is_locked ? (
             <Link to="/shop/upgrade">
               <GlassButton variant="ghost">
-                <Lock className="w-4 h-4" />
+                <LockClosedIcon className="w-4 h-4" />
                 Unlock with Premium
               </GlassButton>
             </Link>
@@ -406,7 +405,7 @@ export function ProgramDetailPage() {
               variant="secondary"
               onClick={() => { setActiveTab('sprints'); window.history.replaceState(null, '', '#sprints') }}
             >
-              <BookOpen className="w-4 h-4" />
+              <BookOpenIcon className="w-4 h-4" />
               Review Material
             </GlassButton>
           ) : isEnrolled ? null
@@ -417,7 +416,7 @@ export function ProgramDetailPage() {
               <div className="space-y-3">
                 {applicationStatus === 'pending' && (
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-brand-amber/10 border border-brand-amber/20">
-                    <Clock3 className="w-5 h-5 text-brand-amber flex-shrink-0" />
+                    <ClockIcon className="w-5 h-5 text-brand-amber flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-kalkvit">Application Under Review</p>
                       <p className="text-xs text-kalkvit/50">
@@ -429,7 +428,7 @@ export function ProgramDetailPage() {
                 {applicationStatus === 'accepted' && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-skogsgron/10 border border-skogsgron/20">
-                      <CheckCircle className="w-5 h-5 text-skogsgron flex-shrink-0" />
+                      <CheckCircleIcon className="w-5 h-5 text-skogsgron flex-shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-kalkvit">Application Accepted!</p>
                         <p className="text-xs text-kalkvit/50">You can now enroll in this program.</p>
@@ -442,13 +441,13 @@ export function ProgramDetailPage() {
                     >
                       {isEnrolling ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <ArrowPathIcon className="w-4 h-4 animate-spin" />
                           Enrolling...
                         </>
                       ) : (
                         <>
                           Enroll Now
-                          <ArrowRight className="w-4 h-4" />
+                          <ArrowRightIcon className="w-4 h-4" />
                         </>
                       )}
                     </GlassButton>
@@ -456,7 +455,7 @@ export function ProgramDetailPage() {
                 )}
                 {applicationStatus === 'rejected' && (
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-tegelrod/10 border border-tegelrod/20">
-                    <XCircle className="w-5 h-5 text-tegelrod flex-shrink-0" />
+                    <XCircleIcon className="w-5 h-5 text-tegelrod flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-kalkvit">Application Not Accepted</p>
                       {application!.review_notes && (
@@ -467,7 +466,7 @@ export function ProgramDetailPage() {
                 )}
                 {applicationStatus === 'waitlisted' && (
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-koppar/10 border border-koppar/20">
-                    <ListChecks className="w-5 h-5 text-koppar flex-shrink-0" />
+                    <ListBulletIcon className="w-5 h-5 text-koppar flex-shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-kalkvit">You're on the Waitlist</p>
                       <p className="text-xs text-kalkvit/50">We'll notify you when a spot opens up.</p>
@@ -479,7 +478,7 @@ export function ProgramDetailPage() {
               // Application form
               <div className="space-y-4 p-4 rounded-xl bg-white/[0.04] border border-white/[0.08]">
                 <h3 className="font-semibold text-kalkvit flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-koppar" />
+                  <DocumentTextIcon className="w-5 h-5 text-koppar" />
                   Apply to {program.title}
                 </h3>
                 <div>
@@ -502,12 +501,12 @@ export function ProgramDetailPage() {
                   >
                     {isSubmittingApplication ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
                         Submitting...
                       </>
                     ) : (
                       <>
-                        <Send className="w-4 h-4" />
+                        <PaperAirplaneIcon className="w-4 h-4" />
                         Submit Application
                       </>
                     )}
@@ -529,12 +528,12 @@ export function ProgramDetailPage() {
               >
                 {isLoadingApplication ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
                     Loading...
                   </>
                 ) : (
                   <>
-                    <FileText className="w-4 h-4" />
+                    <DocumentTextIcon className="w-4 h-4" />
                     Apply to Program
                   </>
                 )}
@@ -548,13 +547,13 @@ export function ProgramDetailPage() {
             >
               {isEnrolling ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
                   Enrolling...
                 </>
               ) : (
                 <>
                   Start Program
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRightIcon className="w-4 h-4" />
                 </>
               )}
             </GlassButton>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronUp } from 'lucide-react'
+import { ChevronUpIcon } from '@heroicons/react/24/outline'
 import { useJourney } from '../../lib/api/hooks/useJourney'
 import { PILLARS } from '../../lib/constants'
 
@@ -126,7 +126,7 @@ export function JourneyWidget() {
           className="text-kalkvit/40 hover:text-kalkvit/70 transition-colors"
           aria-label="Collapse journey widget"
         >
-          <ChevronUp className="w-4 h-4" />
+          <ChevronUpIcon className="w-4 h-4" />
         </button>
       </div>
 

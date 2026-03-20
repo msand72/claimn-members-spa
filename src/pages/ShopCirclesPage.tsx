@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { Users, ChevronRight, Loader2, AlertTriangle, Crown } from 'lucide-react'
+import { UserGroupIcon, ChevronRightIcon, ArrowPathIcon, ExclamationTriangleIcon, TrophyIcon } from '@heroicons/react/24/outline'
 import { api } from '../lib/api/client'
 import { useCircles, useMyCircles } from '../lib/api/hooks'
 import type { Circle } from '../lib/api/types'
@@ -65,7 +65,7 @@ function CircleCard({ circle }: { circle: DisplayCircle }) {
         <div className="flex items-center gap-2">
           {circle.isPremium && (
             <GlassBadge variant="koppar">
-              <Crown className="w-3 h-3" />
+              <TrophyIcon className="w-3 h-3" />
               Premium
             </GlassBadge>
           )}
@@ -83,7 +83,7 @@ function CircleCard({ circle }: { circle: DisplayCircle }) {
       {/* Stats */}
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
-          <Users className="w-4 h-4" />
+          <UserGroupIcon className="w-4 h-4" />
           {circle.members}{circle.maxMembers ? ` / ${circle.maxMembers}` : ''} members
         </span>
       </div>
@@ -96,7 +96,7 @@ function CircleCard({ circle }: { circle: DisplayCircle }) {
             <Link to={`/circles/${circle.id}`}>
               <GlassButton variant="secondary" className="text-sm">
                 Enter Circle
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRightIcon className="w-4 h-4" />
               </GlassButton>
             </Link>
           </>
@@ -106,8 +106,8 @@ function CircleCard({ circle }: { circle: DisplayCircle }) {
               {formatPrice(circle.priceAmount, circle.priceCurrency)}<span className="text-sm font-normal text-kalkvit/40">/mo</span>
             </span>
             <GlassButton variant="primary" className="text-sm" onClick={handleCheckout} disabled={isCheckingOut}>
-              {isCheckingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Join Circle'}
-              {!isCheckingOut && <ChevronRight className="w-4 h-4" />}
+              {isCheckingOut ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : 'Join Circle'}
+              {!isCheckingOut && <ChevronRightIcon className="w-4 h-4" />}
             </GlassButton>
           </>
         ) : (
@@ -116,7 +116,7 @@ function CircleCard({ circle }: { circle: DisplayCircle }) {
             <Link to={`/circles/${circle.id}`}>
               <GlassButton variant="primary" className="text-sm">
                 View Circle
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRightIcon className="w-4 h-4" />
               </GlassButton>
             </Link>
           </>
@@ -158,7 +158,7 @@ export function ShopCirclesPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load circles</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -190,7 +190,7 @@ export function ShopCirclesPage() {
         {/* Loading state */}
         {isLoading && (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 
@@ -206,7 +206,7 @@ export function ShopCirclesPage() {
         {/* Empty state */}
         {!isLoading && filteredCircles.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
-            <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <UserGroupIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">No premium circles available yet</h3>
             <p className="text-kalkvit/50 text-sm mb-4">
               Check out our free circles in the meantime.
@@ -214,7 +214,7 @@ export function ShopCirclesPage() {
             <Link to="/circles">
               <GlassButton variant="primary">
                 Browse Free Circles
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRightIcon className="w-4 h-4" />
               </GlassButton>
             </Link>
           </GlassCard>

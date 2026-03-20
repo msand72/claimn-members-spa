@@ -1,5 +1,5 @@
 import { useRouteError, isRouteErrorResponse, Link } from 'react-router-dom'
-import { AlertTriangle, FileQuestion, Home, RefreshCw } from 'lucide-react'
+import { ExclamationTriangleIcon, DocumentMagnifyingGlassIcon, HomeIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { isChunkLoadError } from '../lib/isChunkLoadError'
 
 export function RouteErrorBoundary() {
@@ -13,7 +13,7 @@ export function RouteErrorBoundary() {
         {isChunkError ? (
           <>
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#B87333]/20 flex items-center justify-center">
-              <RefreshCw className="w-8 h-8 text-[#B87333]" />
+              <ArrowPathIcon className="w-8 h-8 text-[#B87333]" />
             </div>
             <h1 className="text-2xl font-bold text-[var(--text-primary,#F9F7F4)] mb-2">
               App updated
@@ -25,7 +25,7 @@ export function RouteErrorBoundary() {
         ) : isNotFound ? (
           <>
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#B87333]/20 flex items-center justify-center">
-              <FileQuestion className="w-8 h-8 text-[#B87333]" />
+              <DocumentMagnifyingGlassIcon className="w-8 h-8 text-[#B87333]" />
             </div>
             <h1 className="text-2xl font-bold text-[var(--text-primary,#F9F7F4)] mb-2">
               Page not found
@@ -37,7 +37,7 @@ export function RouteErrorBoundary() {
         ) : (
           <>
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#C85A40]/20 flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8 text-[#C85A40]" />
+              <ExclamationTriangleIcon className="w-8 h-8 text-[#C85A40]" />
             </div>
             <h1 className="text-2xl font-bold text-[var(--text-primary,#F9F7F4)] mb-2">
               Something went wrong
@@ -55,7 +55,7 @@ export function RouteErrorBoundary() {
               onClick={() => window.location.reload()}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm bg-gradient-to-br from-[#B87333] to-[#A66529] text-white shadow-[0_4px_20px_rgba(184,115,51,0.4)] hover:shadow-[0_6px_24px_rgba(184,115,51,0.5)] hover:-translate-y-0.5 transition-all duration-200"
             >
-              <RefreshCw size={18} />
+              <ArrowPathIcon className="w-[18px] h-[18px]" />
               Reload
             </button>
           )}
@@ -64,7 +64,7 @@ export function RouteErrorBoundary() {
             onClick={() => window.location.href = '/'}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm bg-gradient-to-br from-[#B87333] to-[#A66529] text-white shadow-[0_4px_20px_rgba(184,115,51,0.4)] hover:shadow-[0_6px_24px_rgba(184,115,51,0.5)] hover:-translate-y-0.5 transition-all duration-200"
           >
-            <Home size={18} />
+            <HomeIcon className="w-[18px] h-[18px]" />
             Go Home
           </Link>
         </div>

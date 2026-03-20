@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useUpdateOnboarding, useOnboardingState } from '../../lib/api/hooks/useOnboarding'
 import { OnboardingLayout } from './OnboardingLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../../components/ui'
-import { ArrowRight, Flame, Users, Calendar, Loader2, Check } from 'lucide-react'
+import { ArrowRightIcon, FireIcon, UserGroupIcon, CalendarIcon, ArrowPathIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 /**
  * Step 5: Personalized starting path.
@@ -26,7 +26,7 @@ export function OnboardingPathPage() {
     return (
       <OnboardingLayout step={5} totalSteps={5}>
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+          <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar" />
         </div>
       </OnboardingLayout>
     )
@@ -60,7 +60,7 @@ export function OnboardingPathPage() {
         <GlassCard className="!p-5">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-koppar/10 flex items-center justify-center shrink-0">
-              <Flame className="w-6 h-6 text-koppar" />
+              <FireIcon className="w-6 h-6 text-koppar" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -78,7 +78,7 @@ export function OnboardingPathPage() {
               )}
             </div>
             <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-              <Check className="w-4 h-4 text-green-400" />
+              <CheckIcon className="w-4 h-4 text-green-400" />
             </div>
           </div>
         </GlassCard>
@@ -87,7 +87,7 @@ export function OnboardingPathPage() {
         <GlassCard className="!p-5">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-koppar/10 flex items-center justify-center shrink-0">
-              <Users className="w-6 h-6 text-koppar" />
+              <UserGroupIcon className="w-6 h-6 text-koppar" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -100,7 +100,7 @@ export function OnboardingPathPage() {
               </p>
             </div>
             <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-              <Check className="w-4 h-4 text-green-400" />
+              <CheckIcon className="w-4 h-4 text-green-400" />
             </div>
           </div>
         </GlassCard>
@@ -109,7 +109,7 @@ export function OnboardingPathPage() {
         <GlassCard className="!p-5 border-dashed">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-white/[0.05] flex items-center justify-center shrink-0">
-              <Calendar className="w-6 h-6 text-kalkvit/40" />
+              <CalendarIcon className="w-6 h-6 text-kalkvit/40" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -138,7 +138,7 @@ export function OnboardingPathPage() {
           disabled={updateOnboarding.isPending}
         >
           Start My Journey
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRightIcon className="w-4 h-4" />
         </GlassButton>
       </div>
     </OnboardingLayout>

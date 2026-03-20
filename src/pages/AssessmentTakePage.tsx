@@ -9,7 +9,7 @@ import type {
   AssessmentQuestion as ApiAssessmentQuestion,
   PillarId,
 } from '../lib/api/types'
-import { Check, Loader2, AlertCircle, ChevronUp } from 'lucide-react'
+import { CheckIcon, ArrowPathIcon, ExclamationCircleIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 import { PILLARS, PILLAR_TEXT_COLORS } from '../lib/constants'
@@ -419,7 +419,7 @@ export function AssessmentTakePage() {
     return (
       <MainLayout>
         <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-24 gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+          <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar" />
           <p className="text-sm text-kalkvit/60">Loading assessment questions...</p>
         </div>
       </MainLayout>
@@ -432,7 +432,7 @@ export function AssessmentTakePage() {
       <MainLayout>
         <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-24 gap-6">
           <div className="p-4 rounded-full bg-red-500/10">
-            <AlertCircle className="w-10 h-10 text-red-400" />
+            <ExclamationCircleIcon className="w-10 h-10 text-red-400" />
           </div>
           <div className="text-center">
             <h2 className="font-display text-xl font-bold text-kalkvit mb-2">
@@ -660,7 +660,7 @@ export function AssessmentTakePage() {
                                   isSelected ? 'border-koppar bg-koppar' : 'border-kalkvit/30'
                                 )}
                               >
-                                {isSelected && <Check className="w-3 h-3 text-kalkvit" />}
+                                {isSelected && <CheckIcon className="w-3 h-3 text-kalkvit" />}
                               </div>
                               <span className="text-sm text-kalkvit/80">{option.label}</span>
                             </label>
@@ -862,7 +862,7 @@ export function AssessmentTakePage() {
             >
               {submitMutation.isPending ? (
                 <span className="flex items-center gap-2 justify-center">
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <ArrowPathIcon className="w-5 h-5 animate-spin" />
                   Generating Your Results...
                 </span>
               ) : isComplete ? (
@@ -883,7 +883,7 @@ export function AssessmentTakePage() {
           className="fixed bottom-6 right-6 p-3 rounded-full bg-koppar/80 text-kalkvit shadow-lg hover:bg-koppar transition-all z-30"
           title="Back to top"
         >
-          <ChevronUp className="w-5 h-5" />
+          <ChevronUpIcon className="w-5 h-5" />
         </button>
       </div>
     </MainLayout>

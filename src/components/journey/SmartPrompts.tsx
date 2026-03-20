@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import type { SmartPrompt } from '../../lib/api/hooks/useJourney'
-import { X, ArrowRight, Bell, AlertTriangle, Info } from 'lucide-react'
+import { XMarkIcon, ArrowRightIcon, BellIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
 
 interface SmartPromptsProps {
   prompts: SmartPrompt[]
@@ -34,17 +34,17 @@ function isPromptDismissed(type: string): boolean {
 const PRIORITY_STYLES = {
   high: {
     bg: 'bg-koppar/10 border-koppar/30',
-    icon: AlertTriangle,
+    icon: ExclamationTriangleIcon,
     iconColor: 'text-koppar',
   },
   medium: {
     bg: 'bg-white/[0.04] border-white/[0.12]',
-    icon: Bell,
+    icon: BellIcon,
     iconColor: 'text-kalkvit/60',
   },
   low: {
     bg: 'bg-white/[0.02] border-white/[0.08]',
-    icon: Info,
+    icon: InformationCircleIcon,
     iconColor: 'text-kalkvit/40',
   },
 }
@@ -84,14 +84,14 @@ export function SmartPrompts({ prompts }: SmartPromptsProps) {
               to={prompt.action_url}
               className="text-koppar text-sm font-medium hover:underline flex items-center gap-1 shrink-0"
             >
-              Go <ArrowRight className="w-3.5 h-3.5" />
+              Go <ArrowRightIcon className="w-3.5 h-3.5" />
             </Link>
             <button
               onClick={() => handleDismiss(prompt.type)}
               className="p-1 rounded-lg hover:bg-white/[0.05] text-kalkvit/30 hover:text-kalkvit/60 transition-colors shrink-0"
               title="Dismiss for 24 hours"
             >
-              <X className="w-4 h-4" />
+              <XMarkIcon className="w-4 h-4" />
             </button>
           </div>
         )

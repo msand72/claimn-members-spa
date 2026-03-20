@@ -1,15 +1,15 @@
 import { GlassCard, GlassButton, GlassBadge, GlassAvatar } from '../../components/ui'
 import {
-  Users,
-  Star,
-  Send,
-  HandHeart,
-  MessageSquare,
-  Calendar,
-  Loader2,
-  CheckCircle,
-  ClipboardCheck,
-} from 'lucide-react'
+  UserGroupIcon,
+  StarIcon,
+  PaperAirplaneIcon,
+  HandRaisedIcon,
+  ChatBubbleBottomCenterTextIcon,
+  CalendarIcon,
+  ArrowPathIcon,
+  CheckCircleIcon,
+  ClipboardDocumentCheckIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import type {
   ProgramCohort,
@@ -60,7 +60,7 @@ export function CommunityTab({
       {cohort && (
         <div className="space-y-4">
           <h3 className="font-semibold text-kalkvit flex items-center gap-2">
-            <Users className="w-5 h-5 text-koppar" />
+            <UserGroupIcon className="w-5 h-5 text-koppar" />
             Your Cohort
           </h3>
           <GlassCard variant="base">
@@ -85,7 +85,7 @@ export function CommunityTab({
             <div className="flex flex-wrap items-center gap-4 text-sm text-kalkvit/50 mb-4">
               {cohort.start_date && (
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4" />
+                  <CalendarIcon className="w-4 h-4" />
                   {new Date(cohort.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   {cohort.end_date && (
                     <>
@@ -97,7 +97,7 @@ export function CommunityTab({
               )}
               {cohort.member_count !== undefined && (
                 <span className="flex items-center gap-1.5">
-                  <Users className="w-4 h-4" />
+                  <UserGroupIcon className="w-4 h-4" />
                   {cohort.member_count}{cohort.max_members > 0 ? `/${cohort.max_members}` : ''} members
                 </span>
               )}
@@ -149,7 +149,7 @@ export function CommunityTab({
       {programGroup && (
         <div className="space-y-4">
           <h3 className="font-semibold text-kalkvit flex items-center gap-2">
-            <HandHeart className="w-5 h-5 text-koppar" />
+            <HandRaisedIcon className="w-5 h-5 text-koppar" />
             Accountability Group
           </h3>
 
@@ -172,13 +172,13 @@ export function CommunityTab({
             <div className="flex flex-wrap items-center gap-4 text-sm text-kalkvit/50 mb-4">
               {programGroup.meeting_schedule && (
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4" />
+                  <CalendarIcon className="w-4 h-4" />
                   {programGroup.meeting_schedule}
                 </span>
               )}
               {programGroup.communication_channel && (
                 <span className="flex items-center gap-1.5">
-                  <MessageSquare className="w-4 h-4" />
+                  <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
                   {programGroup.communication_channel}
                 </span>
               )}
@@ -227,12 +227,12 @@ export function CommunityTab({
           {/* Recent check-ins */}
           <GlassCard variant="base">
             <h4 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-              <ClipboardCheck className="w-5 h-5 text-koppar" />
+              <ClipboardDocumentCheckIcon className="w-5 h-5 text-koppar" />
               Recent Check-Ins
             </h4>
             {isLoadingCheckIns ? (
               <div className="flex items-center justify-center py-6">
-                <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+                <ArrowPathIcon className="w-6 h-6 text-koppar animate-spin" />
               </div>
             ) : recentCheckIns.length > 0 ? (
               <div className="space-y-3">
@@ -272,7 +272,7 @@ export function CommunityTab({
                           {checkIn.week_rating && (
                             <div className="flex items-center gap-0.5">
                               {Array.from({ length: 5 }).map((_, i) => (
-                                <Star
+                                <StarIcon
                                   key={i}
                                   className={cn(
                                     'w-3 h-3',
@@ -325,13 +325,13 @@ export function CommunityTab({
           {/* Check-in form */}
           <GlassCard variant="elevated">
             <h4 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-              <Send className="w-5 h-5 text-koppar" />
+              <PaperAirplaneIcon className="w-5 h-5 text-koppar" />
               Submit Check-In
             </h4>
 
             {checkInSubmitted ? (
               <div className="text-center py-6">
-                <CheckCircle className="w-10 h-10 text-skogsgron mx-auto mb-3" />
+                <CheckCircleIcon className="w-10 h-10 text-skogsgron mx-auto mb-3" />
                 <p className="text-kalkvit font-medium">Check-in submitted!</p>
                 <p className="text-sm text-kalkvit/50 mt-1">Your group can see your update.</p>
               </div>
@@ -412,7 +412,7 @@ export function CommunityTab({
                         }
                         className="p-1 transition-transform hover:scale-110"
                       >
-                        <Star
+                        <StarIcon
                           className={cn(
                             'w-6 h-6 transition-colors',
                             i < checkInForm.week_rating
@@ -441,12 +441,12 @@ export function CommunityTab({
                 >
                   {isSubmittingCheckIn ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <ArrowPathIcon className="w-4 h-4 animate-spin" />
                       Submitting...
                     </>
                   ) : (
                     <>
-                      <Send className="w-4 h-4" />
+                      <PaperAirplaneIcon className="w-4 h-4" />
                       Submit Check-In
                     </>
                   )}

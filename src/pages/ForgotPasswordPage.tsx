@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassInput } from '../components/ui'
 import { BackgroundPattern } from '../components/ui/BackgroundPattern'
-import { ArrowLeft, Mail, CheckCircle } from 'lucide-react'
+import { ArrowLeftIcon, EnvelopeIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { forgotPassword } from '../lib/auth'
 
 export function ForgotPasswordPage() {
@@ -45,7 +45,7 @@ export function ForgotPasswordPage() {
           {isSubmitted ? (
             <div className="text-center py-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-skogsgron/20 mb-4">
-                <CheckCircle className="w-8 h-8 text-skogsgron" />
+                <CheckCircleIcon className="w-8 h-8 text-skogsgron" />
               </div>
               <h2 className="font-serif text-xl font-bold text-kalkvit mb-2">Check Your Email</h2>
               <p className="text-kalkvit/60 mb-6">
@@ -67,7 +67,7 @@ export function ForgotPasswordPage() {
                 </GlassButton>
                 <Link to="/login">
                   <GlassButton variant="ghost" className="w-full">
-                    <ArrowLeft className="w-4 h-4" />
+                    <ArrowLeftIcon className="w-4 h-4" />
                     Back to Login
                   </GlassButton>
                 </Link>
@@ -106,7 +106,7 @@ export function ForgotPasswordPage() {
                     'Sending...'
                   ) : (
                     <>
-                      <Mail className="w-4 h-4" />
+                      <EnvelopeIcon className="w-4 h-4" />
                       Send Reset Link
                     </>
                   )}
@@ -118,7 +118,7 @@ export function ForgotPasswordPage() {
                   to="/login"
                   className="text-sm text-kalkvit/60 hover:text-koppar transition-colors inline-flex items-center gap-2"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeftIcon className="w-4 h-4" />
                   Back to Login
                 </Link>
               </div>

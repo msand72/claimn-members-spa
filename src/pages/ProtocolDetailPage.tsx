@@ -26,29 +26,28 @@ import {
   type GeneratePlanResponse,
 } from '../lib/api/hooks'
 import {
-  ChevronLeft,
-  Clock,
-  Target,
-  Calendar,
-  CheckCircle2,
-  Play,
-  Pause,
-  RotateCcw,
-  Loader2,
-  AlertTriangle,
-  BookOpen,
-  Lightbulb,
-  ListChecks,
-  Compass,
-  Brain,
-  Heart,
-  Users,
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
-  FileText,
-  TrendingUp,
-} from 'lucide-react'
+  ChevronLeftIcon,
+  ClockIcon,
+  ViewfinderCircleIcon,
+  CalendarIcon,
+  CheckCircleIcon,
+  PlayIcon,
+  PauseIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  BookOpenIcon,
+  LightBulbIcon,
+  ListBulletIcon,
+  MapPinIcon,
+  CpuChipIcon,
+  HeartIcon,
+  UserGroupIcon,
+  SparklesIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  DocumentTextIcon,
+  ArrowTrendingUpIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { AskExpertButton } from '../components/AskExpertButton'
 import { PlanBuilder } from '../components/PlanBuilder'
@@ -57,17 +56,17 @@ import type { SuggestedGoal } from '../lib/protocol-plan'
 
 // Icon mapping for sections
 const SECTION_ICONS: Record<string, React.ElementType> = {
-  compass: Compass,
-  brain: Brain,
-  heart: Heart,
-  users: Users,
-  target: Target,
-  lightbulb: Lightbulb,
-  book: BookOpen,
-  list: ListChecks,
-  sparkles: Sparkles,
-  file: FileText,
-  trending: TrendingUp,
+  compass: MapPinIcon,
+  brain: CpuChipIcon,
+  heart: HeartIcon,
+  users: UserGroupIcon,
+  target: ViewfinderCircleIcon,
+  lightbulb: LightBulbIcon,
+  book: BookOpenIcon,
+  list: ListBulletIcon,
+  sparkles: SparklesIcon,
+  file: DocumentTextIcon,
+  trending: ArrowTrendingUpIcon,
 }
 
 
@@ -108,7 +107,7 @@ function ScientificFoundation({ content, citations }: { content: string; citatio
   return (
     <GlassCard variant="base" className="mb-8">
       <div className="flex items-center gap-2 mb-4">
-        <BookOpen className="w-5 h-5 text-koppar" />
+        <BookOpenIcon className="w-5 h-5 text-koppar" />
         <h2 className="font-display text-lg font-semibold text-kalkvit">
           Scientific Foundation
         </h2>
@@ -123,11 +122,11 @@ function ScientificFoundation({ content, citations }: { content: string; citatio
         >
           {isExpanded ? (
             <>
-              Show less <ChevronUp className="w-4 h-4" />
+              Show less <ChevronUpIcon className="w-4 h-4" />
             </>
           ) : (
             <>
-              Read more <ChevronDown className="w-4 h-4" />
+              Read more <ChevronDownIcon className="w-4 h-4" />
             </>
           )}
         </button>
@@ -158,7 +157,7 @@ function ProtocolSections({ sections }: { sections: ProtocolSection[] }) {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sections.map((section) => {
-          const IconComponent = SECTION_ICONS[section.icon?.toLowerCase() || 'list'] || ListChecks
+          const IconComponent = SECTION_ICONS[section.icon?.toLowerCase() || 'list'] || ListBulletIcon
           return (
             <GlassCard key={section.id} variant="base">
               <div className="flex items-center gap-2 mb-3">
@@ -173,7 +172,7 @@ function ProtocolSections({ sections }: { sections: ProtocolSection[] }) {
                     key={index}
                     className="flex items-start gap-2 text-sm text-kalkvit/70"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-skogsgron flex-shrink-0 mt-0.5" />
+                    <CheckCircleIcon className="w-4 h-4 text-skogsgron flex-shrink-0 mt-0.5" />
                     {item}
                   </li>
                 ))}
@@ -192,7 +191,7 @@ function ImplementationTimeline({ steps }: { steps: ImplementationStep[] }) {
   return (
     <GlassCard variant="base" className="mb-8">
       <div className="flex items-center gap-2 mb-4">
-        <Calendar className="w-5 h-5 text-koppar" />
+        <CalendarIcon className="w-5 h-5 text-koppar" />
         <h2 className="font-display text-lg font-semibold text-kalkvit">
           Implementation Timeline
         </h2>
@@ -243,7 +242,7 @@ function ImplementationGuides({ guides }: { guides: ImplementationGuide[] }) {
                 <p className="text-sm text-kalkvit/60 mt-1">{guide.description}</p>
               </div>
               {guide.details && guide.details.length > 0 && (
-                <ChevronDown
+                <ChevronDownIcon
                   className={cn(
                     'w-5 h-5 text-kalkvit/50 transition-transform flex-shrink-0 ml-4',
                     expandedId === guide.id && 'rotate-180'
@@ -259,7 +258,7 @@ function ImplementationGuides({ guides }: { guides: ImplementationGuide[] }) {
                       key={index}
                       className="flex items-start gap-2 text-sm text-kalkvit/70"
                     >
-                      <Lightbulb className="w-4 h-4 text-koppar flex-shrink-0 mt-0.5" />
+                      <LightBulbIcon className="w-4 h-4 text-koppar flex-shrink-0 mt-0.5" />
                       {detail}
                     </li>
                   ))}
@@ -279,7 +278,7 @@ function TrackingMethodsSection({ methods }: { methods: TrackingMethod[] }) {
   return (
     <GlassCard variant="base" className="mb-8">
       <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="w-5 h-5 text-koppar" />
+        <ArrowTrendingUpIcon className="w-5 h-5 text-koppar" />
         <h2 className="font-display text-lg font-semibold text-kalkvit">
           How to Track Progress
         </h2>
@@ -287,7 +286,7 @@ function TrackingMethodsSection({ methods }: { methods: TrackingMethod[] }) {
       <div className="space-y-3">
         {methods.map((method, i) => (
           <div key={i} className="flex items-start gap-3">
-            <CheckCircle2 className="w-4 h-4 text-skogsgron flex-shrink-0 mt-0.5" />
+            <CheckCircleIcon className="w-4 h-4 text-skogsgron flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-kalkvit">{method.title}</p>
               {method.description && (
@@ -310,7 +309,7 @@ function SuccessMetricsSection({ metrics }: { metrics: SuccessMetric[] }) {
   return (
     <GlassCard variant="base" className="mb-8">
       <div className="flex items-center gap-2 mb-4">
-        <Target className="w-5 h-5 text-koppar" />
+        <ViewfinderCircleIcon className="w-5 h-5 text-koppar" />
         <h2 className="font-display text-lg font-semibold text-kalkvit">
           Success Metrics
         </h2>
@@ -338,7 +337,7 @@ function EmergencyProtocolsSection({ protocols }: { protocols: EmergencyProtocol
   return (
     <GlassCard variant="accent" className="mb-8">
       <div className="flex items-center gap-2 mb-4">
-        <AlertTriangle className="w-5 h-5 text-tegelrod" />
+        <ExclamationTriangleIcon className="w-5 h-5 text-tegelrod" />
         <h2 className="font-display text-lg font-semibold text-kalkvit">
           Emergency Protocols
         </h2>
@@ -427,7 +426,7 @@ function WeekCard({
             )}
             {status === 'completed' && (
               <GlassBadge variant="success" className="text-xs">
-                <CheckCircle2 className="w-3 h-3" />
+                <CheckCircleIcon className="w-3 h-3" />
                 Done
               </GlassBadge>
             )}
@@ -441,7 +440,7 @@ function WeekCard({
               {completedCount}/{tasks.length}
             </span>
           </div>
-          <ChevronDown
+          <ChevronDownIcon
             className={cn(
               'w-5 h-5 text-kalkvit/50 transition-transform',
               isExpanded && 'rotate-180'
@@ -473,9 +472,9 @@ function WeekCard({
                   )}
                 >
                   {isTaskUpdating ? (
-                    <Loader2 className="w-3 h-3 text-kalkvit animate-spin" />
+                    <ArrowPathIcon className="w-3 h-3 text-kalkvit animate-spin" />
                   ) : isCompleted ? (
-                    <CheckCircle2 className="w-3 h-3 text-kalkvit" />
+                    <CheckCircleIcon className="w-3 h-3 text-kalkvit" />
                   ) : null}
                 </button>
                 <span
@@ -538,9 +537,9 @@ function ProgressTracker({
               disabled={isPausing}
             >
               {isPausing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
               ) : (
-                <Pause className="w-4 h-4" />
+                <PauseIcon className="w-4 h-4" />
               )}
             </GlassButton>
           )}
@@ -552,9 +551,9 @@ function ProgressTracker({
               disabled={isResuming}
             >
               {isResuming ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
               ) : (
-                <RotateCcw className="w-4 h-4" />
+                <ArrowPathIcon className="w-4 h-4" />
               )}
             </GlassButton>
           )}
@@ -783,7 +782,7 @@ export function ProtocolDetailPage() {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       </MainLayout>
     )
@@ -793,13 +792,13 @@ export function ProtocolDetailPage() {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto text-center py-12">
-          <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+          <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
           <h1 className="font-display text-2xl font-bold text-kalkvit mb-4">
             Protocol not found
           </h1>
           <Link to="/protocols">
             <GlassButton variant="secondary">
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeftIcon className="w-4 h-4" />
               Back to Protocols
             </GlassButton>
           </Link>
@@ -844,14 +843,14 @@ export function ProtocolDetailPage() {
           to="/protocols"
           className="inline-flex items-center gap-1 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeftIcon className="w-4 h-4" />
           Back to Protocols
         </Link>
 
         {/* Action error banner */}
         {actionError && (
           <div className="mb-6 flex items-center gap-3 rounded-xl bg-tegelrod/10 border border-tegelrod/20 px-4 py-3 text-sm text-tegelrod">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0" />
             <span className="flex-1">{actionError}</span>
             <button
               onClick={() => setActionError(null)}
@@ -880,7 +879,7 @@ export function ProtocolDetailPage() {
         {/* Prerequisite notice */}
         {protocol.prerequisite_protocol_slugs && protocol.prerequisite_protocol_slugs.length > 0 && (
           <div className="mb-6 flex items-start gap-3 rounded-xl bg-koppar/10 border border-koppar/20 px-4 py-3 text-sm text-koppar">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">Recommended prerequisites</p>
               <div className="flex flex-wrap gap-2 mt-2">
@@ -909,13 +908,13 @@ export function ProtocolDetailPage() {
                 <GlassBadge variant="koppar">{pillar.name}</GlassBadge>
                 {isActive && (
                   <GlassBadge variant="success">
-                    <Play className="w-3 h-3" />
+                    <PlayIcon className="w-3 h-3" />
                     Active
                   </GlassBadge>
                 )}
                 {isPaused && (
                   <GlassBadge variant="warning">
-                    <Pause className="w-3 h-3" />
+                    <PauseIcon className="w-3 h-3" />
                     Paused
                   </GlassBadge>
                 )}
@@ -939,15 +938,15 @@ export function ProtocolDetailPage() {
           {/* Meta info */}
           <div className="flex items-center gap-6 text-sm text-kalkvit/50">
             <span className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
+              <ClockIcon className="w-4 h-4" />
               {protocol.duration_weeks ? `${protocol.duration_weeks} weeks` : 'Multi-week program'}
             </span>
             <span className="flex items-center gap-2">
-              <Target className="w-4 h-4" />
+              <ViewfinderCircleIcon className="w-4 h-4" />
               {protocol.duration_weeks || weeks.length} weeks
             </span>
             <span className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
+              <CalendarIcon className="w-4 h-4" />
               {totalTasks} tasks
             </span>
           </div>
@@ -967,7 +966,7 @@ export function ProtocolDetailPage() {
         {/* Success banner after starting */}
         {justStarted && (
           <div className="mb-6 flex items-center gap-3 rounded-xl bg-skogsgron/10 border border-skogsgron/20 px-4 py-3 text-sm text-skogsgron">
-            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+            <CheckCircleIcon className="w-5 h-5 flex-shrink-0" />
             <span className="flex-1">
               Protocol started! Your progress is now being tracked below.
             </span>
@@ -999,7 +998,7 @@ export function ProtocolDetailPage() {
           <GlassCard variant="accent" className="mb-8">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl bg-koppar/10 flex items-center justify-center flex-shrink-0">
-                <Target className="w-5 h-5 text-koppar" />
+                <ViewfinderCircleIcon className="w-5 h-5 text-koppar" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-kalkvit mb-1">Set up your action plan</h3>
@@ -1008,9 +1007,9 @@ export function ProtocolDetailPage() {
                 </p>
                 <GlassButton variant="primary" onClick={handleStartClick} disabled={isGeneratingPlan}>
                   {isGeneratingPlan ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" />Generating Plan...</>
+                    <><ArrowPathIcon className="w-4 h-4 animate-spin" />Generating Plan...</>
                   ) : (
-                    <><ListChecks className="w-4 h-4" />Create Plan</>
+                    <><ListBulletIcon className="w-4 h-4" />Create Plan</>
                   )}
                 </GlassButton>
               </div>
@@ -1097,7 +1096,7 @@ export function ProtocolDetailPage() {
                   <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 min-w-0">
-                        <Target className="w-5 h-5 text-koppar flex-shrink-0" />
+                        <ViewfinderCircleIcon className="w-5 h-5 text-koppar flex-shrink-0" />
                         <div className="min-w-0">
                           <p className="font-medium text-kalkvit truncate">{goal.title}</p>
                           <p className="text-xs text-kalkvit/50">
@@ -1107,7 +1106,7 @@ export function ProtocolDetailPage() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0 ml-4">
                         {goal.status === 'completed' ? (
-                          <CheckCircle2 className="w-5 h-5 text-skogsgron" />
+                          <CheckCircleIcon className="w-5 h-5 text-skogsgron" />
                         ) : (
                           <div className="w-12 h-2 bg-white/10 rounded-full overflow-hidden">
                             <div
@@ -1137,7 +1136,7 @@ export function ProtocolDetailPage() {
                   <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-koppar/10 flex items-center justify-center">
-                        <TrendingUp className="w-4 h-4 text-koppar" />
+                        <ArrowTrendingUpIcon className="w-4 h-4 text-koppar" />
                       </div>
                       <p className="font-medium text-kalkvit text-sm">{kpi.name}</p>
                     </div>
@@ -1172,9 +1171,9 @@ export function ProtocolDetailPage() {
               disabled={isGeneratingPlan}
             >
               {isGeneratingPlan ? (
-                <><Loader2 className="w-5 h-5 animate-spin" />Generating Plan...</>
+                <><ArrowPathIcon className="w-5 h-5 animate-spin" />Generating Plan...</>
               ) : (
-                <><Play className="w-5 h-5" />Start This Protocol</>
+                <><PlayIcon className="w-5 h-5" />Start This Protocol</>
               )}
             </GlassButton>
             <p className="text-kalkvit/50 text-sm mt-3">

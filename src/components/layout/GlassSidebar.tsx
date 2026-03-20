@@ -1,3 +1,4 @@
+import type React from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../contexts/AuthContext'
@@ -5,28 +6,27 @@ import { GlassAvatar } from '../ui/GlassAvatar'
 
 import { SECTION_NAV, SECTION_KEYS, useCurrentSection } from './sectionNav'
 import {
-  User,
-  CreditCard,
-  LogOut,
-  Library,
-  Bell,
-  Bug,
-  ChevronRight,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+  UserIcon,
+  CreditCardIcon,
+  ArrowLeftOnRectangleIcon,
+  BuildingLibraryIcon,
+  BellIcon,
+  BugAntIcon,
+  ChevronRightIcon,
+} from '@heroicons/react/24/outline'
 import { useNotifications, safeArray, type Notification } from '../../lib/api'
 import { useBugReport } from '../../contexts/BugReportContext'
 
 interface NavItem {
   to: string
-  icon: LucideIcon
+  icon: React.ComponentType<{ className?: string }>
   label: string
 }
 
 const accountNav: NavItem[] = [
-  { to: '/profile', icon: User, label: 'Profile' },
-  { to: '/billing', icon: CreditCard, label: 'Billing' },
-  { to: '/resources', icon: Library, label: 'Resources' },
+  { to: '/profile', icon: UserIcon, label: 'Profile' },
+  { to: '/billing', icon: CreditCardIcon, label: 'Billing' },
+  { to: '/resources', icon: BuildingLibraryIcon, label: 'Resources' },
 ]
 
 export function GlassSidebar() {
@@ -73,7 +73,7 @@ export function GlassSidebar() {
             onClick={(e) => e.stopPropagation()}
             className="relative p-1.5 rounded-lg hover:bg-white/[0.08] transition-colors text-kalkvit/40 hover:text-kalkvit"
           >
-            <Bell className="w-4 h-4" />
+            <BellIcon className="w-4 h-4" />
             {unreadCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-koppar text-[9px] font-bold text-kalkvit flex items-center justify-center">
                 {unreadCount > 9 ? '9+' : unreadCount}
@@ -109,7 +109,7 @@ export function GlassSidebar() {
                 <Icon className={cn('w-[18px] h-[18px]', isActive && 'text-koppar')} />
                 <span className="flex-1">{section.label}</span>
                 {isActive && (
-                  <ChevronRight className="w-3.5 h-3.5 text-koppar/60" />
+                  <ChevronRightIcon className="w-3.5 h-3.5 text-koppar/60" />
                 )}
               </Link>
             )
@@ -154,7 +154,7 @@ export function GlassSidebar() {
             'transition-all duration-150'
           )}
         >
-          <Bug className="w-[18px] h-[18px]" />
+          <BugAntIcon className="w-[18px] h-[18px]" />
           Report a Bug
         </button>
         <button
@@ -166,7 +166,7 @@ export function GlassSidebar() {
             'transition-all duration-150'
           )}
         >
-          <LogOut className="w-[18px] h-[18px]" />
+          <ArrowLeftOnRectangleIcon className="w-[18px] h-[18px]" />
           Sign Out
         </button>
       </div>

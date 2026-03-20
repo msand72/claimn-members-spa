@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { sanitizeRedirect } from '../lib/url-validation'
 import { GlassCard, GlassButton, BackgroundPattern } from '../components/ui'
-import { LogIn, AlertCircle, ArrowLeft } from 'lucide-react'
+import { ArrowRightEndOnRectangleIcon, ExclamationCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -94,7 +94,7 @@ export function LoginPage() {
 
             {error && (
               <div className="flex items-center gap-2 p-3 bg-tegelrod/20 border border-tegelrod/30 rounded-xl text-tegelrod">
-                <AlertCircle size={18} />
+                <ExclamationCircleIcon className="w-[18px] h-[18px]" />
                 <span className="text-sm">{error}</span>
               </div>
             )}
@@ -102,7 +102,7 @@ export function LoginPage() {
             <GlassButton
               type="submit"
               variant="primary"
-              icon={LogIn}
+              icon={ArrowRightEndOnRectangleIcon}
               disabled={loading}
               className="w-full justify-center"
             >
@@ -158,7 +158,7 @@ export function LoginPage() {
                 href="https://www.claimn.co"
                 className="inline-flex items-center gap-1.5 text-sm text-kalkvit/50 hover:text-kalkvit/70 transition-colors"
               >
-                <ArrowLeft size={14} />
+                <ArrowLeftIcon className="w-3.5 h-3.5" />
                 Back to claimn.co
               </a>
             </div>

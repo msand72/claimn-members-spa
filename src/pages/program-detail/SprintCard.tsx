@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { GlassCard, GlassBadge, GlassAvatar } from '../../components/ui'
-import { Clock, Calendar, CheckCircle } from 'lucide-react'
+import { ClockIcon, CalendarIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import type { Sprint } from '../../lib/api/types'
 
@@ -33,7 +33,7 @@ export function SprintCard({ sprint, index }: { sprint: Sprint; index: number })
                 : 'bg-white/[0.06] text-kalkvit/40'
           )}>
             {sprint.status === 'completed' ? (
-              <CheckCircle className="w-5 h-5" />
+              <CheckCircleIcon className="w-5 h-5" />
             ) : (
               index + 1
             )}
@@ -54,13 +54,13 @@ export function SprintCard({ sprint, index }: { sprint: Sprint; index: number })
             <div className="flex flex-wrap items-center gap-3 text-xs text-kalkvit/50">
               {sprint.duration && (
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
+                  <ClockIcon className="w-3 h-3" />
                   {sprint.duration}
                 </span>
               )}
               {sprint.start_date && (
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
+                  <CalendarIcon className="w-3 h-3" />
                   {new Date(sprint.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
               )}

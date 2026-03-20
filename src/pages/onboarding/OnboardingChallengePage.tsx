@@ -3,48 +3,48 @@ import { useNavigate } from 'react-router-dom'
 import { useUpdateOnboarding, type PrimaryChallenge } from '../../lib/api/hooks/useOnboarding'
 import { OnboardingLayout } from './OnboardingLayout'
 import { GlassButton } from '../../components/ui'
-import { ArrowRight, Compass, Brain, Heart, Users, Target } from 'lucide-react'
+import { ArrowRightIcon, MapPinIcon, CpuChipIcon, HeartIcon, UserGroupIcon, ViewfinderCircleIcon } from '@heroicons/react/24/outline'
 
 const CHALLENGES: Array<{
   id: PrimaryChallenge
   label: string
   description: string
-  icon: typeof Compass
+  icon: typeof MapPinIcon
   pillar: string
 }> = [
   {
     id: 'identity',
     label: 'I feel disconnected from purpose',
     description: 'I need clarity on who I am and where I\'m going',
-    icon: Compass,
+    icon: MapPinIcon,
     pillar: 'Identity & Purpose',
   },
   {
     id: 'vitality',
     label: 'I\'m exhausted and can\'t sustain this pace',
     description: 'My energy, sleep, and physical health need attention',
-    icon: Heart,
+    icon: HeartIcon,
     pillar: 'Physical & Vital',
   },
   {
     id: 'connection',
     label: 'My relationships feel shallow',
     description: 'I want deeper connections and better leadership skills',
-    icon: Users,
+    icon: UserGroupIcon,
     pillar: 'Connection & Leadership',
   },
   {
     id: 'emotional',
     label: 'I lack emotional regulation',
     description: 'Stress, anxiety, or reactivity are holding me back',
-    icon: Brain,
+    icon: CpuChipIcon,
     pillar: 'Emotional & Mental',
   },
   {
     id: 'mission',
     label: 'I\'m successful but unfulfilled',
     description: 'I want mastery and flow in my work and life',
-    icon: Target,
+    icon: ViewfinderCircleIcon,
     pillar: 'Mission & Mastery',
   },
 ]
@@ -123,7 +123,7 @@ export function OnboardingChallengePage() {
           disabled={!selected || updateOnboarding.isPending}
         >
           Continue
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRightIcon className="w-4 h-4" />
         </GlassButton>
       </div>
     </OnboardingLayout>

@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useOnboardingState } from '../lib/api/hooks/useOnboarding'
 import { useSubscription } from '../lib/api/hooks/useSubscription'
-import { Loader2 } from 'lucide-react'
+import { ArrowPathIcon } from '@heroicons/react/24/outline'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -32,7 +32,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (loading || onboardingLoading || subscriptionLoading) {
     return (
       <div className="min-h-screen bg-glass-dark flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+        <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
       </div>
     )
   }

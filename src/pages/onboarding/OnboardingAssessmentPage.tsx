@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { OnboardingLayout } from './OnboardingLayout'
 import { GlassCard, GlassButton } from '../../components/ui'
-import { ClipboardCheck, ArrowRight } from 'lucide-react'
+import { ClipboardDocumentCheckIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 
 /**
  * Step 3: Assessment bridge page.
@@ -20,7 +20,7 @@ export function OnboardingAssessmentPage() {
     <OnboardingLayout step={3} totalSteps={5}>
       <div className="text-center mb-8">
         <div className="w-20 h-20 rounded-2xl bg-koppar/10 flex items-center justify-center mx-auto mb-6">
-          <ClipboardCheck className="w-10 h-10 text-koppar" />
+          <ClipboardDocumentCheckIcon className="w-10 h-10 text-koppar" />
         </div>
         <h1 className="font-display text-3xl md:text-4xl font-bold text-kalkvit mb-3">
           The Five Pillars Assessment
@@ -66,7 +66,7 @@ export function OnboardingAssessmentPage() {
           <span className="text-kalkvit/40 text-sm">~30 minutes</span>
           <GlassButton variant="primary" onClick={handleStart}>
             Start Assessment
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
           </GlassButton>
         </div>
       </GlassCard>

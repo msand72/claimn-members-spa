@@ -3,21 +3,21 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
 import {
-  ArrowLeft,
-  Star,
-  Calendar,
-  Clock,
-  Users,
-  Award,
-  MessageCircle,
-  Video,
-  CheckCircle,
-  MapPin,
-  Briefcase,
-  GraduationCap,
-  Loader2,
-  AlertTriangle,
-} from 'lucide-react'
+  ArrowLeftIcon,
+  StarIcon,
+  CalendarIcon,
+  ClockIcon,
+  UserGroupIcon,
+  TrophyIcon as AwardIcon,
+  ChatBubbleLeftIcon,
+  VideoCameraIcon,
+  CheckCircleIcon,
+  MapPinIcon,
+  BriefcaseIcon,
+  AcademicCapIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useExpert, useExpertTestimonials, useExpertAvailability } from '../lib/api/hooks/useExperts'
 
@@ -57,7 +57,7 @@ export function ExpertProfilePage() {
     return (
       <MainLayout>
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+          <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar" />
         </div>
       </MainLayout>
     )
@@ -67,7 +67,7 @@ export function ExpertProfilePage() {
     return (
       <MainLayout>
         <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <AlertTriangle className="w-8 h-8 text-tegelrod" />
+          <ExclamationTriangleIcon className="w-8 h-8 text-tegelrod" />
           <p className="text-kalkvit/70">Failed to load expert profile.</p>
           <GlassButton variant="secondary" onClick={() => refetch()}>
             Try Again
@@ -92,7 +92,7 @@ export function ExpertProfilePage() {
           to="/experts"
           className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Back to Experts
         </Link>
 
@@ -112,7 +112,7 @@ export function ExpertProfilePage() {
                       <p className="text-koppar text-lg">{expert.title}</p>
                     </div>
                     <div className="flex items-center gap-1 text-brand-amber">
-                      <Star className="w-5 h-5 fill-brand-amber" />
+                      <StarIcon className="w-5 h-5 fill-brand-amber" />
                       <span className="font-semibold">{expert.rating}</span>
                       <span className="text-kalkvit/50 text-sm">({expert.reviews_count} reviews)</span>
                     </div>
@@ -121,18 +121,18 @@ export function ExpertProfilePage() {
                   <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-kalkvit/60">
                     {expert.location && (
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
+                        <MapPinIcon className="w-4 h-4" />
                         {expert.location}
                       </span>
                     )}
                     {expert.experience && (
                       <span className="flex items-center gap-1">
-                        <Briefcase className="w-4 h-4" />
+                        <BriefcaseIcon className="w-4 h-4" />
                         {expert.experience}
                       </span>
                     )}
                     <span className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
+                      <UserGroupIcon className="w-4 h-4" />
                       {expert.total_sessions} sessions
                     </span>
                   </div>
@@ -140,7 +140,7 @@ export function ExpertProfilePage() {
                   <div className="flex gap-2 mt-4">
                     <Link to={`/book-session?expert=${id}`}>
                       <GlassButton variant="primary">
-                        <Calendar className="w-4 h-4" />
+                        <CalendarIcon className="w-4 h-4" />
                         Book Session
                       </GlassButton>
                     </Link>
@@ -150,7 +150,7 @@ export function ExpertProfilePage() {
                         state: { participantName: expert.name, participantAvatar: expert.avatar_url, participantType: 'expert' },
                       })}
                     >
-                      <MessageCircle className="w-4 h-4" />
+                      <ChatBubbleLeftIcon className="w-4 h-4" />
                       Message
                     </GlassButton>
                   </div>
@@ -182,13 +182,13 @@ export function ExpertProfilePage() {
             {(expert.certifications ?? []).length > 0 && (
               <GlassCard variant="base">
                 <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-koppar" />
+                  <AcademicCapIcon className="w-5 h-5 text-koppar" />
                   Certifications
                 </h2>
                 <ul className="space-y-3">
                   {(expert.certifications ?? []).map((cert, i) => (
                     <li key={i} className="flex items-center gap-3 text-kalkvit/70">
-                      <CheckCircle className="w-4 h-4 text-skogsgron flex-shrink-0" />
+                      <CheckCircleIcon className="w-4 h-4 text-skogsgron flex-shrink-0" />
                       {cert}
                     </li>
                   ))}
@@ -200,7 +200,7 @@ export function ExpertProfilePage() {
             {testimonials && testimonials.length > 0 && (
               <GlassCard variant="base">
                 <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-brand-amber" />
+                  <AwardIcon className="w-5 h-5 text-brand-amber" />
                   Client Testimonials
                 </h2>
                 <div className="space-y-4">
@@ -228,7 +228,7 @@ export function ExpertProfilePage() {
                           </div>
                           <div className="flex gap-0.5">
                             {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
+                              <StarIcon
                                 key={i}
                                 className={cn(
                                   'w-3 h-3',
@@ -259,18 +259,18 @@ export function ExpertProfilePage() {
               </div>
               <div className="space-y-2 text-sm text-kalkvit/60">
                 <div className="flex items-center gap-2">
-                  <Video className="w-4 h-4 text-koppar" />
+                  <VideoCameraIcon className="w-4 h-4 text-koppar" />
                   Video sessions included
                 </div>
                 {expert.availability && (
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-koppar" />
+                    <ClockIcon className="w-4 h-4 text-koppar" />
                     {expert.availability}
                   </div>
                 )}
                 {(expert.languages ?? []).length > 0 && (
                   <div className="flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4 text-koppar" />
+                    <ChatBubbleLeftIcon className="w-4 h-4 text-koppar" />
                     {(expert.languages ?? []).join(', ')}
                   </div>
                 )}
@@ -309,12 +309,12 @@ export function ExpertProfilePage() {
                 {selectedDate && selectedDaySlot && (
                   <div className="mt-4 space-y-3">
                     <div className="flex items-center gap-2 text-sm text-kalkvit/60">
-                      <Clock className="w-4 h-4 text-koppar" />
+                      <ClockIcon className="w-4 h-4 text-koppar" />
                       Available {selectedDaySlot.time}
                     </div>
                     <Link to={`/book-session?expert=${id}&date=${selectedDate}`}>
                       <GlassButton variant="primary" className="w-full">
-                        <Calendar className="w-4 h-4" />
+                        <CalendarIcon className="w-4 h-4" />
                         Book {days.find((d) => d.dateStr === selectedDate)?.month}{' '}
                         {days.find((d) => d.dateStr === selectedDate)?.dateNum}
                       </GlassButton>

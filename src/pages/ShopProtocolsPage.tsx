@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { Clock, CheckCircle, Lock, ChevronRight, Loader2, AlertTriangle } from 'lucide-react'
+import { ClockIcon, CheckCircleIcon, LockClosedIcon, ChevronRightIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useProtocols, useMyActiveProtocols, type ProtocolTemplate } from '../lib/api/hooks'
 import { PILLARS } from '../lib/constants'
@@ -74,7 +74,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
           {protocol.isNew && <GlassBadge variant="koppar">New</GlassBadge>}
           {protocol.isPurchased && (
             <GlassBadge variant="success" className="flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" />
+              <CheckCircleIcon className="w-3 h-3" />
               Owned
             </GlassBadge>
           )}
@@ -90,7 +90,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
       {/* Stats */}
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
-          <Clock className="w-4 h-4" />
+          <ClockIcon className="w-4 h-4" />
           {protocol.duration}
         </span>
       </div>
@@ -111,7 +111,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
             <Link to={`/shop/protocols/${protocol.slug}`}>
               <GlassButton variant="primary" className="text-sm">
                 Continue
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRightIcon className="w-4 h-4" />
               </GlassButton>
             </Link>
           </>
@@ -129,7 +129,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
             </div>
             <Link to={`/shop/protocols/${protocol.slug}`}>
               <GlassButton variant="primary" className="text-sm">
-                <Lock className="w-4 h-4" />
+                <LockClosedIcon className="w-4 h-4" />
                 Get Access
               </GlassButton>
             </Link>
@@ -187,7 +187,7 @@ export function ShopProtocolsPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load protocols</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -243,7 +243,7 @@ export function ShopProtocolsPage() {
                 : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
             )}
           >
-            <CheckCircle className="w-4 h-4" />
+            <CheckCircleIcon className="w-4 h-4" />
             Show Owned Only
           </button>
         </div>
@@ -251,7 +251,7 @@ export function ShopProtocolsPage() {
         {/* Loading state */}
         {isLoading && (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 

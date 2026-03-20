@@ -5,12 +5,12 @@ import { PILLARS, ARCHETYPES } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import { useLatestAssessmentResult } from '../lib/api/hooks/useAssessments'
 import {
-  ClipboardCheck,
-  Clock,
-  ArrowRight,
-  Sparkles,
-  Loader2,
-} from 'lucide-react'
+  ClipboardDocumentCheckIcon,
+  ClockIcon,
+  ArrowRightIcon,
+  SparklesIcon,
+  ArrowPathIcon,
+} from '@heroicons/react/24/outline'
 import { PillarIcon } from '../components/icons'
 
 export function AssessmentPage() {
@@ -21,7 +21,7 @@ export function AssessmentPage() {
     return (
       <MainLayout>
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+          <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar" />
         </div>
       </MainLayout>
     )
@@ -39,7 +39,7 @@ export function AssessmentPage() {
         <GlassCard variant="elevated" className="mb-8">
           <div className="text-center py-8">
             <div className="w-20 h-20 rounded-2xl bg-koppar/20 flex items-center justify-center mx-auto mb-6">
-              <ClipboardCheck className="w-10 h-10 text-koppar" />
+              <ClipboardDocumentCheckIcon className="w-10 h-10 text-koppar" />
             </div>
             <h1 className="font-display text-4xl font-bold text-kalkvit mb-4">
               Discover Your Archetype
@@ -50,7 +50,7 @@ export function AssessmentPage() {
             </p>
             <div className="flex items-center justify-center gap-4 text-sm text-kalkvit/50 mb-8">
               <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
+                <ClockIcon className="w-4 h-4" />
                 5-7 minutes
               </span>
               <span>•</span>
@@ -61,7 +61,7 @@ export function AssessmentPage() {
             <Link to="/assessment/take">
               <GlassButton variant="primary" className="text-lg px-8 py-4">
                 Start Assessment
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRightIcon className="w-5 h-5" />
               </GlassButton>
             </Link>
           </div>
@@ -74,7 +74,7 @@ export function AssessmentPage() {
         <GlassCard variant="base" className="mb-6">
           <div className="flex items-start gap-4 mb-4">
             <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-6 h-6 text-koppar" />
+              <SparklesIcon className="w-6 h-6 text-koppar" />
             </div>
             <div>
               <h3 className="font-display text-xl font-semibold text-kalkvit mb-2">
@@ -154,7 +154,7 @@ export function AssessmentPage() {
           <Link to="/assessment/take">
             <GlassButton variant="primary" className="text-lg px-8 py-4">
               Begin Your Assessment
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRightIcon className="w-5 h-5" />
             </GlassButton>
           </Link>
         </div>

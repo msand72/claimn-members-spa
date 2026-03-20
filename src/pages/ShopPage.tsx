@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { ArrowRight, Sparkles, BookOpen, Users, UserCheck, GraduationCap, Loader2 } from 'lucide-react'
+import { ArrowRightIcon, SparklesIcon, BookOpenIcon, UserGroupIcon, UserPlusIcon, AcademicCapIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { useProtocols, useCircles, useExperts, usePrograms } from '../lib/api/hooks'
 
 interface ShopSection {
@@ -32,7 +32,7 @@ function ShopSectionCard({ section }: { section: ShopSection }) {
               {section.title}
             </h3>
             {section.isLoading ? (
-              <Loader2 className="w-4 h-4 text-kalkvit/40 animate-spin" />
+              <ArrowPathIcon className="w-4 h-4 text-kalkvit/40 animate-spin" />
             ) : section.count !== undefined ? (
               <GlassBadge variant="default" className="text-xs">
                 {section.count} available
@@ -43,7 +43,7 @@ function ShopSectionCard({ section }: { section: ShopSection }) {
           <Link to={section.link}>
             <GlassButton variant="secondary" className="group-hover:bg-koppar group-hover:border-koppar">
               {section.linkText}
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRightIcon className="w-4 h-4" />
             </GlassButton>
           </Link>
         </div>
@@ -64,7 +64,7 @@ export function ShopPage() {
       id: 'protocols',
       title: 'Protocols',
       description: 'Structured daily practices for transformation. Follow proven frameworks for physical fitness, mental clarity, and personal growth.',
-      icon: <BookOpen className="w-7 h-7 text-koppar" />,
+      icon: <BookOpenIcon className="w-7 h-7 text-koppar" />,
       link: '/shop/protocols',
       linkText: 'Browse Protocols',
       count: protocols?.length,
@@ -74,7 +74,7 @@ export function ShopPage() {
       id: 'circles',
       title: 'Circles',
       description: 'Join exclusive communities of high-achievers. Connect with like-minded individuals, share experiences, and grow together.',
-      icon: <Users className="w-7 h-7 text-koppar" />,
+      icon: <UserGroupIcon className="w-7 h-7 text-koppar" />,
       link: '/shop/circles',
       linkText: 'Explore Circles',
       count: circlesData?.pagination?.total,
@@ -84,7 +84,7 @@ export function ShopPage() {
       id: 'coaching',
       title: 'Expert Coaching',
       description: 'Book 1-on-1 sessions with certified coaches. Get personalized guidance tailored to your specific challenges and goals.',
-      icon: <UserCheck className="w-7 h-7 text-koppar" />,
+      icon: <UserPlusIcon className="w-7 h-7 text-koppar" />,
       link: '/experts',
       linkText: 'Find a Coach',
       count: expertsData?.pagination?.total,
@@ -94,7 +94,7 @@ export function ShopPage() {
       id: 'programs',
       title: 'Programs & Courses',
       description: 'Deep-dive learning experiences. Multi-week programs covering mindset mastery, leadership, and life optimization.',
-      icon: <GraduationCap className="w-7 h-7 text-koppar" />,
+      icon: <AcademicCapIcon className="w-7 h-7 text-koppar" />,
       link: '/programs',
       linkText: 'View Programs',
       count: programsData?.pagination?.total,
@@ -112,9 +112,9 @@ export function ShopPage() {
           </div>
           <Link to="/shop/upgrade">
             <GlassButton variant="primary">
-              <Sparkles className="w-4 h-4" />
+              <SparklesIcon className="w-4 h-4" />
               Upgrade Membership
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRightIcon className="w-4 h-4" />
             </GlassButton>
           </Link>
         </div>

@@ -1,15 +1,15 @@
-import type { LucideIcon } from 'lucide-react'
-import { Inbox } from 'lucide-react'
+import type React from 'react'
+import { InboxIcon } from '@heroicons/react/24/outline'
 
 interface EmptyStateProps {
-  icon?: LucideIcon
+  icon?: React.ComponentType<{ className?: string }>
   title: string
   description?: string
   action?: React.ReactNode
 }
 
 export function EmptyState({
-  icon: Icon = Inbox,
+  icon: Icon = InboxIcon,
   title,
   description,
   action,

@@ -1,4 +1,4 @@
-import { Bug } from 'lucide-react'
+import { BugAntIcon } from '@heroicons/react/24/outline'
 import { useBugReport } from '../contexts/BugReportContext'
 
 export function ReportBugButton() {
@@ -13,7 +13,7 @@ export function ReportBugButton() {
       className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium bg-white/[0.08] backdrop-blur-[16px] border border-white/[0.12] text-kalkvit/60 hover:text-kalkvit hover:bg-white/[0.12] hover:border-white/[0.2] transition-all duration-200 shadow-lg"
       aria-label="Report a bug"
     >
-      <Bug className="w-4 h-4" />
+      <BugAntIcon className="w-4 h-4" />
       Report a Bug
     </button>
   )

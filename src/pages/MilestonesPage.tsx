@@ -14,29 +14,29 @@ import type { PillarId, MilestoneStatus } from '../lib/constants'
 import { useMilestones, useUpdateMilestoneStatus } from '../lib/api/hooks'
 import type { Milestone } from '../lib/api/hooks'
 import {
-  Flag,
-  Calendar,
-  User,
-  ChevronRight,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  Trophy,
-  MessageSquare,
-  Loader2,
-} from 'lucide-react'
+  FlagIcon,
+  CalendarIcon,
+  UserIcon,
+  ChevronRightIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  TrophyIcon,
+  ChatBubbleBottomCenterTextIcon,
+  ArrowPathIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 const getStatusIcon = (status: MilestoneStatus) => {
   switch (status) {
     case 'achieved':
-      return Trophy
+      return TrophyIcon
     case 'on_track':
-      return CheckCircle2
+      return CheckCircleIcon
     case 'delayed':
-      return AlertTriangle
+      return ExclamationTriangleIcon
     default:
-      return Clock
+      return ClockIcon
   }
 }
 
@@ -87,7 +87,7 @@ function MilestoneCard({
       {/* Target Date */}
       <div className="flex items-center gap-4 mb-4 text-sm">
         <div className="flex items-center gap-1 text-kalkvit/60">
-          <Calendar className="w-4 h-4" />
+          <CalendarIcon className="w-4 h-4" />
           <span>{new Date(milestone.target_date).toLocaleDateString()}</span>
         </div>
         {daysUntil > 0 && (
@@ -106,7 +106,7 @@ function MilestoneCard({
       {milestone.progress_notes && (
         <div className="p-3 rounded-lg bg-white/[0.04] mb-4">
           <div className="flex items-center gap-2 text-xs text-kalkvit/50 mb-1">
-            <MessageSquare className="w-3 h-3" />
+            <ChatBubbleBottomCenterTextIcon className="w-3 h-3" />
             Latest notes
           </div>
           <p className="text-sm text-kalkvit/80">{milestone.progress_notes}</p>
@@ -116,14 +116,14 @@ function MilestoneCard({
       {/* Footer */}
       <div className="flex items-center justify-between pt-3 border-t border-white/10">
         <div className="flex items-center gap-2 text-xs text-kalkvit/50">
-          <User className="w-3 h-3" />
+          <UserIcon className="w-3 h-3" />
           <span>
             {milestone.created_by.name} ({milestone.created_by.role})
           </span>
         </div>
         <GlassButton variant="ghost" onClick={() => onUpdateStatus(milestone)}>
           Update
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRightIcon className="w-4 h-4" />
         </GlassButton>
       </div>
     </GlassCard>
@@ -189,7 +189,7 @@ export function MilestonesPage() {
     return (
       <MainLayout>
         <div className="max-w-6xl mx-auto flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       </MainLayout>
     )
@@ -200,7 +200,7 @@ export function MilestonesPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <Flag className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <FlagIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Unable to load milestones</h3>
             <p className="text-kalkvit/50 text-sm">Please try again later.</p>
           </GlassCard>
@@ -223,7 +223,7 @@ export function MilestonesPage() {
           </div>
 
           <GlassCard variant="elevated" className="text-center py-16">
-            <Flag className="w-16 h-16 text-koppar mx-auto mb-6" />
+            <FlagIcon className="w-16 h-16 text-koppar mx-auto mb-6" />
             <h2 className="font-display text-2xl font-bold text-kalkvit mb-3">
               No Milestones Yet
             </h2>
@@ -234,13 +234,13 @@ export function MilestonesPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/book-session">
                 <GlassButton variant="primary">
-                  <User className="w-4 h-4" />
+                  <UserIcon className="w-4 h-4" />
                   Book Expert Session
                 </GlassButton>
               </Link>
               <Link to="/goals">
                 <GlassButton variant="secondary">
-                  <Flag className="w-4 h-4" />
+                  <FlagIcon className="w-4 h-4" />
                   View Your Goals
                 </GlassButton>
               </Link>
@@ -250,7 +250,7 @@ export function MilestonesPage() {
           <GlassCard variant="accent" className="mt-8">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center flex-shrink-0">
-                <Flag className="w-6 h-6 text-koppar" />
+                <FlagIcon className="w-6 h-6 text-koppar" />
               </div>
               <div>
                 <h3 className="font-semibold text-kalkvit mb-2">What are Milestones?</h3>
@@ -282,22 +282,22 @@ export function MilestonesPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
-            <Flag className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <FlagIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{totalMilestones}</p>
             <p className="text-xs text-kalkvit/50">Total Milestones</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <CheckCircle2 className="w-6 h-6 text-skogsgron mx-auto mb-2" />
+            <CheckCircleIcon className="w-6 h-6 text-skogsgron mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{onTrackCount}</p>
             <p className="text-xs text-kalkvit/50">On Track</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <Trophy className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <TrophyIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{achievedCount}</p>
             <p className="text-xs text-kalkvit/50">Achieved</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <AlertTriangle className="w-6 h-6 text-brandAmber mx-auto mb-2" />
+            <ExclamationTriangleIcon className="w-6 h-6 text-brandAmber mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{delayedCount}</p>
             <p className="text-xs text-kalkvit/50">Delayed</p>
           </GlassCard>
@@ -310,7 +310,7 @@ export function MilestonesPage() {
             {pillarProgress.map(({ pillar, achieved, total, progress }) => (
               <div key={pillar.id} className="text-center">
                 <div className="w-12 h-12 rounded-xl bg-white/[0.06] flex items-center justify-center mx-auto mb-2">
-                  <Flag className={cn('w-5 h-5', `text-${pillar.color}`)} />
+                  <FlagIcon className={cn('w-5 h-5', `text-${pillar.color}`)} />
                 </div>
                 <p className="text-xs text-kalkvit/50 mb-1">{pillar.name}</p>
                 <p className="text-sm font-medium text-kalkvit">
@@ -361,7 +361,7 @@ export function MilestonesPage() {
           </div>
         ) : (
           <GlassCard variant="base" className="text-center py-12">
-            <Flag className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <FlagIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">No milestones found</h3>
             <p className="text-kalkvit/50 text-sm">
               {filter === 'all'

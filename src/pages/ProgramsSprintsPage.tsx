@@ -5,17 +5,17 @@ import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/u
 import { useSprints, useJoinSprint } from '../lib/api/hooks'
 import type { Sprint } from '../lib/api/types'
 import {
-  Calendar,
-  Clock,
-  Users,
-  Target,
-  CheckCircle,
-  ArrowLeft,
-  ChevronRight,
-  Zap,
-  Loader2,
-  AlertTriangle,
-} from 'lucide-react'
+  CalendarIcon,
+  ClockIcon,
+  UserGroupIcon,
+  ViewfinderCircleIcon,
+  CheckCircleIcon,
+  ArrowLeftIcon,
+  ChevronRightIcon,
+  BoltIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 function SprintCard({
@@ -52,7 +52,7 @@ function SprintCard({
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-koppar/20">
-            <Zap className="w-5 h-5 text-koppar" />
+            <BoltIcon className="w-5 h-5 text-koppar" />
           </div>
           <div>
             <h3 className="font-semibold text-kalkvit group-hover:text-koppar transition-colors">
@@ -69,15 +69,15 @@ function SprintCard({
       {/* Dates and duration */}
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
-          <Calendar className="w-4 h-4" />
+          <CalendarIcon className="w-4 h-4" />
           {sprint.start_date ? new Date(sprint.start_date).toLocaleDateString() : 'TBD'}
         </span>
         <span className="flex items-center gap-1">
-          <Clock className="w-4 h-4" />
+          <ClockIcon className="w-4 h-4" />
           {sprint.duration}
         </span>
         <span className="flex items-center gap-1">
-          <Users className="w-4 h-4" />
+          <UserGroupIcon className="w-4 h-4" />
           {sprint.participants}/{sprint.max_participants}
         </span>
       </div>
@@ -86,7 +86,7 @@ function SprintCard({
       {sprint.goals && sprint.goals.length > 0 && (
         <div className="mb-4">
           <p className="text-xs text-kalkvit/40 mb-2 flex items-center gap-1">
-            <Target className="w-3 h-3" />
+            <ViewfinderCircleIcon className="w-3 h-3" />
             Sprint Goals
           </p>
           <div className="flex flex-wrap gap-2">
@@ -144,7 +144,7 @@ function SprintCard({
             disabled={isJoining || spotsLeft <= 0}
           >
             {isJoining ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
             ) : (
               <>
                 Join Sprint
@@ -162,7 +162,7 @@ function SprintCard({
             onClick={() => onViewProgress(sprint.id)}
           >
             View Progress
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRightIcon className="w-4 h-4" />
           </GlassButton>
         )}
         {sprint.status === 'completed' && (
@@ -171,7 +171,7 @@ function SprintCard({
             className="text-sm"
             onClick={() => onViewResults(sprint.id)}
           >
-            <CheckCircle className="w-4 h-4 text-skogsgron" />
+            <CheckCircleIcon className="w-4 h-4 text-skogsgron" />
             View Results
           </GlassButton>
         )}
@@ -223,7 +223,7 @@ export function ProgramsSprintsPage() {
       <MainLayout>
         <div className="max-w-5xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load sprints</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -242,7 +242,7 @@ export function ProgramsSprintsPage() {
           to="/programs"
           className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Back to Programs
         </Link>
 
@@ -298,7 +298,7 @@ export function ProgramsSprintsPage() {
         {/* Sprints Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         ) : sprints.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

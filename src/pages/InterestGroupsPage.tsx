@@ -10,14 +10,14 @@ import {
   useLeaveInterestGroup,
 } from '../hooks/useInterestGroups'
 import {
-  Search,
-  Users,
-  MessageSquare,
-  Heart,
-  ChevronRight,
-  Plus,
-  LogOut,
-} from 'lucide-react'
+  MagnifyingGlassIcon,
+  UserGroupIcon,
+  ChatBubbleLeftRightIcon,
+  HeartIcon,
+  ChevronRightIcon,
+  PlusIcon,
+  ArrowRightOnRectangleIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 export function InterestGroupsPage() {
@@ -110,7 +110,7 @@ export function InterestGroupsPage() {
 
         {/* Search */}
         <div className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
+          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
           <GlassInput
             placeholder="Search interest groups..."
             className="pl-12"
@@ -144,7 +144,7 @@ export function InterestGroupsPage() {
                           )}
                         </div>
                         <GlassBadge variant="success" className="text-xs">
-                          <Users className="w-3 h-3" />
+                          <UserGroupIcon className="w-3 h-3" />
                           Joined
                         </GlassBadge>
                       </div>
@@ -157,11 +157,11 @@ export function InterestGroupsPage() {
 
                       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
                         <span className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
+                          <UserGroupIcon className="w-4 h-4" />
                           {group.member_count} members
                         </span>
                         <span className="flex items-center gap-1">
-                          <MessageSquare className="w-4 h-4" />
+                          <ChatBubbleLeftRightIcon className="w-4 h-4" />
                           {group.post_count ?? 0} posts
                         </span>
                       </div>
@@ -173,7 +173,7 @@ export function InterestGroupsPage() {
                           onClick={() => navigate(`/feed?group=${group.id}`)}
                         >
                           View Group
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRightIcon className="w-4 h-4" />
                         </GlassButton>
                         <GlassButton
                           variant="ghost"
@@ -181,7 +181,7 @@ export function InterestGroupsPage() {
                           onClick={() => handleLeaveGroup(group.id, group.name)}
                           disabled={leaveGroup.isPending}
                         >
-                          <LogOut className="w-4 h-4" />
+                          <ArrowRightOnRectangleIcon className="w-4 h-4" />
                         </GlassButton>
                       </div>
                     </GlassCard>
@@ -189,7 +189,7 @@ export function InterestGroupsPage() {
               </div>
             ) : (
               <GlassCard variant="base" className="text-center py-12">
-                <Heart className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+                <HeartIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
                 <h3 className="font-medium text-kalkvit mb-2">
                   {searchQuery ? 'No groups match your search' : 'No groups joined yet'}
                 </h3>
@@ -232,11 +232,11 @@ export function InterestGroupsPage() {
 
                     <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
                       <span className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
+                        <UserGroupIcon className="w-4 h-4" />
                         {group.member_count} members
                       </span>
                       <span className="flex items-center gap-1">
-                        <MessageSquare className="w-4 h-4" />
+                        <ChatBubbleLeftRightIcon className="w-4 h-4" />
                         {group.post_count} posts
                       </span>
                     </div>
@@ -247,7 +247,7 @@ export function InterestGroupsPage() {
                       onClick={() => handleJoinGroup(group.id, group.name)}
                       disabled={joinGroup.isPending}
                     >
-                      <Plus className="w-4 h-4" />
+                      <PlusIcon className="w-4 h-4" />
                       {joinGroup.isPending ? 'Joining...' : 'Join Group'}
                     </GlassButton>
                   </GlassCard>
@@ -255,7 +255,7 @@ export function InterestGroupsPage() {
               </div>
             ) : (
               <GlassCard variant="base" className="text-center py-12">
-                <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+                <UserGroupIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
                 <h3 className="font-medium text-kalkvit mb-2">
                   {searchQuery ? 'No groups match your search' : 'All caught up!'}
                 </h3>

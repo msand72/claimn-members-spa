@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, CheckCircle2, ArrowRight, Clock, Compass } from 'lucide-react'
+import { ArrowPathIcon, CheckCircleIcon, ArrowRightIcon, ClockIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import { GlassCard, GlassButton, GlassBadge } from '../ui'
 import { useProtocolTemplate, useStartProtocol } from '../../lib/api/hooks'
 import { PILLARS, type PillarId } from '../../lib/constants'
@@ -52,7 +52,7 @@ export function RecommendedProtocol({ protocolSlug }: RecommendedProtocolProps) 
     return (
       <GlassCard>
         <div className="flex flex-col items-center text-center py-4 gap-3">
-          <CheckCircle2 className="w-10 h-10 text-koppar" />
+          <CheckCircleIcon className="w-10 h-10 text-koppar" />
           <h4 className="font-display text-lg font-semibold text-kalkvit">
             Protocol Started!
           </h4>
@@ -61,7 +61,7 @@ export function RecommendedProtocol({ protocolSlug }: RecommendedProtocolProps) 
           </p>
           <Link to={`/protocols/${protocolSlug}`}>
             <GlassButton variant="primary" className="mt-2">
-              Go to Protocol <ArrowRight className="w-4 h-4 ml-1" />
+              Go to Protocol <ArrowRightIcon className="w-4 h-4 ml-1" />
             </GlassButton>
           </Link>
         </div>
@@ -72,7 +72,7 @@ export function RecommendedProtocol({ protocolSlug }: RecommendedProtocolProps) 
   return (
     <GlassCard>
       <div className="flex items-center gap-2 mb-3">
-        <Compass className="w-4 h-4 text-koppar" />
+        <MapPinIcon className="w-4 h-4 text-koppar" />
         <span className="text-[10px] uppercase tracking-wider font-semibold text-kalkvit/40">
           Recommended Protocol
         </span>
@@ -88,7 +88,7 @@ export function RecommendedProtocol({ protocolSlug }: RecommendedProtocolProps) 
         )}
         {template.duration_weeks && (
           <span className="flex items-center gap-1 text-kalkvit/50 text-xs">
-            <Clock className="w-3.5 h-3.5" />
+            <ClockIcon className="w-3.5 h-3.5" />
             {template.duration_weeks} weeks
           </span>
         )}
@@ -108,7 +108,7 @@ export function RecommendedProtocol({ protocolSlug }: RecommendedProtocolProps) 
         >
           {startProtocol.isPending ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
               Starting...
             </>
           ) : (

@@ -1,3 +1,4 @@
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton } from '../components/ui'
@@ -9,35 +10,34 @@ import {
   safeArray,
 } from '../lib/api'
 import {
-  Bell,
-  BellOff,
-  CheckCheck,
-  Target,
-  BarChart3,
-  Milestone,
-  Package,
-  ListTodo,
-  MessageCircle,
-  Calendar,
-  ArrowRight,
-  Loader2,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+  BellIcon,
+  BellSlashIcon,
+  CheckIcon,
+  ViewfinderCircleIcon,
+  ChartBarIcon,
+  FlagIcon,
+  CubeIcon,
+  ListBulletIcon,
+  ChatBubbleLeftIcon,
+  CalendarIcon,
+  ArrowRightIcon,
+  ArrowPathIcon,
+} from '@heroicons/react/24/outline'
 
 // Map notification types to icons for visual differentiation
-const TYPE_ICONS: Record<string, LucideIcon> = {
-  goal_created: Target,
-  kpi_created: BarChart3,
-  milestone_created: Milestone,
-  protocol_assigned: Package,
-  action_item_created: ListTodo,
-  message_received: MessageCircle,
-  session_scheduled: Calendar,
-  session_reminder: Calendar,
+const TYPE_ICONS: Record<string, React.ElementType> = {
+  goal_created: ViewfinderCircleIcon,
+  kpi_created: ChartBarIcon,
+  milestone_created: FlagIcon,
+  protocol_assigned: CubeIcon,
+  action_item_created: ListBulletIcon,
+  message_received: ChatBubbleLeftIcon,
+  session_scheduled: CalendarIcon,
+  session_reminder: CalendarIcon,
 }
 
-function getNotificationIcon(type: string): LucideIcon {
-  return TYPE_ICONS[type] || Bell
+function getNotificationIcon(type: string): React.ElementType {
+  return TYPE_ICONS[type] || BellIcon
 }
 
 function formatTimeAgo(dateStr: string): string {
@@ -91,7 +91,7 @@ function NotificationItem({
         </span>
       </div>
       {notification.action_url && (
-        <ArrowRight className="w-4 h-4 text-kalkvit/30 shrink-0 mt-1" />
+        <ArrowRightIcon className="w-4 h-4 text-kalkvit/30 shrink-0 mt-1" />
       )}
     </div>
   )
@@ -134,7 +134,7 @@ export function NotificationsPage() {
               disabled={markAllRead.isPending}
               className="text-sm"
             >
-              <CheckCheck className="w-4 h-4" />
+              <CheckIcon className="w-4 h-4" />
               Mark all read
             </GlassButton>
           )}
@@ -142,12 +142,12 @@ export function NotificationsPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+            <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar" />
           </div>
         ) : notifications.length === 0 ? (
           <GlassCard variant="base">
             <div className="text-center py-12">
-              <BellOff className="w-12 h-12 text-kalkvit/15 mx-auto mb-3" />
+              <BellSlashIcon className="w-12 h-12 text-kalkvit/15 mx-auto mb-3" />
               <p className="text-kalkvit/50 text-sm">No notifications yet</p>
             </div>
           </GlassCard>

@@ -12,21 +12,21 @@ import {
 } from '../lib/api/hooks'
 import type { CVCAssessmentStatus } from '../lib/api/types'
 import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Users,
-  Loader2,
-  AlertTriangle,
-  UserCheck,
-  UserMinus,
-  ClipboardCheck,
-  CheckCircle,
-  Circle,
-  BarChart3,
-  ArrowRight,
-  BookOpen,
-} from 'lucide-react'
+  ArrowLeftIcon,
+  CalendarIcon,
+  ClockIcon,
+  UserGroupIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  UserPlusIcon as UserCheckIcon,
+  UserMinusIcon,
+  ClipboardDocumentCheckIcon,
+  CheckCircleIcon,
+  MinusIcon,
+  ChartBarIcon,
+  ArrowRightIcon,
+  BookOpenIcon,
+} from '@heroicons/react/24/outline'
 
 
 function formatEventDate(iso: string): string {
@@ -99,7 +99,7 @@ export function EventDetailPage() {
       <MainLayout>
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         </div>
       </MainLayout>
@@ -114,11 +114,11 @@ export function EventDetailPage() {
             to="/events"
             className="inline-flex items-center gap-1 text-sm text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4" />
             Back to Events
           </Link>
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load event</h3>
             <p className="text-kalkvit/50 text-sm">
               This event may not exist or there was a connection issue.
@@ -141,7 +141,7 @@ export function EventDetailPage() {
           to={isGoSession && goProgramId ? `/programs/${goProgramId}` : '/events'}
           className="inline-flex items-center gap-1 text-sm text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           {isGoSession && goProgramId ? 'Back to GO Program' : 'Back to Events'}
         </Link>
 
@@ -167,15 +167,15 @@ export function EventDetailPage() {
 
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-kalkvit/60">
             <span className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-koppar" />
+              <CalendarIcon className="w-4 h-4 text-koppar" />
               {formatEventDate(event.scheduled_date)}
             </span>
             <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-koppar" />
+              <ClockIcon className="w-4 h-4 text-koppar" />
               {formatEventTime(event.scheduled_date)}
             </span>
             <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-koppar" />
+              <ClockIcon className="w-4 h-4 text-koppar" />
               {formatDuration(event.duration_minutes)}
             </span>
           </div>
@@ -269,12 +269,12 @@ export function EventDetailPage() {
               <Link to={goProgramId ? `/programs/${goProgramId}` : '/programs'}>
                 <GlassCard variant="base" className="border border-koppar/30 hover:border-koppar/50 transition-colors group">
                   <div className="flex items-center gap-3">
-                    <BookOpen className="w-5 h-5 text-koppar" />
+                    <BookOpenIcon className="w-5 h-5 text-koppar" />
                     <div className="flex-1">
                       <p className="font-medium text-kalkvit text-sm">My GO Program</p>
                       <p className="text-xs text-kalkvit/50">Sprints, assessments & progress</p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                    <ArrowRightIcon className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
                   </div>
                 </GlassCard>
               </Link>
@@ -306,7 +306,7 @@ export function EventDetailPage() {
                 Capacity
               </h2>
               <div className="flex items-center gap-2 mb-3">
-                <Users className="w-5 h-5 text-koppar" />
+                <UserGroupIcon className="w-5 h-5 text-koppar" />
                 <span className="text-kalkvit font-medium">
                   {event.registered_count}/{event.capacity} spots
                 </span>
@@ -334,7 +334,7 @@ export function EventDetailPage() {
                       className="w-full"
                       onClick={() => unregisterMutation.mutate(event.id)}
                     >
-                      <UserMinus className="w-4 h-4" />
+                      <UserMinusIcon className="w-4 h-4" />
                       Unregister
                     </GlassButton>
                   ) : (
@@ -344,7 +344,7 @@ export function EventDetailPage() {
                       onClick={() => registerMutation.mutate(event.id)}
                       disabled={isFull}
                     >
-                      <UserCheck className="w-4 h-4" />
+                      <UserCheckIcon className="w-4 h-4" />
                       {isFull ? 'Event Full' : 'Register'}
                     </GlassButton>
                   )}
@@ -362,7 +362,7 @@ export function EventDetailPage() {
             {event.event_type === 'session' && event.is_registered && cvcAssessments.length > 0 && (
               <GlassCard variant="base">
                 <div className="flex items-center gap-2 mb-4">
-                  <ClipboardCheck className="w-5 h-5 text-koppar" />
+                  <ClipboardDocumentCheckIcon className="w-5 h-5 text-koppar" />
                   <h2 className="font-display text-lg font-semibold text-kalkvit">
                     Vitality Checks
                   </h2>
@@ -380,9 +380,9 @@ export function EventDetailPage() {
                         className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.04]"
                       >
                         {assessment.is_completed ? (
-                          <CheckCircle className="w-5 h-5 text-skogsgron shrink-0" />
+                          <CheckCircleIcon className="w-5 h-5 text-skogsgron shrink-0" />
                         ) : (
-                          <Circle className="w-5 h-5 text-kalkvit/30 shrink-0" />
+                          <MinusIcon className="w-5 h-5 text-kalkvit/30 shrink-0" />
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-kalkvit truncate">
@@ -421,12 +421,12 @@ export function EventDetailPage() {
               <Link to="/kpis">
                 <GlassCard variant="base" className="hover:border-koppar/30 transition-colors group">
                   <div className="flex items-center gap-3">
-                    <BarChart3 className="w-5 h-5 text-koppar" />
+                    <ChartBarIcon className="w-5 h-5 text-koppar" />
                     <div className="flex-1">
                       <p className="font-medium text-kalkvit text-sm">Vitality KPIs</p>
                       <p className="text-xs text-kalkvit/50">Track your biomarker progress</p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                    <ArrowRightIcon className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
                   </div>
                 </GlassCard>
               </Link>

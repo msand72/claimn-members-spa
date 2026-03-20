@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
-import { Menu, X, LogOut, Home, User, CreditCard, TrendingUp, Users, Sparkles, GraduationCap, ShoppingBag, Library, Bell } from 'lucide-react'
+import { Bars3Icon, XMarkIcon, ArrowLeftOnRectangleIcon, HomeIcon, UserIcon, CreditCardIcon, ArrowTrendingUpIcon, UserGroupIcon, SparklesIcon, AcademicCapIcon, ShoppingBagIcon, BuildingLibraryIcon, BellIcon } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import { useAuth } from '../../contexts/AuthContext'
 import { ThemeToggle } from '../ui/ThemeToggle'
@@ -8,11 +8,11 @@ import { useCurrentSection, SECTION_KEYS, SECTION_NAV } from './sectionNav'
 import { useNotifications, safeArray, type Notification } from '../../lib/api'
 
 const SECTION_ICONS: Record<string, React.ElementType> = {
-  growth: TrendingUp,
-  community: Users,
-  coaching: Sparkles,
-  programs: GraduationCap,
-  shop: ShoppingBag,
+  growth: ArrowTrendingUpIcon,
+  community: UserGroupIcon,
+  coaching: SparklesIcon,
+  programs: AcademicCapIcon,
+  shop: ShoppingBagIcon,
 }
 
 const SECTION_LABELS: Record<string, string> = {
@@ -24,9 +24,9 @@ const SECTION_LABELS: Record<string, string> = {
 }
 
 const accountLinks = [
-  { to: '/profile', icon: User, label: 'Profile' },
-  { to: '/billing', icon: CreditCard, label: 'Billing' },
-  { to: '/resources', icon: Library, label: 'Resources' },
+  { to: '/profile', icon: UserIcon, label: 'Profile' },
+  { to: '/billing', icon: CreditCardIcon, label: 'Billing' },
+  { to: '/resources', icon: BuildingLibraryIcon, label: 'Resources' },
 ]
 
 const linkClasses = 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200'
@@ -65,7 +65,7 @@ export function MobileHeader() {
               className="relative p-2 rounded-xl text-kalkvit/70 hover:bg-white/[0.06] hover:text-kalkvit transition-colors"
               aria-label="Notifications"
             >
-              <Bell className="w-5 h-5" />
+              <BellIcon className="w-5 h-5" />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-koppar text-[10px] font-bold text-kalkvit flex items-center justify-center">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -77,7 +77,7 @@ export function MobileHeader() {
               className="p-2 rounded-xl text-kalkvit/70 hover:bg-white/[0.06] hover:text-kalkvit transition-colors"
               aria-label="Toggle menu"
             >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isOpen ? <XMarkIcon className="w-6 h-6" /> : <Bars3Icon className="w-6 h-6" />}
             </button>
           </div>
         </div>
@@ -113,7 +113,7 @@ export function MobileHeader() {
                   : inactiveClasses
               )}
             >
-              <Home className="w-5 h-5" />
+              <HomeIcon className="w-5 h-5" />
               Dashboard
             </NavLink>
             {SECTION_KEYS.filter((key) => key !== 'dashboard').map((key) => {
@@ -165,7 +165,7 @@ export function MobileHeader() {
                 'transition-all duration-200'
               )}
             >
-              <LogOut className="w-5 h-5" />
+              <ArrowLeftOnRectangleIcon className="w-5 h-5" />
               Sign Out
             </button>
           </div>

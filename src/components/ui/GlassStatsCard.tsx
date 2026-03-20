@@ -1,9 +1,9 @@
-import { cn, colors } from '../../lib/utils'
+import type React from 'react'
+import { cn } from '../../lib/utils'
 import { GlassCard } from './GlassCard'
-import type { LucideIcon } from 'lucide-react'
 
 interface GlassStatsCardProps {
-  icon: LucideIcon
+  icon: React.ComponentType<{ className?: string }>
   label: string
   value: string | number
   trend?: string
@@ -23,7 +23,7 @@ export function GlassStatsCard({
     <GlassCard variant="accent" leftBorder={false} className={className}>
       <div className="flex items-start gap-4">
         <div className="bg-sandbeige/10 p-3.5 rounded-[14px]">
-          <Icon size={28} color={colors.koppar} />
+          <Icon className="w-7 h-7 text-koppar" />
         </div>
         <div className="flex-1">
           <div className="font-sans text-[13px] font-medium text-kalkvit/60 mb-1.5">

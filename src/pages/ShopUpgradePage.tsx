@@ -6,36 +6,36 @@ import { useCheckout, useSubscription, usePlans } from '../lib/api/hooks'
 import type { PlanInfo } from '../lib/api/hooks'
 import { isAllowedExternalUrl } from '../lib/url-validation'
 import {
-  Check,
-  X,
-  Star,
-  Zap,
-  GraduationCap,
-  ArrowRight,
-  Shield,
-  Users,
-  BookOpen,
-  Video,
-  MessageCircle,
-  Award,
-  Loader2,
-} from 'lucide-react'
+  CheckIcon,
+  XMarkIcon,
+  StarIcon,
+  BoltIcon,
+  AcademicCapIcon,
+  ArrowRightIcon,
+  ShieldCheckIcon,
+  UserGroupIcon,
+  BookOpenIcon,
+  VideoCameraIcon,
+  ChatBubbleLeftIcon,
+  TrophyIcon,
+  ArrowPathIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 // UI-only metadata per tier (icons, popularity, "not included" features for comparison)
 const tierMeta: Record<string, { icon: React.ElementType; isPopular: boolean; notIncluded: string[] }> = {
   brotherhood: {
-    icon: Star,
+    icon: StarIcon,
     isPopular: false,
     notIncluded: ['Expert 1:1 sessions', 'Quarterly intensives'],
   },
   coaching: {
-    icon: Zap,
+    icon: BoltIcon,
     isPopular: true,
     notIncluded: [],
   },
   programs: {
-    icon: GraduationCap,
+    icon: AcademicCapIcon,
     isPopular: false,
     notIncluded: [],
   },
@@ -82,7 +82,7 @@ function PlanCard({ plan, isAnnual, isCurrent, currentTier, onUpgrade, isLoading
   isLoading: boolean
   isDisabled: boolean
 }) {
-  const meta = tierMeta[plan.tier] || { icon: Star, isPopular: false, notIncluded: [] }
+  const meta = tierMeta[plan.tier] || { icon: StarIcon, isPopular: false, notIncluded: [] }
   const Icon = meta.icon
   const isProgramsTier = plan.tier === 'programs'
   const isDowngrade = (TIER_LEVELS[plan.tier] ?? 0) < (TIER_LEVELS[currentTier] ?? 0)
@@ -163,7 +163,7 @@ function PlanCard({ plan, isAnnual, isCurrent, currentTier, onUpgrade, isLoading
           <Link to="/programs">
             <GlassButton variant="secondary" className="w-full mb-6">
               Browse Programs
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRightIcon className="w-4 h-4" />
             </GlassButton>
           </Link>
         </>
@@ -183,11 +183,11 @@ function PlanCard({ plan, isAnnual, isCurrent, currentTier, onUpgrade, isLoading
           disabled={isLoading || isDisabled}
         >
           {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <ArrowPathIcon className="w-4 h-4 animate-spin" />
           ) : (
             <>
               Upgrade to {plan.name}
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRightIcon className="w-4 h-4" />
             </>
           )}
         </GlassButton>
@@ -199,7 +199,7 @@ function PlanCard({ plan, isAnnual, isCurrent, currentTier, onUpgrade, isLoading
             key={i}
             className="flex items-center gap-3 text-sm text-kalkvit/70"
           >
-            <Check className={cn('w-5 h-5 flex-shrink-0', highlightedFeatures.has(feature) ? 'text-skogsgron' : 'text-kalkvit/50')} />
+            <CheckIcon className={cn('w-5 h-5 flex-shrink-0', highlightedFeatures.has(feature) ? 'text-skogsgron' : 'text-kalkvit/50')} />
             <span className={highlightedFeatures.has(feature) ? 'font-medium text-kalkvit' : ''}>
               {feature}
             </span>
@@ -210,7 +210,7 @@ function PlanCard({ plan, isAnnual, isCurrent, currentTier, onUpgrade, isLoading
             key={`not-${i}`}
             className="flex items-center gap-3 text-sm text-kalkvit/30"
           >
-            <X className="w-5 h-5 text-kalkvit/20 flex-shrink-0" />
+            <XMarkIcon className="w-5 h-5 text-kalkvit/20 flex-shrink-0" />
             <span>{feature}</span>
           </li>
         ))}
@@ -342,28 +342,28 @@ export function ShopUpgradePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 mx-auto mb-3 flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-koppar" />
+                <BookOpenIcon className="w-6 h-6 text-koppar" />
               </div>
               <h3 className="font-medium text-kalkvit mb-1">Premium Protocols</h3>
               <p className="text-xs text-kalkvit/50">Structured programs for transformation</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 mx-auto mb-3 flex items-center justify-center">
-                <Video className="w-6 h-6 text-koppar" />
+                <VideoCameraIcon className="w-6 h-6 text-koppar" />
               </div>
               <h3 className="font-medium text-kalkvit mb-1">Expert Sessions</h3>
               <p className="text-xs text-kalkvit/50">1:1 coaching with top experts</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 mx-auto mb-3 flex items-center justify-center">
-                <Users className="w-6 h-6 text-koppar" />
+                <UserGroupIcon className="w-6 h-6 text-koppar" />
               </div>
               <h3 className="font-medium text-kalkvit mb-1">Premium Circles</h3>
               <p className="text-xs text-kalkvit/50">Curated mastermind groups</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 mx-auto mb-3 flex items-center justify-center">
-                <Award className="w-6 h-6 text-koppar" />
+                <TrophyIcon className="w-6 h-6 text-koppar" />
               </div>
               <h3 className="font-medium text-kalkvit mb-1">Sprints & Challenges</h3>
               <p className="text-xs text-kalkvit/50">Intensive group challenges</p>
@@ -374,15 +374,15 @@ export function ShopUpgradePage() {
         {/* Trust Badges */}
         <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-kalkvit/50">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-skogsgron" />
+            <ShieldCheckIcon className="w-5 h-5 text-skogsgron" />
             30-day money-back guarantee
           </div>
           <div className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-koppar" />
+            <ChatBubbleLeftIcon className="w-5 h-5 text-koppar" />
             Cancel anytime
           </div>
           <div className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-brand-amber" />
+            <StarIcon className="w-5 h-5 text-brand-amber" />
             4.9/5 member satisfaction
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassAvatar } from '../components/ui'
 import { useQuarterlyReviews, safeArray, type QuarterlyReview } from '../lib/api'
-import { ClipboardList, Star, Loader2, TrendingUp, AlertTriangle } from 'lucide-react'
+import { ClipboardDocumentListIcon, StarIcon, ArrowPathIcon, ArrowTrendingUpIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 function getInitials(name: string): string {
   return name
@@ -24,7 +24,7 @@ function RatingStars({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: 5 }).map((_, i) => (
-        <Star
+        <StarIcon
           key={i}
           className={`w-4 h-4 ${i < rating ? 'text-koppar fill-koppar' : 'text-kalkvit/20'}`}
         />
@@ -66,7 +66,7 @@ function ReviewCard({ review }: { review: QuarterlyReview }) {
         {review.strengths?.length > 0 && (
           <div className="p-3 rounded-lg bg-skogsgron/10">
             <p className="text-xs font-semibold text-skogsgron mb-2 flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5" />
+              <ArrowTrendingUpIcon className="w-3.5 h-3.5" />
               Strengths
             </p>
             <ul className="space-y-1">
@@ -80,7 +80,7 @@ function ReviewCard({ review }: { review: QuarterlyReview }) {
         {review.areas_for_improvement?.length > 0 && (
           <div className="p-3 rounded-lg bg-koppar/10">
             <p className="text-xs font-semibold text-koppar mb-2 flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5" />
+              <ExclamationTriangleIcon className="w-3.5 h-3.5" />
               Areas for Improvement
             </p>
             <ul className="space-y-1">
@@ -127,12 +127,12 @@ export function QuarterlyReviewsPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+            <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar" />
           </div>
         ) : isError || reviews.length === 0 ? (
           <GlassCard variant="base">
             <div className="text-center py-12">
-              <ClipboardList className="w-12 h-12 text-kalkvit/15 mx-auto mb-3" />
+              <ClipboardDocumentListIcon className="w-12 h-12 text-kalkvit/15 mx-auto mb-3" />
               <p className="text-kalkvit/50 text-sm mb-1">No quarterly reviews yet</p>
               <p className="text-kalkvit/30 text-xs">
                 Reviews will appear here after your coach completes your first quarterly review.

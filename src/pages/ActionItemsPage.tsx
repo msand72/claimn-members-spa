@@ -21,18 +21,18 @@ import {
 } from '../lib/api/hooks'
 import type { ActionItem, CreateActionItemRequest, UpdateActionItemRequest } from '../lib/api/types'
 import {
-  CheckSquare,
-  Plus,
-  Circle,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  User,
-  Calendar,
-  Loader2,
-  Edit2,
-  Trash2,
-} from 'lucide-react'
+  CheckBadgeIcon,
+  PlusIcon,
+  MinusIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  UserIcon,
+  CalendarIcon,
+  ArrowPathIcon,
+  PencilIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { PillarDot } from '../components/icons'
 
@@ -71,11 +71,11 @@ function ActionItemCard({
           disabled={isToggling}
         >
           {isToggling ? (
-            <Loader2 className="w-6 h-6 text-kalkvit/30 animate-spin" />
+            <ArrowPathIcon className="w-6 h-6 text-kalkvit/30 animate-spin" />
           ) : isCompleted ? (
-            <CheckCircle2 className="w-6 h-6 text-skogsgron" />
+            <CheckCircleIcon className="w-6 h-6 text-skogsgron" />
           ) : (
-            <Circle className="w-6 h-6 text-kalkvit/30 hover:text-koppar transition-colors" />
+            <MinusIcon className="w-6 h-6 text-kalkvit/30 hover:text-koppar transition-colors" />
           )}
         </button>
 
@@ -101,7 +101,7 @@ function ActionItemCard({
             </GlassBadge>
             {item.goal_id && (
               <GlassBadge variant="koppar" className="text-xs">
-                <User className="w-3 h-3" />
+                <UserIcon className="w-3 h-3" />
                 Goal Linked
               </GlassBadge>
             )}
@@ -122,15 +122,15 @@ function ActionItemCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 text-xs text-kalkvit/50">
               <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
+                <CalendarIcon className="w-3 h-3" />
                 Created {new Date(item.created_at).toLocaleDateString()}
               </span>
               {item.due_date && (
                 <span
                   className={cn('flex items-center gap-1', isOverdue && 'text-tegelrod')}
                 >
-                  {isOverdue && <AlertTriangle className="w-3 h-3" />}
-                  <Clock className="w-3 h-3" />
+                  {isOverdue && <ExclamationTriangleIcon className="w-3 h-3" />}
+                  <ClockIcon className="w-3 h-3" />
                   Due {new Date(item.due_date).toLocaleDateString()}
                 </span>
               )}
@@ -141,7 +141,7 @@ function ActionItemCard({
                 className="p-1.5 rounded-lg text-kalkvit/40 hover:text-koppar hover:bg-white/[0.06] transition-colors"
                 title="Edit"
               >
-                <Edit2 className="w-4 h-4" />
+                <PencilIcon className="w-4 h-4" />
               </button>
               <button
                 onClick={() => onDelete(item.id)}
@@ -155,9 +155,9 @@ function ActionItemCard({
                 title="Delete"
               >
                 {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
                 ) : (
-                  <Trash2 className="w-4 h-4" />
+                  <TrashIcon className="w-4 h-4" />
                 )}
               </button>
             </div>
@@ -324,7 +324,7 @@ export function ActionItemsPage() {
       <MainLayout>
         <div className="max-w-4xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load action items</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -348,7 +348,7 @@ export function ActionItemsPage() {
             </p>
           </div>
           <GlassButton variant="primary" onClick={() => setShowCreateModal(true)}>
-            <Plus className="w-4 h-4" />
+            <PlusIcon className="w-4 h-4" />
             Add Item
           </GlassButton>
         </div>
@@ -356,21 +356,21 @@ export function ActionItemsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
-            <Clock className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <ClockIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {isLoading ? '-' : pendingCount}
             </p>
             <p className="text-xs text-kalkvit/50">Pending</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <CheckCircle2 className="w-6 h-6 text-skogsgron mx-auto mb-2" />
+            <CheckCircleIcon className="w-6 h-6 text-skogsgron mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {isLoading ? '-' : completedCount}
             </p>
             <p className="text-xs text-kalkvit/50">Completed</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <AlertTriangle className="w-6 h-6 text-tegelrod mx-auto mb-2" />
+            <ExclamationTriangleIcon className="w-6 h-6 text-tegelrod mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {isLoading ? '-' : overdueCount}
             </p>
@@ -399,7 +399,7 @@ export function ActionItemsPage() {
         {/* Action Items List */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         ) : sortedItems.length > 0 ? (
           <div className="space-y-3">
@@ -417,13 +417,13 @@ export function ActionItemsPage() {
           </div>
         ) : (
           <GlassCard variant="base" className="text-center py-12">
-            <CheckSquare className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <CheckBadgeIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">No action items</h3>
             <p className="text-kalkvit/50 text-sm mb-4">
               Create an action item or they'll appear here after coaching sessions
             </p>
             <GlassButton variant="primary" onClick={() => setShowCreateModal(true)}>
-              <Plus className="w-4 h-4" />
+              <PlusIcon className="w-4 h-4" />
               Add Item
             </GlassButton>
           </GlassCard>
@@ -484,7 +484,7 @@ export function ActionItemsPage() {
               disabled={!newItem.title.trim() || createMutation.isPending}
             >
               {createMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
               ) : (
                 'Add Item'
               )}
@@ -541,7 +541,7 @@ export function ActionItemsPage() {
               disabled={!editForm.title.trim() || updateMutation.isPending}
             >
               {updateMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
               ) : (
                 'Save Changes'
               )}

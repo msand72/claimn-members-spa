@@ -13,21 +13,21 @@ import { KPI_TYPES, TRACKING_FREQUENCIES, PILLARS, PILLAR_IDS, LOWER_IS_BETTER_K
 import { useKPIs, useKPISummary, useLogKPI, useCreateKPI, useDeleteKPI, useGoals } from '../lib/api/hooks'
 import type { KPI } from '../lib/api/types'
 import {
-  TrendingUp,
-  TrendingDown,
-  Plus,
-  Activity,
-  Moon,
-  Calendar,
-  ChevronRight,
-  BarChart3,
-  Target,
-  Loader2,
-  AlertCircle,
-  Trash2,
-  Heart,
-  Brain,
-} from 'lucide-react'
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  PlusIcon,
+  ChartBarIcon as ActivityIcon,
+  MoonIcon,
+  CalendarIcon,
+  ChevronRightIcon,
+  ChartBarIcon,
+  ViewfinderCircleIcon,
+  ArrowPathIcon,
+  ExclamationCircleIcon,
+  TrashIcon,
+  HeartIcon,
+  LightBulbIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { EmptyKPIs } from '../components/ui/EmptyStateIllustration'
 import { calculateKpiProgress, isKpiOnTarget } from '../lib/kpi-utils'
@@ -35,20 +35,20 @@ import { KPIHistoryChart } from '../components/kpi/KPIHistoryChart'
 
 const getKpiIcon = (kpi: KPI) => {
   // Biomarker KPIs get specific icons
-  if (kpi.kpi_type === 'svs_score') return Heart
-  if (kpi.kpi_type === 'pss_score') return Brain
-  if (kpi.kpi_type === 'sleep_quality_score') return Moon
+  if (kpi.kpi_type === 'svs_score') return HeartIcon
+  if (kpi.kpi_type === 'pss_score') return LightBulbIcon
+  if (kpi.kpi_type === 'sleep_quality_score') return MoonIcon
   switch (kpi.type) {
     case 'number':
-      return BarChart3
+      return ChartBarIcon
     case 'percentage':
-      return TrendingUp
+      return ArrowTrendingUpIcon
     case 'boolean':
-      return Activity
+      return ActivityIcon
     case 'time':
-      return Moon
+      return MoonIcon
     default:
-      return BarChart3
+      return ChartBarIcon
   }
 }
 
@@ -67,7 +67,7 @@ function KPICard({
   const progress = calculateKpiProgress(kpi.current_value, kpi.target_value)
   const isOnTarget = isKpiOnTarget(kpi.current_value, kpi.target_value)
   const isLowerBetter = kpi.kpi_type ? LOWER_IS_BETTER_KPIS.has(kpi.kpi_type as never) : false
-  const TrendIcon = isLowerBetter ? TrendingDown : TrendingUp
+  const TrendIcon = isLowerBetter ? ArrowTrendingDownIcon : ArrowTrendingUpIcon
 
   return (
     <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
@@ -129,7 +129,7 @@ function KPICard({
         <div className="flex items-center gap-1">
           <GlassButton variant="ghost" onClick={() => onLog(kpi)}>
             Log Progress
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRightIcon className="w-4 h-4" />
           </GlassButton>
           <button
             onClick={() => onDelete(kpi.id)}
@@ -143,9 +143,9 @@ function KPICard({
             title="Delete KPI"
           >
             {isDeleting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
             ) : (
-              <Trash2 className="w-4 h-4" />
+              <TrashIcon className="w-4 h-4" />
             )}
           </button>
         </div>
@@ -294,7 +294,7 @@ export function KPIsPage() {
             <p className="text-kalkvit/60">Monitor your key performance indicators and track progress</p>
           </div>
           <GlassButton variant="primary" onClick={() => setShowCreateModal(true)}>
-            <Plus className="w-4 h-4" />
+            <PlusIcon className="w-4 h-4" />
             Add KPI
           </GlassButton>
         </div>
@@ -302,22 +302,22 @@ export function KPIsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
-            <BarChart3 className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <ChartBarIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{kpiSummary?.total_kpis ?? kpis.length}</p>
             <p className="text-xs text-kalkvit/50">Active KPIs</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <Target className="w-6 h-6 text-skogsgron mx-auto mb-2" />
+            <ViewfinderCircleIcon className="w-6 h-6 text-skogsgron mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{kpisOnTarget}</p>
             <p className="text-xs text-kalkvit/50">On Target</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <TrendingUp className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <ArrowTrendingUpIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{avgProgress}%</p>
             <p className="text-xs text-kalkvit/50">Avg Progress</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <AlertCircle className="w-6 h-6 text-tegelrod mx-auto mb-2" />
+            <ExclamationCircleIcon className="w-6 h-6 text-tegelrod mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{needsAttention}</p>
             <p className="text-xs text-kalkvit/50">Needs Attention</p>
           </GlassCard>
@@ -351,14 +351,14 @@ export function KPIsPage() {
         {/* Loading State */}
         {isLoading && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 
         {/* Error State */}
         {error && (
           <GlassCard variant="base" className="text-center py-12">
-            <AlertCircle className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
+            <ExclamationCircleIcon className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load KPIs</h3>
             <p className="text-kalkvit/50 text-sm">Please try again later</p>
           </GlassCard>
@@ -388,7 +388,7 @@ export function KPIsPage() {
               Start tracking your progress by adding KPIs to your goals
             </p>
             <GlassButton variant="primary" onClick={() => setShowCreateModal(true)}>
-              <Plus className="w-4 h-4" />
+              <PlusIcon className="w-4 h-4" />
               Add KPI
             </GlassButton>
           </GlassCard>
@@ -399,7 +399,7 @@ export function KPIsPage() {
           <GlassCard variant="accent" className="mt-8">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-koppar" />
+                <CalendarIcon className="w-6 h-6 text-koppar" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-kalkvit mb-1">Daily Check-in</h3>

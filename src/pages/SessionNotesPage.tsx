@@ -3,19 +3,19 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassTextarea, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Target,
-  CheckCircle,
-  Edit3,
-  Save,
-  Plus,
-  Trash2,
-  Loader2,
-  AlertTriangle,
-  FileText,
-} from 'lucide-react'
+  ArrowLeftIcon,
+  CalendarIcon,
+  ClockIcon,
+  ViewfinderCircleIcon,
+  CheckCircleIcon,
+  PencilIcon,
+  ArrowDownOnSquareIcon,
+  PlusIcon,
+  TrashIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  DocumentTextIcon,
+} from '@heroicons/react/24/outline'
 import { useCoachingSession, useSessionNotes, useUpdateSessionNotes } from '../lib/api/hooks'
 import type { SessionActionItem, UpdateSessionNoteRequest } from '../lib/api/types'
 export function SessionNotesPage() {
@@ -108,7 +108,7 @@ export function SessionNotesPage() {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+          <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar" />
         </div>
       </MainLayout>
     )
@@ -119,7 +119,7 @@ export function SessionNotesPage() {
     return (
       <MainLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <FileText className="w-12 h-12 text-kalkvit/20" />
+          <DocumentTextIcon className="w-12 h-12 text-kalkvit/20" />
           <h2 className="font-display text-xl font-semibold text-kalkvit">No session selected</h2>
           <p className="text-kalkvit/50 text-sm text-center max-w-md">
             Select a completed session from My Sessions to view and edit your notes.
@@ -140,7 +140,7 @@ export function SessionNotesPage() {
     return (
       <MainLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <AlertTriangle className="w-8 h-8 text-tegelrod" />
+          <ExclamationTriangleIcon className="w-8 h-8 text-tegelrod" />
           <p className="text-kalkvit/70">Failed to load session notes.</p>
           <GlassButton
             variant="secondary"
@@ -192,7 +192,7 @@ export function SessionNotesPage() {
           to="/coaching/sessions"
           className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Back to Sessions
         </Link>
 
@@ -208,11 +208,11 @@ export function SessionNotesPage() {
                 <p className="text-koppar">{coachName}</p>
                 <div className="flex items-center gap-4 mt-2 text-sm text-kalkvit/60">
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
+                    <CalendarIcon className="w-4 h-4" />
                     {formattedDate}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
+                    <ClockIcon className="w-4 h-4" />
                     {session.duration} min
                   </span>
                 </div>
@@ -224,7 +224,7 @@ export function SessionNotesPage() {
           {/* Session Goals */}
           <div className="pt-4 border-t border-white/10">
             <p className="text-sm text-kalkvit/50 mb-2 flex items-center gap-1">
-              <Target className="w-4 h-4" />
+              <ViewfinderCircleIcon className="w-4 h-4" />
               Session Goals
             </p>
             <div className="flex flex-wrap gap-2">
@@ -288,7 +288,7 @@ export function SessionNotesPage() {
                         : 'border-kalkvit/30 hover:border-koppar'
                     }`}
                   >
-                    {item.completed && <CheckCircle className="w-4 h-4 text-kalkvit" />}
+                    {item.completed && <CheckCircleIcon className="w-4 h-4 text-kalkvit" />}
                   </div>
                   <span
                     className={`${
@@ -303,7 +303,7 @@ export function SessionNotesPage() {
                   className="opacity-0 group-hover:opacity-100 p-1 text-kalkvit/40 hover:text-tegelrod transition-all"
                   disabled={updateNotes.isPending}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <TrashIcon className="w-4 h-4" />
                 </button>
               </div>
             ))}
@@ -325,7 +325,7 @@ export function SessionNotesPage() {
               onClick={handleAddActionItem}
               disabled={updateNotes.isPending}
             >
-              <Plus className="w-4 h-4" />
+              <PlusIcon className="w-4 h-4" />
             </GlassButton>
           </div>
         </GlassCard>
@@ -342,12 +342,12 @@ export function SessionNotesPage() {
             >
               {isEditing ? (
                 <>
-                  <Save className="w-4 h-4" />
+                  <ArrowDownOnSquareIcon className="w-4 h-4" />
                   Save
                 </>
               ) : (
                 <>
-                  <Edit3 className="w-4 h-4" />
+                  <PencilIcon className="w-4 h-4" />
                   Edit
                 </>
               )}

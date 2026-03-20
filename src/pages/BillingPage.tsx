@@ -3,17 +3,17 @@ import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
 import {
-  CreditCard,
-  Download,
-  ExternalLink,
-  CheckCircle,
-  Loader2,
-  AlertTriangle,
-  ArrowRight,
-  Calendar,
-  Receipt,
-  Shield,
-} from 'lucide-react'
+  CreditCardIcon,
+  ArrowDownTrayIcon,
+  ArrowTopRightOnSquareIcon,
+  CheckCircleIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  ArrowRightIcon,
+  CalendarIcon,
+  DocumentTextIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/outline'
 import { useBillingInfo, useInvoices, useBillingPortal } from '../lib/api/hooks'
 import type { Invoice, PaymentMethod } from '../lib/api/hooks'
 import { isAllowedExternalUrl } from '../lib/url-validation'
@@ -58,7 +58,7 @@ function InvoiceRow({ invoice }: { invoice: Invoice }) {
     <div className="flex items-center justify-between py-4 border-b border-white/[0.06] last:border-b-0">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center">
-          <Receipt className="w-5 h-5 text-kalkvit/40" />
+          <DocumentTextIcon className="w-5 h-5 text-kalkvit/40" />
         </div>
         <div>
           <p className="text-sm font-medium text-kalkvit">
@@ -80,7 +80,7 @@ function InvoiceRow({ invoice }: { invoice: Invoice }) {
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.06] border border-white/[0.1] text-xs text-kalkvit/70 hover:bg-white/[0.1] hover:text-kalkvit transition-colors"
           >
-            <Download className="w-3.5 h-3.5" />
+            <ArrowDownTrayIcon className="w-3.5 h-3.5" />
             PDF
           </a>
         )}
@@ -143,7 +143,7 @@ export function BillingPage() {
         {/* Portal error */}
         {portalError && (
           <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-tegelrod/10 border border-tegelrod/30">
-            <AlertTriangle className="w-5 h-5 text-tegelrod flex-shrink-0 mt-0.5" />
+            <ExclamationTriangleIcon className="w-5 h-5 text-tegelrod flex-shrink-0 mt-0.5" />
             <p className="text-sm text-tegelrod">{portalError}</p>
           </div>
         )}
@@ -156,11 +156,11 @@ export function BillingPage() {
           <GlassCard variant="accent" leftBorder={false} className="border border-white/[0.1]">
             {billingLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 text-kalkvit/60 animate-spin" />
+                <ArrowPathIcon className="w-6 h-6 text-kalkvit/60 animate-spin" />
               </div>
             ) : billingError ? (
               <div className="flex items-center gap-3 py-4">
-                <AlertTriangle className="w-5 h-5 text-tegelrod" />
+                <ExclamationTriangleIcon className="w-5 h-5 text-tegelrod" />
                 <p className="text-kalkvit/60">Failed to load subscription details.</p>
               </div>
             ) : hasPlan && isActive ? (
@@ -187,7 +187,7 @@ export function BillingPage() {
                       </div>
                     ) : null}
                     <div className="flex items-center gap-2 text-sm text-kalkvit/50">
-                      <Calendar className="w-4 h-4" />
+                      <CalendarIcon className="w-4 h-4" />
                       <span>
                         {subscription.cancel_at_period_end
                           ? `Access until ${formatDate(subscription.current_period_end)}`
@@ -202,9 +202,9 @@ export function BillingPage() {
                       disabled={portal.isPending}
                     >
                       {portal.isPending ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
                       ) : (
-                        <ExternalLink className="w-4 h-4" />
+                        <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                       )}
                       Manage Subscription
                     </GlassButton>
@@ -220,7 +220,7 @@ export function BillingPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {subscription.features.map((feature) => (
                         <div key={feature} className="flex items-center gap-2 text-sm text-kalkvit/70">
-                          <CheckCircle className="w-4 h-4 text-skogsgron flex-shrink-0" />
+                          <CheckCircleIcon className="w-4 h-4 text-skogsgron flex-shrink-0" />
                           <span>{feature}</span>
                         </div>
                       ))}
@@ -236,7 +236,7 @@ export function BillingPage() {
                 <Link to="/shop/upgrade">
                   <GlassButton variant="primary">
                     View Plans
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRightIcon className="w-4 h-4" />
                   </GlassButton>
                 </Link>
               </div>
@@ -252,11 +252,11 @@ export function BillingPage() {
           <GlassCard variant="base" className="border border-white/[0.08]">
             {billingLoading ? (
               <div className="flex items-center justify-center py-6">
-                <Loader2 className="w-6 h-6 text-kalkvit/60 animate-spin" />
+                <ArrowPathIcon className="w-6 h-6 text-kalkvit/60 animate-spin" />
               </div>
             ) : billingError ? (
               <div className="flex items-center gap-3 py-4">
-                <AlertTriangle className="w-5 h-5 text-tegelrod" />
+                <ExclamationTriangleIcon className="w-5 h-5 text-tegelrod" />
                 <p className="text-kalkvit/60">Failed to load payment method.</p>
               </div>
             ) : (
@@ -266,7 +266,7 @@ export function BillingPage() {
                     'w-14 h-10 rounded-lg flex items-center justify-center',
                     'bg-gradient-to-br from-blue-600/80 to-blue-400/80',
                   )}>
-                    <CreditCard className="w-6 h-6 text-white" />
+                    <CreditCardIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     {paymentMethod ? (
@@ -297,11 +297,11 @@ export function BillingPage() {
                   disabled={portal.isPending}
                 >
                   {portal.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
                       {paymentMethod ? 'Update' : 'Add Card'}
-                      <ExternalLink className="w-4 h-4" />
+                      <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                     </>
                   )}
                 </GlassButton>
@@ -318,11 +318,11 @@ export function BillingPage() {
           <GlassCard variant="base" className="border border-white/[0.08]">
             {invoicesLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 text-kalkvit/60 animate-spin" />
+                <ArrowPathIcon className="w-6 h-6 text-kalkvit/60 animate-spin" />
               </div>
             ) : invoicesError ? (
               <div className="flex items-center gap-3 py-4">
-                <AlertTriangle className="w-5 h-5 text-tegelrod" />
+                <ExclamationTriangleIcon className="w-5 h-5 text-tegelrod" />
                 <p className="text-kalkvit/60">Failed to load billing history.</p>
               </div>
             ) : invoices.length === 0 ? (
@@ -339,7 +339,7 @@ export function BillingPage() {
 
         {/* Trust footer */}
         <div className="flex items-center justify-center gap-2 text-xs text-kalkvit/30">
-          <Shield className="w-4 h-4" />
+          <ShieldCheckIcon className="w-4 h-4" />
           <span>Payments securely processed by Stripe</span>
         </div>
       </div>

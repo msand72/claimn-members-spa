@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { ChevronRight, ChevronDown, MoreHorizontal } from 'lucide-react'
+import { ChevronRightIcon, ChevronDownIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import type { SectionNavItem } from './sectionNav'
 
@@ -53,7 +53,7 @@ function MobileDropdown({
           <current.icon className="w-4 h-4 text-koppar" />
           {current.label}
         </span>
-        <ChevronDown className={cn('w-4 h-4 text-kalkvit/40 transition-transform', open && 'rotate-180')} />
+        <ChevronDownIcon className={cn('w-4 h-4 text-kalkvit/40 transition-transform', open && 'rotate-180')} />
       </button>
 
       {open && (
@@ -143,7 +143,7 @@ function StepperBar({
           return (
             <div key={item.to} className="flex items-center shrink-0">
               {index > 0 && (
-                <ChevronRight className="w-4 h-4 text-kalkvit/20 mx-0.5 shrink-0" />
+                <ChevronRightIcon className="w-4 h-4 text-kalkvit/20 mx-0.5 shrink-0" />
               )}
               <NavLink
                 to={item.to}
@@ -166,7 +166,7 @@ function StepperBar({
       {/* More dropdown for extra items */}
       {moreItems && moreItems.length > 0 && (
         <div className="relative shrink-0 ml-1" ref={moreRef}>
-          <ChevronRight className="w-4 h-4 text-kalkvit/20 mx-0.5 shrink-0 inline" />
+          <ChevronRightIcon className="w-4 h-4 text-kalkvit/20 mx-0.5 shrink-0 inline" />
           <button
             onClick={() => setShowMore((prev) => !prev)}
             className={cn(
@@ -176,7 +176,7 @@ function StepperBar({
                 : 'text-kalkvit/40 hover:text-kalkvit/70 hover:bg-white/[0.05]'
             )}
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <EllipsisHorizontalIcon className="w-4 h-4" />
           </button>
 
           {showMore && (

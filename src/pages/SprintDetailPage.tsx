@@ -16,19 +16,19 @@ import {
 } from '../lib/api/hooks'
 import type { SprintGoal } from '../lib/api/types'
 import {
-  ArrowLeft,
-  Clock,
-  Users,
-  Calendar,
-  Target,
-  CheckCircle,
-  Circle,
-  Zap,
-  Loader2,
-  AlertTriangle,
-  Play,
-  StickyNote,
-} from 'lucide-react'
+  ArrowLeftIcon,
+  ClockIcon,
+  UserGroupIcon,
+  CalendarIcon,
+  ViewfinderCircleIcon,
+  CheckCircleIcon,
+  MinusIcon,
+  BoltIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  PlayIcon,
+  DocumentTextIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 const statusConfig = {
@@ -77,11 +77,11 @@ function GoalCard({
     >
       <div className="flex-shrink-0 mt-0.5">
         {isCompleting ? (
-          <Loader2 className="w-5 h-5 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-5 h-5 text-koppar animate-spin" />
         ) : isCompleted ? (
-          <CheckCircle className="w-5 h-5 text-skogsgron" />
+          <CheckCircleIcon className="w-5 h-5 text-skogsgron" />
         ) : (
-          <Circle
+          <MinusIcon
             className={cn(
               'w-5 h-5',
               canComplete ? 'text-kalkvit/40 hover:text-koppar' : 'text-kalkvit/20'
@@ -190,7 +190,7 @@ export function SprintDetailPage() {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       </MainLayout>
     )
@@ -204,11 +204,11 @@ export function SprintDetailPage() {
             to={sprint?.program_id ? `/programs/${sprint.program_id}` : '/programs/sprints'}
             className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4" />
             Back to Program
           </Link>
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Sprint not found</h3>
             <p className="text-kalkvit/50 text-sm">
               This sprint may have been removed or the link is incorrect.
@@ -229,7 +229,7 @@ export function SprintDetailPage() {
           to="/programs/sprints"
           className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Back to Sprints
         </Link>
 
@@ -262,7 +262,7 @@ export function SprintDetailPage() {
           <div className="flex flex-wrap items-center gap-6 text-sm text-kalkvit/50 mb-6">
             {sprint.start_date && (
               <span className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-koppar" />
+                <CalendarIcon className="w-4 h-4 text-koppar" />
                 {new Date(sprint.start_date).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
@@ -282,12 +282,12 @@ export function SprintDetailPage() {
             )}
             {sprint.duration && (
               <span className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-koppar" />
+                <ClockIcon className="w-4 h-4 text-koppar" />
                 {sprint.duration}
               </span>
             )}
             <span className="flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-koppar" />
+              <UserGroupIcon className="w-4 h-4 text-koppar" />
               {sprint.participants}/{sprint.max_participants} participants
             </span>
           </div>
@@ -318,7 +318,7 @@ export function SprintDetailPage() {
           {/* Start button for not_started sprints */}
           {progress?.status === 'not_started' && sprintStatus === 'active' && (
             <GlassButton variant="primary" onClick={handleStartSprint}>
-              <Play className="w-4 h-4" />
+              <PlayIcon className="w-4 h-4" />
               Start Sprint
             </GlassButton>
           )}
@@ -327,7 +327,7 @@ export function SprintDetailPage() {
         {/* Goals Section */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <Target className="w-5 h-5 text-koppar" />
+            <ViewfinderCircleIcon className="w-5 h-5 text-koppar" />
             <h2 className="font-serif text-xl font-semibold text-kalkvit">
               Sprint Goals
             </h2>
@@ -338,7 +338,7 @@ export function SprintDetailPage() {
 
           {isLoadingGoals ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+              <ArrowPathIcon className="w-6 h-6 text-koppar animate-spin" />
             </div>
           ) : goals.length > 0 ? (
             <div className="space-y-3">
@@ -355,7 +355,7 @@ export function SprintDetailPage() {
             </div>
           ) : (
             <GlassCard variant="base" className="text-center py-8">
-              <Zap className="w-8 h-8 text-kalkvit/30 mx-auto mb-3" />
+              <BoltIcon className="w-8 h-8 text-kalkvit/30 mx-auto mb-3" />
               <p className="text-kalkvit/50 text-sm">
                 No specific goals defined for this sprint yet.
               </p>
@@ -379,7 +379,7 @@ export function SprintDetailPage() {
         {sprintStatus !== 'upcoming' && (
           <GlassCard variant="base">
             <div className="flex items-center gap-2 mb-4">
-              <StickyNote className="w-5 h-5 text-koppar" />
+              <DocumentTextIcon className="w-5 h-5 text-koppar" />
               <h2 className="font-serif text-lg font-semibold text-kalkvit">
                 Sprint Notes
               </h2>
@@ -398,7 +398,7 @@ export function SprintDetailPage() {
                 disabled={isSavingNotes || !notes.trim()}
               >
                 {isSavingNotes ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
                 ) : (
                   'Save Notes'
                 )}
