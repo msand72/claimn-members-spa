@@ -16,11 +16,11 @@ export function GlassButton({
   ...props
 }: GlassButtonProps) {
   const baseStyles =
-    'inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm font-sans cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+    'inline-flex items-center gap-2 px-6 py-3 rounded-xl font-display font-semibold text-sm cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
 
   const variantStyles = {
     primary: cn(
-      'bg-gradient-to-br from-koppar to-[#A66529] text-kalkvit border-none',
+      'bg-gradient-to-br from-koppar to-[#A66529] text-charcoal border-none',
       'shadow-[0_4px_20px_rgba(184,115,51,0.4)]',
       'hover:shadow-[0_6px_24px_rgba(184,115,51,0.5)] hover:-translate-y-0.5'
     ),

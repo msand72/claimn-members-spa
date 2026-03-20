@@ -9,6 +9,7 @@ interface GlassStatsCardProps {
   trend?: string
   trendLabel?: string
   className?: string
+  visual?: React.ReactNode
 }
 
 export function GlassStatsCard({
@@ -18,6 +19,7 @@ export function GlassStatsCard({
   trend,
   trendLabel,
   className,
+  visual,
 }: GlassStatsCardProps) {
   return (
     <GlassCard variant="accent" leftBorder={false} className={className}>
@@ -26,7 +28,7 @@ export function GlassStatsCard({
           <Icon className="w-7 h-7 text-koppar" />
         </div>
         <div className="flex-1">
-          <div className="font-sans text-[13px] font-medium text-kalkvit/60 mb-1.5">
+          <div className="font-display text-[10px] font-bold tracking-[0.14em] uppercase text-kalkvit/55 mb-1.5">
             {label}
           </div>
           <div className="font-display text-4xl font-bold text-kalkvit leading-none">
@@ -35,7 +37,7 @@ export function GlassStatsCard({
           {trend && (
             <div
               className={cn(
-                'text-[13px] mt-2.5 font-sans font-medium',
+                'text-[11px] mt-2 font-display font-medium',
                 trend.startsWith('+') ? 'text-skogsgron' : 'text-tegelrod'
               )}
             >
@@ -44,6 +46,11 @@ export function GlassStatsCard({
           )}
         </div>
       </div>
+      {visual && (
+        <div className="mt-3 h-[44px]">
+          {visual}
+        </div>
+      )}
     </GlassCard>
   )
 }

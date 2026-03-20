@@ -43,6 +43,7 @@ import type { ClaimnEvent } from '../lib/api/hooks/useEvents'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import { HubHeroArt } from '../components/ui/HubHeroArt'
+import { GoalTargetVisual, StreakBarsVisual, DunbarClusterVisual, CalendarHeatmapVisual } from '../components/ui/StatCardVisuals'
 import { PillarIcon } from '../components/icons'
 import {
   HeartIcon,
@@ -156,24 +157,28 @@ function StatsRow() {
         icon={ViewfinderCircleIcon}
         label="Active Goals"
         value={isLoading ? '...' : String(stats?.goals_active ?? goalsCount)}
+        visual={<GoalTargetVisual className="w-full text-kalkvit" />}
       />
       <GlassStatsCard
         icon={FireIcon}
         label="Streak"
         value={isLoading ? '...' : String(stats?.current_streak ?? 0)}
         trendLabel="days"
+        visual={<StreakBarsVisual className="w-full text-kalkvit" />}
       />
       <GlassStatsCard
         icon={ChartBarIcon}
         label="Connections"
         value={isLoading ? '...' : String(stats?.connections_count ?? 0)}
         trendLabel="network"
+        visual={<DunbarClusterVisual className="w-full text-kalkvit" />}
       />
       <GlassStatsCard
         icon={TrophyIcon}
         label="Days Active"
         value={isLoading ? '...' : String(stats?.days_since_joined ?? 0)}
         trendLabel="journey"
+        visual={<CalendarHeatmapVisual className="w-full text-kalkvit" />}
       />
     </div>
   )

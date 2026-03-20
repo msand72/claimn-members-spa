@@ -24,7 +24,7 @@ export function GlassBadge({
     <span
       className={cn(
         'inline-flex items-center px-3 py-1 rounded-full',
-        'text-xs font-semibold',
+        'text-xs font-display font-bold',
         'backdrop-blur-[8px] border',
         variantClasses[variant],
         className
