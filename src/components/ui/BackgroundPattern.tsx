@@ -11,19 +11,19 @@ export function BackgroundPattern() {
       <div
         className="absolute -top-[10%] right-[10%] w-[500px] h-[500px] rounded-full blur-[60px]"
         style={{
-          background: `radial-gradient(circle, ${colors.koppar}${isLight ? '20' : '40'} 0%, transparent 70%)`,
+          background: `radial-gradient(circle, ${colors.koppar}${isLight ? '14' : '12'} 0%, transparent 70%)`,
         }}
       />
       <div
         className="absolute bottom-[10%] left-[5%] w-[600px] h-[600px] rounded-full blur-[80px]"
         style={{
-          background: `radial-gradient(circle, ${colors.jordbrun}${isLight ? '15' : '40'} 0%, transparent 70%)`,
+          background: `radial-gradient(circle, ${colors.jordbrun}${isLight ? '0F' : '0D'} 0%, transparent 70%)`,
         }}
       />
       <div
         className="absolute top-[40%] left-[50%] w-[400px] h-[400px] rounded-full blur-[70px]"
         style={{
-          background: `radial-gradient(circle, ${colors.dimblag}${isLight ? '15' : '30'} 0%, transparent 70%)`,
+          background: `radial-gradient(circle, ${colors.dimblag}${isLight ? '0F' : '0A'} 0%, transparent 70%)`,
         }}
       />
 

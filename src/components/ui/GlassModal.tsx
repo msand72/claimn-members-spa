@@ -17,10 +17,10 @@ interface GlassModalProps {
 }
 
 const sizeClasses = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
+  sm: 'max-w-[480px]',
+  md: 'max-w-[640px]',
+  lg: 'max-w-[800px]',
+  xl: 'max-w-[960px]',
 }
 
 export function GlassModal({

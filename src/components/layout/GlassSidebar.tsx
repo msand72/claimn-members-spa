@@ -99,11 +99,11 @@ export function GlassSidebar() {
                 key={key}
                 to={section.basePath}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg',
-                  'text-[13px] font-medium transition-all duration-150',
+                  'flex items-center gap-3 px-3 py-2',
+                  'text-[13px] font-display font-semibold transition-all duration-150',
                   isActive
-                    ? 'bg-koppar/15 text-koppar'
-                    : 'text-kalkvit/60 hover:bg-white/[0.04] hover:text-kalkvit/90'
+                    ? 'bg-koppar/12 text-koppar border-l-2 border-l-koppar rounded-r-lg rounded-l-none'
+                    : 'text-kalkvit/60 hover:bg-white/[0.05] hover:text-kalkvit border-l-2 border-l-transparent rounded-lg'
                 )}
               >
                 <Icon className={cn('w-[18px] h-[18px]', isActive && 'text-koppar')} />

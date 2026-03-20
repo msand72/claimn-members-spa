@@ -17,7 +17,7 @@ export function EmptyGoals({ className }: IllustrationProps) {
       viewBox="0 0 140 140"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: '100%' }}
+      fill="none"
     >
       {/* Outer target ring */}
       <circle
@@ -112,7 +112,7 @@ export function EmptyKPIs({ className }: IllustrationProps) {
       viewBox="0 0 140 140"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: '100%' }}
+      fill="none"
     >
       {/* Ghost axis */}
       <line
@@ -210,7 +210,7 @@ export function EmptyProtocols({ className }: IllustrationProps) {
       viewBox="0 0 140 140"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: '100%' }}
+      fill="none"
     >
       {/* Back card */}
       <rect
@@ -332,7 +332,7 @@ export function EmptySessions({ className }: IllustrationProps) {
       viewBox="0 0 140 140"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: '100%' }}
+      fill="none"
     >
       {/* Left seat (abstract rectangle) */}
       <rect
@@ -412,7 +412,7 @@ export function EmptyEvents({ className }: IllustrationProps) {
       viewBox="0 0 140 140"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: '100%' }}
+      fill="none"
     >
       {/* Calendar outline */}
       <rect
@@ -498,7 +498,7 @@ export function EmptyAccountability({ className }: IllustrationProps) {
       viewBox="0 0 140 140"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: '100%' }}
+      fill="none"
     >
       {/* Orbital ring */}
       <circle
