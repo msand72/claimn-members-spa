@@ -13,15 +13,15 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 const THEME_STORAGE_KEY = 'claimn-theme'
 
 function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark'
+  if (typeof window === 'undefined') return 'light'
 
   const stored = localStorage.getItem(THEME_STORAGE_KEY)
   if (stored === 'light' || stored === 'dark') {
     return stored
   }
 
-  // Default to dark theme (brand preference)
-  return 'dark'
+  // Default to light theme (primary)
+  return 'light'
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

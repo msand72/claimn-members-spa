@@ -20,8 +20,8 @@ export default {
         tegelrod: '#B54A46',
         'brand-amber': '#CC8B3C',
         skogsgron: '#6B8E6F',
-        // Glass background color
-        'glass-dark': '#0A0A0B',
+        // Glass background uses charcoal
+        'glass-dark': '#1C1C1E',
         // Pillar accent colors
         'pillar-identity': '#B87333',
         'pillar-emotional': '#A1B1C6',

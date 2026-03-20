@@ -6,7 +6,7 @@
 
 /* Neutraface 2 Font - loaded dynamically in main.tsx via Vite asset import */
 
-/* Theme CSS Variables */
+/* Theme CSS Variables — matched to design system reference */
 :root {
   /* Dark theme (default) */
   --scrollbar-bg: rgba(255, 255, 255, 0.05);
@@ -14,19 +14,27 @@
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
 
   /* Kalkvit color (RGB values for Tailwind opacity support) */
-  /* Dark mode: cream white #F9F7F4 = 249, 247, 244 */
   --color-kalkvit: 249 247 244;
 
-  /* Text colors — contrast-corrected for WCAG AA */
+  /* Text — from design reference */
   --text-primary: #F9F7F4;
-  --text-secondary: rgba(249, 247, 244, 0.80);
-  --text-muted: rgba(249, 247, 244, 0.55);
+  --text-secondary: rgba(249, 247, 244, 0.65);
+  --text-muted: rgba(249, 247, 244, 0.38);
 
-  /* Background */
-  --bg-primary: #0A0A0B;
-  --bg-card: rgba(255, 255, 255, 0.08);
-  --card-bg: #232326;
-  --border-color: rgba(255, 255, 255, 0.15);
+  /* Background — brand book: charcoal #1C1C1E */
+  --bg-primary: #1C1C1E;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.10);
+  --divider: rgba(255, 255, 255, 0.07);
+
+  /* Glass */
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-hover: rgba(255, 255, 255, 0.08);
+
+  /* Koppar system */
+  --koppar-glow: rgba(184, 115, 51, 0.18);
+  --koppar-border: rgba(184, 115, 51, 0.28);
 
   /* Pillar accent colors */
   --pillar-identity: #B87333;
@@ -42,18 +50,21 @@
   --scrollbar-thumb: rgba(0, 0, 0, 0.2);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
 
-  /* Kalkvit color - switches to dark charcoal in light mode */
-  /* Light mode: charcoal #1C1C1E = 28, 28, 30 */
   --color-kalkvit: 28 28 30;
 
   --text-primary: #1C1C1E;
-  --text-secondary: rgba(28, 28, 30, 0.78);
-  --text-muted: rgba(28, 28, 30, 0.54);
+  --text-secondary: rgba(28, 28, 30, 0.65);
+  --text-muted: rgba(28, 28, 30, 0.40);
 
+  /* Background — brand book: kalkvit #F9F7F4 */
   --bg-primary: #F9F7F4;
-  --bg-card: rgba(255, 255, 255, 0.6);
-  --card-bg: rgba(255, 255, 255, 0.72);
-  --border-color: rgba(0, 0, 0, 0.1);
+  --bg-card: rgba(255, 255, 255, 0.60);
+  --border-color: rgba(0, 0, 0, 0.10);
+  --divider: rgba(0, 0, 0, 0.07);
+
+  --glass: rgba(255, 255, 255, 0.60);
+  --glass-border: rgba(0, 0, 0, 0.10);
+  --glass-hover: rgba(255, 255, 255, 0.75);
 }
 
 * {
