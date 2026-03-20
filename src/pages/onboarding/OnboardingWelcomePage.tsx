@@ -1,18 +1,20 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { useCurrentProfile, useUpdateProfile } from '../../lib/api/hooks'
+import { useCurrentProfile, useUpdateProfile, useUploadAvatar } from '../../lib/api/hooks'
 import { useUpdateOnboarding } from '../../lib/api/hooks/useOnboarding'
 import { OnboardingLayout } from './OnboardingLayout'
 import { GlassCard, GlassInput, GlassButton, GlassAvatar } from '../../components/ui'
-import { Upload, ArrowRight, SkipForward } from 'lucide-react'
+import { Upload, ArrowRight, SkipForward, Loader2 } from 'lucide-react'
 
 export function OnboardingWelcomePage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { data: profile } = useCurrentProfile()
   const updateProfile = useUpdateProfile()
+  const uploadAvatar = useUploadAvatar()
   const updateOnboarding = useUpdateOnboarding()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState({
     display_name: profile?.display_name || user?.display_name || '',
@@ -64,9 +66,32 @@ export function OnboardingWelcomePage() {
         {/* Avatar */}
         <div className="flex justify-center mb-6">
           <div className="relative">
-            <GlassAvatar initials={initials} size="xl" className="w-24 h-24 text-3xl" />
-            <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-koppar rounded-full flex items-center justify-center text-charcoal hover:bg-koppar/90 transition-colors">
-              <Upload className="w-4 h-4" />
+            <GlassAvatar
+              initials={initials}
+              avatarUrl={profile?.avatar_url}
+              size="xl"
+              className="w-24 h-24 text-3xl"
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (file) await uploadAvatar.mutateAsync(file)
+              }}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadAvatar.isPending}
+              className="absolute -bottom-1 -right-1 w-8 h-8 bg-koppar rounded-full flex items-center justify-center text-charcoal hover:bg-koppar/90 transition-colors"
+            >
+              {uploadAvatar.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
