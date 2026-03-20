@@ -17,19 +17,19 @@ import { useGoals, useCreateGoal, useUpdateGoal, useMyActiveProtocols, useDashbo
 import type { Goal, CreateGoalRequest } from '../lib/api/types'
 import { getProtocolSlugFromGoal, addProtocolTag, stripProtocolTag } from '../lib/protocol-plan'
 import {
-  Target,
-  Plus,
-  ChevronRight,
-  TrendingUp,
-  Calendar,
-  Flame,
-  Trophy,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  ListTodo,
-  BookOpen,
-} from 'lucide-react'
+  ViewfinderCircleIcon,
+  PlusIcon,
+  ChevronRightIcon,
+  ArrowTrendingUpIcon,
+  CalendarIcon,
+  FireIcon,
+  TrophyIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  ArrowPathIcon,
+  ListBulletIcon,
+  BookOpenIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { PillarBadge } from '../components/icons'
 import { EmptyGoals } from '../components/ui/EmptyStateIllustration'
@@ -57,7 +57,7 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
             )}
             {protocolSlug && (
               <GlassBadge variant="default" className="text-xs flex items-center gap-1">
-                <BookOpen className="w-3 h-3" />
+                <BookOpenIcon className="w-3 h-3" />
                 Protocol
               </GlassBadge>
             )}
@@ -94,7 +94,7 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
           </div>
         ) : (
           <div className="flex items-center gap-2 mb-4 text-xs text-kalkvit/40">
-            <ListTodo className="w-3.5 h-3.5" />
+            <ListBulletIcon className="w-3.5 h-3.5" />
             <span>Add subtasks or KPIs to track progress</span>
           </div>
         )}
@@ -124,7 +124,7 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
         <div className="flex items-center gap-2">
           {goal.target_date && (
             <span className="text-xs text-kalkvit/50 flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
+              <CalendarIcon className="w-3 h-3" />
               {new Date(goal.target_date).toLocaleDateString()}
             </span>
           )}
@@ -139,12 +139,12 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
               }}
               className="flex items-center gap-1 text-xs text-skogsgron/70 hover:text-skogsgron transition-colors px-2 py-1 rounded-lg hover:bg-skogsgron/10"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              <CheckCircleIcon className="w-3.5 h-3.5" />
               Done
             </button>
           )}
           <Link to={`/goals/${goal.id}`}>
-            <ChevronRight className="w-4 h-4 text-kalkvit/30" />
+            <ChevronRightIcon className="w-4 h-4 text-kalkvit/30" />
           </Link>
         </div>
       </div>
@@ -233,7 +233,7 @@ export function GoalsPage() {
             <p className="text-kalkvit/60">Track your transformation goals and key performance indicators</p>
           </div>
           <GlassButton variant="primary" onClick={() => { setCreateError(null); setShowCreateModal(true) }}>
-            <Plus className="w-4 h-4" />
+            <PlusIcon className="w-4 h-4" />
             Create Goal
           </GlassButton>
         </div>
@@ -241,22 +241,22 @@ export function GoalsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
-            <Target className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <ViewfinderCircleIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{activeGoals}</p>
             <p className="text-xs text-kalkvit/50">Active Goals</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <CheckCircle2 className="w-6 h-6 text-skogsgron mx-auto mb-2" />
+            <CheckCircleIcon className="w-6 h-6 text-skogsgron mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{completedGoals}</p>
             <p className="text-xs text-kalkvit/50">Completed</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <TrendingUp className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <ArrowTrendingUpIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{totalProgress}%</p>
             <p className="text-xs text-kalkvit/50">Avg Progress</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <Flame className="w-6 h-6 text-tegelrod mx-auto mb-2" />
+            <FireIcon className="w-6 h-6 text-tegelrod mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">{dashStats?.current_streak ?? 0}</p>
             <p className="text-xs text-kalkvit/50">Day Streak</p>
           </GlassCard>
@@ -266,7 +266,7 @@ export function GoalsPage() {
         {activeProtocols && activeProtocols.length > 0 && (
           <div className="mb-8">
             <h2 className="font-display text-xl font-bold text-kalkvit mb-4 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-koppar" />
+              <BookOpenIcon className="w-5 h-5 text-koppar" />
               Active Protocols
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -275,7 +275,7 @@ export function GoalsPage() {
                   <GlassCard variant="base" className="hover:border-koppar/30 transition-colors !py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-koppar/10 flex items-center justify-center flex-shrink-0">
-                        <BookOpen className="w-4 h-4 text-koppar" />
+                        <BookOpenIcon className="w-4 h-4 text-koppar" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-kalkvit truncate">{ap.protocol_name}</p>
@@ -323,14 +323,14 @@ export function GoalsPage() {
         {/* Loading State */}
         {isLoading && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 
         {/* Error State */}
         {error && (
           <GlassCard variant="base" className="text-center py-12">
-            <AlertCircle className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
+            <ExclamationCircleIcon className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load goals</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try again later
@@ -356,7 +356,7 @@ export function GoalsPage() {
               Create your first goal to start tracking your transformation
             </p>
             <GlassButton variant="primary" onClick={() => { setCreateError(null); setShowCreateModal(true) }}>
-              <Plus className="w-4 h-4" />
+              <PlusIcon className="w-4 h-4" />
               Create Goal
             </GlassButton>
           </GlassCard>
@@ -370,7 +370,7 @@ export function GoalsPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {achievements.map((a) => (
                   <GlassCard key={a.id} variant="base" className="text-center py-4">
-                    <Trophy className="w-8 h-8 mx-auto mb-2 text-koppar" />
+                    <TrophyIcon className="w-8 h-8 mx-auto mb-2 text-koppar" />
                     <p className="text-sm text-kalkvit">{a.name}</p>
                     <p className="text-xs text-kalkvit/50 mt-1">{a.description}</p>
                     <p className="text-xs text-koppar mt-1">
@@ -382,10 +382,10 @@ export function GoalsPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { name: 'First Goal Created', icon: Target, earned: goals.length > 0 },
-                  { name: 'Goal Completed', icon: CheckCircle2, earned: completedGoals > 0 },
-                  { name: '5 Goals Set', icon: TrendingUp, earned: goals.length >= 5 },
-                  { name: '10 Goals Completed', icon: Trophy, earned: completedGoals >= 10 },
+                  { name: 'First Goal Created', icon: ViewfinderCircleIcon, earned: goals.length > 0 },
+                  { name: 'Goal Completed', icon: CheckCircleIcon, earned: completedGoals > 0 },
+                  { name: '5 Goals Set', icon: ArrowTrendingUpIcon, earned: goals.length >= 5 },
+                  { name: '10 Goals Completed', icon: TrophyIcon, earned: completedGoals >= 10 },
                 ].map((milestone) => (
                   <GlassCard
                     key={milestone.name}
@@ -457,7 +457,7 @@ export function GoalsPage() {
           </div>
           {createError && (
             <div className="mt-4 flex items-center gap-2 rounded-xl bg-tegelrod/10 border border-tegelrod/20 px-4 py-3 text-sm text-tegelrod">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <ExclamationCircleIcon className="w-4 h-4 flex-shrink-0" />
               {createError}
             </div>
           )}

@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import { useExperts } from '../lib/api/hooks'
 import type { Expert } from '../lib/api/types'
-import { Search, Star, Calendar, MessageCircle, Loader2, AlertTriangle } from 'lucide-react'
+import { MagnifyingGlassIcon, StarIcon, CalendarIcon, ChatBubbleLeftIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 // Specialty filters are derived from actual expert data — see below in ExpertsPage
@@ -73,7 +73,7 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expert:
           <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-3">
             {hasReviews && (
               <span className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
+                <StarIcon className="w-4 h-4 text-brand-amber fill-brand-amber" />
                 {expert.rating} ({expert.reviews_count})
               </span>
             )}
@@ -93,11 +93,11 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expert:
         )}
         <div className="flex gap-2 shrink-0">
           <GlassButton variant="ghost" className="p-2" onClick={() => onMessage(expert)}>
-            <MessageCircle className="w-4 h-4" />
+            <ChatBubbleLeftIcon className="w-4 h-4" />
           </GlassButton>
           <Link to={`/book-session?expert=${expert.id}`}>
             <GlassButton variant="primary" className="whitespace-nowrap">
-              <Calendar className="w-4 h-4" />
+              <CalendarIcon className="w-4 h-4" />
               Book Session
             </GlassButton>
           </Link>
@@ -166,7 +166,7 @@ export function ExpertsPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load experts</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -196,7 +196,7 @@ export function ExpertsPage() {
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
             <GlassInput
               placeholder="Search by name, specialty, or expertise..."
               className="pl-12"
@@ -225,7 +225,7 @@ export function ExpertsPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         ) : (
           <>

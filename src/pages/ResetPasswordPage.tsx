@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassInput } from '../components/ui'
 import { BackgroundPattern } from '../components/ui/BackgroundPattern'
-import { Lock, CheckCircle, Eye, EyeOff } from 'lucide-react'
+import { LockClosedIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import { resetPassword } from '../lib/auth'
 
 export function ResetPasswordPage() {
@@ -76,7 +76,7 @@ export function ResetPasswordPage() {
           {isSubmitted ? (
             <div className="text-center py-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-skogsgron/20 mb-4">
-                <CheckCircle className="w-8 h-8 text-skogsgron" />
+                <CheckCircleIcon className="w-8 h-8 text-skogsgron" />
               </div>
               <h2 className="font-serif text-xl font-bold text-kalkvit mb-2">Password Updated</h2>
               <p className="text-kalkvit/60 mb-6">
@@ -114,7 +114,7 @@ export function ResetPasswordPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-9 text-kalkvit/50 hover:text-kalkvit"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
                   </button>
                 </div>
 
@@ -154,7 +154,7 @@ export function ResetPasswordPage() {
                     'Updating...'
                   ) : (
                     <>
-                      <Lock className="w-4 h-4" />
+                      <LockClosedIcon className="w-4 h-4" />
                       Reset Password
                     </>
                   )}

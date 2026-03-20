@@ -5,7 +5,7 @@ import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect, GlassModa
 import { useExperts, useExpertAvailability, useAvailableSlots, useBookSession, useCheckout, usePlans, expertKeys } from '../lib/api/hooks'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Expert } from '../lib/api/types'
-import { Calendar, Clock, Star, ChevronLeft, ChevronRight, Video, Loader2, AlertTriangle, ExternalLink } from 'lucide-react'
+import { CalendarIcon, ClockIcon, StarIcon, ChevronLeftIcon, ChevronRightIcon, VideoCameraIcon, ArrowPathIcon, ExclamationTriangleIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { isAllowedExternalUrl, safeOpenUrl } from '../lib/url-validation'
 
@@ -70,7 +70,7 @@ function ExpertCard({
             <h3 className="font-semibold text-kalkvit">{expert.name}</h3>
             <p className="text-sm text-koppar">{expert.title}</p>
             <div className="flex items-center gap-2 mt-1 text-sm text-kalkvit/50">
-              <Star className="w-4 h-4 text-brand-amber fill-brand-amber" />
+              <StarIcon className="w-4 h-4 text-brand-amber fill-brand-amber" />
               <span>
                 {expert.rating} ({expert.reviews_count} reviews)
               </span>
@@ -359,7 +359,7 @@ export function BookSessionPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load experts</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -432,7 +432,7 @@ export function BookSessionPage() {
                     onClick={() => navigateMonth(-1)}
                     disabled={!canGoPrev}
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeftIcon className="w-4 h-4" />
                   </button>
                   <span className="text-sm font-medium text-kalkvit">
                     {calendarLabel}
@@ -441,7 +441,7 @@ export function BookSessionPage() {
                     className="p-1.5 rounded-lg hover:bg-white/[0.06] text-kalkvit/50 hover:text-kalkvit"
                     onClick={() => navigateMonth(1)}
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRightIcon className="w-4 h-4" />
                   </button>
                 </div>
                 {/* Weekday headers */}
@@ -497,7 +497,7 @@ export function BookSessionPage() {
             {selectedExpert?.calendar_url && (
               <GlassCard variant="accent" leftBorder={false}>
                 <div className="text-center space-y-3">
-                  <Calendar className="w-8 h-8 text-koppar mx-auto" />
+                  <CalendarIcon className="w-8 h-8 text-koppar mx-auto" />
                   <h3 className="font-semibold text-kalkvit">
                     Book via External Calendar
                   </h3>
@@ -512,7 +512,7 @@ export function BookSessionPage() {
                       safeOpenUrl(selectedExpert.calendar_url!)
                     }
                   >
-                    <ExternalLink className="w-4 h-4" />
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                     Book via Calendar
                   </GlassButton>
                 </div>
@@ -529,7 +529,7 @@ export function BookSessionPage() {
               {!serverSlots?.member_timezone && <div className="mb-3" />}
                 {(isLoadingAvailability || isLoadingServerSlots) && selectedExpertId ? (
                   <div className="flex items-center justify-center py-4">
-                    <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+                    <ArrowPathIcon className="w-6 h-6 text-koppar animate-spin" />
                   </div>
                 ) : timeSlotsForDate.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -608,7 +608,7 @@ export function BookSessionPage() {
                       <span className="font-medium text-kalkvit">{selectedExpert.name}</span>
                     </div>
                     <div className="flex items-center gap-3 text-kalkvit/80">
-                      <Calendar className="w-4 h-4 text-koppar" />
+                      <CalendarIcon className="w-4 h-4 text-koppar" />
                       <span>
                         {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
                           weekday: 'long',
@@ -618,13 +618,13 @@ export function BookSessionPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-3 text-kalkvit/80">
-                      <Clock className="w-4 h-4 text-koppar" />
+                      <ClockIcon className="w-4 h-4 text-koppar" />
                       <span>
                         {selectedTime} ({sessionType} min)
                       </span>
                     </div>
                     <div className="flex items-center gap-3 text-kalkvit/80">
-                      <Video className="w-4 h-4 text-koppar" />
+                      <VideoCameraIcon className="w-4 h-4 text-koppar" />
                       <span>Video Call</span>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-white/10">
@@ -650,7 +650,7 @@ export function BookSessionPage() {
                     >
                       {bookSessionMutation.isPending || checkoutMutation.isPending ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <ArrowPathIcon className="w-4 h-4 animate-spin" />
                           {checkoutMutation.isPending ? 'Redirecting...' : 'Booking...'}
                         </>
                       ) : (

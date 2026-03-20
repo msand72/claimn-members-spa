@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, X } from 'lucide-react'
+import { ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 /**
  * Global toast that displays mutation errors from React Query.
@@ -32,13 +32,13 @@ export function MutationErrorToast() {
   return (
     <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300">
       <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-tegelrod/20 border border-tegelrod/30 backdrop-blur-md shadow-lg max-w-sm">
-        <AlertTriangle className="w-4 h-4 text-tegelrod shrink-0" />
+        <ExclamationTriangleIcon className="w-4 h-4 text-tegelrod shrink-0" />
         <p className="text-sm text-kalkvit">{error}</p>
         <button
           onClick={() => setError(null)}
           className="text-kalkvit/40 hover:text-kalkvit shrink-0"
         >
-          <X className="w-4 h-4" />
+          <XMarkIcon className="w-4 h-4" />
         </button>
       </div>
     </div>

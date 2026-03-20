@@ -5,16 +5,16 @@ import { GlassCard, GlassButton, GlassTextarea, GlassAvatar, GlassBadge } from '
 import { usePeerReviews, useSubmitPeerReview } from '../lib/api/hooks'
 import type { PeerReview } from '../lib/api/types'
 import {
-  ArrowLeft,
-  Star,
-  MessageCircle,
-  ThumbsUp,
-  Clock,
-  CheckCircle,
-  Send,
-  Loader2,
-  AlertTriangle,
-} from 'lucide-react'
+  ArrowLeftIcon,
+  StarIcon,
+  ChatBubbleLeftIcon,
+  HandThumbUpIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  PaperAirplaneIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 function PendingReviewCard({
@@ -64,7 +64,7 @@ function PendingReviewCard({
           </div>
         </div>
         <GlassBadge variant="warning" className="flex items-center gap-1">
-          <Clock className="w-3 h-3" />
+          <ClockIcon className="w-3 h-3" />
           Due {review.due_date ? new Date(review.due_date).toLocaleDateString() : 'Soon'}
         </GlassBadge>
       </div>
@@ -83,7 +83,7 @@ function PendingReviewCard({
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button key={star} onClick={() => setRating(star)} className="p-1">
-                  <Star
+                  <StarIcon
                     className={cn(
                       'w-6 h-6 transition-colors',
                       star <= rating
@@ -114,10 +114,10 @@ function PendingReviewCard({
               onClick={handleSubmit}
             >
               {isSubmitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
+                  <PaperAirplaneIcon className="w-4 h-4" />
                   Submit Review
                 </>
               )}
@@ -166,7 +166,7 @@ function CompletedReviewCard({ review }: { review: PeerReview }) {
           {review.rating && (
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Star
+                <StarIcon
                   key={i}
                   className={cn(
                     'w-4 h-4',
@@ -196,7 +196,7 @@ function CompletedReviewCard({ review }: { review: PeerReview }) {
       {review.strengths && review.strengths.length > 0 && showFull && (
         <div className="mt-3 pt-3 border-t border-white/10">
           <p className="text-xs text-skogsgron mb-2 flex items-center gap-1">
-            <ThumbsUp className="w-3 h-3" />
+            <HandThumbUpIcon className="w-3 h-3" />
             Strengths
           </p>
           <div className="flex flex-wrap gap-2">
@@ -212,7 +212,7 @@ function CompletedReviewCard({ review }: { review: PeerReview }) {
       {review.improvements && review.improvements.length > 0 && showFull && (
         <div className="mt-3">
           <p className="text-xs text-koppar mb-2 flex items-center gap-1">
-            <MessageCircle className="w-3 h-3" />
+            <ChatBubbleLeftIcon className="w-3 h-3" />
             Areas for Improvement
           </p>
           <div className="flex flex-wrap gap-2">
@@ -275,7 +275,7 @@ export function ProgramsReviewsPage() {
       <MainLayout>
         <div className="max-w-4xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load reviews</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -294,7 +294,7 @@ export function ProgramsReviewsPage() {
           to="/programs"
           className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Back to Programs
         </Link>
 
@@ -345,7 +345,7 @@ export function ProgramsReviewsPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         ) : (
           <>
@@ -353,7 +353,7 @@ export function ProgramsReviewsPage() {
             {pendingReviews.length > 0 && (
               <div className="mb-8">
                 <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-koppar" />
+                  <ClockIcon className="w-5 h-5 text-koppar" />
                   Pending Reviews ({pendingReviews.length})
                 </h2>
                 {pendingReviews.map((review) => (
@@ -371,7 +371,7 @@ export function ProgramsReviewsPage() {
             {completedReviews.length > 0 && (
               <div>
                 <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-skogsgron" />
+                  <CheckCircleIcon className="w-5 h-5 text-skogsgron" />
                   Completed Reviews ({completedReviews.length})
                 </h2>
                 {completedReviews.map((review) => (

@@ -14,13 +14,13 @@ import {
   generateSimpleIntegrationInsights,
 } from '../../lib/assessment/scoring'
 import {
-  ArrowRight,
-  Loader2,
-  Sparkles,
-  TrendingUp,
-  AlertCircle,
-  ExternalLink,
-} from 'lucide-react'
+  ArrowRightIcon,
+  ArrowPathIcon,
+  SparklesIcon,
+  ArrowTrendingUpIcon,
+  ExclamationCircleIcon,
+  ArrowTopRightOnSquareIcon,
+} from '@heroicons/react/24/outline'
 import { PillarIcon } from '../../components/icons'
 import { cn } from '../../lib/utils'
 
@@ -188,7 +188,7 @@ export function OnboardingResultsPage() {
     return (
       <OnboardingLayout step={4} totalSteps={5}>
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+          <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar" />
         </div>
       </OnboardingLayout>
     )
@@ -210,7 +210,7 @@ export function OnboardingResultsPage() {
       {/* Header */}
       <div className="text-center mb-8">
         <div className="w-20 h-20 rounded-2xl bg-koppar/10 flex items-center justify-center mx-auto mb-6">
-          <Sparkles className="w-10 h-10 text-koppar" />
+          <SparklesIcon className="w-10 h-10 text-koppar" />
         </div>
         <h1 className="font-display text-3xl md:text-4xl font-bold text-kalkvit mb-3">
           {primaryArchetype ? (
@@ -299,13 +299,13 @@ export function OnboardingResultsPage() {
                       <h4 className="font-medium text-kalkvit text-sm">{pillar.name}</h4>
                       {isStrongest && (
                         <GlassBadge variant="success" className="text-xs">
-                          <TrendingUp className="w-3 h-3" />
+                          <ArrowTrendingUpIcon className="w-3 h-3" />
                           Strongest
                         </GlassBadge>
                       )}
                       {isWeakest && (
                         <GlassBadge variant="warning" className="text-xs">
-                          <AlertCircle className="w-3 h-3" />
+                          <ExclamationCircleIcon className="w-3 h-3" />
                           Growth Area
                         </GlassBadge>
                       )}
@@ -374,7 +374,7 @@ export function OnboardingResultsPage() {
             onClick={() => navigate(`/assessment/results?id=${resultId}`)}
           >
             View Full Report
-            <ExternalLink className="w-4 h-4" />
+            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
           </GlassButton>
         )}
         <div className="ml-auto">
@@ -384,7 +384,7 @@ export function OnboardingResultsPage() {
             disabled={updateOnboarding.isPending}
           >
             Continue
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
           </GlassButton>
         </div>
       </div>

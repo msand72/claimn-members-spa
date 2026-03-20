@@ -1,5 +1,5 @@
 import { cn } from '../../lib/utils'
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { ChevronUpIcon, ChevronDownIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline'
 
 interface Column<T> {
   key: keyof T | string
@@ -39,13 +39,13 @@ export function GlassTable<T extends Record<string, unknown>>({
     const isActive = sortKey === column.key
 
     if (!isActive) {
-      return <ChevronsUpDown className="w-4 h-4 text-kalkvit/30" />
+      return <ChevronUpDownIcon className="w-4 h-4 text-kalkvit/30" />
     }
 
     return sortDirection === 'asc' ? (
-      <ChevronUp className="w-4 h-4 text-koppar" />
+      <ChevronUpIcon className="w-4 h-4 text-koppar" />
     ) : (
-      <ChevronDown className="w-4 h-4 text-koppar" />
+      <ChevronDownIcon className="w-4 h-4 text-koppar" />
     )
   }
 

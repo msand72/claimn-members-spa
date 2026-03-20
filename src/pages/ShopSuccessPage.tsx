@@ -4,17 +4,17 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton } from '../components/ui'
 import { useVerifyCheckout } from '../lib/api/hooks'
 import {
-  CheckCircle,
-  ArrowRight,
-  BookOpen,
-  Users,
-  Calendar,
-  Download,
-  Mail,
-  Sparkles,
-  Loader2,
-  AlertTriangle,
-} from 'lucide-react'
+  CheckCircleIcon,
+  ArrowRightIcon,
+  BookOpenIcon,
+  UserGroupIcon,
+  CalendarIcon,
+  ArrowDownTrayIcon,
+  EnvelopeIcon,
+  SparklesIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
 
 export function ShopSuccessPage() {
   const [searchParams] = useSearchParams()
@@ -37,7 +37,7 @@ export function ShopSuccessPage() {
     return (
       <MainLayout>
         <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-koppar" />
+          <ArrowPathIcon className="w-10 h-10 animate-spin text-koppar" />
           <p className="text-kalkvit/60">Verifying your purchase...</p>
         </div>
       </MainLayout>
@@ -49,7 +49,7 @@ export function ShopSuccessPage() {
       <MainLayout>
         <div className="max-w-md mx-auto text-center py-24">
           <div className="w-24 h-24 rounded-full bg-tegelrod/20 mx-auto flex items-center justify-center mb-6">
-            <AlertTriangle className="w-12 h-12 text-tegelrod" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod" />
           </div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-4">
             Verification Failed
@@ -61,7 +61,7 @@ export function ShopSuccessPage() {
             <Link to="/shop/upgrade">
               <GlassButton variant="primary">
                 Try Again
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRightIcon className="w-4 h-4" />
               </GlassButton>
             </Link>
             <a href="mailto:support@claimn.co" className="text-sm text-koppar hover:underline">
@@ -81,7 +81,7 @@ export function ShopSuccessPage() {
         {/* Success Animation */}
         <div className="mb-8">
           <div className="w-24 h-24 rounded-full bg-skogsgron/20 mx-auto flex items-center justify-center mb-6">
-            <CheckCircle className="w-12 h-12 text-skogsgron" />
+            <CheckCircleIcon className="w-12 h-12 text-skogsgron" />
           </div>
           <h1 className="font-display text-4xl font-bold text-kalkvit mb-4">
             Purchase Successful!
@@ -109,7 +109,7 @@ export function ShopSuccessPage() {
             <div className="pt-4 flex items-center justify-between">
               <span className="text-sm text-kalkvit/60">Confirmation sent to</span>
               <span className="text-sm text-kalkvit flex items-center gap-2">
-                <Mail className="w-4 h-4" />
+                <EnvelopeIcon className="w-4 h-4" />
                 {email}
               </span>
             </div>
@@ -119,7 +119,7 @@ export function ShopSuccessPage() {
         {/* What's Next */}
         <GlassCard variant="elevated" className="mb-8">
           <h2 className="font-semibold text-kalkvit mb-6 flex items-center justify-center gap-2">
-            <Sparkles className="w-5 h-5 text-koppar" />
+            <SparklesIcon className="w-5 h-5 text-koppar" />
             What's Next
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -127,7 +127,7 @@ export function ShopSuccessPage() {
               <div className="p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-left">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-lg bg-koppar/20">
-                    <BookOpen className="w-5 h-5 text-koppar" />
+                    <BookOpenIcon className="w-5 h-5 text-koppar" />
                   </div>
                   <h3 className="font-medium text-kalkvit">Browse Protocols</h3>
                 </div>
@@ -140,7 +140,7 @@ export function ShopSuccessPage() {
               <div className="p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-left">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-lg bg-koppar/20">
-                    <Users className="w-5 h-5 text-koppar" />
+                    <UserGroupIcon className="w-5 h-5 text-koppar" />
                   </div>
                   <h3 className="font-medium text-kalkvit">Join a Sprint</h3>
                 </div>
@@ -153,7 +153,7 @@ export function ShopSuccessPage() {
               <div className="p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-left">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-lg bg-koppar/20">
-                    <Calendar className="w-5 h-5 text-koppar" />
+                    <CalendarIcon className="w-5 h-5 text-koppar" />
                   </div>
                   <h3 className="font-medium text-kalkvit">Book a Session</h3>
                 </div>
@@ -166,7 +166,7 @@ export function ShopSuccessPage() {
               <div className="p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-left">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-lg bg-koppar/20">
-                    <Download className="w-5 h-5 text-koppar" />
+                    <ArrowDownTrayIcon className="w-5 h-5 text-koppar" />
                   </div>
                   <h3 className="font-medium text-kalkvit">View Receipt</h3>
                 </div>
@@ -182,7 +182,7 @@ export function ShopSuccessPage() {
         <Link to="/">
           <GlassButton variant="primary" className="px-8">
             Go to Dashboard
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
           </GlassButton>
         </Link>
 

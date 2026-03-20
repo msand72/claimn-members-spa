@@ -1,11 +1,11 @@
 import { cn } from '../../lib/utils'
+import type React from 'react'
 import type { ReactNode, ButtonHTMLAttributes } from 'react'
-import type { LucideIcon } from 'lucide-react'
 
 interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost'
   children: ReactNode
-  icon?: LucideIcon
+  icon?: React.ComponentType<{ className?: string }>
 }
 
 export function GlassButton({
@@ -33,7 +33,7 @@ export function GlassButton({
 
   return (
     <button className={cn(baseStyles, variantStyles[variant], className)} {...props}>
-      {Icon && <Icon size={18} />}
+      {Icon && <Icon className="w-[18px] h-[18px]" />}
       {children}
     </button>
   )

@@ -1,5 +1,5 @@
 import { cn } from '../../lib/utils'
-import { AlertCircle, CheckCircle, Info, AlertTriangle, X } from 'lucide-react'
+import { ExclamationCircleIcon, CheckCircleIcon, InformationCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
 type AlertVariant = 'info' | 'success' | 'warning' | 'error'
 
@@ -14,28 +14,28 @@ interface GlassAlertProps {
 
 const variantConfig = {
   info: {
-    icon: Info,
+    icon: InformationCircleIcon,
     bgColor: 'bg-koppar/10',
     borderColor: 'border-koppar/30',
     iconColor: 'text-koppar',
     titleColor: 'text-koppar',
   },
   success: {
-    icon: CheckCircle,
+    icon: CheckCircleIcon,
     bgColor: 'bg-skogsgron/10',
     borderColor: 'border-skogsgron/30',
     iconColor: 'text-skogsgron',
     titleColor: 'text-skogsgron',
   },
   warning: {
-    icon: AlertTriangle,
+    icon: ExclamationTriangleIcon,
     bgColor: 'bg-brand-amber/10',
     borderColor: 'border-brand-amber/30',
     iconColor: 'text-brand-amber',
     titleColor: 'text-brand-amber',
   },
   error: {
-    icon: AlertCircle,
+    icon: ExclamationCircleIcon,
     bgColor: 'bg-tegelrod/10',
     borderColor: 'border-tegelrod/30',
     iconColor: 'text-tegelrod',
@@ -80,7 +80,7 @@ export function GlassAlert({
             className="flex-shrink-0 p-1 rounded-lg hover:bg-white/[0.1] text-kalkvit/50 hover:text-kalkvit transition-colors"
             aria-label="Dismiss alert"
           >
-            <X className="w-4 h-4" />
+            <XMarkIcon className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -127,7 +127,7 @@ export function GlassToast({
           className="p-1 rounded-lg hover:bg-white/[0.1] text-kalkvit/50 hover:text-kalkvit transition-colors"
           aria-label="Dismiss"
         >
-          <X className="w-4 h-4" />
+          <XMarkIcon className="w-4 h-4" />
         </button>
       )}
     </div>

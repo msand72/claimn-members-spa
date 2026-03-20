@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { AlertTriangle, RefreshCw, Bug } from 'lucide-react'
+import { ExclamationTriangleIcon, ArrowPathIcon, BugAntIcon } from '@heroicons/react/24/outline'
 import { isChunkLoadError } from '../lib/isChunkLoadError'
 import { useBugReport, type ErrorSource } from '../contexts/BugReportContext'
 
@@ -72,7 +72,7 @@ class PageErrorBoundaryInner extends Component<InnerProps, State> {
         <div className="flex items-center justify-center min-h-[300px] p-6">
           <div className="backdrop-blur-[24px] rounded-2xl p-8 max-w-md w-full text-center shadow-lg bg-[rgba(30,30,35,0.85)] border border-white/15">
             <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-tegelrod/20 flex items-center justify-center">
-              <AlertTriangle className="w-7 h-7 text-tegelrod" />
+              <ExclamationTriangleIcon className="w-7 h-7 text-tegelrod" />
             </div>
             <h2 className="text-lg font-semibold text-kalkvit mb-2">
               {label} encountered an error
@@ -90,7 +90,7 @@ class PageErrorBoundaryInner extends Component<InnerProps, State> {
                 onClick={this.handleRetry}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-white/10 border border-white/15 text-kalkvit hover:bg-white/15 transition-all"
               >
-                <RefreshCw className="w-4 h-4" />
+                <ArrowPathIcon className="w-4 h-4" />
                 Try Again
               </button>
               {this.props.onOpenModal && (
@@ -98,7 +98,7 @@ class PageErrorBoundaryInner extends Component<InnerProps, State> {
                   onClick={this.props.onOpenModal}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-br from-koppar to-[#A66529] text-white shadow-[0_4px_20px_rgba(184,115,51,0.4)] hover:shadow-[0_6px_24px_rgba(184,115,51,0.5)] hover:-translate-y-0.5 transition-all duration-200"
                 >
-                  <Bug className="w-4 h-4" />
+                  <BugAntIcon className="w-4 h-4" />
                   Report Bug
                 </button>
               )}

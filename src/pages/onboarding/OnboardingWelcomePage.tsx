@@ -6,7 +6,7 @@ import { validateImageFile } from '../../lib/image-utils'
 import { useUpdateOnboarding } from '../../lib/api/hooks/useOnboarding'
 import { OnboardingLayout } from './OnboardingLayout'
 import { GlassCard, GlassInput, GlassButton, GlassAvatar } from '../../components/ui'
-import { Upload, ArrowRight, SkipForward, Loader2 } from 'lucide-react'
+import { ArrowUpTrayIcon, ArrowRightIcon, ForwardIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 export function OnboardingWelcomePage() {
   const navigate = useNavigate()
@@ -92,9 +92,9 @@ export function OnboardingWelcomePage() {
               className="absolute -bottom-1 -right-1 w-8 h-8 bg-koppar rounded-full flex items-center justify-center text-charcoal hover:bg-koppar/90 transition-colors"
             >
               {uploadAvatar.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
               ) : (
-                <Upload className="w-4 h-4" />
+                <ArrowUpTrayIcon className="w-4 h-4" />
               )}
             </button>
           </div>
@@ -128,7 +128,7 @@ export function OnboardingWelcomePage() {
             onClick={handleSkip}
             className="flex items-center gap-1.5 text-kalkvit/50 text-sm hover:text-kalkvit/70 transition-colors"
           >
-            <SkipForward className="w-4 h-4" />
+            <ForwardIcon className="w-4 h-4" />
             Skip for now
           </button>
           <GlassButton
@@ -137,7 +137,7 @@ export function OnboardingWelcomePage() {
             disabled={updateProfile.isPending || updateOnboarding.isPending}
           >
             Continue
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
           </GlassButton>
         </div>
       </GlassCard>

@@ -4,7 +4,7 @@ import { GlassButton, GlassModal, GlassModalFooter, GlassAvatar, GlassBadge } fr
 import { useMyExpert } from '../lib/api/hooks/useMyExpert'
 import { useExperts } from '../lib/api/hooks/useExperts'
 import { useAuth } from '../contexts/AuthContext'
-import { HelpCircle, Loader2, MessageCircle } from 'lucide-react'
+import { QuestionMarkCircleIcon, ArrowPathIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline'
 
 interface AskExpertButtonProps {
   /** Pre-filled context, e.g. "Sleep Protocol — Week 2, Step 3" */
@@ -63,9 +63,9 @@ export function AskExpertButton({ context }: AskExpertButtonProps) {
         disabled={myExpertLoading}
       >
         {myExpertLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <ArrowPathIcon className="w-4 h-4 animate-spin" />
         ) : (
-          <HelpCircle className="w-4 h-4" />
+          <QuestionMarkCircleIcon className="w-4 h-4" />
         )}
         Ask Expert
       </GlassButton>
@@ -104,7 +104,7 @@ function ExpertPickerModal({
       <div className="max-h-[350px] overflow-y-auto space-y-1">
         {isLoading && (
           <div className="flex justify-center py-8">
-            <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-6 h-6 text-koppar animate-spin" />
           </div>
         )}
 
@@ -148,7 +148,7 @@ function ExpertPickerModal({
                   {expert.specialties[0]}
                 </GlassBadge>
               )}
-              <MessageCircle className="w-4 h-4 text-kalkvit/40 flex-shrink-0" />
+              <ChatBubbleLeftIcon className="w-4 h-4 text-kalkvit/40 flex-shrink-0" />
             </button>
           )
         })}

@@ -15,7 +15,7 @@ import { useInterests, useMemberInterests, useUpdateMemberInterests } from '../h
 import { ARCHETYPES, ARCHETYPE_LABELS, PILLARS, PILLAR_IDS } from '../lib/constants'
 import type { Archetype, PillarId } from '../lib/constants'
 import type { UpdateProfileRequest } from '../lib/api/types'
-import { Camera, Save, Loader2, AlertTriangle, Check } from 'lucide-react'
+import { CameraIcon, ArrowDownOnSquareIcon, ArrowPathIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { validateImageFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
 
@@ -183,12 +183,12 @@ export function ProfilePage() {
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
                 Saving...
               </>
             ) : isEditing ? (
               <>
-                <Save className="w-4 h-4" />
+                <ArrowDownOnSquareIcon className="w-4 h-4" />
                 Save Changes
               </>
             ) : (
@@ -206,11 +206,11 @@ export function ProfilePage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-koppar" />
+            <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar" />
           </div>
         ) : profileError ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
-            <AlertTriangle className="w-8 h-8 text-tegelrod" />
+            <ExclamationTriangleIcon className="w-8 h-8 text-tegelrod" />
             <p className="text-kalkvit/70">Failed to load profile.</p>
             <GlassButton variant="secondary" onClick={() => refetchProfile()}>
               Try Again
@@ -225,7 +225,7 @@ export function ProfilePage() {
                   <GlassAvatar src={profile?.avatar_url} initials={initials} size="xl" />
                   {uploadAvatar.isPending && (
                     <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
-                      <Loader2 className="w-6 h-6 animate-spin text-kalkvit" />
+                      <ArrowPathIcon className="w-6 h-6 animate-spin text-kalkvit" />
                     </div>
                   )}
                   <input
@@ -240,7 +240,7 @@ export function ProfilePage() {
                     disabled={uploadAvatar.isPending}
                     className="absolute bottom-0 right-0 p-2 rounded-full bg-koppar text-kalkvit hover:bg-koppar/80 transition-colors"
                   >
-                    <Camera className="w-4 h-4" />
+                    <CameraIcon className="w-4 h-4" />
                   </button>
                 </div>
                 <div>
@@ -360,7 +360,7 @@ export function ProfilePage() {
                             !isEditing && 'cursor-default opacity-80'
                           )}
                         >
-                          {isSelected && <Check className="w-3.5 h-3.5" />}
+                          {isSelected && <CheckIcon className="w-3.5 h-3.5" />}
                           {interest.name}
                         </button>
                       )

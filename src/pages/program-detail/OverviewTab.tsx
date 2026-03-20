@@ -1,5 +1,5 @@
 import { GlassCard } from '../../components/ui'
-import { Target, CheckCircle, BookOpen, GraduationCap } from 'lucide-react'
+import { ViewfinderCircleIcon, CheckCircleIcon, BookOpenIcon, AcademicCapIcon } from '@heroicons/react/24/outline'
 
 interface OverviewTabProps {
   program: {
@@ -19,13 +19,13 @@ export function OverviewTab({ program, sprintCount }: OverviewTabProps) {
       {program.objectives && program.objectives.length > 0 && (
         <GlassCard variant="base">
           <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-            <Target className="w-5 h-5 text-koppar" />
+            <ViewfinderCircleIcon className="w-5 h-5 text-koppar" />
             What You'll Achieve
           </h2>
           <ul className="space-y-3">
             {program.objectives.map((objective, i) => (
               <li key={i} className="flex items-start gap-3">
-                <CheckCircle className="w-4 h-4 text-skogsgron flex-shrink-0 mt-0.5" />
+                <CheckCircleIcon className="w-4 h-4 text-skogsgron flex-shrink-0 mt-0.5" />
                 <span className="text-sm text-kalkvit/80">{objective}</span>
               </li>
             ))}
@@ -37,7 +37,7 @@ export function OverviewTab({ program, sprintCount }: OverviewTabProps) {
       {program.prerequisites && program.prerequisites.length > 0 && (
         <GlassCard variant="base">
           <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-koppar" />
+            <BookOpenIcon className="w-5 h-5 text-koppar" />
             Prerequisites
           </h2>
           <ul className="space-y-3">
@@ -56,7 +56,7 @@ export function OverviewTab({ program, sprintCount }: OverviewTabProps) {
       {/* Program structure overview */}
       <GlassCard variant="base">
         <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-          <GraduationCap className="w-5 h-5 text-koppar" />
+          <AcademicCapIcon className="w-5 h-5 text-koppar" />
           Program Structure
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -81,7 +81,7 @@ export function OverviewTab({ program, sprintCount }: OverviewTabProps) {
       {(!program.objectives || program.objectives.length === 0) &&
        (!program.prerequisites || program.prerequisites.length === 0) && (
         <GlassCard variant="base" className="text-center py-8">
-          <BookOpen className="w-8 h-8 text-kalkvit/30 mx-auto mb-3" />
+          <BookOpenIcon className="w-8 h-8 text-kalkvit/30 mx-auto mb-3" />
           <p className="text-kalkvit/50 text-sm">
             Program details will be available soon. Check the Sprints tab to see the learning path.
           </p>

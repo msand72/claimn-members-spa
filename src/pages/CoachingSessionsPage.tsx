@@ -6,20 +6,20 @@ import { useCoachingSessions, useRescheduleSession, useSubmitReview } from '../l
 import { safeOpenUrl } from '../lib/url-validation'
 import type { CoachingSession } from '../lib/api/types'
 import {
-  Calendar,
-  Clock,
-  Video,
-  MessageCircle,
-  Star,
-  ChevronRight,
-  Plus,
-  AlertTriangle,
-  RefreshCw,
-  Target,
-  FileText,
-  Play,
-  TrendingUp,
-} from 'lucide-react'
+  CalendarIcon,
+  ClockIcon,
+  VideoCameraIcon,
+  ChatBubbleLeftIcon,
+  StarIcon,
+  ChevronRightIcon,
+  PlusIcon,
+  ExclamationTriangleIcon,
+  ArrowPathIcon,
+  ViewfinderCircleIcon,
+  DocumentTextIcon,
+  PlayIcon,
+  ArrowTrendingUpIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { EmptySessions } from '../components/ui/EmptyStateIllustration'
 
@@ -150,15 +150,15 @@ function SessionCard({
           {/* Date / time / type */}
           <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-kalkvit/60">
             <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
+              <CalendarIcon className="w-4 h-4" />
               {formatSessionDate(session.scheduled_at)}
             </span>
             <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
+              <ClockIcon className="w-4 h-4" />
               {formatSessionTime(session.scheduled_at)} ({session.duration} min)
             </span>
             <span className="flex items-center gap-1">
-              <Video className="w-4 h-4" />
+              <VideoCameraIcon className="w-4 h-4" />
               Video Call
             </span>
           </div>
@@ -167,7 +167,7 @@ function SessionCard({
           {session.goals && session.goals.length > 0 && (
             <div className="mt-3">
               <p className="text-xs text-kalkvit/50 mb-1 flex items-center gap-1">
-                <Target className="w-3 h-3" />
+                <ViewfinderCircleIcon className="w-3 h-3" />
                 Session Goals
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -219,7 +219,7 @@ function SessionCard({
           {/* Notes indicator */}
           {session.has_notes && uiStatus === 'completed' && (
             <p className="mt-2 text-xs text-kalkvit/50 flex items-center gap-1">
-              <FileText className="w-3 h-3" />
+              <DocumentTextIcon className="w-3 h-3" />
               Session notes available
             </p>
           )}
@@ -230,13 +230,13 @@ function SessionCard({
               <>
                 {session.meeting_url ? (
                   <GlassButton variant="primary" className="text-sm" onClick={() => safeOpenUrl(session.meeting_url!)}>
-                    <Video className="w-4 h-4" />
+                    <VideoCameraIcon className="w-4 h-4" />
                     Join Call
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRightIcon className="w-4 h-4" />
                   </GlassButton>
                 ) : (
                   <span className="text-xs text-kalkvit/40 flex items-center gap-1">
-                    <Video className="w-3.5 h-3.5" />
+                    <VideoCameraIcon className="w-3.5 h-3.5" />
                     Meeting link will be shared before the session
                   </span>
                 )}
@@ -246,12 +246,12 @@ function SessionCard({
                   onClick={() => onReschedule?.(session.id)}
                   disabled={uiStatus === 'reschedule_pending'}
                 >
-                  <RefreshCw className={cn('w-4 h-4', uiStatus === 'reschedule_pending' && 'opacity-40')} />
+                  <ArrowPathIcon className={cn('w-4 h-4', uiStatus === 'reschedule_pending' && 'opacity-40')} />
                   Reschedule
                 </GlassButton>
                 <Link to={`/messages?user=${expert?.id || ''}`}>
                   <GlassButton variant="ghost" className="text-sm">
-                    <MessageCircle className="w-4 h-4" />
+                    <ChatBubbleLeftIcon className="w-4 h-4" />
                     Message
                   </GlassButton>
                 </Link>
@@ -260,26 +260,26 @@ function SessionCard({
             {uiStatus === 'completed' && (
               <>
                 <GlassButton variant="secondary" className="text-sm" onClick={() => onReview?.(session.id)}>
-                  <Star className="w-4 h-4" />
+                  <StarIcon className="w-4 h-4" />
                   Rate Session
                 </GlassButton>
                 {session.has_notes && (
                   <Link to={`/coaching/session-notes?id=${session.id}`}>
                     <GlassButton variant="ghost" className="text-sm">
-                      <FileText className="w-4 h-4" />
+                      <DocumentTextIcon className="w-4 h-4" />
                       View Notes
                     </GlassButton>
                   </Link>
                 )}
                 {session.has_recording && session.recording_url && (
                   <GlassButton variant="ghost" className="text-sm" onClick={() => safeOpenUrl(session.recording_url!)}>
-                    <Play className="w-4 h-4" />
+                    <PlayIcon className="w-4 h-4" />
                     Recording
                   </GlassButton>
                 )}
                 <Link to="/coaching/resources" className="ml-auto">
                   <GlassButton variant="ghost" className="text-sm text-koppar">
-                    <TrendingUp className="w-4 h-4" />
+                    <ArrowTrendingUpIcon className="w-4 h-4" />
                     Resources
                   </GlassButton>
                 </Link>
@@ -354,7 +354,7 @@ export function CoachingSessionsPage() {
       <MainLayout>
         <div className="max-w-4xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load sessions</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -377,7 +377,7 @@ export function CoachingSessionsPage() {
           </div>
           <Link to="/book-session">
             <GlassButton variant="primary">
-              <Plus className="w-4 h-4" />
+              <PlusIcon className="w-4 h-4" />
               Book New Session
             </GlassButton>
           </Link>
@@ -471,7 +471,7 @@ export function CoachingSessionsPage() {
       >
         {rescheduleSuccess ? (
           <div className="text-center py-4">
-            <RefreshCw className="w-8 h-8 text-skogsgron mx-auto mb-3" />
+            <ArrowPathIcon className="w-8 h-8 text-skogsgron mx-auto mb-3" />
             <p className="text-kalkvit font-medium mb-1">Reschedule Requested</p>
             <p className="text-sm text-kalkvit/60">Your coach will confirm the new time.</p>
             <GlassButton
@@ -562,7 +562,7 @@ export function CoachingSessionsPage() {
       >
         {reviewSuccess ? (
           <div className="text-center py-4">
-            <Star className="w-8 h-8 text-brand-amber fill-brand-amber mx-auto mb-3" />
+            <StarIcon className="w-8 h-8 text-brand-amber fill-brand-amber mx-auto mb-3" />
             <p className="text-kalkvit font-medium mb-1">Thank You!</p>
             <p className="text-sm text-kalkvit/60">Your review helps improve the coaching experience.</p>
             <GlassButton
@@ -590,7 +590,7 @@ export function CoachingSessionsPage() {
                       onClick={() => setReviewRating(star)}
                       className="p-1 transition-transform hover:scale-110"
                     >
-                      <Star
+                      <StarIcon
                         className={cn(
                           'w-8 h-8 transition-colors',
                           star <= reviewRating

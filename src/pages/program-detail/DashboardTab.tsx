@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassBadge, GlassAvatar } from '../../components/ui'
 import {
-  Zap,
-  CheckCircle,
-  Target,
-  ClipboardCheck,
-  ArrowRight,
-  Calendar,
-} from 'lucide-react'
+  BoltIcon,
+  CheckCircleIcon,
+  ViewfinderCircleIcon,
+  ClipboardDocumentCheckIcon,
+  ArrowRightIcon,
+  CalendarIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import type {
   Sprint,
@@ -58,7 +58,7 @@ export function DashboardTab({
       {hasSprints && (
         <GlassCard variant="base">
           <h3 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-koppar" />
+            <BoltIcon className="w-5 h-5 text-koppar" />
             Sprint Progress
           </h3>
           <div className="flex items-center gap-1">
@@ -79,7 +79,7 @@ export function DashboardTab({
                     )}
                   >
                     {sprint.status === 'completed' ? (
-                      <CheckCircle className="w-4 h-4" />
+                      <CheckCircleIcon className="w-4 h-4" />
                     ) : (
                       i + 1
                     )}
@@ -123,13 +123,13 @@ export function DashboardTab({
           <div className="flex items-center gap-4 text-xs text-kalkvit/50 mb-4">
             {activeSprint.focus_area && (
               <span className="flex items-center gap-1">
-                <Target className="w-3 h-3" />
+                <ViewfinderCircleIcon className="w-3 h-3" />
                 {activeSprint.focus_area}
               </span>
             )}
             {activeSprint.end_date && (
               <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
+                <CalendarIcon className="w-3 h-3" />
                 Ends {new Date(activeSprint.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
             )}
@@ -150,7 +150,7 @@ export function DashboardTab({
           )}
           <GlassButton variant="primary" className="text-sm" onClick={() => onNavigateToTab('sprints')}>
             View Sprint
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
           </GlassButton>
         </GlassCard>
       )}
@@ -187,7 +187,7 @@ export function DashboardTab({
           <GlassCard variant="base">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-koppar/20 text-koppar flex items-center justify-center">
-                <ClipboardCheck className="w-5 h-5" />
+                <ClipboardDocumentCheckIcon className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-koppar font-medium uppercase tracking-wider mb-0.5">Next Assessment</p>
@@ -200,7 +200,7 @@ export function DashboardTab({
               <Link to={`/programs/${programId}/assessment/${nextAssessment.id}`}>
                 <GlassButton variant="primary" className="text-sm">
                   Start
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRightIcon className="w-4 h-4" />
                 </GlassButton>
               </Link>
             </div>
@@ -219,7 +219,7 @@ export function DashboardTab({
             <div className="flex items-center gap-2 text-xs text-kalkvit/50">
               {programGroup.meeting_schedule && (
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
+                  <CalendarIcon className="w-3 h-3" />
                   {programGroup.meeting_schedule}
                 </span>
               )}
@@ -276,7 +276,7 @@ export function DashboardTab({
             onClick={() => onNavigateToTab('community')}
           >
             View All
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
           </GlassButton>
         </GlassCard>
       )}

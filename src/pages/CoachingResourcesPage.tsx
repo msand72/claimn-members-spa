@@ -5,30 +5,30 @@ import { useCoachingResources } from '../lib/api/hooks'
 import { safeOpenUrl } from '../lib/url-validation'
 import type { CoachingResource } from '../lib/api/types'
 import {
-  FileText,
-  Video,
-  Download,
-  ExternalLink,
-  BookOpen,
-  Headphones,
-  Star,
-  Clock,
-  Loader2,
-  AlertTriangle,
-} from 'lucide-react'
+  DocumentTextIcon,
+  VideoCameraIcon,
+  ArrowDownTrayIcon,
+  ArrowTopRightOnSquareIcon,
+  BookOpenIcon,
+  SpeakerWaveIcon,
+  StarIcon,
+  ClockIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 const categories = ['All', 'Leadership', 'Habits', 'Productivity', 'Planning', 'Performance', 'Mindset']
 const types = ['All Types', 'pdf', 'video', 'audio', 'article']
 
 const typeConfig = {
-  pdf: { icon: FileText, color: 'text-tegelrod', label: 'PDF' },
-  video: { icon: Video, color: 'text-koppar', label: 'Video' },
-  audio: { icon: Headphones, color: 'text-skogsgron', label: 'Audio' },
-  article: { icon: BookOpen, color: 'text-brand-amber', label: 'Article' },
-  guide: { icon: BookOpen, color: 'text-brand-amber', label: 'Guide' },
-  podcast: { icon: Headphones, color: 'text-skogsgron', label: 'Podcast' },
-  template: { icon: FileText, color: 'text-tegelrod', label: 'Template' },
+  pdf: { icon: DocumentTextIcon, color: 'text-tegelrod', label: 'PDF' },
+  video: { icon: VideoCameraIcon, color: 'text-koppar', label: 'Video' },
+  audio: { icon: SpeakerWaveIcon, color: 'text-skogsgron', label: 'Audio' },
+  article: { icon: BookOpenIcon, color: 'text-brand-amber', label: 'Article' },
+  guide: { icon: BookOpenIcon, color: 'text-brand-amber', label: 'Guide' },
+  podcast: { icon: SpeakerWaveIcon, color: 'text-skogsgron', label: 'Podcast' },
+  template: { icon: DocumentTextIcon, color: 'text-tegelrod', label: 'Template' },
 }
 
 function ResourceCard({ resource }: { resource: CoachingResource }) {
@@ -60,7 +60,7 @@ function ResourceCard({ resource }: { resource: CoachingResource }) {
               {resource.is_new && <GlassBadge variant="koppar">New</GlassBadge>}
               {resource.is_featured && (
                 <GlassBadge variant="warning" className="flex items-center gap-1">
-                  <Star className="w-3 h-3" />
+                  <StarIcon className="w-3 h-3" />
                   Featured
                 </GlassBadge>
               )}
@@ -71,7 +71,7 @@ function ResourceCard({ resource }: { resource: CoachingResource }) {
             <div className="flex items-center gap-3 text-xs text-kalkvit/50">
               <GlassBadge variant="default">{resource.category}</GlassBadge>
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+                <ClockIcon className="w-3 h-3" />
                 {resource.duration || resource.size}
               </span>
             </div>
@@ -87,7 +87,7 @@ function ResourceCard({ resource }: { resource: CoachingResource }) {
                     }
                   }}
                 >
-                  <Download className="w-4 h-4" />
+                  <ArrowDownTrayIcon className="w-4 h-4" />
                 </GlassButton>
               )}
               <GlassButton
@@ -102,7 +102,7 @@ function ResourceCard({ resource }: { resource: CoachingResource }) {
               >
                 {resource.type === 'article' ? (
                   <>
-                    Read <ExternalLink className="w-3 h-3" />
+                    Read <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                   </>
                 ) : resource.type === 'pdf' ? (
                   'View'
@@ -139,7 +139,7 @@ export function CoachingResourcesPage() {
       <MainLayout>
         <div className="max-w-5xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load resources</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -162,7 +162,7 @@ export function CoachingResourcesPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         ) : (
           <>
@@ -170,7 +170,7 @@ export function CoachingResourcesPage() {
             {featuredResources.length > 0 && (
               <div className="mb-8">
                 <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-brand-amber" />
+                  <StarIcon className="w-5 h-5 text-brand-amber" />
                   Featured Resources
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

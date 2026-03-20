@@ -1,4 +1,4 @@
-import { Bug, X } from 'lucide-react'
+import { BugAntIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useBugReport } from '../contexts/BugReportContext'
 import { cn } from '../lib/utils'
 import { GlassButton } from './ui/GlassButton'
@@ -39,7 +39,7 @@ export function BugReportToast() {
         )}
       >
         <div className="flex items-start gap-3">
-          <Bug className={cn('w-5 h-5 mt-0.5 flex-shrink-0', styles.icon)} />
+          <BugAntIcon className={cn('w-5 h-5 mt-0.5 flex-shrink-0', styles.icon)} />
           <div className="flex-1 min-w-0">
             <p className="text-sm text-kalkvit">{toast.message}</p>
             {toast.showReportButton && (
@@ -70,7 +70,7 @@ export function BugReportToast() {
               className="flex-shrink-0 p-1 rounded-lg hover:bg-white/[0.1] text-kalkvit/50 hover:text-kalkvit transition-colors"
               aria-label="Dismiss"
             >
-              <X className="w-4 h-4" />
+              <XMarkIcon className="w-4 h-4" />
             </button>
           )}
         </div>

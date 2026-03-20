@@ -15,14 +15,14 @@ import type {
   ProgramAssessmentResult,
 } from '../lib/api/types'
 import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle,
-  Loader2,
-  AlertTriangle,
-  ClipboardCheck,
-  Circle,
-} from 'lucide-react'
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CheckCircleIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  ClipboardDocumentCheckIcon,
+  MinusIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 function ScaleQuestion({
@@ -118,9 +118,9 @@ function MultipleChoiceQuestion({
           >
             <div className="flex-shrink-0">
               {isSelected ? (
-                <CheckCircle className="w-5 h-5 text-koppar" />
+                <CheckCircleIcon className="w-5 h-5 text-koppar" />
               ) : (
-                <Circle className="w-5 h-5 text-kalkvit/30" />
+                <MinusIcon className="w-5 h-5 text-kalkvit/30" />
               )}
             </div>
             <span className="text-sm">{option.label}</span>
@@ -299,7 +299,7 @@ function ResultsView({
   return (
     <div className="space-y-6">
       <GlassCard variant="elevated" className="text-center">
-        <CheckCircle className="w-12 h-12 text-skogsgron mx-auto mb-4" />
+        <CheckCircleIcon className="w-12 h-12 text-skogsgron mx-auto mb-4" />
         <h2 className="font-display text-2xl font-bold text-kalkvit mb-2">
           Assessment Complete
         </h2>
@@ -331,7 +331,7 @@ function ResultsView({
 
         <Link to={`/programs/${programId}`}>
           <GlassButton variant="primary">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4" />
             Back to Program
           </GlassButton>
         </Link>
@@ -443,7 +443,7 @@ export function ProgramAssessmentPage() {
     return (
       <MainLayout>
         <div className="max-w-3xl mx-auto flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       </MainLayout>
     )
@@ -457,11 +457,11 @@ export function ProgramAssessmentPage() {
             to={programId ? `/programs/${programId}` : '/programs'}
             className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4" />
             Back to Program
           </Link>
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Assessment not found</h3>
             <p className="text-kalkvit/50 text-sm">
               This assessment may not be available yet or the link is incorrect.
@@ -481,11 +481,11 @@ export function ProgramAssessmentPage() {
             to={`/programs/${programId}`}
             className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4" />
             Back to Program
           </Link>
           <GlassCard variant="base" className="text-center py-12">
-            <CheckCircle className="w-12 h-12 text-skogsgron mx-auto mb-4" />
+            <CheckCircleIcon className="w-12 h-12 text-skogsgron mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Already Completed</h3>
             <p className="text-kalkvit/50 text-sm mb-6">
               You've already completed this assessment on{' '}
@@ -501,7 +501,7 @@ export function ProgramAssessmentPage() {
             <div className="flex gap-3 justify-center">
               <Link to={`/programs/${programId}`}>
                 <GlassButton variant="secondary">
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeftIcon className="w-4 h-4" />
                   Back to Program
                 </GlassButton>
               </Link>
@@ -541,14 +541,14 @@ export function ProgramAssessmentPage() {
           to={`/programs/${programId}`}
           className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Back to Program
         </Link>
 
         {/* Assessment Header */}
         <GlassCard variant="elevated" className="mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <ClipboardCheck className="w-5 h-5 text-koppar" />
+            <ClipboardDocumentCheckIcon className="w-5 h-5 text-koppar" />
             <GlassBadge variant="koppar">
               {typeLabels[assessment.type] || 'Assessment'}
             </GlassBadge>
@@ -649,13 +649,13 @@ export function ProgramAssessmentPage() {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
                   Submitting...
                 </>
               ) : (
                 <>
                   Submit Assessment
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRightIcon className="w-4 h-4" />
                 </>
               )}
             </GlassButton>

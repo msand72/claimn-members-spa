@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { X } from 'lucide-react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import { GlassButton } from './GlassButton'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
@@ -106,7 +106,7 @@ export function GlassModal({
                 className="p-2 -mr-2 -mt-2"
                 aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <XMarkIcon className="w-5 h-5" />
               </GlassButton>
             )}
           </div>

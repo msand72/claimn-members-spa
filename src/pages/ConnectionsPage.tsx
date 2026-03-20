@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
-import { Search, UserPlus, UserCheck, MessageCircle, MoreHorizontal, Loader2, Users, Trash2, Heart } from 'lucide-react'
+import { MagnifyingGlassIcon, UserPlusIcon, UserPlusIcon as UserCheckIcon, ChatBubbleLeftIcon, EllipsisHorizontalIcon, ArrowPathIcon, UserGroupIcon, TrashIcon, HeartIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import {
   useConnections,
@@ -96,7 +96,7 @@ function SuggestionCard({ member }: SuggestionCardProps) {
       {/* Shared interests */}
       {member.shared_interests && member.shared_interests > 0 && (
         <div className="flex items-center gap-2 mb-4">
-          <Heart className="w-4 h-4 text-koppar fill-koppar/30" />
+          <HeartIcon className="w-4 h-4 text-koppar fill-koppar/30" />
           <span className="text-sm font-medium text-koppar">
             {member.shared_interests} shared interests
           </span>
@@ -112,9 +112,9 @@ function SuggestionCard({ member }: SuggestionCardProps) {
           disabled={sendConnection.isPending}
         >
           {sendConnection.isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <ArrowPathIcon className="w-4 h-4 animate-spin" />
           ) : (
-            <UserPlus className="w-4 h-4 shrink-0" />
+            <UserPlusIcon className="w-4 h-4 shrink-0" />
           )}
           <span>{sendConnection.isPending ? 'Sending...' : 'Connect'}</span>
         </GlassButton>
@@ -194,7 +194,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
               onClick={() => setShowMenu((prev) => !prev)}
               className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit"
             >
-              <MoreHorizontal className="w-5 h-5" />
+              <EllipsisHorizontalIcon className="w-5 h-5" />
             </button>
             {showMenu && (
               <div className="absolute right-0 top-full mt-1 z-50 min-w-[200px] rounded-xl bg-charcoal border border-white/15 py-1 shadow-xl shadow-black/40">
@@ -207,7 +207,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
                   disabled={removeConnection.isPending}
                   className="w-full text-left px-4 py-2.5 text-sm text-tegelrod hover:bg-white/[0.06] transition-colors flex items-center gap-2"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <TrashIcon className="w-4 h-4" />
                   {removeConnection.isPending ? 'Removing...' : 'Remove Connection'}
                 </button>
               </div>
@@ -240,11 +240,11 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
                 className="flex-1 justify-center"
                 onClick={() => navigate(`/messages?user=${otherUserId}`)}
               >
-                <MessageCircle className="w-4 h-4 shrink-0" />
+                <ChatBubbleLeftIcon className="w-4 h-4 shrink-0" />
                 <span>Message</span>
               </GlassButton>
               <GlassBadge variant="success" className="shrink-0 px-3 py-1.5">
-                <UserCheck className="w-3.5 h-3.5 mr-1" />
+                <UserCheckIcon className="w-3.5 h-3.5 mr-1" />
                 Connected
               </GlassBadge>
             </>
@@ -256,7 +256,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
                 onClick={() => acceptConnection.mutate(connection.id)}
                 disabled={acceptConnection.isPending}
               >
-                {acceptConnection.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Accept'}
+                {acceptConnection.isPending ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : 'Accept'}
               </GlassButton>
               <GlassButton
                 variant="secondary"
@@ -264,7 +264,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
                 onClick={() => rejectConnection.mutate(connection.id)}
                 disabled={rejectConnection.isPending}
               >
-                {rejectConnection.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Decline'}
+                {rejectConnection.isPending ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : 'Decline'}
               </GlassButton>
             </div>
           ) : isPending ? (
@@ -351,7 +351,7 @@ export function ConnectionsPage() {
         {/* Search and Tabs */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
             <GlassInput
               placeholder="Search connections..."
               className="pl-12"
@@ -380,7 +380,7 @@ export function ConnectionsPage() {
         {/* Loading state */}
         {isLoading && (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 
@@ -423,7 +423,7 @@ export function ConnectionsPage() {
           (activeTab !== 'Suggestions' && filteredConnections.length === 0)
         ) && (
           <GlassCard variant="base" className="text-center py-12">
-            <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <UserGroupIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">
               {activeTab === 'Suggestions' ? 'No suggestions available' : 'No connections found'}
             </h3>

@@ -12,17 +12,17 @@ import {
 import { useAccountabilityGroup, useLeaveAccountabilityGroup, useCreateCheckIn } from '../lib/api/hooks'
 import { EmptyAccountability } from '../components/ui/EmptyStateIllustration'
 import {
-  Users,
-  MessageCircle,
-  Calendar,
-  Target,
-  CheckCircle2,
-  Send,
-  ArrowRight,
-  Loader2,
-  Info,
-  LogOut,
-} from 'lucide-react'
+  UserGroupIcon,
+  ChatBubbleLeftIcon,
+  CalendarIcon,
+  ViewfinderCircleIcon,
+  CheckCircleIcon,
+  PaperAirplaneIcon,
+  ArrowRightIcon,
+  ArrowPathIcon,
+  InformationCircleIcon,
+  ArrowRightOnRectangleIcon,
+} from '@heroicons/react/24/outline'
 
 export function AccountabilityPage() {
   const [showCheckInModal, setShowCheckInModal] = useState(false)
@@ -64,7 +64,7 @@ export function AccountabilityPage() {
     return (
       <MainLayout>
         <div className="max-w-6xl mx-auto flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       </MainLayout>
     )
@@ -96,14 +96,14 @@ export function AccountabilityPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/programs">
                 <GlassButton variant="primary">
-                  <Users className="w-4 h-4" />
+                  <UserGroupIcon className="w-4 h-4" />
                   Join a Program
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRightIcon className="w-4 h-4" />
                 </GlassButton>
               </Link>
               <Link to="/circles">
                 <GlassButton variant="secondary">
-                  <MessageCircle className="w-4 h-4" />
+                  <ChatBubbleLeftIcon className="w-4 h-4" />
                   Explore Circles
                 </GlassButton>
               </Link>
@@ -114,7 +114,7 @@ export function AccountabilityPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             <GlassCard variant="base">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-koppar" />
+                <UserGroupIcon className="w-6 h-6 text-koppar" />
               </div>
               <h3 className="font-semibold text-kalkvit mb-2">Small Groups</h3>
               <p className="text-sm text-kalkvit/60">
@@ -123,7 +123,7 @@ export function AccountabilityPage() {
             </GlassCard>
             <GlassCard variant="base">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-6 h-6 text-koppar" />
+                <CheckCircleIcon className="w-6 h-6 text-koppar" />
               </div>
               <h3 className="font-semibold text-kalkvit mb-2">Regular Check-ins</h3>
               <p className="text-sm text-kalkvit/60">
@@ -132,7 +132,7 @@ export function AccountabilityPage() {
             </GlassCard>
             <GlassCard variant="base">
               <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center mb-4">
-                <Calendar className="w-6 h-6 text-koppar" />
+                <CalendarIcon className="w-6 h-6 text-koppar" />
               </div>
               <h3 className="font-semibold text-kalkvit mb-2">Weekly Meetings</h3>
               <p className="text-sm text-kalkvit/60">
@@ -154,7 +154,7 @@ export function AccountabilityPage() {
             <p className="text-kalkvit/60">Stay connected with your accountability partners</p>
           </div>
           <GlassButton variant="primary" onClick={() => setShowCheckInModal(true)}>
-            <Send className="w-4 h-4" />
+            <PaperAirplaneIcon className="w-4 h-4" />
             Share Check-in
           </GlassButton>
         </div>
@@ -162,7 +162,7 @@ export function AccountabilityPage() {
         {/* Check-in notice banner */}
         {checkInNotice && (
           <div className="mb-6 flex items-center gap-3 rounded-xl bg-koppar/10 border border-koppar/20 px-4 py-3 text-sm text-koppar">
-            <Info className="w-4 h-4 flex-shrink-0" />
+            <InformationCircleIcon className="w-4 h-4 flex-shrink-0" />
             {checkInNotice}
           </div>
         )}
@@ -172,7 +172,7 @@ export function AccountabilityPage() {
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-koppar/20 flex items-center justify-center">
-                <Users className="w-7 h-7 text-koppar" />
+                <UserGroupIcon className="w-7 h-7 text-koppar" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ export function AccountabilityPage() {
               disabled={leaveGroup.isPending}
               className="text-kalkvit/50 hover:text-tegelrod"
             >
-              <LogOut className="w-4 h-4" />
+              <ArrowRightOnRectangleIcon className="w-4 h-4" />
               Leave Group
             </GlassButton>
           </div>
@@ -210,24 +210,24 @@ export function AccountabilityPage() {
         {/* Accountability Guidelines */}
         <GlassCard variant="accent" className="mt-8">
           <h3 className="font-semibold text-kalkvit mb-3 flex items-center gap-2">
-            <Target className="w-4 h-4 text-koppar" />
+            <ViewfinderCircleIcon className="w-4 h-4 text-koppar" />
             Accountability Guidelines
           </h3>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-kalkvit/70">
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-skogsgron mt-0.5 flex-shrink-0" />
+              <CheckCircleIcon className="w-4 h-4 text-skogsgron mt-0.5 flex-shrink-0" />
               Check in at least 2x per week with progress updates
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-skogsgron mt-0.5 flex-shrink-0" />
+              <CheckCircleIcon className="w-4 h-4 text-skogsgron mt-0.5 flex-shrink-0" />
               Celebrate wins and support struggles without judgment
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-skogsgron mt-0.5 flex-shrink-0" />
+              <CheckCircleIcon className="w-4 h-4 text-skogsgron mt-0.5 flex-shrink-0" />
               Attend weekly calls or send async updates if unavailable
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-skogsgron mt-0.5 flex-shrink-0" />
+              <CheckCircleIcon className="w-4 h-4 text-skogsgron mt-0.5 flex-shrink-0" />
               Keep each other accountable with respect and honesty
             </li>
           </ul>
@@ -279,12 +279,12 @@ export function AccountabilityPage() {
             >
               {createCheckIn.isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
                   Sharing...
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
+                  <PaperAirplaneIcon className="w-4 h-4" />
                   Share
                 </>
               )}

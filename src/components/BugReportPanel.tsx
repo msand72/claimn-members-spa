@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Camera, ChevronDown, ChevronRight, Trash2, Loader2 } from 'lucide-react'
+import { CameraIcon, ChevronDownIcon, ChevronRightIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { useBugReport } from '../contexts/BugReportContext'
 import { GlassModal, GlassModalFooter } from './ui/GlassModal'
 import { GlassButton } from './ui/GlassButton'
@@ -62,7 +62,7 @@ export function BugReportPanel() {
           <div>
             <GlassButton
               variant="secondary"
-              icon={isCapturing ? Loader2 : Camera}
+              icon={isCapturing ? ArrowPathIcon : CameraIcon}
               onClick={handleCaptureScreenshot}
               disabled={isCapturing}
               className={cn(isCapturing && '[&_svg]:animate-spin')}
@@ -80,7 +80,7 @@ export function BugReportPanel() {
                 onClick={() => setScreenshot(null)}
                 className="flex items-center gap-1 text-xs text-tegelrod/70 hover:text-tegelrod transition-colors"
               >
-                <Trash2 className="w-3 h-3" />
+                <TrashIcon className="w-3 h-3" />
                 Remove
               </button>
             </div>
@@ -138,9 +138,9 @@ export function BugReportPanel() {
               className="flex items-center gap-1.5 text-xs text-kalkvit/50 hover:text-kalkvit/70 transition-colors"
             >
               {showErrorDetails ? (
-                <ChevronDown className="w-3.5 h-3.5" />
+                <ChevronDownIcon className="w-3.5 h-3.5" />
               ) : (
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRightIcon className="w-3.5 h-3.5" />
               )}
               Error details
             </button>
@@ -174,7 +174,7 @@ export function BugReportPanel() {
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
               Sending...
             </span>
           ) : (

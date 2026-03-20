@@ -1,5 +1,5 @@
 import { Navigate, useLocation, Link } from 'react-router-dom'
-import { Loader2, Lock, Sparkles } from 'lucide-react'
+import { ArrowPathIcon, LockClosedIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 import { useSubscription, meetsTierRequirement, type SubscriptionTier } from '../lib/api/hooks/useSubscription'
 
@@ -39,7 +39,7 @@ export function RequireTier({ minTier, children, fallback = 'upgrade' }: Require
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+        <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
       </div>
     )
   }
@@ -62,7 +62,7 @@ export function RequireTier({ minTier, children, fallback = 'upgrade' }: Require
       <div className="text-center max-w-md mx-auto">
         {/* Lock icon */}
         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-koppar/20 to-brandAmber/20 flex items-center justify-center mx-auto mb-6">
-          <Lock className="w-10 h-10 text-koppar" />
+          <LockClosedIcon className="w-10 h-10 text-koppar" />
         </div>
 
         {/* Title */}
@@ -81,7 +81,7 @@ export function RequireTier({ minTier, children, fallback = 'upgrade' }: Require
         {/* Features preview */}
         <div className="bg-charcoal/5 dark:bg-white/5 border border-charcoal/10 dark:border-white/10 rounded-xl p-4 mb-6 text-left">
           <h3 className="text-sm font-medium text-charcoal/80 dark:text-kalkvit/80 mb-3 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-koppar" />
+            <SparklesIcon className="w-4 h-4 text-koppar" />
             What you'll unlock:
           </h3>
           <ul className="space-y-2 text-sm text-jordbrun dark:text-kalkvit/60">
@@ -110,7 +110,7 @@ export function RequireTier({ minTier, children, fallback = 'upgrade' }: Require
             to="/shop/upgrade"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-koppar to-brandAmber text-charcoal font-semibold rounded-lg hover:opacity-90 transition-opacity"
           >
-            <Sparkles className="w-4 h-4" />
+            <SparklesIcon className="w-4 h-4" />
             View Upgrade Options
           </Link>
           <Link

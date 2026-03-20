@@ -1,4 +1,4 @@
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 interface ErrorCardProps {
   message?: string
@@ -12,7 +12,7 @@ export function ErrorCard({
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
       <div className="w-16 h-16 mb-6 rounded-full bg-[#C85A40]/20 flex items-center justify-center">
-        <AlertTriangle className="w-8 h-8 text-[#C85A40]" />
+        <ExclamationTriangleIcon className="w-8 h-8 text-[#C85A40]" />
       </div>
       <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
         Failed to load
@@ -23,7 +23,7 @@ export function ErrorCard({
           onClick={onRetry}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm bg-[var(--bg-card)] backdrop-blur-[12px] border border-[var(--border-color)] text-[var(--text-primary)] hover:opacity-80 transition-all duration-200 cursor-pointer"
         >
-          <RefreshCw size={18} />
+          <ArrowPathIcon className="w-[18px] h-[18px]" />
           Try Again
         </button>
       )}

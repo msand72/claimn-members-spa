@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
-import { Search, Users, Globe, ArrowRight, Loader2 } from 'lucide-react'
+import { MagnifyingGlassIcon, UserGroupIcon, GlobeAltIcon, ArrowRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useCircles, useMyCircles, useJoinCircle, type Circle } from '../lib/api'
 
@@ -43,7 +43,7 @@ function CircleCard({ circle }: CircleCardProps) {
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
           <GlassBadge variant="default">
-            <Globe className="w-3 h-3 mr-1" />
+            <GlobeAltIcon className="w-3 h-3 mr-1" />
             Open
           </GlassBadge>
         </div>
@@ -59,7 +59,7 @@ function CircleCard({ circle }: CircleCardProps) {
 
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
-          <Users className="w-4 h-4" />
+          <UserGroupIcon className="w-4 h-4" />
           {circle.member_count} members
         </span>
       </div>
@@ -71,9 +71,9 @@ function CircleCard({ circle }: CircleCardProps) {
         disabled={joinCircle.isPending}
       >
         {circle.is_member ? (
-          <>Enter Circle <ArrowRight className="w-4 h-4" /></>
+          <>Enter Circle <ArrowRightIcon className="w-4 h-4" /></>
         ) : joinCircle.isPending ? (
-          <><Loader2 className="w-4 h-4 animate-spin" /> Joining...</>
+          <><ArrowPathIcon className="w-4 h-4 animate-spin" /> Joining...</>
         ) : (
           <>Join Circle</>
         )}
@@ -128,7 +128,7 @@ export function CirclesPage() {
         {/* Search and Categories */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
             <GlassInput
               placeholder="Search circles..."
               className="pl-12"
@@ -158,7 +158,7 @@ export function CirclesPage() {
         {/* Loading state */}
         {isLoading && (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 
@@ -185,7 +185,7 @@ export function CirclesPage() {
         {/* Empty state */}
         {!isLoading && !circlesError && filteredCircles.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
-            <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <UserGroupIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">No circles found</h3>
             <p className="text-kalkvit/50 text-sm">
               {searchQuery ? 'Try a different search term' :

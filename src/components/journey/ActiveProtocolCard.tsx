@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, ListChecks } from 'lucide-react'
+import { ArrowRightIcon, ListBulletIcon } from '@heroicons/react/24/outline'
 import { GlassCard, GlassButton, GlassBadge } from '../ui'
 import type { JourneyProtocol } from '../../lib/api/hooks/useJourney'
 
@@ -18,7 +18,7 @@ export function ActiveProtocolCard({ protocol, nextTask }: ActiveProtocolCardPro
   return (
     <GlassCard className="p-4">
       <div className="flex items-center gap-2 mb-3">
-        <ListChecks className="w-4 h-4 text-koppar" />
+        <ListBulletIcon className="w-4 h-4 text-koppar" />
         <span className="text-[10px] uppercase tracking-wider font-semibold text-kalkvit/40">
           Active Protocol
         </span>
@@ -70,7 +70,7 @@ export function ActiveProtocolCard({ protocol, nextTask }: ActiveProtocolCardPro
       {/* Continue button */}
       <Link to={`/protocols/${protocol.slug}`}>
         <GlassButton variant="primary" className="w-full justify-center">
-          Continue <ArrowRight className="w-4 h-4 ml-1" />
+          Continue <ArrowRightIcon className="w-4 h-4 ml-1" />
         </GlassButton>
       </Link>
     </GlassCard>

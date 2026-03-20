@@ -8,16 +8,16 @@ import {
 } from './ui'
 import type { SuggestedGoal, SuggestedActionItem } from '../lib/protocol-plan'
 import {
-  Target,
-  Plus,
-  X,
-  CheckCircle2,
-  Loader2,
-  ListChecks,
-  ChevronDown,
-  ChevronUp,
-  AlertCircle,
-} from 'lucide-react'
+  ViewfinderCircleIcon,
+  PlusIcon,
+  XMarkIcon,
+  CheckCircleIcon,
+  ArrowPathIcon,
+  ListBulletIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ExclamationCircleIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 interface PlanBuilderProps {
@@ -118,11 +118,11 @@ export function PlanBuilder({
         {/* Summary strip */}
         <div className="flex items-center gap-4 text-sm">
           <span className="flex items-center gap-1.5 text-kalkvit/70">
-            <Target className="w-4 h-4 text-koppar" />
+            <ViewfinderCircleIcon className="w-4 h-4 text-koppar" />
             {goals.length} goal{goals.length !== 1 ? 's' : ''}
           </span>
           <span className="flex items-center gap-1.5 text-kalkvit/70">
-            <ListChecks className="w-4 h-4 text-koppar" />
+            <ListBulletIcon className="w-4 h-4 text-koppar" />
             {totalItems} action item{totalItems !== 1 ? 's' : ''}
           </span>
         </div>
@@ -140,7 +140,7 @@ export function PlanBuilder({
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <Target className="w-4 h-4 text-koppar flex-shrink-0" />
+                      <ViewfinderCircleIcon className="w-4 h-4 text-koppar flex-shrink-0" />
                       <span className="font-medium text-kalkvit text-sm truncate">
                         {goal.title}
                       </span>
@@ -152,9 +152,9 @@ export function PlanBuilder({
                     </span>
                   </div>
                   {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-kalkvit/50 flex-shrink-0 ml-2" />
+                    <ChevronUpIcon className="w-4 h-4 text-kalkvit/50 flex-shrink-0 ml-2" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-kalkvit/50 flex-shrink-0 ml-2" />
+                    <ChevronDownIcon className="w-4 h-4 text-kalkvit/50 flex-shrink-0 ml-2" />
                   )}
                 </button>
 
@@ -204,7 +204,7 @@ export function PlanBuilder({
                           onClick={() => handleAddItem(goalIndex)}
                           disabled={!newItemTitle.trim()}
                         >
-                          <Plus className="w-4 h-4" />
+                          <PlusIcon className="w-4 h-4" />
                         </GlassButton>
                         <GlassButton
                           variant="ghost"
@@ -214,7 +214,7 @@ export function PlanBuilder({
                             setNewItemTitle('')
                           }}
                         >
-                          <X className="w-4 h-4" />
+                          <XMarkIcon className="w-4 h-4" />
                         </GlassButton>
                       </div>
                     ) : (
@@ -222,7 +222,7 @@ export function PlanBuilder({
                         onClick={() => setAddingToGoal(goalIndex)}
                         className="mt-2 flex items-center gap-1.5 text-xs text-koppar hover:text-koppar/80 transition-colors"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <PlusIcon className="w-3.5 h-3.5" />
                         Add action item
                       </button>
                     )}
@@ -236,7 +236,7 @@ export function PlanBuilder({
         {/* Error */}
         {error && (
           <div className="flex items-center gap-2 rounded-xl bg-tegelrod/10 border border-tegelrod/20 px-4 py-3 text-sm text-tegelrod">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <ExclamationCircleIcon className="w-4 h-4 flex-shrink-0" />
             {error}
           </div>
         )}
@@ -253,12 +253,12 @@ export function PlanBuilder({
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
               Creating plan...
             </>
           ) : (
             <>
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircleIcon className="w-4 h-4" />
               Start Protocol
             </>
           )}
@@ -285,7 +285,7 @@ function ActionItemRow({
 
   return (
     <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-white/[0.03] group">
-      <CheckCircle2 className="w-3.5 h-3.5 text-kalkvit/30 flex-shrink-0" />
+      <CheckCircleIcon className="w-3.5 h-3.5 text-kalkvit/30 flex-shrink-0" />
       <span className="flex-1 text-sm text-kalkvit/80 truncate" title={item.title}>
         {item.title}
       </span>
@@ -302,7 +302,7 @@ function ActionItemRow({
         onClick={onRemove}
         className="opacity-0 group-hover:opacity-100 text-kalkvit/30 hover:text-tegelrod transition-all flex-shrink-0"
       >
-        <X className="w-3.5 h-3.5" />
+        <XMarkIcon className="w-3.5 h-3.5" />
       </button>
     </div>
   )

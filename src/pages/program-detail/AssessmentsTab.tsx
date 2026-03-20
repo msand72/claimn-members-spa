@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassBadge } from '../../components/ui'
-import { ClipboardCheck, CheckCircle, Circle, Loader2, ArrowRight } from 'lucide-react'
+import { ClipboardDocumentCheckIcon, CheckCircleIcon, MinusIcon, ArrowPathIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import type { ProgramAssessment, ProgramAssessmentResult, CVCAssessmentStatus } from '../../lib/api/types'
 
@@ -24,7 +24,7 @@ export function AssessmentsTab({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+        <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
       </div>
     )
   }
@@ -36,7 +36,7 @@ export function AssessmentsTab({
         <GlassCard variant="base">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-kalkvit flex items-center gap-2">
-              <ClipboardCheck className="w-5 h-5 text-koppar" />
+              <ClipboardDocumentCheckIcon className="w-5 h-5 text-koppar" />
               Assessment Progress
             </h3>
             <span className="text-sm text-kalkvit/50">
@@ -100,9 +100,9 @@ export function AssessmentsTab({
                   )}
                 >
                   {assessment.is_completed ? (
-                    <CheckCircle className="w-5 h-5" />
+                    <CheckCircleIcon className="w-5 h-5" />
                   ) : (
-                    <Circle className="w-5 h-5" />
+                    <MinusIcon className="w-5 h-5" />
                   )}
                 </div>
 
@@ -184,12 +184,12 @@ export function AssessmentsTab({
                     <Link to={`/programs/${programId}/assessment/${assessment.id}`}>
                       <GlassButton variant="primary" className="text-sm">
                         Take Assessment
-                        <ArrowRight className="w-4 h-4" />
+                        <ArrowRightIcon className="w-4 h-4" />
                       </GlassButton>
                     </Link>
                   ) : (
                     <GlassBadge variant="success">
-                      <CheckCircle className="w-3 h-3" />
+                      <CheckCircleIcon className="w-3 h-3" />
                       Completed
                     </GlassBadge>
                   )}
@@ -204,7 +204,7 @@ export function AssessmentsTab({
 
   return (
     <GlassCard variant="base" className="text-center py-12">
-      <ClipboardCheck className="w-8 h-8 text-kalkvit/30 mx-auto mb-3" />
+      <ClipboardDocumentCheckIcon className="w-8 h-8 text-kalkvit/30 mx-auto mb-3" />
       <p className="text-kalkvit/50 text-sm">
         No assessments available for this program yet.
       </p>

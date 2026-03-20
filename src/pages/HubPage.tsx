@@ -45,24 +45,24 @@ import type { PillarId } from '../lib/constants'
 import { HubHeroArt } from '../components/ui/HubHeroArt'
 import { PillarIcon } from '../components/icons'
 import {
-  Heart,
-  MessageCircle,
-  Calendar,
-  CircleDot,
-  ArrowRight,
-  Sparkles,
-  GraduationCap,
-  Target,
-  Flame,
-  BarChart3,
-  Trophy,
-  Star,
-  Video,
-  UserCircle,
-  Loader2,
-  CheckCircle,
-  Send,
-} from 'lucide-react'
+  HeartIcon,
+  ChatBubbleLeftIcon,
+  CalendarIcon,
+  StopIcon,
+  ArrowRightIcon,
+  SparklesIcon,
+  AcademicCapIcon,
+  ViewfinderCircleIcon,
+  FireIcon,
+  ChartBarIcon,
+  TrophyIcon,
+  StarIcon,
+  VideoCameraIcon,
+  UserCircleIcon,
+  ArrowPathIcon,
+  CheckCircleIcon,
+  PaperAirplaneIcon,
+} from '@heroicons/react/24/outline'
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -153,24 +153,24 @@ function StatsRow() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <GlassStatsCard
-        icon={Target}
+        icon={ViewfinderCircleIcon}
         label="Active Goals"
         value={isLoading ? '...' : String(stats?.goals_active ?? goalsCount)}
       />
       <GlassStatsCard
-        icon={Flame}
+        icon={FireIcon}
         label="Streak"
         value={isLoading ? '...' : String(stats?.current_streak ?? 0)}
         trendLabel="days"
       />
       <GlassStatsCard
-        icon={BarChart3}
+        icon={ChartBarIcon}
         label="Connections"
         value={isLoading ? '...' : String(stats?.connections_count ?? 0)}
         trendLabel="network"
       />
       <GlassStatsCard
-        icon={Trophy}
+        icon={TrophyIcon}
         label="Days Active"
         value={isLoading ? '...' : String(stats?.days_since_joined ?? 0)}
         trendLabel="journey"
@@ -191,11 +191,11 @@ function ExpertSpotlight() {
     <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-koppar" />
+          <SparklesIcon className="w-5 h-5 text-koppar" />
           Expert Spotlight
         </h2>
         <Link to="/experts" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          View all <ArrowRightIcon className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -243,11 +243,11 @@ function ActiveGoals() {
     <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
-          <Target className="w-5 h-5 text-koppar" />
+          <ViewfinderCircleIcon className="w-5 h-5 text-koppar" />
           Active Goals
         </h2>
         <Link to="/goals" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          View all <ArrowRightIcon className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -262,7 +262,7 @@ function ActiveGoals() {
         </div>
       ) : goals.length === 0 ? (
         <div className="text-center py-6">
-          <Target className="w-10 h-10 text-kalkvit/15 mx-auto mb-2" />
+          <ViewfinderCircleIcon className="w-10 h-10 text-kalkvit/15 mx-auto mb-2" />
           <p className="text-kalkvit/50 text-sm mb-3">No active goals yet</p>
           <Link to="/goals">
             <GlassButton variant="secondary" className="px-4 py-2 text-xs">Set Goals</GlassButton>
@@ -304,11 +304,11 @@ function ActiveProtocolsList() {
     <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
-          <Flame className="w-5 h-5 text-koppar" />
+          <FireIcon className="w-5 h-5 text-koppar" />
           Active Protocols
         </h2>
         <Link to="/protocols" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          View all <ArrowRightIcon className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -361,11 +361,11 @@ function FeaturedProtocols() {
     <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-koppar" />
+          <SparklesIcon className="w-5 h-5 text-koppar" />
           Featured Protocols
         </h2>
         <Link to="/protocols" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
-          Browse all <ArrowRight className="w-3.5 h-3.5" />
+          Browse all <ArrowRightIcon className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -423,7 +423,7 @@ function RecentFeedPosts() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit">Recent Posts</h2>
         <Link to="/feed" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          View all <ArrowRightIcon className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -466,10 +466,10 @@ function RecentFeedPosts() {
                   <p className="text-sm text-kalkvit/70 line-clamp-2">{post.content}</p>
                   <div className="flex items-center gap-4 mt-1.5">
                     <span className="flex items-center gap-1 text-xs text-kalkvit/40">
-                      <Heart className="w-3 h-3" /> {post.likes_count}
+                      <HeartIcon className="w-3 h-3" /> {post.likes_count}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-kalkvit/40">
-                      <MessageCircle className="w-3 h-3" /> {post.comments_count}
+                      <ChatBubbleLeftIcon className="w-3 h-3" /> {post.comments_count}
                     </span>
                   </div>
                 </div>
@@ -492,11 +492,11 @@ function UnreadMessages() {
     <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
-          <MessageCircle className="w-4 h-4 text-koppar" />
+          <ChatBubbleLeftIcon className="w-4 h-4 text-koppar" />
           Messages
         </h2>
         <Link to="/messages" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          View all <ArrowRightIcon className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -591,11 +591,11 @@ function UpcomingSection() {
     <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-koppar" />
+          <CalendarIcon className="w-4 h-4 text-koppar" />
           Upcoming
         </h2>
         <Link to="/events" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          View all <ArrowRightIcon className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -628,9 +628,9 @@ function UpcomingSection() {
             >
               <div className="w-8 h-8 rounded-lg bg-koppar/10 flex items-center justify-center shrink-0">
                 {item.kind === 'event' ? (
-                  <Calendar className="w-4 h-4 text-koppar" />
+                  <CalendarIcon className="w-4 h-4 text-koppar" />
                 ) : (
-                  <CircleDot className="w-4 h-4 text-koppar" />
+                  <StopIcon className="w-4 h-4 text-koppar" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -662,11 +662,11 @@ function MyPrograms() {
     <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
-          <GraduationCap className="w-4 h-4 text-koppar" />
+          <AcademicCapIcon className="w-4 h-4 text-koppar" />
           My Programs
         </h2>
         <Link to="/programs" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          View all <ArrowRightIcon className="w-3.5 h-3.5" />
         </Link>
       </div>
 
@@ -737,7 +737,7 @@ function ActivePrograms() {
       <GlassCard variant="base">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
-            <GraduationCap className="w-4 h-4 text-koppar" />
+            <AcademicCapIcon className="w-4 h-4 text-koppar" />
             Active Programs
           </h2>
         </div>
@@ -763,11 +763,11 @@ function ActivePrograms() {
     <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
-          <GraduationCap className="w-4 h-4 text-koppar" />
+          <AcademicCapIcon className="w-4 h-4 text-koppar" />
           Active Programs
         </h2>
         <Link to="/programs" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          View all <ArrowRightIcon className="w-3.5 h-3.5" />
         </Link>
       </div>
       <div className="space-y-3">
@@ -777,7 +777,7 @@ function ActivePrograms() {
           <Link key={up.id} to={`/programs/${up.program_id}`} className="block group">
             <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/[0.04] transition-colors">
               <div className="w-9 h-9 rounded-lg bg-koppar/20 flex items-center justify-center shrink-0">
-                <GraduationCap className="w-4.5 h-4.5 text-koppar" />
+                <AcademicCapIcon className="w-4.5 h-4.5 text-koppar" />
               </div>
 
               <div className="flex-1 min-w-0">
@@ -804,7 +804,7 @@ function ActivePrograms() {
                 </div>
               </div>
 
-              <ArrowRight className="w-4 h-4 text-koppar/60 shrink-0" />
+              <ArrowRightIcon className="w-4 h-4 text-koppar/60 shrink-0" />
             </div>
           </Link>
           )
@@ -865,7 +865,7 @@ function MyCoachCard() {
       return (
         <GlassCard variant="base">
           <div className="text-center py-4">
-            <Loader2 className="w-10 h-10 text-koppar mx-auto mb-2 animate-spin" />
+            <ArrowPathIcon className="w-10 h-10 text-koppar mx-auto mb-2 animate-spin" />
             <p className="text-kalkvit text-sm font-medium mb-1">Finding your coach</p>
             <p className="text-kalkvit/50 text-xs">
               We&apos;re matching you with the perfect coach based on your goals.
@@ -879,7 +879,7 @@ function MyCoachCard() {
       <>
         <GlassCard variant="base">
           <div className="text-center py-4">
-            <UserCircle className="w-10 h-10 text-kalkvit/15 mx-auto mb-2" />
+            <UserCircleIcon className="w-10 h-10 text-kalkvit/15 mx-auto mb-2" />
             <p className="text-kalkvit/50 text-sm mb-3">No coach assigned yet</p>
             <div className="flex flex-col gap-2">
               <GlassButton
@@ -887,7 +887,7 @@ function MyCoachCard() {
                 className="px-4 py-2 text-xs w-full"
                 onClick={() => setShowRequestModal(true)}
               >
-                <Send className="w-3.5 h-3.5" />
+                <PaperAirplaneIcon className="w-3.5 h-3.5" />
                 Request a Coach
               </GlassButton>
               <Link to="/experts">
@@ -955,9 +955,9 @@ function MyCoachCard() {
                 disabled={!requestGoals.trim() || submitRequest.isPending}
               >
                 {submitRequest.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
                 ) : (
-                  <CheckCircle className="w-4 h-4" />
+                  <CheckCircleIcon className="w-4 h-4" />
                 )}
                 {submitRequest.isPending ? 'Submitting...' : 'Submit Request'}
               </GlassButton>
@@ -974,7 +974,7 @@ function MyCoachCard() {
     <GlassCard variant="accent" className="relative overflow-hidden">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
-          <Star className="w-4 h-4 text-koppar" />
+          <StarIcon className="w-4 h-4 text-koppar" />
           My Coach
         </h2>
         <Link to={`/experts/${expert.id}`} className="text-xs text-koppar hover:text-koppar/80 transition-colors">
@@ -998,7 +998,7 @@ function MyCoachCard() {
           )}
           {(expert.rating != null && expert.rating > 0) && (
             <div className="flex items-center gap-1 mt-0.5">
-              <Star className="w-3 h-3 text-koppar fill-koppar" />
+              <StarIcon className="w-3 h-3 text-koppar fill-koppar" />
               <span className="text-xs text-kalkvit/60">
                 {expert.rating.toFixed(1)}
                 {expert.reviews_count ? ` (${expert.reviews_count})` : ''}
@@ -1014,7 +1014,7 @@ function MyCoachCard() {
           to="/coaching/sessions"
           className="mt-3 flex items-center gap-2 p-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] transition-colors"
         >
-          <Calendar className="w-4 h-4 text-koppar shrink-0" />
+          <CalendarIcon className="w-4 h-4 text-koppar shrink-0" />
           <span className="text-xs text-kalkvit/70 truncate">
             Next session: {formatEventDate(nextSession.session_date)}
           </span>
@@ -1025,13 +1025,13 @@ function MyCoachCard() {
       <div className="mt-3 flex gap-2">
         <Link to={`/messages?user=${expert.id}`} className="flex-1">
           <GlassButton variant="secondary" className="w-full text-xs py-2">
-            <MessageCircle className="w-3.5 h-3.5" />
+            <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
             Message
           </GlassButton>
         </Link>
         <Link to={`/book-session?expert=${expert.id}`} className="flex-1">
           <GlassButton variant="primary" className="w-full text-xs py-2">
-            <Video className="w-3.5 h-3.5" />
+            <VideoCameraIcon className="w-3.5 h-3.5" />
             Book Session
           </GlassButton>
         </Link>

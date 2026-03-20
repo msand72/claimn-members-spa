@@ -26,23 +26,23 @@ import {
 } from '../lib/api/hooks'
 import type { KPI, ActionItem } from '../lib/api/types'
 import {
-  ChevronLeft,
-  Target,
-  Calendar,
-  TrendingUp,
-  Plus,
-  Edit2,
-  Trash2,
-  CheckCircle2,
-  MoreHorizontal,
-  Loader2,
-  AlertCircle,
-  Square,
-  CheckSquare,
-  ListTodo,
-  X,
-  BookOpen,
-} from 'lucide-react'
+  ChevronLeftIcon,
+  ViewfinderCircleIcon,
+  CalendarIcon,
+  ArrowTrendingUpIcon,
+  PlusIcon,
+  PencilIcon,
+  TrashIcon,
+  CheckCircleIcon,
+  EllipsisHorizontalIcon,
+  ArrowPathIcon,
+  ExclamationCircleIcon,
+  StopIcon,
+  CheckBadgeIcon,
+  ListBulletIcon,
+  XMarkIcon,
+  BookOpenIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { PillarBadge } from '../components/icons'
 import type { PillarId } from '../lib/constants'
@@ -135,7 +135,7 @@ export function GoalDetailPage() {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       </MainLayout>
     )
@@ -145,11 +145,11 @@ export function GoalDetailPage() {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto text-center py-12">
-          <AlertCircle className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
+          <ExclamationCircleIcon className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
           <h1 className="font-display text-2xl font-bold text-kalkvit mb-4">Goal not found</h1>
           <Link to="/goals">
             <GlassButton variant="secondary">
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeftIcon className="w-4 h-4" />
               Back to Goals
             </GlassButton>
           </Link>
@@ -322,7 +322,7 @@ export function GoalDetailPage() {
           to="/goals"
           className="inline-flex items-center gap-1 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeftIcon className="w-4 h-4" />
           Back to Goals
         </Link>
 
@@ -372,26 +372,26 @@ export function GoalDetailPage() {
           </div>
           <div className="flex gap-2">
             <GlassButton variant="ghost" className="p-2" onClick={handleStartEdit}>
-              <Edit2 className="w-4 h-4" />
+              <PencilIcon className="w-4 h-4" />
             </GlassButton>
             <GlassMenu
               trigger={
                 <GlassButton variant="ghost" className="p-2">
-                  <MoreHorizontal className="w-4 h-4" />
+                  <EllipsisHorizontalIcon className="w-4 h-4" />
                 </GlassButton>
               }
               items={[
                 ...(goal.status !== 'completed'
                   ? [{
                       label: 'Mark Complete',
-                      icon: <CheckCircle2 className="w-4 h-4" />,
+                      icon: <CheckCircleIcon className="w-4 h-4" />,
                       onClick: handleMarkComplete,
                       disabled: updateGoal.isPending,
                     }]
                   : []),
                 {
                   label: 'Delete Goal',
-                  icon: <Trash2 className="w-4 h-4" />,
+                  icon: <TrashIcon className="w-4 h-4" />,
                   onClick: handleDeleteGoal,
                   disabled: deleteGoal.isPending,
                   danger: true,
@@ -414,14 +414,14 @@ export function GoalDetailPage() {
             to={`/protocols/${linkedProtocolSlug}`}
             className="mb-6 flex items-center gap-3 rounded-xl bg-koppar/10 border border-koppar/20 px-4 py-3 hover:bg-koppar/15 transition-colors block"
           >
-            <BookOpen className="w-5 h-5 text-koppar flex-shrink-0" />
+            <BookOpenIcon className="w-5 h-5 text-koppar flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-koppar">
                 {linkedProtocol?.title || linkedProtocolSlug.replace(/-/g, ' ')}
               </p>
               <p className="text-xs text-kalkvit/50">Linked protocol</p>
             </div>
-            <ChevronLeft className="w-4 h-4 text-koppar rotate-180 flex-shrink-0" />
+            <ChevronLeftIcon className="w-4 h-4 text-koppar rotate-180 flex-shrink-0" />
           </Link>
         )}
 
@@ -436,20 +436,20 @@ export function GoalDetailPage() {
         <div className={cn('grid gap-4 mb-8', hasDrivers ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2')}>
           {hasDrivers && (
             <GlassCard variant="elevated" className="text-center py-4">
-              <TrendingUp className="w-6 h-6 text-koppar mx-auto mb-2" />
+              <ArrowTrendingUpIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
               <p className="font-display text-2xl font-bold text-kalkvit">{overallProgress}%</p>
               <p className="text-xs text-kalkvit/50">Overall Progress</p>
             </GlassCard>
           )}
           <GlassCard variant="base" className="text-center py-4">
-            <ListTodo className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <ListBulletIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {totalSubtasks > 0 ? `${completedSubtasks}/${totalSubtasks}` : '0'}
             </p>
             <p className="text-xs text-kalkvit/50">Subtasks</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <Calendar className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <CalendarIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {daysUntilTarget !== null && daysUntilTarget > 0 ? daysUntilTarget : '--'}
             </p>
@@ -480,7 +480,7 @@ export function GoalDetailPage() {
           </GlassCard>
         ) : (
           <GlassCard variant="base" className="mb-8 text-center py-6">
-            <Target className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
+            <ViewfinderCircleIcon className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
             <p className="text-sm text-kalkvit/60 mb-1">No progress tracking yet</p>
             <p className="text-xs text-kalkvit/40">Add subtasks or KPIs below to track your progress</p>
           </GlassCard>
@@ -492,7 +492,7 @@ export function GoalDetailPage() {
             <h3 className="font-semibold text-kalkvit">Subtasks</h3>
             {!isAddingSubtask && (
               <GlassButton variant="ghost" className="text-sm" onClick={() => setIsAddingSubtask(true)}>
-                <Plus className="w-4 h-4" />
+                <PlusIcon className="w-4 h-4" />
                 Add Subtask
               </GlassButton>
             )}
@@ -518,28 +518,28 @@ export function GoalDetailPage() {
                 disabled={!newSubtaskTitle.trim() || createActionItem.isPending}
                 className="px-3 py-2"
               >
-                {createActionItem.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                {createActionItem.isPending ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <PlusIcon className="w-4 h-4" />}
               </GlassButton>
               <GlassButton
                 variant="ghost"
                 onClick={() => { setIsAddingSubtask(false); setNewSubtaskTitle('') }}
                 className="px-3 py-2"
               >
-                <X className="w-4 h-4" />
+                <XMarkIcon className="w-4 h-4" />
               </GlassButton>
             </div>
           )}
 
           {subtasks.length === 0 && !isAddingSubtask ? (
             <GlassCard variant="base" className="text-center py-6">
-              <ListTodo className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
+              <ListBulletIcon className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
               <p className="text-kalkvit/50 text-sm mb-2">No subtasks yet</p>
               <GlassButton
                 variant="ghost"
                 className="text-sm text-koppar"
                 onClick={() => setIsAddingSubtask(true)}
               >
-                <Plus className="w-4 h-4" />
+                <PlusIcon className="w-4 h-4" />
                 Add your first subtask
               </GlassButton>
             </GlassCard>
@@ -558,9 +558,9 @@ export function GoalDetailPage() {
                     className="flex-shrink-0 text-kalkvit/60 hover:text-koppar transition-colors"
                   >
                     {item.status === 'completed' ? (
-                      <CheckSquare className="w-5 h-5 text-skogsgron" />
+                      <CheckBadgeIcon className="w-5 h-5 text-skogsgron" />
                     ) : (
-                      <Square className="w-5 h-5" />
+                      <StopIcon className="w-5 h-5" />
                     )}
                   </button>
                   <span
@@ -580,7 +580,7 @@ export function GoalDetailPage() {
                     onClick={() => handleDeleteSubtask(item.id)}
                     className="opacity-0 group-hover:opacity-100 text-kalkvit/30 hover:text-tegelrod transition-all flex-shrink-0"
                   >
-                    <X className="w-4 h-4" />
+                    <XMarkIcon className="w-4 h-4" />
                   </button>
                 </div>
               ))}
@@ -598,14 +598,14 @@ export function GoalDetailPage() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-kalkvit">Key Performance Indicators</h3>
             <GlassButton variant="ghost" className="text-sm" onClick={() => setShowAddKpiModal(true)}>
-              <Plus className="w-4 h-4" />
+              <PlusIcon className="w-4 h-4" />
               Add KPI
             </GlassButton>
           </div>
 
           {kpis.length === 0 ? (
             <GlassCard variant="base" className="text-center py-6">
-              <Target className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
+              <ViewfinderCircleIcon className="w-8 h-8 text-kalkvit/20 mx-auto mb-2" />
               <p className="text-kalkvit/50 text-sm">No KPIs added yet</p>
               <p className="text-kalkvit/40 text-xs mt-1">Add KPIs to measure specific metrics for this goal</p>
             </GlassCard>
@@ -634,7 +634,7 @@ export function GoalDetailPage() {
                         </div>
                       </div>
                       <GlassButton variant="primary" onClick={() => handleLogKpi(kpi)}>
-                        <Plus className="w-4 h-4" />
+                        <PlusIcon className="w-4 h-4" />
                         Log
                       </GlassButton>
                     </div>
@@ -678,7 +678,7 @@ export function GoalDetailPage() {
               onClick={handleMarkComplete}
               disabled={updateGoal.isPending}
             >
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircleIcon className="w-4 h-4" />
               {updateGoal.isPending ? 'Updating...' : 'Mark Complete'}
             </GlassButton>
           )}
@@ -687,7 +687,7 @@ export function GoalDetailPage() {
             onClick={handleDeleteGoal}
             disabled={deleteGoal.isPending}
           >
-            <Trash2 className="w-4 h-4" />
+            <TrashIcon className="w-4 h-4" />
             {deleteGoal.isPending ? 'Deleting...' : 'Delete Goal'}
           </GlassButton>
         </div>

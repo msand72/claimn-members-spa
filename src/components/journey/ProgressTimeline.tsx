@@ -1,5 +1,5 @@
 import type { JourneyMilestone } from '../../lib/api/hooks/useJourney'
-import { Check, Circle } from 'lucide-react'
+import { CheckIcon, MinusIcon } from '@heroicons/react/24/outline'
 
 interface ProgressTimelineProps {
   milestones: JourneyMilestone[]
@@ -24,15 +24,15 @@ export function ProgressTimeline({ milestones }: ProgressTimelineProps) {
               <div className="relative z-10 shrink-0">
                 {isCompleted ? (
                   <div className="w-[30px] h-[30px] rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-green-400" />
+                    <CheckIcon className="w-4 h-4 text-green-400" />
                   </div>
                 ) : isCurrent ? (
                   <div className="w-[30px] h-[30px] rounded-full bg-koppar/10 border-2 border-koppar flex items-center justify-center animate-pulse">
-                    <Circle className="w-3 h-3 text-koppar fill-koppar" />
+                    <MinusIcon className="w-3 h-3 text-koppar fill-koppar" />
                   </div>
                 ) : (
                   <div className="w-[30px] h-[30px] rounded-full bg-white/[0.03] border border-white/[0.1] flex items-center justify-center">
-                    <Circle className="w-3 h-3 text-kalkvit/20" />
+                    <MinusIcon className="w-3 h-3 text-kalkvit/20" />
                   </div>
                 )}
               </div>

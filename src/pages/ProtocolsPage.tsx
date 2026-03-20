@@ -11,13 +11,13 @@ import {
   type ProtocolTemplate,
 } from '../lib/api/hooks'
 import {
-  Flame,
-  Clock,
-  ChevronRight,
-  Loader2,
-  AlertTriangle,
-  Sparkles,
-} from 'lucide-react'
+  FireIcon,
+  ClockIcon,
+  ChevronRightIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  SparklesIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 // Filter tabs including 'all'
@@ -63,7 +63,7 @@ function ProtocolCard({
           )}
           {protocol.is_featured && !isActive && (
             <GlassBadge variant="warning" className="text-xs whitespace-nowrap flex-shrink-0 flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
+              <SparklesIcon className="w-3 h-3" />
               Featured
             </GlassBadge>
           )}
@@ -83,12 +83,12 @@ function ProtocolCard({
 
         <div className="flex items-center justify-between text-xs text-kalkvit/50 pt-3 border-t border-white/10">
           <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
+            <ClockIcon className="w-3 h-3" />
             {protocol.timeline || 'Multi-week'}
           </span>
           <span className="flex items-center gap-1 text-koppar">
             View Details
-            <ChevronRight className="w-3 h-3" />
+            <ChevronRightIcon className="w-3 h-3" />
           </span>
         </div>
       </GlassCard>
@@ -125,7 +125,7 @@ export function ProtocolsPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load protocols</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -154,7 +154,7 @@ export function ProtocolsPage() {
             {activeProtocols.length > 0 && (
               <Link to="/my-protocols">
                 <GlassButton variant="secondary" className="flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-koppar" />
+                  <FireIcon className="w-4 h-4 text-koppar" />
                   My Protocols ({activeProtocols.length})
                 </GlassButton>
               </Link>
@@ -185,7 +185,7 @@ export function ProtocolsPage() {
         {/* Loading State */}
         {isLoading && (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 
@@ -205,7 +205,7 @@ export function ProtocolsPage() {
         {/* Empty State */}
         {!isLoading && protocols.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
-            <Flame className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <FireIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">
               No protocols found
             </h3>

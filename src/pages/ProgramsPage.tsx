@@ -6,16 +6,16 @@ import { usePrograms, useEnrolledPrograms } from '../lib/api/hooks'
 import type { Program, UserProgram } from '../lib/api/types'
 import { sanitizeHtml } from '../lib/sanitize'
 import {
-  Search,
-  Clock,
-  Users,
-  CheckCircle,
-  Lock,
-  Trophy,
-  ArrowRight,
-  Loader2,
-  AlertTriangle,
-} from 'lucide-react'
+  MagnifyingGlassIcon,
+  ClockIcon,
+  UserGroupIcon,
+  CheckCircleIcon,
+  LockClosedIcon,
+  TrophyIcon,
+  ArrowRightIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 
 // Base tabs — dynamic category tabs are appended from program data
@@ -57,10 +57,10 @@ function ProgramCard({
             {program.difficulty}
           </GlassBadge>
         </div>
-        {program.is_locked && <Lock className="w-5 h-5 text-kalkvit/40" />}
+        {program.is_locked && <LockClosedIcon className="w-5 h-5 text-kalkvit/40" />}
         {isCompleted && !program.is_locked && (
           <GlassBadge variant="koppar">
-            <Trophy className="w-3 h-3" />
+            <TrophyIcon className="w-3 h-3" />
             Completed
           </GlassBadge>
         )}
@@ -77,15 +77,15 @@ function ProgramCard({
 
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
         <span className="flex items-center gap-1">
-          <Clock className="w-4 h-4" />
+          <ClockIcon className="w-4 h-4" />
           {program.duration}
         </span>
         <span className="flex items-center gap-1">
-          <CheckCircle className="w-4 h-4" />
+          <CheckCircleIcon className="w-4 h-4" />
           {program.modules} modules
         </span>
         <span className="flex items-center gap-1">
-          <Users className="w-4 h-4" />
+          <UserGroupIcon className="w-4 h-4" />
           {(program.enrolled_count ?? 0).toLocaleString()}
         </span>
       </div>
@@ -108,23 +108,23 @@ function ProgramCard({
       <Link to={`/programs/${program.id}`}>
         {program.is_locked ? (
           <GlassButton variant="ghost" className="w-full">
-            <Lock className="w-4 h-4" />
+            <LockClosedIcon className="w-4 h-4" />
             View Program
           </GlassButton>
         ) : isCompleted ? (
           <GlassButton variant="secondary" className="w-full">
-            <Trophy className="w-4 h-4" />
+            <TrophyIcon className="w-4 h-4" />
             View Certificate
           </GlassButton>
         ) : isEnrolled ? (
           <GlassButton variant="primary" className="w-full">
             Check Status
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
           </GlassButton>
         ) : (
           <GlassButton variant="secondary" className="w-full">
             View Program
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRightIcon className="w-4 h-4" />
           </GlassButton>
         )}
       </Link>
@@ -185,7 +185,7 @@ export function ProgramsPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load programs</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -223,7 +223,7 @@ export function ProgramsPage() {
         {/* Search and Categories */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
             <GlassInput
               placeholder="Search programs..."
               className="pl-12"
@@ -252,7 +252,7 @@ export function ProgramsPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         ) : (
           <>
@@ -260,7 +260,7 @@ export function ProgramsPage() {
             {activeCategory === 'All' && myPrograms.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-4">
-                  <Trophy className="w-5 h-5 text-koppar" />
+                  <TrophyIcon className="w-5 h-5 text-koppar" />
                   <h2 className="font-serif text-xl font-semibold text-kalkvit">
                     Check Status
                   </h2>

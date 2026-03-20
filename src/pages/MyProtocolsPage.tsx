@@ -14,20 +14,19 @@ import {
 } from '../lib/api/hooks'
 import type { ActiveProtocol } from '../lib/api/types'
 import {
-  Flame,
-  Play,
-  Clock,
-  CheckCircle2,
-  ChevronRight,
-  Target,
-  Calendar,
-  TrendingUp,
-  Pause,
-  RotateCcw,
-  Loader2,
-  AlertTriangle,
-  Archive,
-} from 'lucide-react'
+  FireIcon,
+  PlayIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ChevronRightIcon,
+  ViewfinderCircleIcon,
+  CalendarIcon,
+  ArrowTrendingUpIcon,
+  PauseIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  ArchiveBoxIcon,
+} from '@heroicons/react/24/outline'
 
 function ActiveProtocolCard({
   active,
@@ -73,13 +72,13 @@ function ActiveProtocolCard({
               </GlassBadge>
               {isActive && (
                 <GlassBadge variant="success" className="text-xs">
-                  <Play className="w-3 h-3" />
+                  <PlayIcon className="w-3 h-3" />
                   Active
                 </GlassBadge>
               )}
               {isPaused && (
                 <GlassBadge variant="warning" className="text-xs">
-                  <Pause className="w-3 h-3" />
+                  <PauseIcon className="w-3 h-3" />
                   Paused
                 </GlassBadge>
               )}
@@ -113,19 +112,19 @@ function ActiveProtocolCard({
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-kalkvit/60 mb-4">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4" />
+          <CalendarIcon className="w-4 h-4" />
           <span>Week {active.current_week} of {totalWeeks}</span>
         </div>
         <div className="flex items-center gap-2">
-          <Target className="w-4 h-4" />
+          <ViewfinderCircleIcon className="w-4 h-4" />
           <span>{totalTasks} total tasks</span>
         </div>
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4" />
+          <ClockIcon className="w-4 h-4" />
           <span>Started {new Date(active.started_at).toLocaleDateString()}</span>
         </div>
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" />
+          <ArrowTrendingUpIcon className="w-4 h-4" />
           <span>{Math.max(0, totalWeeks - active.current_week)} weeks left</span>
         </div>
       </div>
@@ -134,7 +133,7 @@ function ActiveProtocolCard({
       <div className="flex gap-3 pt-4 border-t border-white/10">
         <Link to={`/protocols/${active.protocol_slug}`} className="flex-1">
           <GlassButton variant="primary" className="w-full">
-            <TrendingUp className="w-4 h-4" />
+            <ArrowTrendingUpIcon className="w-4 h-4" />
             View Progress
           </GlassButton>
         </Link>
@@ -146,9 +145,9 @@ function ActiveProtocolCard({
             className="px-4"
           >
             {isPausing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
             ) : (
-              <Pause className="w-4 h-4" />
+              <PauseIcon className="w-4 h-4" />
             )}
           </GlassButton>
         )}
@@ -160,9 +159,9 @@ function ActiveProtocolCard({
             className="px-4"
           >
             {isResuming ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
             ) : (
-              <RotateCcw className="w-4 h-4" />
+              <ArrowPathIcon className="w-4 h-4" />
             )}
           </GlassButton>
         )}
@@ -187,7 +186,7 @@ function CompletedProtocolCard({
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-skogsgron/10 flex items-center justify-center flex-shrink-0">
-            <CheckCircle2 className="w-5 h-5 text-skogsgron" />
+            <CheckCircleIcon className="w-5 h-5 text-skogsgron" />
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -195,7 +194,7 @@ function CompletedProtocolCard({
                 {pillar.name}
               </GlassBadge>
               <GlassBadge variant="success" className="text-xs">
-                <CheckCircle2 className="w-3 h-3" />
+                <CheckCircleIcon className="w-3 h-3" />
                 Completed
               </GlassBadge>
             </div>
@@ -210,7 +209,7 @@ function CompletedProtocolCard({
         <Link to={`/protocols/${active.protocol_slug}`}>
           <GlassButton variant="ghost" className="text-sm">
             View
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRightIcon className="w-4 h-4" />
           </GlassButton>
         </Link>
       </div>
@@ -296,7 +295,7 @@ export function MyProtocolsPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load protocols</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -322,7 +321,7 @@ export function MyProtocolsPage() {
           </div>
           <Link to="/protocols">
             <GlassButton variant="secondary">
-              <Flame className="w-4 h-4" />
+              <FireIcon className="w-4 h-4" />
               Browse Protocols
             </GlassButton>
           </Link>
@@ -331,28 +330,28 @@ export function MyProtocolsPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           <GlassCard variant="base" className="text-center py-4">
-            <Flame className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <FireIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {isLoading ? '-' : activeCount}
             </p>
             <p className="text-xs text-kalkvit/50">Active</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <Pause className="w-6 h-6 text-brandAmber mx-auto mb-2" />
+            <PauseIcon className="w-6 h-6 text-brandAmber mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {isLoading ? '-' : pausedCount}
             </p>
             <p className="text-xs text-kalkvit/50">Paused</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <CheckCircle2 className="w-6 h-6 text-skogsgron mx-auto mb-2" />
+            <CheckCircleIcon className="w-6 h-6 text-skogsgron mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {isLoading ? '-' : completedCount}
             </p>
             <p className="text-xs text-kalkvit/50">Completed</p>
           </GlassCard>
           <GlassCard variant="base" className="text-center py-4">
-            <TrendingUp className="w-6 h-6 text-koppar mx-auto mb-2" />
+            <ArrowTrendingUpIcon className="w-6 h-6 text-koppar mx-auto mb-2" />
             <p className="font-display text-2xl font-bold text-kalkvit">
               {isLoading ? '-' : `${avgProgress}%`}
             </p>
@@ -366,7 +365,7 @@ export function MyProtocolsPage() {
         {/* Loading state */}
         {isLoading && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 
@@ -392,14 +391,14 @@ export function MyProtocolsPage() {
               </div>
             ) : (
               <GlassCard variant="base" className="text-center py-12">
-                <Flame className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+                <FireIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
                 <h3 className="font-medium text-kalkvit mb-2">No active protocols</h3>
                 <p className="text-kalkvit/50 text-sm mb-4">
                   Start a protocol to begin your transformation journey
                 </p>
                 <Link to="/protocols">
                   <GlassButton variant="primary">
-                    <Play className="w-4 h-4" />
+                    <PlayIcon className="w-4 h-4" />
                     Browse Protocols
                   </GlassButton>
                 </Link>
@@ -426,7 +425,7 @@ export function MyProtocolsPage() {
               </div>
             ) : (
               <GlassCard variant="base" className="text-center py-12">
-                <Archive className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+                <ArchiveBoxIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
                 <h3 className="font-medium text-kalkvit mb-2">No completed protocols</h3>
                 <p className="text-kalkvit/50 text-sm">
                   Complete your first protocol to see it here

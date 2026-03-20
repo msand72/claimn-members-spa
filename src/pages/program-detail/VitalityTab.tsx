@@ -1,20 +1,19 @@
 import { Link } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassBadge } from '../../components/ui'
 import {
-  Moon,
-  Shield,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Download,
-  BarChart3,
-  Loader2,
-  ArrowRight,
-  ClipboardCheck,
-  CheckCircle,
-  Circle,
-  Zap,
-} from 'lucide-react'
+  MoonIcon,
+  ShieldCheckIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  MinusIcon,
+  ArrowDownTrayIcon,
+  ChartBarIcon,
+  ArrowPathIcon,
+  ArrowRightIcon,
+  ClipboardDocumentCheckIcon,
+  CheckCircleIcon,
+  BoltIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import {
   BIOMARKER_CONFIGS,
@@ -51,14 +50,14 @@ export function VitalityTab({
       {/* Vitality Checks progress */}
       {isLoadingAssessments ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       ) : (
         <>
           <GlassCard variant="base">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-kalkvit flex items-center gap-2">
-                <ClipboardCheck className="w-5 h-5 text-koppar" />
+                <ClipboardDocumentCheckIcon className="w-5 h-5 text-koppar" />
                 Vitality Checks
               </h3>
               <span className="text-sm text-kalkvit/50">
@@ -95,9 +94,9 @@ export function VitalityTab({
                     className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.04]"
                   >
                     {assessment.is_completed ? (
-                      <CheckCircle className="w-5 h-5 text-skogsgron shrink-0" />
+                      <CheckCircleIcon className="w-5 h-5 text-skogsgron shrink-0" />
                     ) : (
-                      <Circle className="w-5 h-5 text-kalkvit/30 shrink-0" />
+                      <MinusIcon className="w-5 h-5 text-kalkvit/30 shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-kalkvit">
@@ -117,7 +116,7 @@ export function VitalityTab({
                       <Link to={`/programs/${programId}/assessment/${assessment.id}`}>
                         <GlassButton variant="primary" className="text-xs">
                           Take now
-                          <ArrowRight className="w-3 h-3" />
+                          <ArrowRightIcon className="w-3 h-3" />
                         </GlassButton>
                       </Link>
                     ) : (
@@ -146,15 +145,15 @@ export function VitalityTab({
             const vitalityInterp = interpretVitalityIndex(vitalityIndex)
 
             const biomarkerIcons: Record<CVCBiomarker, React.ReactNode> = {
-              vital_energy: <Zap className="w-5 h-5" />,
-              stress_load: <Shield className="w-5 h-5" />,
-              sleep_quality: <Moon className="w-5 h-5" />,
+              vital_energy: <BoltIcon className="w-5 h-5" />,
+              stress_load: <ShieldCheckIcon className="w-5 h-5" />,
+              sleep_quality: <MoonIcon className="w-5 h-5" />,
             }
 
             const trendConfig: Record<TrendDirection, { icon: React.ReactNode; label: string; color: string }> = {
-              improved: { icon: <TrendingUp className="w-4 h-4" />, label: 'Improved', color: 'text-skogsgron' },
-              declined: { icon: <TrendingDown className="w-4 h-4" />, label: 'Declined', color: 'text-tegelrod' },
-              stable: { icon: <Minus className="w-4 h-4" />, label: 'Stable', color: 'text-kalkvit/50' },
+              improved: { icon: <ArrowTrendingUpIcon className="w-4 h-4" />, label: 'Improved', color: 'text-skogsgron' },
+              declined: { icon: <ArrowTrendingDownIcon className="w-4 h-4" />, label: 'Declined', color: 'text-tegelrod' },
+              stable: { icon: <MinusIcon className="w-4 h-4" />, label: 'Stable', color: 'text-kalkvit/50' },
             }
 
             return (
@@ -281,7 +280,7 @@ export function VitalityTab({
                 {completedCVCs.length >= 2 && (
                   <GlassCard variant="elevated">
                     <h3 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5 text-koppar" />
+                      <ChartBarIcon className="w-5 h-5 text-koppar" />
                       Biomarker Trends
                     </h3>
                     <div className="space-y-5">
@@ -348,14 +347,14 @@ export function VitalityTab({
                 {/* Actions */}
                 <div className="flex gap-2">
                   <GlassButton variant="secondary" className="text-sm" onClick={() => window.print()}>
-                    <Download className="w-4 h-4" />
+                    <ArrowDownTrayIcon className="w-4 h-4" />
                     Save PDF
                   </GlassButton>
                   <Link to="/kpis">
                     <GlassButton variant="ghost" className="text-sm">
-                      <BarChart3 className="w-4 h-4" />
+                      <ChartBarIcon className="w-4 h-4" />
                       View KPI Dashboard
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRightIcon className="w-4 h-4" />
                     </GlassButton>
                   </Link>
                 </div>

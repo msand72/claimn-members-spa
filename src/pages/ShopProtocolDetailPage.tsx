@@ -7,19 +7,19 @@ import { isAllowedExternalUrl } from '../lib/url-validation'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import {
-  ArrowLeft,
-  Clock,
-  CheckCircle,
-  Lock,
-  Play,
-  FileText,
-  Award,
-  ChevronRight,
-  ChevronDown,
-  Loader2,
-  AlertTriangle,
-  Target,
-} from 'lucide-react'
+  ArrowLeftIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  LockClosedIcon,
+  PlayIcon,
+  DocumentTextIcon,
+  TrophyIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  ViewfinderCircleIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import type { ProtocolWeek } from '../lib/api/hooks/useProtocols'
 
@@ -49,8 +49,8 @@ function WeekCard({ week, index, isPurchased, slug }: { week: ProtocolWeek; inde
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {!isPurchased && <Lock className="w-4 h-4 text-kalkvit/40" />}
-          <ChevronDown
+          {!isPurchased && <LockClosedIcon className="w-4 h-4 text-kalkvit/40" />}
+          <ChevronDownIcon
             className={cn(
               'w-5 h-5 text-kalkvit/50 transition-transform',
               isExpanded && 'rotate-180'
@@ -68,7 +68,7 @@ function WeekCard({ week, index, isPurchased, slug }: { week: ProtocolWeek; inde
                 className="flex items-center justify-between p-2 rounded-lg hover:bg-white/[0.03]"
               >
                 <div className="flex items-center gap-3">
-                  <Target className="w-4 h-4 text-koppar" />
+                  <ViewfinderCircleIcon className="w-4 h-4 text-koppar" />
                   <span className="text-sm text-kalkvit/70">{task.title}</span>
                 </div>
                 {isPurchased && slug && (
@@ -128,7 +128,7 @@ export function ShopProtocolDetailPage() {
     return (
       <MainLayout>
         <div className="max-w-5xl mx-auto flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       </MainLayout>
     )
@@ -139,7 +139,7 @@ export function ShopProtocolDetailPage() {
     return (
       <MainLayout>
         <div className="max-w-5xl mx-auto text-center py-12">
-          <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+          <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
           <h1 className="font-display text-2xl font-bold text-kalkvit mb-4">
             Protocol not found
           </h1>
@@ -148,7 +148,7 @@ export function ShopProtocolDetailPage() {
           </p>
           <Link to="/shop/protocols">
             <GlassButton variant="secondary">
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeftIcon className="w-4 h-4" />
               Back to Protocols
             </GlassButton>
           </Link>
@@ -185,7 +185,7 @@ export function ShopProtocolDetailPage() {
           to="/shop/protocols"
           className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Back to Protocols
         </Link>
 
@@ -198,7 +198,7 @@ export function ShopProtocolDetailPage() {
                 <GlassBadge variant="koppar">{pillar?.name || protocol.pillar}</GlassBadge>
                 {isPurchased && (
                   <GlassBadge variant="success" className="flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
+                    <CheckCircleIcon className="w-3 h-3" />
                     Enrolled
                   </GlassBadge>
                 )}
@@ -211,15 +211,15 @@ export function ShopProtocolDetailPage() {
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-kalkvit/60 mb-6">
                 <span className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
+                  <ClockIcon className="w-4 h-4" />
                   {durationWeeks} week{durationWeeks !== 1 ? 's' : ''}
                 </span>
                 <span className="flex items-center gap-1">
-                  <FileText className="w-4 h-4" />
+                  <DocumentTextIcon className="w-4 h-4" />
                   {sections.length || implementationSteps.length} sections
                 </span>
                 <span className="flex items-center gap-1">
-                  <Target className="w-4 h-4" />
+                  <ViewfinderCircleIcon className="w-4 h-4" />
                   {totalTasks} tasks
                 </span>
               </div>
@@ -245,24 +245,24 @@ export function ShopProtocolDetailPage() {
             {/* What You'll Achieve */}
             <GlassCard variant="base">
               <h2 className="font-semibold text-kalkvit mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-koppar" />
+                <TrophyIcon className="w-5 h-5 text-koppar" />
                 What You'll Achieve
               </h2>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3 text-kalkvit/70">
-                  <CheckCircle className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
+                  <CheckCircleIcon className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
                   {protocol.headline_stat || protocol.subtitle}
                 </li>
                 <li className="flex items-start gap-3 text-kalkvit/70">
-                  <CheckCircle className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
+                  <CheckCircleIcon className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
                   Evidence-based protocol for optimal results
                 </li>
                 <li className="flex items-start gap-3 text-kalkvit/70">
-                  <CheckCircle className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
+                  <CheckCircleIcon className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
                   Structured weekly progression over {durationWeeks} weeks
                 </li>
                 <li className="flex items-start gap-3 text-kalkvit/70">
-                  <CheckCircle className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
+                  <CheckCircleIcon className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
                   Build sustainable habits over time
                 </li>
               </ul>
@@ -295,7 +295,7 @@ export function ShopProtocolDetailPage() {
                         <ul className="space-y-1">
                           {section.items.map((item: string, j: number) => (
                             <li key={j} className="flex items-start gap-2 text-sm text-kalkvit/70">
-                              <Target className="w-4 h-4 text-koppar flex-shrink-0 mt-0.5" />
+                              <ViewfinderCircleIcon className="w-4 h-4 text-koppar flex-shrink-0 mt-0.5" />
                               {item}
                             </li>
                           ))}
@@ -354,14 +354,14 @@ export function ShopProtocolDetailPage() {
                   </div>
                   <Link to={`/protocols/${slug}`}>
                     <GlassButton variant="primary" className="w-full mb-3">
-                      <Play className="w-4 h-4" />
+                      <PlayIcon className="w-4 h-4" />
                       Check Status
                     </GlassButton>
                   </Link>
                   <Link to="/programs/sprints">
                     <GlassButton variant="secondary" className="w-full">
                       Join a Sprint
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRightIcon className="w-4 h-4" />
                     </GlassButton>
                   </Link>
                 </>
@@ -377,9 +377,9 @@ export function ShopProtocolDetailPage() {
                     disabled={checkout.isPending}
                   >
                     {checkout.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <ArrowPathIcon className="w-4 h-4 animate-spin" />
                     ) : (
-                      <Play className="w-4 h-4" />
+                      <PlayIcon className="w-4 h-4" />
                     )}
                     {checkout.isPending ? 'Processing...' : 'Get Started'}
                   </GlassButton>
@@ -393,19 +393,19 @@ export function ShopProtocolDetailPage() {
 
               <div className="mt-6 pt-6 border-t border-white/10 space-y-3 text-sm">
                 <div className="flex items-center gap-2 text-kalkvit/60">
-                  <CheckCircle className="w-4 h-4 text-skogsgron" />
+                  <CheckCircleIcon className="w-4 h-4 text-skogsgron" />
                   Lifetime access
                 </div>
                 <div className="flex items-center gap-2 text-kalkvit/60">
-                  <CheckCircle className="w-4 h-4 text-skogsgron" />
+                  <CheckCircleIcon className="w-4 h-4 text-skogsgron" />
                   Track your progress
                 </div>
                 <div className="flex items-center gap-2 text-kalkvit/60">
-                  <CheckCircle className="w-4 h-4 text-skogsgron" />
+                  <CheckCircleIcon className="w-4 h-4 text-skogsgron" />
                   Community access
                 </div>
                 <div className="flex items-center gap-2 text-kalkvit/60">
-                  <CheckCircle className="w-4 h-4 text-skogsgron" />
+                  <CheckCircleIcon className="w-4 h-4 text-skogsgron" />
                   Sprint eligibility
                 </div>
               </div>

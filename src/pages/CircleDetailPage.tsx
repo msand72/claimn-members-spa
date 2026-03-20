@@ -17,21 +17,21 @@ import {
 } from '../lib/api/hooks'
 import type { CirclePost, CircleMember, FeedComment } from '../lib/api/types'
 import {
-  Users,
-  MessageCircle,
-  ArrowLeft,
-  Heart,
-  Send,
-  Share2,
-  Bell,
-  BellOff,
-  UserPlus,
-  UserMinus,
-  Clock,
-  Loader2,
-  AlertCircle,
-  Check,
-} from 'lucide-react'
+  UserGroupIcon,
+  ChatBubbleLeftIcon,
+  ArrowLeftIcon,
+  HeartIcon,
+  PaperAirplaneIcon,
+  ShareIcon,
+  BellIcon,
+  BellSlashIcon,
+  UserPlusIcon,
+  UserMinusIcon,
+  ClockIcon,
+  ArrowPathIcon,
+  ExclamationCircleIcon,
+  CheckIcon,
+} from '@heroicons/react/24/outline'
 
 // Helper to format time ago
 function formatTimeAgo(dateStr: string): string {
@@ -127,14 +127,14 @@ function PostCard({ post }: { post: CirclePost }) {
                 post.is_liked ? 'text-tegelrod' : 'text-kalkvit/50 hover:text-kalkvit'
               }`}
             >
-              <Heart className={`w-4 h-4 ${post.is_liked ? 'fill-current' : ''}`} />
+              <HeartIcon className={`w-4 h-4 ${post.is_liked ? 'fill-current' : ''}`} />
               {post.likes_count}
             </button>
             <button
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-1 text-sm font-medium text-kalkvit/50 hover:text-kalkvit transition-colors"
             >
-              <MessageCircle className="w-4 h-4" />
+              <ChatBubbleLeftIcon className="w-4 h-4" />
               {post.comments_count}
             </button>
             <button
@@ -143,12 +143,12 @@ function PostCard({ post }: { post: CirclePost }) {
             >
               {shareCopied ? (
                 <>
-                  <Check className="w-4 h-4 text-skogsgron" />
+                  <CheckIcon className="w-4 h-4 text-skogsgron" />
                   <span className="text-skogsgron">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Share2 className="w-4 h-4" />
+                  <ShareIcon className="w-4 h-4" />
                   Share
                 </>
               )}
@@ -160,7 +160,7 @@ function PostCard({ post }: { post: CirclePost }) {
             <div className="mt-4 pt-3 border-t border-white/10">
               {commentsLoading && (
                 <div className="flex justify-center py-4">
-                  <Loader2 className="w-4 h-4 text-koppar animate-spin" />
+                  <ArrowPathIcon className="w-4 h-4 text-koppar animate-spin" />
                 </div>
               )}
               {!commentsLoading && comments.length > 0 && (
@@ -211,9 +211,9 @@ function PostCard({ post }: { post: CirclePost }) {
                   className="px-3"
                 >
                   {addComment.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4" />
+                    <PaperAirplaneIcon className="w-4 h-4" />
                   )}
                 </GlassButton>
               </div>
@@ -299,7 +299,7 @@ export function CircleDetailPage() {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       </MainLayout>
     )
@@ -314,11 +314,11 @@ export function CircleDetailPage() {
             to="/circles"
             className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4" />
             Back to Circles
           </Link>
           <GlassCard variant="base" className="text-center py-12">
-            <AlertCircle className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
+            <ExclamationCircleIcon className="w-12 h-12 text-tegelrod/50 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Circle not found</h3>
             <p className="text-kalkvit/50 text-sm">
               The circle you're looking for doesn't exist or you don't have access.
@@ -337,7 +337,7 @@ export function CircleDetailPage() {
           to="/circles"
           className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4" />
           Back to Circles
         </Link>
 
@@ -355,11 +355,11 @@ export function CircleDetailPage() {
               )}
               <div className="flex items-center gap-4 text-sm text-kalkvit/50">
                 <span className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
+                  <UserGroupIcon className="w-4 h-4" />
                   {circle.member_count} members
                 </span>
                 <span className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
+                  <ClockIcon className="w-4 h-4" />
                   Since {new Date(circle.created_at).toLocaleDateString()}
                 </span>
               </div>
@@ -370,7 +370,7 @@ export function CircleDetailPage() {
                 onClick={() => setNotifications(!notifications)}
                 className="p-2"
               >
-                {notifications ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
+                {notifications ? <BellIcon className="w-5 h-5" /> : <BellSlashIcon className="w-5 h-5" />}
               </GlassButton>
               <GlassButton
                 variant={circle.is_member ? 'secondary' : 'primary'}
@@ -378,15 +378,15 @@ export function CircleDetailPage() {
                 disabled={joinCircle.isPending || leaveCircle.isPending}
               >
                 {joinCircle.isPending || leaveCircle.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
                 ) : circle.is_member ? (
                   <>
-                    <UserMinus className="w-4 h-4" />
+                    <UserMinusIcon className="w-4 h-4" />
                     Leave
                   </>
                 ) : (
                   <>
-                    <UserPlus className="w-4 h-4" />
+                    <UserPlusIcon className="w-4 h-4" />
                     Join
                   </>
                 )}
@@ -434,9 +434,9 @@ export function CircleDetailPage() {
                         disabled={!postContent.trim() || createPost.isPending}
                       >
                         {createPost.isPending ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <ArrowPathIcon className="w-4 h-4 animate-spin" />
                         ) : (
-                          <Send className="w-4 h-4" />
+                          <PaperAirplaneIcon className="w-4 h-4" />
                         )}
                         {createPost.isPending ? 'Posting...' : 'Post'}
                       </GlassButton>
@@ -449,14 +449,14 @@ export function CircleDetailPage() {
             {/* Loading posts */}
             {postsLoading && (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+                <ArrowPathIcon className="w-6 h-6 text-koppar animate-spin" />
               </div>
             )}
 
             {/* Posts error */}
             {!postsLoading && postsError && (
               <GlassCard variant="base" className="text-center py-8">
-                <AlertCircle className="w-10 h-10 text-tegelrod/50 mx-auto mb-3" />
+                <ExclamationCircleIcon className="w-10 h-10 text-tegelrod/50 mx-auto mb-3" />
                 <p className="text-kalkvit/50 text-sm">Unable to load posts</p>
                 <p className="text-kalkvit/30 text-xs mt-1">You may not have access yet. Try refreshing.</p>
               </GlassCard>
@@ -474,7 +474,7 @@ export function CircleDetailPage() {
             {/* Empty posts */}
             {!postsLoading && !postsError && posts.length === 0 && (
               <GlassCard variant="base" className="text-center py-8">
-                <MessageCircle className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
+                <ChatBubbleLeftIcon className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
                 <p className="text-kalkvit/50 text-sm">No posts yet</p>
                 {circle.is_member && (
                   <p className="text-kalkvit/30 text-xs mt-1">Be the first to share something!</p>
@@ -493,14 +493,14 @@ export function CircleDetailPage() {
             {/* Loading members */}
             {membersLoading && (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 text-koppar animate-spin" />
+                <ArrowPathIcon className="w-6 h-6 text-koppar animate-spin" />
               </div>
             )}
 
             {/* Members error */}
             {!membersLoading && membersError && (
               <div className="text-center py-8">
-                <AlertCircle className="w-10 h-10 text-tegelrod/50 mx-auto mb-3" />
+                <ExclamationCircleIcon className="w-10 h-10 text-tegelrod/50 mx-auto mb-3" />
                 <p className="text-kalkvit/50 text-sm">Unable to load members</p>
               </div>
             )}
@@ -517,7 +517,7 @@ export function CircleDetailPage() {
             {/* Empty members */}
             {!membersLoading && !membersError && members.length === 0 && (
               <div className="text-center py-8">
-                <Users className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
+                <UserGroupIcon className="w-10 h-10 text-kalkvit/20 mx-auto mb-3" />
                 <p className="text-kalkvit/50 text-sm">No members yet</p>
               </div>
             )}

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassBadge, GlassAvatar } from '../../components/ui'
-import { Calendar, Loader2, Clock, Users, UserCheck, UserMinus, CheckCircle } from 'lucide-react'
+import { CalendarIcon, ArrowPathIcon, ClockIcon, UserGroupIcon, UserPlusIcon, UserMinusIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import type { ClaimnEvent } from '../../lib/api/types'
 import type { UseMutationResult } from '@tanstack/react-query'
@@ -44,7 +44,7 @@ export function SessionsTab({
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
         </div>
       ) : goSessions.length > 0 ? (
         <div className="space-y-4">
@@ -66,9 +66,9 @@ export function SessionsTab({
                         : 'bg-koppar/20 text-koppar'
                     )}>
                       {session.is_registered ? (
-                        <CheckCircle className="w-5 h-5" />
+                        <CheckCircleIcon className="w-5 h-5" />
                       ) : (
-                        <Calendar className="w-5 h-5" />
+                        <CalendarIcon className="w-5 h-5" />
                       )}
                     </div>
 
@@ -86,15 +86,15 @@ export function SessionsTab({
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-kalkvit/50 mb-3">
                         <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
+                          <CalendarIcon className="w-3 h-3" />
                           {dateStr}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
+                          <ClockIcon className="w-3 h-3" />
                           {timeStr}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
+                          <UserGroupIcon className="w-3 h-3" />
                           {session.registered_count}/{session.capacity} spots
                         </span>
                       </div>
@@ -118,7 +118,7 @@ export function SessionsTab({
                               className="text-xs"
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); unregisterMutation.mutate(session.id) }}
                             >
-                              <UserMinus className="w-3 h-3" />
+                              <UserMinusIcon className="w-3 h-3" />
                               Unregister
                             </GlassButton>
                           ) : (
@@ -128,7 +128,7 @@ export function SessionsTab({
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); registerMutation.mutate(session.id) }}
                               disabled={isSessionFull}
                             >
-                              <UserCheck className="w-3 h-3" />
+                              <UserPlusIcon className="w-3 h-3" />
                               {isSessionFull ? 'Full' : 'Register'}
                             </GlassButton>
                           )}
@@ -143,7 +143,7 @@ export function SessionsTab({
         </div>
       ) : (
         <GlassCard variant="base" className="text-center py-12">
-          <Calendar className="w-8 h-8 text-kalkvit/30 mx-auto mb-3" />
+          <CalendarIcon className="w-8 h-8 text-kalkvit/30 mx-auto mb-3" />
           <p className="text-kalkvit/50 text-sm">
             No {sessionStatusFilter} GO Sessions available.
           </p>

@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import {
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  MessageCircle,
-  UserPlus,
-  MapPin,
-  Heart,
-  Loader2,
-  Users,
-  Check,
-  X,
-} from 'lucide-react'
+  MagnifyingGlassIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChatBubbleLeftIcon,
+  UserPlusIcon,
+  MapPinIcon,
+  HeartIcon,
+  ArrowPathIcon,
+  UserGroupIcon,
+  CheckIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import {
   useNetwork,
@@ -113,7 +113,7 @@ function MemberCard({ member }: { member: NetworkMember }) {
           )}
           {location && (
             <div className="flex items-center gap-1 mt-1 text-xs text-kalkvit/40">
-              <MapPin className="w-3 h-3" />
+              <MapPinIcon className="w-3 h-3" />
               {location}
             </div>
           )}
@@ -141,7 +141,7 @@ function MemberCard({ member }: { member: NetworkMember }) {
         <div className="flex items-center gap-2 text-xs text-kalkvit/50">
           {sharedCount > 0 ? (
             <span className="flex items-center gap-1 text-koppar">
-              <Heart className="w-3 h-3" />
+              <HeartIcon className="w-3 h-3" />
               {sharedCount} shared interests
             </span>
           ) : (
@@ -158,7 +158,7 @@ function MemberCard({ member }: { member: NetworkMember }) {
               className="flex-1 text-sm py-2"
               onClick={handleMessage}
             >
-              <MessageCircle className="w-4 h-4" />
+              <ChatBubbleLeftIcon className="w-4 h-4" />
               Message
             </GlassButton>
             <GlassBadge variant="success" className="self-center">
@@ -174,9 +174,9 @@ function MemberCard({ member }: { member: NetworkMember }) {
               disabled={acceptConnection.isPending}
             >
               {acceptConnection.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
               ) : (
-                <Check className="w-4 h-4" />
+                <CheckIcon className="w-4 h-4" />
               )}
               Accept
             </GlassButton>
@@ -187,9 +187,9 @@ function MemberCard({ member }: { member: NetworkMember }) {
               disabled={rejectConnection.isPending}
             >
               {rejectConnection.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
               ) : (
-                <X className="w-4 h-4" />
+                <XMarkIcon className="w-4 h-4" />
               )}
               Decline
             </GlassButton>
@@ -206,9 +206,9 @@ function MemberCard({ member }: { member: NetworkMember }) {
             disabled={sendConnection.isPending}
           >
             {sendConnection.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <ArrowPathIcon className="w-4 h-4 animate-spin" />
             ) : (
-              <UserPlus className="w-4 h-4" />
+              <UserPlusIcon className="w-4 h-4" />
             )}
             {sendConnection.isPending ? 'Sending...' : 'Connect'}
           </GlassButton>
@@ -277,7 +277,7 @@ export function NetworkPage() {
         <div className="flex flex-col gap-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
               <GlassInput
                 placeholder="Search by name..."
                 className="pl-12"
@@ -312,7 +312,7 @@ export function NetworkPage() {
         {/* Loading state */}
         {isLoading && (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 
@@ -327,7 +327,7 @@ export function NetworkPage() {
         {/* Empty state */}
         {!isLoading && !error && members.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
-            <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <UserGroupIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">No members found</h3>
             <p className="text-kalkvit/50 text-sm">
               {searchQuery ? 'Try a different search term' : 'No members in the network yet'}
@@ -353,7 +353,7 @@ export function NetworkPage() {
               disabled={currentPage === 1 || !pagination?.has_prev}
               className="p-2"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeftIcon className="w-5 h-5" />
             </GlassButton>
 
             <div className="flex gap-1">
@@ -397,7 +397,7 @@ export function NetworkPage() {
               disabled={currentPage === totalPages || !pagination?.has_next}
               className="p-2"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRightIcon className="w-5 h-5" />
             </GlassButton>
           </div>
         )}

@@ -1,5 +1,5 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react'
-import { AlertTriangle, RefreshCw, Bug } from 'lucide-react'
+import { ExclamationTriangleIcon, ArrowPathIcon, BugAntIcon } from '@heroicons/react/24/outline'
 import { isChunkLoadError } from '../lib/isChunkLoadError'
 import { useBugReport, type ErrorSource } from '../contexts/BugReportContext'
 
@@ -64,7 +64,7 @@ class ErrorBoundaryInner extends Component<InnerProps, InnerState> {
         <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center p-4">
           <div className="backdrop-blur-[24px] rounded-2xl border border-white/15 p-8 max-w-md w-full text-center shadow-lg bg-[rgba(30,30,35,0.85)]">
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-tegelrod/20 flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8 text-tegelrod" />
+              <ExclamationTriangleIcon className="w-8 h-8 text-tegelrod" />
             </div>
             <h1 className="font-display text-2xl font-bold text-kalkvit mb-2">
               Something went wrong
@@ -77,21 +77,21 @@ class ErrorBoundaryInner extends Component<InnerProps, InnerState> {
                 onClick={this.handleRetry}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/10 border border-white/15 text-kalkvit hover:bg-white/15 transition-all duration-200 cursor-pointer"
               >
-                <RefreshCw size={16} />
+                <ArrowPathIcon className="w-4 h-4" />
                 Try Again
               </button>
               <button
                 onClick={() => window.location.reload()}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/10 border border-white/15 text-kalkvit hover:bg-white/15 transition-all duration-200 cursor-pointer"
               >
-                <RefreshCw size={16} />
+                <ArrowPathIcon className="w-4 h-4" />
                 Reload
               </button>
               <button
                 onClick={this.props.onOpenModal}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-gradient-to-br from-koppar to-[#A66529] text-white shadow-[0_4px_20px_rgba(184,115,51,0.4)] hover:shadow-[0_6px_24px_rgba(184,115,51,0.5)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
               >
-                <Bug size={16} />
+                <BugAntIcon className="w-4 h-4" />
                 Report Bug
               </button>
             </div>

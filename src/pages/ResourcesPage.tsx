@@ -5,31 +5,31 @@ import { useResources } from '../lib/api/hooks'
 import { safeOpenUrl } from '../lib/url-validation'
 import type { Resource } from '../lib/api/types'
 import {
-  FileText,
-  Video,
-  Download,
-  Search,
-  BookOpen,
-  Headphones,
-  ExternalLink,
-  Loader2,
-  AlertTriangle,
-} from 'lucide-react'
+  DocumentTextIcon,
+  VideoCameraIcon,
+  ArrowDownTrayIcon,
+  MagnifyingGlassIcon,
+  BookOpenIcon,
+  SpeakerWaveIcon,
+  ArrowTopRightOnSquareIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline'
 
 const categories = ['All', 'Guides', 'Videos', 'Podcasts', 'Templates']
 
 const typeIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  guide: BookOpen,
-  video: Video,
-  podcast: Headphones,
-  template: FileText,
-  pdf: FileText,
-  audio: Headphones,
-  article: BookOpen,
+  guide: BookOpenIcon,
+  video: VideoCameraIcon,
+  podcast: SpeakerWaveIcon,
+  template: DocumentTextIcon,
+  pdf: DocumentTextIcon,
+  audio: SpeakerWaveIcon,
+  article: BookOpenIcon,
 }
 
 function ResourceCard({ resource }: { resource: Resource }) {
-  const IconComponent = typeIconMap[resource.type] || FileText
+  const IconComponent = typeIconMap[resource.type] || DocumentTextIcon
 
   const handleOpen = () => {
     if (resource.url) {
@@ -68,9 +68,9 @@ function ResourceCard({ resource }: { resource: Resource }) {
               }}
             >
               {resource.type === 'template' || resource.type === 'pdf' ? (
-                <Download className="w-4 h-4" />
+                <ArrowDownTrayIcon className="w-4 h-4" />
               ) : (
-                <ExternalLink className="w-4 h-4" />
+                <ArrowTopRightOnSquareIcon className="w-4 h-4" />
               )}
             </GlassButton>
           </div>
@@ -100,7 +100,7 @@ export function ResourcesPage() {
       <MainLayout>
         <div className="max-w-6xl mx-auto">
           <GlassCard variant="base" className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-tegelrod mx-auto mb-4" />
+            <ExclamationTriangleIcon className="w-12 h-12 text-tegelrod mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">Failed to load resources</h3>
             <p className="text-kalkvit/50 text-sm">
               Please try refreshing the page or check your connection.
@@ -122,7 +122,7 @@ export function ResourcesPage() {
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-kalkvit/40" />
             <GlassInput
               placeholder="Search resources..."
               className="pl-12"
@@ -150,7 +150,7 @@ export function ResourcesPage() {
         {/* Resources Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         ) : resources.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

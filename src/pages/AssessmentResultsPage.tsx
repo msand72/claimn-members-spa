@@ -18,20 +18,19 @@ import {
   useAssessmentContent,
 } from '../lib/api/hooks/useAssessments'
 import {
-  ArrowRight,
-  Download,
-  Share2,
-  Sparkles,
-  TrendingUp,
-  AlertCircle,
-  RefreshCw,
-  ChevronRight,
-  BarChart3,
-  Zap,
-  Shield,
-  Users,
-  Loader2,
-} from 'lucide-react'
+  ArrowRightIcon,
+  ArrowDownTrayIcon,
+  ShareIcon,
+  SparklesIcon,
+  ArrowTrendingUpIcon,
+  ExclamationCircleIcon,
+  ArrowPathIcon,
+  ChevronRightIcon,
+  ChartBarIcon,
+  BoltIcon,
+  ShieldCheckIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline'
 import { PillarIcon } from '../components/icons'
 import { cn } from '../lib/utils'
 import { PrintReport } from '../components/PrintReport'
@@ -52,12 +51,12 @@ const ARCHETYPE_DISPLAY: Record<string, { name: string; subtitle: string }> = {
 }
 
 const INSIGHT_TYPE_STYLES: Record<string, { icon: React.ReactNode; color: string }> = {
-  pillar_synergy: { icon: <Zap className="w-4 h-4" />, color: 'text-skogsgron' },
-  pillar_analysis: { icon: <BarChart3 className="w-4 h-4" />, color: 'text-koppar' },
-  dual_integration: { icon: <Users className="w-4 h-4" />, color: 'text-brandAmber' },
-  archetype_dominance: { icon: <Shield className="w-4 h-4" />, color: 'text-koppar' },
-  archetype_spectrum: { icon: <BarChart3 className="w-4 h-4" />, color: 'text-kalkvit/60' },
-  general: { icon: <Sparkles className="w-4 h-4" />, color: 'text-koppar' },
+  pillar_synergy: { icon: <BoltIcon className="w-4 h-4" />, color: 'text-skogsgron' },
+  pillar_analysis: { icon: <ChartBarIcon className="w-4 h-4" />, color: 'text-koppar' },
+  dual_integration: { icon: <UserGroupIcon className="w-4 h-4" />, color: 'text-brandAmber' },
+  archetype_dominance: { icon: <ShieldCheckIcon className="w-4 h-4" />, color: 'text-koppar' },
+  archetype_spectrum: { icon: <ChartBarIcon className="w-4 h-4" />, color: 'text-kalkvit/60' },
+  general: { icon: <SparklesIcon className="w-4 h-4" />, color: 'text-koppar' },
 }
 
 // =====================================================
@@ -244,7 +243,7 @@ export function AssessmentResultsPage() {
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-koppar mx-auto mb-4" />
+            <ArrowPathIcon className="w-8 h-8 animate-spin text-koppar mx-auto mb-4" />
             <p className="text-kalkvit/60">Calculating your results...</p>
           </div>
         </div>
@@ -293,7 +292,7 @@ export function AssessmentResultsPage() {
         {/* ============================================= */}
         <div className="text-center mb-4">
           <GlassBadge variant="koppar" className="mb-4">
-            <Sparkles className="w-4 h-4" />
+            <SparklesIcon className="w-4 h-4" />
             CLAIM'N Archetype Results
           </GlassBadge>
         </div>
@@ -405,8 +404,8 @@ export function AssessmentResultsPage() {
                               }
                               className="text-xs"
                             >
-                              {pillarScore.level === 'high' && <TrendingUp className="w-3 h-3" />}
-                              {pillarScore.level === 'low' && <AlertCircle className="w-3 h-3" />}
+                              {pillarScore.level === 'high' && <ArrowTrendingUpIcon className="w-3 h-3" />}
+                              {pillarScore.level === 'low' && <ExclamationCircleIcon className="w-3 h-3" />}
                               {pillarScore.level}
                             </GlassBadge>
                           )}
@@ -556,7 +555,7 @@ export function AssessmentResultsPage() {
             {consistencyScore > 0 && (
               <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10">
                 <div className="p-2 rounded-lg bg-koppar/10">
-                  <BarChart3 className="w-4 h-4 text-koppar" />
+                  <ChartBarIcon className="w-4 h-4 text-koppar" />
                 </div>
                 <div>
                   <p className="text-sm text-kalkvit font-medium">
@@ -622,7 +621,7 @@ export function AssessmentResultsPage() {
           <GlassCard variant="base" className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-lg bg-koppar/10">
-                <Shield className="w-5 h-5 text-koppar" />
+                <ShieldCheckIcon className="w-5 h-5 text-koppar" />
               </div>
               <div>
                 <h2 className="font-display text-xl font-bold text-kalkvit">
@@ -833,7 +832,7 @@ export function AssessmentResultsPage() {
               <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all group">
                 <h4 className="font-medium text-kalkvit mb-1 flex items-center gap-2">
                   Start a Protocol
-                  <ChevronRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                  <ChevronRightIcon className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
                 </h4>
                 <p className="text-sm text-kalkvit/60">
                   Begin with the {weakestPillar ? PILLARS[weakestPillar].name : 'recommended'} protocol to address your growth area
@@ -844,7 +843,7 @@ export function AssessmentResultsPage() {
               <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all group">
                 <h4 className="font-medium text-kalkvit mb-1 flex items-center gap-2">
                   Set Your Goals
-                  <ChevronRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                  <ChevronRightIcon className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
                 </h4>
                 <p className="text-sm text-kalkvit/60">
                   Create measurable goals aligned with your assessment insights
@@ -855,7 +854,7 @@ export function AssessmentResultsPage() {
               <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all group">
                 <h4 className="font-medium text-kalkvit mb-1 flex items-center gap-2">
                   Book a Coaching Session
-                  <ChevronRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                  <ChevronRightIcon className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
                 </h4>
                 <p className="text-sm text-kalkvit/60">
                   Get personalized guidance from an expert coach
@@ -866,7 +865,7 @@ export function AssessmentResultsPage() {
               <div className="p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:border-koppar/30 hover:bg-white/[0.06] transition-all group">
                 <h4 className="font-medium text-kalkvit mb-1 flex items-center gap-2">
                   Connect with Others
-                  <ChevronRight className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
+                  <ChevronRightIcon className="w-4 h-4 text-kalkvit/30 group-hover:text-koppar transition-colors" />
                 </h4>
                 <p className="text-sm text-kalkvit/60">
                   Find members with shared interests and goals
@@ -883,20 +882,20 @@ export function AssessmentResultsPage() {
           <Link to="/">
             <GlassButton variant="primary">
               Go to Dashboard
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRightIcon className="w-4 h-4" />
             </GlassButton>
           </Link>
           <GlassButton variant="secondary" onClick={handleDownloadReport}>
-            <Download className="w-4 h-4" />
+            <ArrowDownTrayIcon className="w-4 h-4" />
             Save PDF
           </GlassButton>
           <GlassButton variant="ghost" onClick={handleShareResults}>
-            <Share2 className="w-4 h-4" />
+            <ShareIcon className="w-4 h-4" />
             Share Results
           </GlassButton>
           <Link to="/assessment/take">
             <GlassButton variant="ghost">
-              <RefreshCw className="w-4 h-4" />
+              <ArrowPathIcon className="w-4 h-4" />
               Retake Assessment
             </GlassButton>
           </Link>

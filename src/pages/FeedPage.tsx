@@ -26,7 +26,7 @@ import {
 } from '../lib/api'
 import { ReportModal } from '../components/ReportModal'
 import { api } from '../lib/api/client'
-import { Heart, MessageCircle, Share2, MoreHorizontal, ImagePlus, Send, Users, Loader2, Check, Flag, X } from 'lucide-react'
+import { HeartIcon, ChatBubbleLeftIcon, ShareIcon, EllipsisHorizontalIcon, PhotoIcon, PaperAirplaneIcon, UserGroupIcon, ArrowPathIcon, CheckIcon, FlagIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { compressMessageImage, validateImageFile, blobToFile } from '../lib/image-utils'
 
 // Helper to format time ago
@@ -139,7 +139,7 @@ function PostCard({ post }: { post: FeedPost }) {
                   <>
                     <span className="hidden sm:inline">•</span>
                     <span className="hidden sm:flex items-center gap-1 text-koppar truncate max-w-[150px]">
-                      <Users className="w-3 h-3 flex-shrink-0" />
+                      <UserGroupIcon className="w-3 h-3 flex-shrink-0" />
                       Interest Group
                     </span>
                   </>
@@ -152,7 +152,7 @@ function PostCard({ post }: { post: FeedPost }) {
                 onClick={() => setShowMoreMenu((v) => !v)}
                 className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit"
               >
-                <MoreHorizontal className="w-5 h-5" />
+                <EllipsisHorizontalIcon className="w-5 h-5" />
               </button>
               {showMoreMenu && (
                 <div className="absolute right-0 top-10 z-20 glass-elevated rounded-lg py-1 min-w-[160px] shadow-lg border border-white/10">
@@ -160,7 +160,7 @@ function PostCard({ post }: { post: FeedPost }) {
                     onClick={handleReport}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-kalkvit/80 hover:bg-white/[0.06] transition-colors"
                   >
-                    <Flag className="w-4 h-4" />
+                    <FlagIcon className="w-4 h-4" />
                     Report Post
                   </button>
                 </div>
@@ -171,7 +171,7 @@ function PostCard({ post }: { post: FeedPost }) {
           {/* Reported feedback */}
           {reported && (
             <div className="mb-2 px-3 py-1.5 rounded-lg bg-skogsgron/10 text-skogsgron text-sm flex items-center gap-2">
-              <Check className="w-4 h-4" />
+              <CheckIcon className="w-4 h-4" />
               Post reported. Thank you.
             </div>
           )}
@@ -194,7 +194,7 @@ function PostCard({ post }: { post: FeedPost }) {
                 post.is_liked ? 'text-tegelrod' : 'text-kalkvit/60 hover:text-kalkvit'
               }`}
             >
-              <Heart className={`w-5 h-5 ${post.is_liked ? 'fill-current' : ''}`} />
+              <HeartIcon className={`w-5 h-5 ${post.is_liked ? 'fill-current' : ''}`} />
               {post.likes_count}
             </button>
             <button
@@ -203,7 +203,7 @@ function PostCard({ post }: { post: FeedPost }) {
                 showComments ? 'text-koppar' : 'text-kalkvit/60 hover:text-kalkvit'
               }`}
             >
-              <MessageCircle className={`w-5 h-5 ${showComments ? 'fill-koppar/20' : ''}`} />
+              <ChatBubbleLeftIcon className={`w-5 h-5 ${showComments ? 'fill-koppar/20' : ''}`} />
               {post.comments_count}
             </button>
             <button
@@ -212,12 +212,12 @@ function PostCard({ post }: { post: FeedPost }) {
             >
               {shareCopied ? (
                 <>
-                  <Check className="w-5 h-5 text-skogsgron" />
+                  <CheckIcon className="w-5 h-5 text-skogsgron" />
                   <span className="text-skogsgron">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Share2 className="w-5 h-5" />
+                  <ShareIcon className="w-5 h-5" />
                   Share
                 </>
               )}
@@ -229,7 +229,7 @@ function PostCard({ post }: { post: FeedPost }) {
             <div className="mt-4 pt-4 border-t border-white/10">
               {commentsLoading && (
                 <div className="flex justify-center py-4">
-                  <Loader2 className="w-5 h-5 text-koppar animate-spin" />
+                  <ArrowPathIcon className="w-5 h-5 text-koppar animate-spin" />
                 </div>
               )}
               {!commentsLoading && comments.length === 0 && (
@@ -284,9 +284,9 @@ function PostCard({ post }: { post: FeedPost }) {
                   className="px-3"
                 >
                   {addComment.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4" />
+                    <PaperAirplaneIcon className="w-4 h-4" />
                   )}
                 </GlassButton>
               </div>
@@ -519,7 +519,7 @@ export function FeedPage() {
                     onClick={clearPendingImage}
                     className="absolute -top-2 -right-2 p-1 rounded-full bg-charcoal border border-white/20 text-kalkvit/70 hover:text-kalkvit hover:bg-charcoal/90 transition-colors"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <XMarkIcon className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
@@ -538,11 +538,11 @@ export function FeedPage() {
                     className="p-2 rounded-lg hover:bg-white/[0.06] transition-colors text-kalkvit/50 hover:text-kalkvit"
                     title="Add image"
                   >
-                    <ImagePlus className="w-5 h-5" />
+                    <PhotoIcon className="w-5 h-5" />
                   </button>
                   {isSpecificGroupTab ? (
                     <span className="text-sm text-koppar flex items-center gap-1.5">
-                      <Users className="w-4 h-4" />
+                      <UserGroupIcon className="w-4 h-4" />
                       {effectiveGroups.find((g) => g.id === activeTab)?.name || 'Group'}
                     </span>
                   ) : realGroups.length > 0 ? (
@@ -561,11 +561,11 @@ export function FeedPage() {
                   disabled={(!postContent.trim() && !pendingImage) || createPost.isPending || isUploading}
                 >
                   {isUploading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
                   ) : createPost.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4" />
+                    <PaperAirplaneIcon className="w-4 h-4" />
                   )}
                   {isUploading ? 'Uploading...' : createPost.isPending ? 'Posting...' : 'Post'}
                 </GlassButton>
@@ -591,7 +591,7 @@ export function FeedPage() {
                   onClick={() => setActiveTab(group.id)}
                   className="px-3 py-1.5 rounded-lg bg-koppar/10 text-koppar text-sm hover:bg-koppar/20 transition-colors flex items-center gap-1.5"
                 >
-                  <Users className="w-3.5 h-3.5" />
+                  <UserGroupIcon className="w-3.5 h-3.5" />
                   {group.name}
                 </button>
               ))}
@@ -607,7 +607,7 @@ export function FeedPage() {
         {/* Loading state */}
         {feedLoading && (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-koppar animate-spin" />
+            <ArrowPathIcon className="w-8 h-8 text-koppar animate-spin" />
           </div>
         )}
 
@@ -622,7 +622,7 @@ export function FeedPage() {
         {/* Empty state */}
         {!feedLoading && !feedError && posts.length === 0 && (
           <GlassCard variant="base" className="text-center py-12">
-            <Users className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
+            <UserGroupIcon className="w-12 h-12 text-kalkvit/20 mx-auto mb-4" />
             <h3 className="font-medium text-kalkvit mb-2">No posts yet</h3>
             <p className="text-kalkvit/50 text-sm mb-4">
               Be the first to share something with the community!

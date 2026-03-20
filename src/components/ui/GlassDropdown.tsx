@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { cn } from '../../lib/utils'
-import { ChevronDown, Check } from 'lucide-react'
+import { ChevronDownIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 interface DropdownItem {
   value: string
@@ -90,7 +90,7 @@ export function GlassDropdown({
             placeholder
           )}
         </span>
-        <ChevronDown
+        <ChevronDownIcon
           className={cn(
             'w-4 h-4 text-kalkvit/50 transition-transform',
             isOpen && 'rotate-180'
@@ -135,7 +135,7 @@ export function GlassDropdown({
                 )}
               </div>
               {item.value === value && (
-                <Check className="w-4 h-4 text-koppar flex-shrink-0" />
+                <CheckIcon className="w-4 h-4 text-koppar flex-shrink-0" />
               )}
             </button>
           ))}
