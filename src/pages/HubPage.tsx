@@ -55,8 +55,6 @@ import {
   AcademicCapIcon,
   ViewfinderCircleIcon,
   FireIcon,
-  ChartBarIcon,
-  TrophyIcon,
   StarIcon,
   VideoCameraIcon,
   UserCircleIcon,
