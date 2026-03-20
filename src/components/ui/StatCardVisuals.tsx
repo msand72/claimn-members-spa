@@ -1,6 +1,6 @@
 /**
  * StatCardVisuals — 6 decorative SVG components for GlassStatsCard visual slots.
- * Each renders in a 44px-tall slot. Nordic Precision Line style.
+ * Nordic Precision Line style — bold, visible accents.
  * Structural elements use currentColor; accents use hardcoded brand hex.
  */
 
@@ -10,7 +10,7 @@ interface VisualProps {
 
 export function StreakBarsVisual({ className }: VisualProps) {
   const heights = [10, 14, 18, 24, 30, 38];
-  const opacities = [0.22, 0.35, 0.48, 0.6, 0.75, 0.9];
+  const opacities = [0.4, 0.5, 0.6, 0.7, 0.85, 1];
   const barWidth = 8;
   const gap = 4;
   const startX = 40;
@@ -21,7 +21,7 @@ export function StreakBarsVisual({ className }: VisualProps) {
       preserveAspectRatio="xMidYMid meet"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: 44 }}
+      style={{ width: '100%', height: '100%' }}
     >
       {/* Ascending bars */}
       {heights.map((h, i) => (
@@ -42,8 +42,8 @@ export function StreakBarsVisual({ className }: VisualProps) {
         d={`M${startX + barWidth / 2},${44 - heights[0] - 2} Q${startX + 3 * (barWidth + gap)},${-4} ${startX + 5 * (barWidth + gap) + barWidth / 2},${44 - heights[5] - 2}`}
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.25"
-        strokeWidth="1"
+        strokeOpacity="0.45"
+        strokeWidth="1.5"
         strokeDasharray="3 3"
       />
 
@@ -52,7 +52,7 @@ export function StreakBarsVisual({ className }: VisualProps) {
         x="156"
         y="38"
         fill="currentColor"
-        opacity="0.18"
+        opacity="0.35"
         fontSize="7"
         fontFamily="inherit"
         letterSpacing="1.5"
@@ -76,7 +76,7 @@ export function GoalTargetVisual({ className }: VisualProps) {
       preserveAspectRatio="xMidYMid meet"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: 44 }}
+      style={{ width: '100%', height: '100%' }}
     >
       {sets.map((s, i) => (
         <g key={i}>
@@ -87,8 +87,8 @@ export function GoalTargetVisual({ className }: VisualProps) {
             r="18"
             fill="none"
             stroke={s.filled ? '#B87333' : 'currentColor'}
-            strokeOpacity={s.filled ? 0.5 : 0.28}
-            strokeWidth="1"
+            strokeOpacity={s.filled ? 0.7 : 0.4}
+            strokeWidth="1.5"
           />
           {/* Middle ring */}
           <circle
@@ -97,8 +97,8 @@ export function GoalTargetVisual({ className }: VisualProps) {
             r="11"
             fill="none"
             stroke={s.filled ? '#B87333' : 'currentColor'}
-            strokeOpacity={s.filled ? 0.65 : 0.28}
-            strokeWidth="1"
+            strokeOpacity={s.filled ? 0.8 : 0.4}
+            strokeWidth="1.5"
           />
           {/* Inner ring / center */}
           <circle
@@ -106,10 +106,10 @@ export function GoalTargetVisual({ className }: VisualProps) {
             cy="22"
             r="4"
             fill={s.filled ? '#B87333' : 'none'}
-            fillOpacity={s.filled ? 0.85 : 0}
+            fillOpacity={s.filled ? 0.9 : 0}
             stroke={s.filled ? '#B87333' : 'currentColor'}
-            strokeOpacity={s.filled ? 0.9 : 0.28}
-            strokeWidth="1"
+            strokeOpacity={s.filled ? 1 : 0.4}
+            strokeWidth="1.5"
           />
         </g>
       ))}
@@ -142,15 +142,15 @@ export function VitalityRadarVisual({ className }: VisualProps) {
       preserveAspectRatio="xMidYMid meet"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: 44 }}
+      style={{ width: '100%', height: '100%' }}
     >
       {/* Ghost outer pentagon */}
       <path
         d={toPath(outerPoints)}
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.15"
-        strokeWidth="0.8"
+        strokeOpacity="0.3"
+        strokeWidth="1"
       />
 
       {/* Spoke lines */}
@@ -162,23 +162,23 @@ export function VitalityRadarVisual({ className }: VisualProps) {
           x2={p[0]}
           y2={p[1]}
           stroke="currentColor"
-          strokeOpacity="0.10"
-          strokeWidth="0.5"
+          strokeOpacity="0.2"
+          strokeWidth="0.7"
         />
       ))}
 
       {/* Data polygon */}
       <path
         d={toPath(dataPoints)}
-        fill="rgba(107,142,111,0.10)"
+        fill="rgba(107,142,111,0.18)"
         stroke="#6B8E6F"
-        strokeWidth="1.2"
-        strokeOpacity="0.75"
+        strokeWidth="1.5"
+        strokeOpacity="0.85"
       />
 
       {/* Pillar dots at vertices */}
       {dataPoints.map((p, i) => (
-        <circle key={i} cx={p[0]} cy={p[1]} r="2" fill={pillarColors[i]} />
+        <circle key={i} cx={p[0]} cy={p[1]} r="2.5" fill={pillarColors[i]} />
       ))}
     </svg>
   );
@@ -201,7 +201,7 @@ export function AdherenceArcVisual({ className }: VisualProps) {
       preserveAspectRatio="xMidYMid meet"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: 44 }}
+      style={{ width: '100%', height: '100%' }}
     >
       {/* Background circle */}
       <circle
@@ -210,8 +210,8 @@ export function AdherenceArcVisual({ className }: VisualProps) {
         r={arcR}
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.12"
-        strokeWidth="2.8"
+        strokeOpacity="0.25"
+        strokeWidth="3"
       />
 
       {/* Progress arc */}
@@ -221,7 +221,7 @@ export function AdherenceArcVisual({ className }: VisualProps) {
         r={arcR}
         fill="none"
         stroke="#A1B1C6"
-        strokeWidth="2.8"
+        strokeWidth="3"
         strokeDasharray={`${dashLen} ${circumference - dashLen}`}
         strokeDashoffset={circumference * 0.25}
         strokeLinecap="round"
@@ -234,7 +234,7 @@ export function AdherenceArcVisual({ className }: VisualProps) {
         y={arcCy + 3}
         textAnchor="middle"
         fill="currentColor"
-        opacity="0.55"
+        opacity="0.7"
         fontSize="9"
         fontFamily="inherit"
         fontWeight="500"
@@ -252,7 +252,7 @@ export function AdherenceArcVisual({ className }: VisualProps) {
           height={op * 20}
           rx="1"
           fill="currentColor"
-          opacity={op * 0.4}
+          opacity={op * 0.65}
         />
       ))}
     </svg>
@@ -272,7 +272,7 @@ export function CalendarHeatmapVisual({ className }: VisualProps) {
     [1, 1, 0, 1, 1, 1, 0],
     [0, 1, 1, 1, 0, 1, 1],
   ];
-  const activeOpacities = [0.65, 0.8, 0.75, 0.9, 0.7, 0.85, 0.9];
+  const activeOpacities = [0.7, 0.85, 0.8, 0.95, 0.75, 0.9, 0.95];
 
   return (
     <svg
@@ -280,7 +280,7 @@ export function CalendarHeatmapVisual({ className }: VisualProps) {
       preserveAspectRatio="xMidYMid meet"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: 44 }}
+      style={{ width: '100%', height: '100%' }}
     >
       {grid.map((row, r) =>
         row.map((cell, c) => (
@@ -292,7 +292,7 @@ export function CalendarHeatmapVisual({ className }: VisualProps) {
             height={cellSize}
             rx="2"
             fill={cell ? '#B87333' : 'currentColor'}
-            opacity={cell ? activeOpacities[c] : 0.1}
+            opacity={cell ? activeOpacities[c] : 0.18}
           />
         ))
       )}
@@ -302,7 +302,7 @@ export function CalendarHeatmapVisual({ className }: VisualProps) {
         x="160"
         y="36"
         fill="currentColor"
-        opacity="0.18"
+        opacity="0.35"
         fontSize="7"
         fontFamily="inherit"
         letterSpacing="1.2"
@@ -323,7 +323,7 @@ export function DunbarClusterVisual({ className }: VisualProps) {
       preserveAspectRatio="xMidYMid meet"
       className={className}
       aria-hidden="true"
-      style={{ width: '100%', height: 44 }}
+      style={{ width: '100%', height: '100%' }}
     >
       {/* Outer ring (150) — ghost */}
       <circle
@@ -332,8 +332,8 @@ export function DunbarClusterVisual({ className }: VisualProps) {
         r="20"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.10"
-        strokeWidth="0.7"
+        strokeOpacity="0.2"
+        strokeWidth="1"
         strokeDasharray="2 3"
       />
 
@@ -344,8 +344,8 @@ export function DunbarClusterVisual({ className }: VisualProps) {
         r="13"
         fill="none"
         stroke="currentColor"
-        strokeOpacity="0.20"
-        strokeWidth="0.8"
+        strokeOpacity="0.35"
+        strokeWidth="1"
       />
 
       {/* Partial dots on middle ring */}
@@ -356,9 +356,9 @@ export function DunbarClusterVisual({ className }: VisualProps) {
             key={i}
             cx={cx + 13 * Math.cos(rad)}
             cy={cy + 13 * Math.sin(rad)}
-            r="1.5"
+            r="2"
             fill="currentColor"
-            opacity="0.25"
+            opacity="0.45"
           />
         );
       })}
@@ -370,8 +370,8 @@ export function DunbarClusterVisual({ className }: VisualProps) {
         r="6"
         fill="none"
         stroke="#8A7264"
-        strokeOpacity="0.55"
-        strokeWidth="1"
+        strokeOpacity="0.75"
+        strokeWidth="1.2"
       />
 
       {/* Intimate dots on inner ring */}
@@ -382,22 +382,22 @@ export function DunbarClusterVisual({ className }: VisualProps) {
             key={i}
             cx={cx + 6 * Math.cos(rad)}
             cy={cy + 6 * Math.sin(rad)}
-            r="1.8"
+            r="2.2"
             fill="#8A7264"
-            opacity={0.7 + i * 0.05}
+            opacity={0.8 + i * 0.04}
           />
         );
       })}
 
       {/* Center dot */}
-      <circle cx={cx} cy={cy} r="2" fill="#8A7264" opacity="0.9" />
+      <circle cx={cx} cy={cy} r="2.5" fill="#8A7264" opacity="1" />
 
       {/* Label */}
       <text
         x="140"
         y="25"
         fill="currentColor"
-        opacity="0.18"
+        opacity="0.35"
         fontSize="7"
         fontFamily="inherit"
         letterSpacing="0.8"

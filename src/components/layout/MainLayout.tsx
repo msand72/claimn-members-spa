@@ -3,7 +3,6 @@ import { GlassSidebar } from './GlassSidebar'
 import { MobileHeader } from './MobileHeader'
 import { MobileBottomNav } from './MobileBottomNav'
 import { BackgroundPattern } from '../ui/BackgroundPattern'
-import { ThemeToggle } from '../ui/ThemeToggle'
 import { useCurrentSection } from './sectionNav'
 import { SectionTopBar } from './SectionTopBar'
 interface MainLayoutProps {
@@ -22,11 +21,6 @@ export function MainLayout({ children }: MainLayoutProps) {
 
       {/* Mobile Bottom Nav - visible on mobile/tablet */}
       <MobileBottomNav />
-
-      {/* Desktop Theme Toggle - top right corner */}
-      <div className="hidden lg:block fixed top-4 right-4 z-50">
-        <ThemeToggle compact />
-      </div>
 
       {/* Desktop Sidebar - hidden on mobile/tablet, fixed position */}
       <div className="hidden lg:block">

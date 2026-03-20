@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useNotifications, safeArray, type Notification } from '../../lib/api'
 import { useBugReport } from '../../contexts/BugReportContext'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 interface NavItem {
   to: string
@@ -145,6 +146,10 @@ export function GlassSidebar() {
 
       {/* Footer */}
       <div className="px-3 py-3 border-t border-white/10 shrink-0 space-y-0.5">
+        <div className="flex items-center justify-between px-3 py-2">
+          <span className="text-[13px] font-medium text-kalkvit/40">Theme</span>
+          <ThemeToggle compact />
+        </div>
         <button
           onClick={openManualReport}
           className={cn(
