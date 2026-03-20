@@ -44,7 +44,7 @@ export function GlassStatsCard({
         </div>
         {/* Right: SVG visual */}
         {visual && (
-          <div className="flex items-center justify-center w-[60px] flex-shrink-0 opacity-50">
+          <div className="flex items-center justify-center w-[80px] flex-shrink-0 opacity-40">
             {visual}
           </div>
         )}

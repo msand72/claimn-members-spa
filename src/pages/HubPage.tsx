@@ -154,25 +154,25 @@ function StatsRow() {
       <GlassStatsCard
         label="Active Goals"
         value={isLoading ? '...' : String(stats?.goals_active ?? goalsCount)}
-        visual={<GoalTargetVisual className="w-[56px] h-[56px] text-kalkvit" />}
+        visual={<GoalTargetVisual className="w-full h-full text-kalkvit" />}
       />
       <GlassStatsCard
         label="Streak"
         value={isLoading ? '...' : String(stats?.current_streak ?? 0)}
         trendLabel="days"
-        visual={<StreakBarsVisual className="w-[56px] h-[56px] text-kalkvit" />}
+        visual={<StreakBarsVisual className="w-full h-full text-kalkvit" />}
       />
       <GlassStatsCard
         label="Connections"
         value={isLoading ? '...' : String(stats?.connections_count ?? 0)}
         trendLabel="network"
-        visual={<DunbarClusterVisual className="w-[56px] h-[56px] text-kalkvit" />}
+        visual={<DunbarClusterVisual className="w-full h-full text-kalkvit" />}
       />
       <GlassStatsCard
         label="Days Active"
         value={isLoading ? '...' : String(stats?.days_since_joined ?? 0)}
         trendLabel="journey"
-        visual={<CalendarHeatmapVisual className="w-[56px] h-[56px] text-kalkvit" />}
+        visual={<CalendarHeatmapVisual className="w-full h-full text-kalkvit" />}
       />
     </div>
   )
