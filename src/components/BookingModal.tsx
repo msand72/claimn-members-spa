@@ -164,16 +164,12 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
         {/* Date picker — shown when no pre-selected date */}
         {!preselectedDate && (
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-kalkvit/50 font-medium uppercase tracking-wider">Select Date</p>
-              <p className="text-xs text-kalkvit/40">{weekLabel}</p>
-            </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setWeekOffset((w) => Math.max(0, w - 1))}
                 disabled={weekOffset === 0}
                 className={cn(
-                  'p-1.5 rounded-lg transition-all shrink-0',
+                  'p-1 rounded-lg transition-all',
                   weekOffset === 0
                     ? 'opacity-20 cursor-not-allowed'
                     : 'text-kalkvit/60 hover:bg-white/[0.08] hover:text-kalkvit'
@@ -181,38 +177,39 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
               >
                 <ChevronLeftIcon className="w-4 h-4" />
               </button>
-              <div className="flex flex-1 justify-between gap-1">
-                {days.map((day) => {
-                  const hasSlot = availabilitySlots?.some(
-                    (s) => s.day.toLowerCase() === day.dayLong.toLowerCase(),
-                  )
-                  const disabled = !hasSlot || day.isPast
-                  return (
-                    <button
-                      key={day.dateStr}
-                      onClick={() => { if (!disabled) { setSelectedDate(day.dateStr); setSelectedTime(null) } }}
-                      disabled={disabled}
-                      className={cn(
-                        'flex-1 py-2.5 rounded-xl text-center transition-all min-w-0',
-                        disabled
-                          ? 'opacity-20 cursor-not-allowed'
-                          : selectedDate === day.dateStr
-                            ? 'bg-koppar text-kalkvit'
-                            : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]',
-                      )}
-                    >
-                      <p className="text-[10px] leading-tight">{day.dayShort}</p>
-                      <p className="text-sm font-semibold leading-tight mt-0.5">{day.dateNum}</p>
-                    </button>
-                  )
-                })}
-              </div>
+              <p className="text-xs text-kalkvit/50 font-medium uppercase tracking-wider">{weekLabel}</p>
               <button
                 onClick={() => setWeekOffset((w) => w + 1)}
-                className="p-1.5 rounded-lg text-kalkvit/60 hover:bg-white/[0.08] hover:text-kalkvit transition-all shrink-0"
+                className="p-1 rounded-lg text-kalkvit/60 hover:bg-white/[0.08] hover:text-kalkvit transition-all"
               >
                 <ChevronRightIcon className="w-4 h-4" />
               </button>
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {days.map((day) => {
+                const hasSlot = availabilitySlots?.some(
+                  (s) => s.day.toLowerCase() === day.dayLong.toLowerCase(),
+                )
+                const disabled = !hasSlot || day.isPast
+                return (
+                  <button
+                    key={day.dateStr}
+                    onClick={() => { if (!disabled) { setSelectedDate(day.dateStr); setSelectedTime(null) } }}
+                    disabled={disabled}
+                    className={cn(
+                      'py-2.5 rounded-xl text-center transition-all',
+                      disabled
+                        ? 'opacity-20 cursor-not-allowed'
+                        : selectedDate === day.dateStr
+                          ? 'bg-koppar text-kalkvit'
+                          : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]',
+                    )}
+                  >
+                    <p className="text-[10px] leading-tight">{day.dayShort}</p>
+                    <p className="text-sm font-semibold leading-tight mt-0.5">{day.dateNum}</p>
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
