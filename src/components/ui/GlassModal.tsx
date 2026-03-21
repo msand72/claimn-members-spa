@@ -71,7 +71,7 @@ export function GlassModal({
         aria-describedby={description ? 'modal-description' : undefined}
         tabIndex={-1}
         className={cn(
-          'relative w-full',
+          'relative w-full max-h-[90vh] overflow-y-auto',
           sizeClasses[size],
           'glass-elevated rounded-2xl border border-white/[0.15]',
           'p-4 sm:p-6 shadow-2xl',
