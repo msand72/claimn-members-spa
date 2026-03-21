@@ -8,6 +8,7 @@ import type { Expert } from '../lib/api/types'
 import { CalendarIcon, ClockIcon, StarIcon, ChevronLeftIcon, ChevronRightIcon, VideoCameraIcon, ArrowPathIcon, ExclamationTriangleIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { isAllowedExternalUrl, safeOpenUrl } from '../lib/url-validation'
+import { BookingModal } from '../components/BookingModal'
 
 function ExpertCardSkeleton() {
   return (
@@ -115,6 +116,7 @@ export function BookSessionPage() {
     return { year: d.getFullYear(), month: d.getMonth() }
   })
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [mobileBookingExpert, setMobileBookingExpert] = useState<Expert | null>(null)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
@@ -401,9 +403,14 @@ export function BookSessionPage() {
                   expert={expert}
                   isSelected={selectedExpertId === expert.id}
                   onSelect={() => {
-                    setSelectedExpertId(expert.id)
-                    setSelectedDate(null)
-                    setSelectedTime(null)
+                    // On mobile/tablet: open booking modal directly
+                    if (window.innerWidth < 1024) {
+                      setMobileBookingExpert(expert)
+                    } else {
+                      setSelectedExpertId(expert.id)
+                      setSelectedDate(null)
+                      setSelectedTime(null)
+                    }
                   }}
                   basePrice={base60Price}
                 />
@@ -666,6 +673,15 @@ export function BookSessionPage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile/Tablet Booking Modal */}
+      {mobileBookingExpert && (
+        <BookingModal
+          expert={mobileBookingExpert}
+          isOpen={!!mobileBookingExpert}
+          onClose={() => setMobileBookingExpert(null)}
+        />
+      )}
     </MainLayout>
   )
 }
