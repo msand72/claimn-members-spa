@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassAvatar, GlassBadge } from '../components/ui'
+import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassModal, GlassModalFooter } from '../components/ui'
 import {
   ArrowLeftIcon,
   StarIcon,
@@ -19,16 +19,120 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
-import { useExpert, useExpertTestimonials, useExpertAvailability } from '../lib/api/hooks/useExperts'
+import { useExpert, useExpertTestimonials, useExpertAvailability, useAvailableSlots, useBookSession } from '../lib/api/hooks/useExperts'
+import { useCheckout, usePlans } from '../lib/api/hooks'
+import { EXPERT_SESSION_PRICES } from '../config/stripe-prices'
+import { isAllowedExternalUrl } from '../lib/url-validation'
+
+function convertTo24Hour(time12h: string): string {
+  const [time, modifier] = time12h.split(' ')
+  let [hours, minutes] = time.split(':')
+  if (hours === '12') {
+    hours = modifier === 'AM' ? '00' : '12'
+  } else if (modifier === 'PM') {
+    hours = String(parseInt(hours, 10) + 12)
+  }
+  return `${hours.padStart(2, '0')}:${minutes}`
+}
 
 export function ExpertProfilePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [sessionDuration, setSessionDuration] = useState(60)
+  const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [bookingError, setBookingError] = useState<string | null>(null)
 
   const { data: expert, isLoading, isError, refetch } = useExpert(id || '')
   const { data: testimonials } = useExpertTestimonials(id || '')
   const { data: availabilitySlots } = useExpertAvailability(id || '')
+
+  // Booking hooks
+  const { data: serverSlots, isLoading: isLoadingSlots } = useAvailableSlots(
+    id || '', selectedDate || '', sessionDuration,
+  )
+  const bookSessionMutation = useBookSession()
+  const checkoutMutation = useCheckout()
+  const { data: plansData } = usePlans()
+  const expertSessions = plansData?.expert_sessions || []
+
+  const sessionPrice = useMemo(() => {
+    return expertSessions.find((s) => s.duration === sessionDuration) || null
+  }, [expertSessions, sessionDuration])
+
+  // Time slots for the selected date
+  const timeSlotsForDate = useMemo(() => {
+    if (!selectedDate) return []
+    if (serverSlots?.slots) {
+      return serverSlots.slots.map((s) => {
+        const timeMatch = s.start_local.match(/T(\d{2}):(\d{2})/)
+        const h = timeMatch ? parseInt(timeMatch[1], 10) : 0
+        const min = timeMatch ? parseInt(timeMatch[2], 10) : 0
+        const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+        const ampm = h < 12 ? 'AM' : 'PM'
+        return { time: `${hour12}:${String(min).padStart(2, '0')} ${ampm}`, available: s.available }
+      })
+    }
+    if (!availabilitySlots?.length) return []
+    const dayOfWeek = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })
+    const matching = availabilitySlots.filter((s) => s.day.toLowerCase() === dayOfWeek.toLowerCase())
+    const slots: { time: string; available: boolean }[] = []
+    for (const a of matching) {
+      if (!a.startTime || !a.endTime) continue
+      const [startH, startM] = a.startTime.split(':').map(Number)
+      const [endH, endM] = a.endTime.split(':').map(Number)
+      for (let m = startH * 60 + startM; m + sessionDuration <= endH * 60 + endM; m += sessionDuration) {
+        const h = Math.floor(m / 60)
+        const mn = m % 60
+        const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+        const ampm = h < 12 ? 'AM' : 'PM'
+        slots.push({ time: `${hour12}:${String(mn).padStart(2, '0')} ${ampm}`, available: true })
+      }
+    }
+    return slots
+  }, [selectedDate, serverSlots, availabilitySlots, sessionDuration])
+
+  const handleBook = async () => {
+    if (!expert || !selectedDate || !selectedTime) return
+    const priceId = sessionPrice?.price_id
+    if (!priceId) {
+      setBookingError('Checkout is not configured for this session type. Please contact support.')
+      return
+    }
+    try {
+      const timeStr = convertTo24Hour(selectedTime)
+      const scheduledAt = new Date(`${selectedDate}T${timeStr}:00`).toISOString()
+      await bookSessionMutation.mutateAsync({
+        expert_id: expert.id,
+        scheduled_at: scheduledAt,
+        duration: sessionDuration,
+        session_type: 'coaching',
+      })
+      const checkoutData = await checkoutMutation.mutateAsync({
+        price_id: priceId,
+        product: 'expert_session',
+        mode: 'payment',
+        expert_id: expert.id,
+        success_url: `${window.location.origin}/shop/success`,
+        cancel_url: `${window.location.origin}/experts/${id}`,
+      })
+      if (isAllowedExternalUrl(checkoutData.url)) {
+        window.location.href = checkoutData.url
+      } else {
+        setBookingError('Invalid checkout URL. Please try again.')
+      }
+    } catch (error: any) {
+      const status = error?.status || error?.response?.status
+      const code = error?.error?.code || error?.code || ''
+      if (status === 409 || code === 'SLOT_UNAVAILABLE') {
+        setBookingError('This time slot is no longer available. Please choose another.')
+        setSelectedTime(null)
+      } else {
+        setBookingError(error?.error?.message || error?.message || 'Failed to book session.')
+      }
+    }
+  }
 
   // Build next 7 calendar days
   const days = useMemo(() => {
@@ -312,13 +416,15 @@ export function ExpertProfilePage() {
                       <ClockIcon className="w-4 h-4 text-koppar" />
                       Available {selectedDaySlot.time}
                     </div>
-                    <Link to={`/book-session?expert=${id}&date=${selectedDate}`}>
-                      <GlassButton variant="primary" className="w-full">
-                        <CalendarIcon className="w-4 h-4" />
-                        Book {days.find((d) => d.dateStr === selectedDate)?.month}{' '}
-                        {days.find((d) => d.dateStr === selectedDate)?.dateNum}
-                      </GlassButton>
-                    </Link>
+                    <GlassButton
+                      variant="primary"
+                      className="w-full"
+                      onClick={() => { setSelectedTime(null); setBookingError(null); setShowBookingModal(true) }}
+                    >
+                      <CalendarIcon className="w-4 h-4" />
+                      Book {days.find((d) => d.dateStr === selectedDate)?.month}{' '}
+                      {days.find((d) => d.dateStr === selectedDate)?.dateNum}
+                    </GlassButton>
                   </div>
                 )}
                 {selectedDate && !selectedDaySlot && (
@@ -356,6 +462,102 @@ export function ExpertProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {expert && selectedDate && (
+        <GlassModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          title={`Book Session with ${expert.name}`}
+          size="md"
+        >
+          <div className="space-y-4">
+            {/* Date display */}
+            <div className="flex items-center gap-2 text-sm text-kalkvit/70">
+              <CalendarIcon className="w-4 h-4 text-koppar" />
+              {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </div>
+
+            {/* Session duration */}
+            <div>
+              <p className="text-xs text-kalkvit/50 mb-2 font-medium uppercase tracking-wider">Session Length</p>
+              <div className="flex gap-2">
+                {([45, 60, 90] as const).map((dur) => {
+                  const price = EXPERT_SESSION_PRICES[dur]
+                  return (
+                    <button
+                      key={dur}
+                      onClick={() => { setSessionDuration(dur); setSelectedTime(null) }}
+                      className={cn(
+                        'flex-1 py-2.5 rounded-xl text-center text-sm font-medium transition-all',
+                        sessionDuration === dur
+                          ? 'bg-koppar text-kalkvit'
+                          : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
+                      )}
+                    >
+                      {price.label}
+                      <span className="block text-xs opacity-70">${price.amount}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Time slots */}
+            <div>
+              <p className="text-xs text-kalkvit/50 mb-2 font-medium uppercase tracking-wider">Available Times</p>
+              {isLoadingSlots ? (
+                <div className="flex justify-center py-4">
+                  <ArrowPathIcon className="w-5 h-5 text-koppar animate-spin" />
+                </div>
+              ) : timeSlotsForDate.length === 0 ? (
+                <p className="text-sm text-kalkvit/40 text-center py-3">No slots available for this date</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {timeSlotsForDate.filter((s) => s.available).map((slot) => (
+                    <button
+                      key={slot.time}
+                      onClick={() => setSelectedTime(slot.time)}
+                      className={cn(
+                        'py-2 rounded-xl text-sm font-medium transition-all',
+                        selectedTime === slot.time
+                          ? 'bg-koppar text-kalkvit'
+                          : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]'
+                      )}
+                    >
+                      {slot.time}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {bookingError && (
+              <div className="p-3 rounded-xl bg-tegelrod/10 border border-tegelrod/20 text-sm text-tegelrod">
+                {bookingError}
+              </div>
+            )}
+          </div>
+
+          <GlassModalFooter>
+            <GlassButton variant="ghost" onClick={() => setShowBookingModal(false)}>
+              Cancel
+            </GlassButton>
+            <GlassButton
+              variant="primary"
+              onClick={handleBook}
+              disabled={!selectedTime || bookSessionMutation.isPending || checkoutMutation.isPending}
+            >
+              {bookSessionMutation.isPending || checkoutMutation.isPending ? (
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
+              ) : (
+                <CalendarIcon className="w-4 h-4" />
+              )}
+              Confirm & Pay — ${sessionPrice?.amount || EXPERT_SESSION_PRICES[sessionDuration as 45 | 60 | 90]?.amount || 0}
+            </GlassButton>
+          </GlassModalFooter>
+        </GlassModal>
+      )}
     </MainLayout>
   )
 }

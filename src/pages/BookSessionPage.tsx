@@ -103,14 +103,16 @@ function ExpertCard({
 export function BookSessionPage() {
   const [searchParams] = useSearchParams()
   const preselectedExpertId = searchParams.get('expert')
+  const preselectedDate = searchParams.get('date')
 
   const [selectedExpertId, setSelectedExpertId] = useState<string | null>(preselectedExpertId)
-  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string | null>(preselectedDate)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [sessionType, setSessionType] = useState('60')
   const [calendarMonth, setCalendarMonth] = useState(() => {
-    const now = new Date()
-    return { year: now.getFullYear(), month: now.getMonth() }
+    const d = preselectedDate ? new Date(preselectedDate) : new Date()
+    if (isNaN(d.getTime())) { const now = new Date(); return { year: now.getFullYear(), month: now.getMonth() } }
+    return { year: d.getFullYear(), month: d.getMonth() }
   })
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
