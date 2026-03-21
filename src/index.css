@@ -145,6 +145,19 @@ body {
     border: 1px solid rgba(184, 115, 51, 0.28);
   }
 
+  /* ── Mobile header — more opaque than glass-base for readability ── */
+  .mobile-header-glass {
+    backdrop-filter: blur(20px);
+    background: rgba(28, 28, 30, 0.92);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .light .mobile-header-glass {
+    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0,0,0,0.09);
+  }
+
   /* ── Light theme — clean flat cards ── */
   .light .glass-base {
     backdrop-filter: blur(12px);
