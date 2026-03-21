@@ -19,7 +19,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
-import { sanitizeHtml } from '../lib/sanitize'
+import { sanitizeHtml, stripHtml } from '../lib/sanitize'
 import { useExpert, useExpertTestimonials, useExpertAvailability } from '../lib/api/hooks/useExperts'
 import { BookingModal } from '../components/BookingModal'
 
@@ -243,7 +243,7 @@ export function ExpertProfilePage() {
                             ))}
                           </div>
                         </div>
-                        <p className="text-sm text-kalkvit/70 italic">"{testimonial.content}"</p>
+                        <p className="text-sm text-kalkvit/70 italic">"{stripHtml(testimonial.content)}"</p>
                       </div>
                     )
                   })}

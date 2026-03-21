@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { sanitizeHtml } from '../lib/sanitize'
 import { Link, useParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassAlert } from '../components/ui'
@@ -239,7 +240,7 @@ export function ShopProtocolDetailPage() {
                 </div>
               )}
 
-              <p className="text-kalkvit/70">{protocol.description}</p>
+              <p className="text-kalkvit/70" dangerouslySetInnerHTML={{ __html: sanitizeHtml(protocol.description) }} />
             </GlassCard>
 
             {/* What You'll Achieve */}
@@ -414,7 +415,7 @@ export function ShopProtocolDetailPage() {
             {/* About */}
             <GlassCard variant="base">
               <h3 className="font-semibold text-kalkvit mb-3">About This Protocol</h3>
-              <p className="text-sm text-kalkvit/60">{protocol.description}</p>
+              <p className="text-sm text-kalkvit/60" dangerouslySetInnerHTML={{ __html: sanitizeHtml(protocol.description) }} />
             </GlassCard>
           </div>
         </div>

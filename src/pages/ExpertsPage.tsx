@@ -7,6 +7,7 @@ import { SortBar, sortItems, type SortState } from '../components/ui'
 import type { Expert } from '../lib/api/types'
 import { MagnifyingGlassIcon, StarIcon, CalendarIcon, ChatBubbleLeftIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
+import { stripHtml } from '../lib/sanitize'
 import { BookingModal } from '../components/BookingModal'
 
 // Specialty filters are derived from actual expert data — see below in ExpertsPage
@@ -51,7 +52,7 @@ function ExpertCard({ expert, onMessage, onBook }: { expert: Expert; onMessage: 
 
         {/* Bio */}
         {expert.bio && (
-          <p className="text-sm text-kalkvit/70 mb-3 line-clamp-3">{expert.bio}</p>
+          <p className="text-sm text-kalkvit/70 mb-3 line-clamp-3">{stripHtml(expert.bio)}</p>
         )}
 
         {/* Specialties */}

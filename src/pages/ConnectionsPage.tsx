@@ -5,6 +5,7 @@ import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../
 import { SortBar, sortItems, type SortState } from '../components/ui'
 import { MagnifyingGlassIcon, UserPlusIcon, UserPlusIcon as UserCheckIcon, ChatBubbleLeftIcon, EllipsisHorizontalIcon, ArrowPathIcon, UserGroupIcon, TrashIcon, HeartIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
+import { stripHtml } from '../lib/sanitize'
 import {
   useConnections,
   usePendingConnections,
@@ -82,7 +83,7 @@ function SuggestionCard({ member }: SuggestionCardProps) {
 
       {/* Bio */}
       <p className="text-sm text-kalkvit/60 line-clamp-3 mb-4 min-h-[3.75rem]">
-        {member.bio || 'No bio yet.'}
+        {stripHtml(member.bio) || 'No bio yet.'}
       </p>
 
       {/* Pillar focus badges */}
