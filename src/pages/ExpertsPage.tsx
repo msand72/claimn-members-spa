@@ -95,7 +95,7 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expert:
           <GlassButton variant="ghost" className="p-2" onClick={() => onMessage(expert)}>
             <ChatBubbleLeftIcon className="w-4 h-4" />
           </GlassButton>
-          <Link to={`/experts/${expert.id}`}>
+          <Link to={`/book-session?expert=${expert.id}`}>
             <GlassButton variant="primary" className="whitespace-nowrap">
               <CalendarIcon className="w-4 h-4" />
               Book Session
