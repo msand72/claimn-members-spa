@@ -388,3 +388,12 @@ export {
   type SubscriptionTier,
   type SubscriptionInfo,
 } from './useSubscription'
+
+// Search (Meilisearch)
+export {
+  searchKeys,
+  useSearch,
+  type SearchType,
+  type SearchResult,
+  type SearchResponse,
+} from './useSearch'
