@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { GlassButton, GlassModal, GlassModalFooter } from './ui'
-import { CalendarIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
+import { CalendarIcon, ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useAvailableSlots, useBookSession, useExpertAvailability } from '../lib/api/hooks/useExperts'
 import { useCheckout } from '../lib/api/hooks'
@@ -32,24 +32,33 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
   const [sessionDuration, setSessionDuration] = useState(60)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [bookingError, setBookingError] = useState<string | null>(null)
+  const [weekOffset, setWeekOffset] = useState(0)
 
   const { data: availabilitySlots } = useExpertAvailability(expert.id)
 
-  // Build next 7 days for date picker
+  const today = useMemo(() => new Date(), [])
+  const todayStr = today.toISOString().split('T')[0]
+
+  // Build 7 days for the current week offset
   const days = useMemo(() => {
-    const today = new Date()
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(today)
-      d.setDate(today.getDate() + i)
+      d.setDate(today.getDate() + weekOffset * 7 + i)
       return {
         dateStr: d.toISOString().split('T')[0],
         dayShort: d.toLocaleDateString('en-US', { weekday: 'short' }),
         dayLong: d.toLocaleDateString('en-US', { weekday: 'long' }),
         dateNum: d.getDate(),
         month: d.toLocaleDateString('en-US', { month: 'short' }),
+        isPast: d.toISOString().split('T')[0] < todayStr,
       }
     })
-  }, [])
+  }, [weekOffset, today, todayStr])
+
+  // Week label (e.g. "Mar 21 – Mar 27")
+  const weekLabel = days.length > 0
+    ? `${days[0].month} ${days[0].dateNum} – ${days[6].month} ${days[6].dateNum}`
+    : ''
 
   // Hooks
   const { data: serverSlots, isLoading: isLoadingSlots } = useAvailableSlots(
@@ -139,6 +148,7 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
   const handleClose = () => {
     setBookingError(null)
     setSelectedTime(null)
+    setWeekOffset(0)
     if (!preselectedDate) setSelectedDate(null)
     onClose()
   }
@@ -154,31 +164,55 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
         {/* Date picker — shown when no pre-selected date */}
         {!preselectedDate && (
           <div>
-            <p className="text-xs text-kalkvit/50 mb-2 font-medium uppercase tracking-wider">Select Date</p>
-            <div className="flex justify-between gap-1">
-              {days.map((day) => {
-                const hasSlot = availabilitySlots?.some(
-                  (s) => s.day.toLowerCase() === day.dayLong.toLowerCase(),
-                )
-                return (
-                  <button
-                    key={day.dateStr}
-                    onClick={() => { if (hasSlot) { setSelectedDate(day.dateStr); setSelectedTime(null) } }}
-                    disabled={!hasSlot}
-                    className={cn(
-                      'flex-1 py-2.5 rounded-xl text-center transition-all min-w-0',
-                      !hasSlot
-                        ? 'opacity-30 cursor-not-allowed'
-                        : selectedDate === day.dateStr
-                          ? 'bg-koppar text-kalkvit'
-                          : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]',
-                    )}
-                  >
-                    <p className="text-[10px] leading-tight">{day.dayShort}</p>
-                    <p className="text-sm font-semibold leading-tight mt-0.5">{day.dateNum}</p>
-                  </button>
-                )
-              })}
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-kalkvit/50 font-medium uppercase tracking-wider">Select Date</p>
+              <p className="text-xs text-kalkvit/40">{weekLabel}</p>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setWeekOffset((w) => Math.max(0, w - 1))}
+                disabled={weekOffset === 0}
+                className={cn(
+                  'p-1.5 rounded-lg transition-all shrink-0',
+                  weekOffset === 0
+                    ? 'opacity-20 cursor-not-allowed'
+                    : 'text-kalkvit/60 hover:bg-white/[0.08] hover:text-kalkvit'
+                )}
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </button>
+              <div className="flex flex-1 justify-between gap-1">
+                {days.map((day) => {
+                  const hasSlot = availabilitySlots?.some(
+                    (s) => s.day.toLowerCase() === day.dayLong.toLowerCase(),
+                  )
+                  const disabled = !hasSlot || day.isPast
+                  return (
+                    <button
+                      key={day.dateStr}
+                      onClick={() => { if (!disabled) { setSelectedDate(day.dateStr); setSelectedTime(null) } }}
+                      disabled={disabled}
+                      className={cn(
+                        'flex-1 py-2.5 rounded-xl text-center transition-all min-w-0',
+                        disabled
+                          ? 'opacity-20 cursor-not-allowed'
+                          : selectedDate === day.dateStr
+                            ? 'bg-koppar text-kalkvit'
+                            : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]',
+                      )}
+                    >
+                      <p className="text-[10px] leading-tight">{day.dayShort}</p>
+                      <p className="text-sm font-semibold leading-tight mt-0.5">{day.dateNum}</p>
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                onClick={() => setWeekOffset((w) => w + 1)}
+                className="p-1.5 rounded-lg text-kalkvit/60 hover:bg-white/[0.08] hover:text-kalkvit transition-all shrink-0"
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
             </div>
           </div>
         )}
