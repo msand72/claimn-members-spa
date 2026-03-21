@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { ChevronRightIcon, ChevronDownIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
+import { useTheme } from '../../contexts/ThemeContext'
 import type { SectionNavItem } from './sectionNav'
 
 interface SectionTopBarProps {
@@ -209,8 +210,15 @@ function StepperBar({
 }
 
 export function SectionTopBar({ items, moreItems, mode = 'tabs' }: SectionTopBarProps) {
+  const { theme } = useTheme()
+  const barBg = theme === 'light' ? 'rgba(255,255,255,0.85)' : 'rgba(28,28,30,0.92)'
+  const barBorder = theme === 'light' ? 'rgba(0,0,0,0.09)' : 'rgba(255,255,255,0.10)'
+
   return (
-    <div className="sticky top-[66px] lg:top-0 z-30 glass-base border-t-0 rounded-none px-3 sm:px-4 md:px-6 lg:px-8">
+    <div
+      className="sticky top-[66px] lg:top-0 z-30 border-t-0 rounded-none px-3 sm:px-4 md:px-6 lg:px-8 backdrop-blur-xl"
+      style={{ background: barBg, borderBottom: `1px solid ${barBorder}` }}
+    >
       {/* Mobile: compact dropdown */}
       <div className="md:hidden">
         <MobileDropdown items={items} moreItems={moreItems} />
