@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
+import { SortBar, sortItems, type SortState } from '../components/ui'
 import { MagnifyingGlassIcon, UserPlusIcon, UserPlusIcon as UserCheckIcon, ChatBubbleLeftIcon, EllipsisHorizontalIcon, ArrowPathIcon, UserGroupIcon, TrashIcon, HeartIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import {
@@ -282,6 +283,7 @@ export function ConnectionsPage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+  const [sort, setSort] = useState<SortState>({ key: 'name', direction: 'asc' })
 
   // Fetch connections from API
   const {
@@ -305,7 +307,7 @@ export function ConnectionsPage() {
   const suggestions = Array.isArray(suggestionsData) ? suggestionsData : []
 
   // Filter based on search and tab
-  const filteredConnections = connections.filter((conn) => {
+  const filteredConnectionsRaw = connections.filter((conn) => {
     const otherUser = conn.requester_id === user?.id ? conn.recipient : conn.requester
     const name = otherUser?.display_name || ''
     const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -314,6 +316,19 @@ export function ConnectionsPage() {
     if (activeTab === 'Connected') return matchesSearch && conn.status === 'accepted'
     if (activeTab === 'Pending') return matchesSearch && conn.status === 'pending'
     return matchesSearch
+  })
+
+  const filteredConnections = sortItems(filteredConnectionsRaw, sort, {
+    name: (c) => {
+      const other = c.requester_id === user?.id ? c.recipient : c.requester
+      return other?.display_name || ''
+    },
+    status: (c) => c.status,
+  })
+
+  const sortedSuggestions = sortItems(suggestions, sort, {
+    name: (m) => m.display_name || '',
+    status: () => '',
   })
 
   const stats = {
@@ -377,6 +392,18 @@ export function ConnectionsPage() {
           </div>
         </div>
 
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit">Members</h2>
+          <SortBar
+            options={[
+              { key: 'name', label: 'Name' },
+              { key: 'status', label: 'Status' },
+            ]}
+            value={sort}
+            onChange={setSort}
+          />
+        </div>
+
         {/* Loading state */}
         {isLoading && (
           <div className="flex justify-center py-12">
@@ -395,7 +422,7 @@ export function ConnectionsPage() {
         {/* Suggestions Grid - for NetworkMember type */}
         {!isLoading && !connectionsError && activeTab === 'Suggestions' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {suggestions.map((member) => (
+            {sortedSuggestions.map((member) => (
               <SuggestionCard
                 key={member.user_id}
                 member={member}

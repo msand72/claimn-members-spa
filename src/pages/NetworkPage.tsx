@@ -24,6 +24,7 @@ import {
   useSearch,
   type NetworkMember,
 } from '../lib/api'
+import { SortBar, type SortState } from '../components/ui'
 import { ARCHETYPES, ARCHETYPE_LABELS, PILLARS, type PillarId, type Archetype } from '../lib/constants'
 
 /** Map pillar color tokens to Tailwind bg/text class pairs */
@@ -223,6 +224,7 @@ export function NetworkPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedArchetype, setSelectedArchetype] = useState('All Archetypes')
   const [currentPage, setCurrentPage] = useState(1)
+  const [sort, setSort] = useState<SortState>({ key: 'name', direction: 'asc' })
 
   // Get archetype filter value
   const archetypeFilter = selectedArchetype !== 'All Archetypes'
@@ -239,7 +241,7 @@ export function NetworkPage() {
     limit: ITEMS_PER_PAGE,
     search: !searchQuery ? undefined : searchQuery,
     archetype: archetypeFilter,
-    sort: 'display_name:asc',
+    sort: `${sort.key === 'name' ? 'display_name' : sort.key}:${sort.direction}`,
   })
 
   const {
@@ -344,7 +346,19 @@ export function NetworkPage() {
           </GlassCard>
         )}
 
-        {/* Members Grid */}
+        {/* Sort + Members Grid */}
+        {!isLoading && !error && members.length > 0 && (
+          <SortBar
+            options={[
+              { key: 'name', label: 'Name' },
+              { key: 'city', label: 'City' },
+              { key: 'archetype', label: 'Archetype' },
+            ]}
+            value={sort}
+            onChange={(s) => { setSort(s); setCurrentPage(1) }}
+            className="mb-4"
+          />
+        )}
         {!isLoading && !error && members.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
             {members.map((member) => (

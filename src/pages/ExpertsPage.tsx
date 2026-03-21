@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
 import { useExperts, useSearch } from '../lib/api/hooks'
+import { SortBar, sortItems, type SortState } from '../components/ui'
 import type { Expert } from '../lib/api/types'
 import { MagnifyingGlassIcon, StarIcon, CalendarIcon, ChatBubbleLeftIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
@@ -111,6 +112,7 @@ export function ExpertsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
   const [bookingExpert, setBookingExpert] = useState<Expert | null>(null)
+  const [sort, setSort] = useState<SortState>({ key: 'rating', direction: 'desc' })
   const navigate = useNavigate()
 
   // Debounce search input by 300ms
@@ -161,11 +163,11 @@ export function ExpertsPage() {
     ? allExperts.filter((e) => e.specialties?.includes(activeFilter))
     : allExperts
 
-  // Sort so top-rated experts appear first
-  const sortedExperts = [...experts].sort((a, b) => {
-    if (a.is_top_rated && !b.is_top_rated) return -1
-    if (!a.is_top_rated && b.is_top_rated) return 1
-    return 0
+  const sortedExperts = sortItems(experts, sort, {
+    name: (e) => e.name,
+    rating: (e) => e.rating,
+    sessions: (e) => e.total_sessions,
+    reviews: (e) => e.reviews_count,
   })
 
   if (error) {
@@ -236,11 +238,22 @@ export function ExpertsPage() {
           </div>
         ) : (
           <>
-            {/* All Experts (top-rated sorted first) */}
             <div>
-              <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
-                {activeFilter === 'All' && searchQuery === '' ? 'All Experts' : 'Results'}
-              </h2>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h2 className="font-serif text-xl font-semibold text-kalkvit">
+                  {activeFilter === 'All' && searchQuery === '' ? 'All Experts' : 'Results'}
+                </h2>
+                <SortBar
+                  options={[
+                    { key: 'name', label: 'Name' },
+                    { key: 'rating', label: 'Rating' },
+                    { key: 'sessions', label: 'Sessions' },
+                    { key: 'reviews', label: 'Reviews' },
+                  ]}
+                  value={sort}
+                  onChange={setSort}
+                />
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {sortedExperts.map((expert) => (
                   <ExpertCard key={expert.id} expert={expert} onMessage={handleMessage} onBook={setBookingExpert} />

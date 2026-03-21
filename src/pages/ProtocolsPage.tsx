@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
+import { SortBar, sortItems, type SortState } from '../components/ui'
 import { PILLARS, PILLAR_IDS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import { PillarIcon } from '../components/icons'
@@ -99,6 +100,7 @@ function ProtocolCard({
 
 export function ProtocolsPage() {
   const [selectedPillar, setSelectedPillar] = useState<string>('all')
+  const [sort, setSort] = useState<SortState>({ key: 'name', direction: 'asc' })
 
   // API hooks
   const {
@@ -114,7 +116,11 @@ export function ProtocolsPage() {
   } = useMyActiveProtocols({ status: 'active' })
 
   // Defensive data handling
-  const protocols = Array.isArray(protocolsData) ? protocolsData : []
+  const protocolsRaw = Array.isArray(protocolsData) ? protocolsData : []
+  const protocols = sortItems(protocolsRaw, sort, {
+    name: (p) => p.name,
+    pillar: (p) => p.pillar || '',
+  })
   const activeProtocols = Array.isArray(activeProtocolsData) ? activeProtocolsData : []
   const activeProtocolSlugs = new Set(activeProtocols.map((ap) => ap.protocol_slug))
 
@@ -181,6 +187,18 @@ export function ProtocolsPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit">Protocols</h2>
+          <SortBar
+            options={[
+              { key: 'name', label: 'Name' },
+              { key: 'pillar', label: 'Pillar' },
+            ]}
+            value={sort}
+            onChange={setSort}
+          />
         </div>
 
         {/* Loading State */}
