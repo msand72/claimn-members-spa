@@ -39,11 +39,17 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
   const today = useMemo(() => new Date(), [])
   const todayStr = today.toISOString().split('T')[0]
 
-  // Build 7 days for the current week offset
+  // Build 7 days starting from Monday of the current week + offset
   const days = useMemo(() => {
+    // Find Monday of the current week
+    const monday = new Date(today)
+    const dayOfWeek = monday.getDay() // 0=Sun, 1=Mon, ...
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+    monday.setDate(monday.getDate() + diffToMonday + weekOffset * 7)
+
     return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(today)
-      d.setDate(today.getDate() + weekOffset * 7 + i)
+      const d = new Date(monday)
+      d.setDate(monday.getDate() + i)
       return {
         dateStr: d.toISOString().split('T')[0],
         dayShort: d.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -185,7 +191,7 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
                 <ChevronRightIcon className="w-4 h-4" />
               </button>
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7">
               {days.map((day) => {
                 const hasSlot = availabilitySlots?.some(
                   (s) => s.day.toLowerCase() === day.dayLong.toLowerCase(),
@@ -197,12 +203,13 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
                     onClick={() => { if (!disabled) { setSelectedDate(day.dateStr); setSelectedTime(null) } }}
                     disabled={disabled}
                     className={cn(
-                      'py-2.5 rounded-xl text-center transition-all',
+                      'py-3 text-center transition-all border border-transparent',
+                      'first:rounded-l-lg last:rounded-r-lg',
                       disabled
-                        ? 'opacity-20 cursor-not-allowed'
+                        ? 'text-kalkvit/25 cursor-not-allowed'
                         : selectedDate === day.dateStr
-                          ? 'bg-koppar text-kalkvit'
-                          : 'bg-white/[0.06] text-kalkvit/70 hover:bg-white/[0.1]',
+                          ? 'bg-koppar text-kalkvit rounded-lg'
+                          : 'text-kalkvit/70 hover:bg-white/[0.08]',
                     )}
                   >
                     <p className="text-[10px] leading-tight">{day.dayShort}</p>
