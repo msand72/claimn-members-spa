@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { stripHtml } from '../lib/sanitize'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
@@ -80,7 +81,7 @@ function ProtocolCard({
         )}
 
         <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">
-          {protocol.description}
+          {stripHtml(protocol.description)}
         </p>
 
         <div className="flex items-center justify-between text-xs text-kalkvit/50 pt-3 border-t border-white/10">

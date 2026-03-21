@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { stripHtml } from '../lib/sanitize'
 import { useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
@@ -111,7 +112,7 @@ function MemberCard({ member }: { member: NetworkMember }) {
             )}
           </div>
           {member.bio && (
-            <p className="text-sm text-kalkvit/70 line-clamp-2 mt-1">{member.bio}</p>
+            <p className="text-sm text-kalkvit/70 line-clamp-2 mt-1">{stripHtml(member.bio)}</p>
           )}
           {location && (
             <div className="flex items-center gap-1 mt-1 text-xs text-kalkvit/40">

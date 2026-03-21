@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { sanitizeHtml } from '../lib/sanitize'
 import { useParams, Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
@@ -347,7 +348,7 @@ function EmergencyProtocolsSection({ protocols }: { protocols: EmergencyProtocol
           <div key={i}>
             <p className="text-sm font-medium text-kalkvit mb-1">{protocol.title}</p>
             {protocol.description && (
-              <p className="text-sm text-kalkvit/70">{protocol.description}</p>
+              <p className="text-sm text-kalkvit/70" dangerouslySetInnerHTML={{ __html: sanitizeHtml(protocol.description) }} />
             )}
             {protocol.steps && protocol.steps.length > 0 && (
               <ol className="mt-2 space-y-1">
@@ -925,7 +926,7 @@ export function ProtocolDetailPage() {
               {protocol.subtitle && (
                 <p className="text-lg text-kalkvit/70 mb-2">{protocol.subtitle}</p>
               )}
-              <p className="text-kalkvit/60">{protocol.description}</p>
+              <p className="text-kalkvit/60" dangerouslySetInnerHTML={{ __html: sanitizeHtml(protocol.description) }} />
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold text-koppar">

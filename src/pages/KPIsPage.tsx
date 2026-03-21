@@ -162,6 +162,8 @@ export function KPIsPage() {
   const [filter, setFilter] = useState<'all' | 'number' | 'percentage' | 'boolean' | 'time'>('all')
   const [newKpi, setNewKpi] = useState({
     kpiType: '',
+    customName: '',
+    customUnit: '',
     currentValue: '',
     targetValue: '',
     pillar: '',
@@ -220,22 +222,28 @@ export function KPIsPage() {
     }
   }
 
+  const isOtherType = newKpi.kpiType === 'other'
+
   const handleCreateKpi = async () => {
     if (!newKpi.kpiType || !newKpi.targetValue || !newKpi.goalId) return
+    if (isOtherType && !newKpi.customName.trim()) return
     setActionError(null)
 
     const selectedKpiType = [...KPI_TYPES.biomarker, ...KPI_TYPES.biological, ...KPI_TYPES.action].find(
       (k) => k.id === newKpi.kpiType
     )
 
+    const kpiName = isOtherType ? newKpi.customName.trim() : (selectedKpiType?.name || newKpi.kpiType)
+    const kpiUnit = isOtherType ? (newKpi.customUnit.trim() || null) : (selectedKpiType?.unit || null)
+
     try {
       const created = await createKPI.mutateAsync({
         goalId: newKpi.goalId,
         data: {
-          name: selectedKpiType?.name || newKpi.kpiType,
+          name: kpiName,
           type: 'number',
           target_value: parseFloat(newKpi.targetValue),
-          unit: selectedKpiType?.unit || null,
+          unit: kpiUnit,
           frequency: newKpi.frequency as 'daily' | 'weekly' | 'monthly',
         },
       })
@@ -245,7 +253,7 @@ export function KPIsPage() {
         await logKPI.mutateAsync({ kpiId: created.id, data: { value: initialValue } })
       }
       setShowCreateModal(false)
-      setNewKpi({ kpiType: '', currentValue: '', targetValue: '', pillar: '', frequency: 'daily', goalId: '' })
+      setNewKpi({ kpiType: '', customName: '', customUnit: '', currentValue: '', targetValue: '', pillar: '', frequency: 'daily', goalId: '' })
     } catch (_err) {
       setActionError('Failed to create KPI. Please try again.')
     }
@@ -273,6 +281,8 @@ export function KPIsPage() {
     ...KPI_TYPES.biological.map((k) => ({ value: k.id, label: k.name })),
     { value: 'divider-action', label: '── Action ──', disabled: true },
     ...KPI_TYPES.action.map((k) => ({ value: k.id, label: k.name })),
+    { value: 'divider-custom', label: '── Custom ──', disabled: true },
+    { value: 'other', label: 'Other (define your own)' },
   ]
 
   const pillarOptions = [
@@ -473,8 +483,24 @@ export function KPIsPage() {
               label="KPI Type"
               options={kpiTypeOptions}
               value={newKpi.kpiType}
-              onChange={(e) => setNewKpi({ ...newKpi, kpiType: e.target.value })}
+              onChange={(e) => setNewKpi({ ...newKpi, kpiType: e.target.value, customName: '', customUnit: '' })}
             />
+            {isOtherType && (
+              <>
+                <GlassInput
+                  label="KPI Name"
+                  placeholder="e.g. Daily meditation minutes"
+                  value={newKpi.customName}
+                  onChange={(e) => setNewKpi({ ...newKpi, customName: e.target.value })}
+                />
+                <GlassInput
+                  label="Unit (optional)"
+                  placeholder="e.g. minutes, reps, km"
+                  value={newKpi.customUnit}
+                  onChange={(e) => setNewKpi({ ...newKpi, customUnit: e.target.value })}
+                />
+              </>
+            )}
             <GlassInput
               label="Current Value"
               type="number"
@@ -509,7 +535,7 @@ export function KPIsPage() {
             <GlassButton
               variant="primary"
               onClick={handleCreateKpi}
-              disabled={!newKpi.goalId || !newKpi.kpiType || !newKpi.targetValue || createKPI.isPending}
+              disabled={!newKpi.goalId || !newKpi.kpiType || !newKpi.targetValue || (isOtherType && !newKpi.customName.trim()) || createKPI.isPending}
             >
               {createKPI.isPending ? 'Creating...' : 'Add KPI'}
             </GlassButton>

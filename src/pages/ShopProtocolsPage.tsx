@@ -4,6 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
 import { ClockIcon, CheckCircleIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
+import { stripHtml } from '../lib/sanitize'
 import { useProtocols, useMyActiveProtocols, type ProtocolTemplate } from '../lib/api/hooks'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
@@ -71,7 +72,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
       <h3 className="font-display text-xl font-bold text-kalkvit mb-2 group-hover:text-koppar transition-colors">
         {protocol.title}
       </h3>
-      <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{protocol.description}</p>
+      <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{stripHtml(protocol.description)}</p>
 
       {/* Stats */}
       <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-2">

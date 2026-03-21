@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { stripHtml } from '../lib/sanitize'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs } from '../components/ui'
@@ -89,7 +90,7 @@ function ActiveProtocolCard({
             </h3>
             {protocol?.description && (
               <p className="text-sm text-kalkvit/60 mt-1 line-clamp-2">
-                {protocol.description}
+                {stripHtml(protocol.description)}
               </p>
             )}
           </div>
