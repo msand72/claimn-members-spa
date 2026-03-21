@@ -6,10 +6,11 @@ import { useExperts } from '../lib/api/hooks'
 import type { Expert } from '../lib/api/types'
 import { MagnifyingGlassIcon, StarIcon, CalendarIcon, ChatBubbleLeftIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
+import { BookingModal } from '../components/BookingModal'
 
 // Specialty filters are derived from actual expert data — see below in ExpertsPage
 
-function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expert: Expert) => void }) {
+function ExpertCard({ expert, onMessage, onBook }: { expert: Expert; onMessage: (expert: Expert) => void; onBook: (expert: Expert) => void }) {
   const initials = expert.name
     .split(' ')
     .map((n) => n[0])
@@ -95,12 +96,10 @@ function ExpertCard({ expert, onMessage }: { expert: Expert; onMessage: (expert:
           <GlassButton variant="ghost" className="p-2" onClick={() => onMessage(expert)}>
             <ChatBubbleLeftIcon className="w-4 h-4" />
           </GlassButton>
-          <Link to={`/book-session?expert=${expert.id}`}>
-            <GlassButton variant="primary" className="whitespace-nowrap">
-              <CalendarIcon className="w-4 h-4" />
-              Book Session
-            </GlassButton>
-          </Link>
+          <GlassButton variant="primary" className="whitespace-nowrap" onClick={() => onBook(expert)}>
+            <CalendarIcon className="w-4 h-4" />
+            Book Session
+          </GlassButton>
         </div>
       </div>
     </GlassCard>
@@ -111,6 +110,7 @@ export function ExpertsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('All')
+  const [bookingExpert, setBookingExpert] = useState<Expert | null>(null)
   const navigate = useNavigate()
 
   // Debounce search input by 300ms
@@ -236,7 +236,7 @@ export function ExpertsPage() {
               </h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {sortedExperts.map((expert) => (
-                  <ExpertCard key={expert.id} expert={expert} onMessage={handleMessage} />
+                  <ExpertCard key={expert.id} expert={expert} onMessage={handleMessage} onBook={setBookingExpert} />
                 ))}
               </div>
             </div>
@@ -249,6 +249,15 @@ export function ExpertsPage() {
           </>
         )}
       </div>
+
+      {/* Booking Modal */}
+      {bookingExpert && (
+        <BookingModal
+          expert={bookingExpert}
+          isOpen={!!bookingExpert}
+          onClose={() => setBookingExpert(null)}
+        />
+      )}
     </MainLayout>
   )
 }
