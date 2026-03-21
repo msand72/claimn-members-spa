@@ -33,6 +33,8 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [weekOffset, setWeekOffset] = useState(0)
+  const [calendarView, setCalendarView] = useState<'week' | 'month'>('week')
+  const [monthOffset, setMonthOffset] = useState(0)
 
   const { data: availabilitySlots } = useExpertAvailability(expert.id)
 
@@ -65,6 +67,31 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
   const weekLabel = days.length > 0
     ? `${days[0].month} ${days[0].dateNum} – ${days[6].month} ${days[6].dateNum}`
     : ''
+
+  // Month calendar grid
+  const monthData = useMemo(() => {
+    const d = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1)
+    const year = d.getFullYear()
+    const month = d.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const startOffset = (firstDay.getDay() + 6) % 7 // Monday = 0
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+
+    const cells: (null | { dateStr: string; day: number; dayLong: string; isPast: boolean })[] = []
+    for (let i = 0; i < startOffset; i++) cells.push(null)
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dd = new Date(year, month, day)
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      cells.push({
+        dateStr,
+        day,
+        dayLong: dd.toLocaleDateString('en-US', { weekday: 'long' }),
+        isPast: dateStr < todayStr,
+      })
+    }
+    return { cells, label, canGoPrev: monthOffset > 0 }
+  }, [monthOffset, today, todayStr])
 
   // Hooks
   const { data: serverSlots, isLoading: isLoadingSlots } = useAvailableSlots(
@@ -155,6 +182,8 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
     setBookingError(null)
     setSelectedTime(null)
     setWeekOffset(0)
+    setMonthOffset(0)
+    setCalendarView('week')
     if (!preselectedDate) setSelectedDate(null)
     onClose()
   }
@@ -164,60 +193,140 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
       isOpen={isOpen}
       onClose={handleClose}
       title={`Book Session with ${expert.name}`}
-      size="md"
+      size="sm"
     >
       <div className="space-y-4">
         {/* Date picker — shown when no pre-selected date */}
         {!preselectedDate && (
           <div>
+            {/* Week / Month toggle */}
+            <div className="flex items-center justify-center gap-1 mb-3 bg-white/[0.06] rounded-lg p-0.5">
+              <button
+                onClick={() => setCalendarView('week')}
+                className={cn(
+                  'flex-1 py-1.5 rounded-md text-xs font-semibold transition-all',
+                  calendarView === 'week'
+                    ? 'bg-koppar text-kalkvit'
+                    : 'text-kalkvit/50 hover:text-kalkvit/80'
+                )}
+              >
+                Week
+              </button>
+              <button
+                onClick={() => setCalendarView('month')}
+                className={cn(
+                  'flex-1 py-1.5 rounded-md text-xs font-semibold transition-all',
+                  calendarView === 'month'
+                    ? 'bg-koppar text-kalkvit'
+                    : 'text-kalkvit/50 hover:text-kalkvit/80'
+                )}
+              >
+                Month
+              </button>
+            </div>
+
+            {/* Navigation */}
             <div className="flex items-center justify-between mb-3">
               <button
-                onClick={() => setWeekOffset((w) => Math.max(0, w - 1))}
-                disabled={weekOffset === 0}
+                onClick={() => {
+                  if (calendarView === 'week') setWeekOffset((w) => Math.max(0, w - 1))
+                  else setMonthOffset((m) => Math.max(0, m - 1))
+                }}
+                disabled={calendarView === 'week' ? weekOffset === 0 : !monthData.canGoPrev}
                 className={cn(
                   'p-1 rounded-lg transition-all',
-                  weekOffset === 0
+                  (calendarView === 'week' ? weekOffset === 0 : !monthData.canGoPrev)
                     ? 'opacity-20 cursor-not-allowed'
                     : 'text-kalkvit/60 hover:bg-white/[0.08] hover:text-kalkvit'
                 )}
               >
                 <ChevronLeftIcon className="w-4 h-4" />
               </button>
-              <p className="text-xs text-kalkvit/50 font-medium uppercase tracking-wider">{weekLabel}</p>
+              <p className="text-xs text-kalkvit/50 font-medium uppercase tracking-wider">
+                {calendarView === 'week' ? weekLabel : monthData.label}
+              </p>
               <button
-                onClick={() => setWeekOffset((w) => w + 1)}
+                onClick={() => {
+                  if (calendarView === 'week') setWeekOffset((w) => w + 1)
+                  else setMonthOffset((m) => m + 1)
+                }}
                 className="p-1 rounded-lg text-kalkvit/60 hover:bg-white/[0.08] hover:text-kalkvit transition-all"
               >
                 <ChevronRightIcon className="w-4 h-4" />
               </button>
             </div>
-            <div className="grid grid-cols-7">
-              {days.map((day) => {
-                const hasSlot = availabilitySlots?.some(
-                  (s) => s.day.toLowerCase() === day.dayLong.toLowerCase(),
-                )
-                const disabled = !hasSlot || day.isPast
-                return (
-                  <button
-                    key={day.dateStr}
-                    onClick={() => { if (!disabled) { setSelectedDate(day.dateStr); setSelectedTime(null) } }}
-                    disabled={disabled}
-                    className={cn(
-                      'py-3 text-center transition-all border border-transparent',
-                      'first:rounded-l-lg last:rounded-r-lg',
-                      disabled
-                        ? 'text-kalkvit/25 cursor-not-allowed'
-                        : selectedDate === day.dateStr
-                          ? 'bg-koppar text-kalkvit rounded-lg'
-                          : 'text-kalkvit/70 hover:bg-white/[0.08]',
-                    )}
-                  >
-                    <p className="text-[10px] leading-tight">{day.dayShort}</p>
-                    <p className="text-sm font-semibold leading-tight mt-0.5">{day.dateNum}</p>
-                  </button>
-                )
-              })}
-            </div>
+
+            {/* Week view */}
+            {calendarView === 'week' && (
+              <div className="grid grid-cols-7">
+                {days.map((day) => {
+                  const hasSlot = availabilitySlots?.some(
+                    (s) => s.day.toLowerCase() === day.dayLong.toLowerCase(),
+                  )
+                  const disabled = !hasSlot || day.isPast
+                  return (
+                    <button
+                      key={day.dateStr}
+                      onClick={() => { if (!disabled) { setSelectedDate(day.dateStr); setSelectedTime(null) } }}
+                      disabled={disabled}
+                      className={cn(
+                        'py-3 text-center transition-all border border-transparent',
+                        'first:rounded-l-lg last:rounded-r-lg',
+                        disabled
+                          ? 'text-kalkvit/25 cursor-not-allowed'
+                          : selectedDate === day.dateStr
+                            ? 'bg-koppar text-kalkvit rounded-lg'
+                            : 'text-kalkvit/70 hover:bg-white/[0.08]',
+                      )}
+                    >
+                      <p className="text-[10px] leading-tight">{day.dayShort}</p>
+                      <p className="text-sm font-semibold leading-tight mt-0.5">{day.dateNum}</p>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Month view */}
+            {calendarView === 'month' && (
+              <div>
+                <div className="grid grid-cols-7 mb-1">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
+                    <div key={d} className="text-[10px] text-center text-kalkvit/30 font-medium py-1">{d}</div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7">
+                  {monthData.cells.map((cell, i) => {
+                    if (!cell) return <div key={`empty-${i}`} />
+                    const hasSlot = availabilitySlots?.some(
+                      (s) => s.day.toLowerCase() === cell.dayLong.toLowerCase(),
+                    )
+                    const disabled = !hasSlot || cell.isPast
+                    const isSelected = selectedDate === cell.dateStr
+                    const isToday = cell.dateStr === todayStr
+                    return (
+                      <button
+                        key={cell.dateStr}
+                        onClick={() => { if (!disabled) { setSelectedDate(cell.dateStr); setSelectedTime(null) } }}
+                        disabled={disabled}
+                        className={cn(
+                          'py-1.5 text-center text-sm transition-all rounded-lg',
+                          disabled
+                            ? 'text-kalkvit/30 cursor-not-allowed'
+                            : isSelected
+                              ? 'bg-koppar text-kalkvit font-semibold'
+                              : isToday
+                                ? 'text-koppar font-semibold hover:bg-white/[0.08]'
+                                : 'text-kalkvit/70 hover:bg-white/[0.08]',
+                        )}
+                      >
+                        {cell.day}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
