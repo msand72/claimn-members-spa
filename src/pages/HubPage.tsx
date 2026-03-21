@@ -1021,16 +1021,16 @@ function MyCoachCard() {
       )}
 
       {/* Quick actions */}
-      <div className="mt-3 flex gap-2">
-        <Link to={`/messages?user=${expert.user_id || expert.id}`} className="flex-1">
-          <GlassButton variant="secondary" className="w-full text-xs py-2">
-            <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
+      <div className="mt-3 space-y-2">
+        <Link to={`/messages?user=${expert.user_id || expert.id}`} className="block">
+          <GlassButton variant="secondary" className="w-full text-xs py-2 justify-center">
+            <ChatBubbleLeftIcon className="w-3.5 h-3.5 shrink-0" />
             Message
           </GlassButton>
         </Link>
-        <Link to={`/book-session?expert=${expert.id}`} className="flex-1">
-          <GlassButton variant="primary" className="w-full text-xs py-2">
-            <VideoCameraIcon className="w-3.5 h-3.5" />
+        <Link to={`/book-session?expert=${expert.id}`} className="block">
+          <GlassButton variant="primary" className="w-full text-xs py-2 justify-center">
+            <VideoCameraIcon className="w-3.5 h-3.5 shrink-0" />
             Book Session
           </GlassButton>
         </Link>

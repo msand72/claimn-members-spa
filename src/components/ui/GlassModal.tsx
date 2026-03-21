@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import { GlassButton } from './GlassButton'
@@ -52,8 +53,8 @@ export function GlassModal({
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -115,7 +116,8 @@ export function GlassModal({
         {/* Content */}
         <div>{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
