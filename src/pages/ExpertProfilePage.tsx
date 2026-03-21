@@ -19,6 +19,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
+import { sanitizeHtml } from '../lib/sanitize'
 import { useExpert, useExpertTestimonials, useExpertAvailability } from '../lib/api/hooks/useExperts'
 import { BookingModal } from '../components/BookingModal'
 
@@ -103,51 +104,51 @@ export function ExpertProfilePage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Header */}
             <GlassCard variant="elevated">
-              <div className="flex items-start gap-6">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
                 <GlassAvatar initials={initials} size="xl" />
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h1 className="font-display text-2xl font-bold text-kalkvit mb-1">
-                        {expert.name}
-                      </h1>
-                      <p className="text-koppar text-lg">{expert.title}</p>
-                    </div>
-                    <div className="flex items-center gap-1 text-brand-amber">
-                      <StarIcon className="w-5 h-5 fill-brand-amber" />
-                      <span className="font-semibold">{expert.rating}</span>
-                      <span className="text-kalkvit/50 text-sm">({expert.reviews_count} reviews)</span>
-                    </div>
+                <div className="flex-1 min-w-0 text-center sm:text-left w-full">
+                  <h1 className="font-display text-xl sm:text-2xl font-bold text-kalkvit mb-1">
+                    {expert.name}
+                  </h1>
+                  <p className="text-koppar text-sm sm:text-lg">{expert.title}</p>
+
+                  <div className="flex items-center justify-center sm:justify-start gap-1 text-brand-amber mt-2">
+                    <StarIcon className="w-4 h-4 fill-brand-amber" />
+                    <span className="font-semibold text-sm">{expert.rating}</span>
+                    <span className="text-kalkvit/50 text-xs">({expert.reviews_count} reviews)</span>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-kalkvit/60">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-3 text-xs sm:text-sm text-kalkvit/60">
                     {expert.location && (
                       <span className="flex items-center gap-1">
-                        <MapPinIcon className="w-4 h-4" />
+                        <MapPinIcon className="w-3.5 h-3.5" />
                         {expert.location}
                       </span>
                     )}
                     {expert.experience && (
                       <span className="flex items-center gap-1">
-                        <BriefcaseIcon className="w-4 h-4" />
+                        <BriefcaseIcon className="w-3.5 h-3.5" />
                         {expert.experience}
                       </span>
                     )}
                     <span className="flex items-center gap-1">
-                      <UserGroupIcon className="w-4 h-4" />
+                      <UserGroupIcon className="w-3.5 h-3.5" />
                       {expert.total_sessions} sessions
                     </span>
                   </div>
 
-                  <div className="flex gap-2 mt-4">
-                    <Link to={`/book-session?expert=${id}`}>
-                      <GlassButton variant="primary">
-                        <CalendarIcon className="w-4 h-4" />
-                        Book Session
-                      </GlassButton>
-                    </Link>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                    <GlassButton
+                      variant="primary"
+                      className="w-full justify-center"
+                      onClick={() => { setShowBookingModal(true) }}
+                    >
+                      <CalendarIcon className="w-4 h-4" />
+                      Book Session
+                    </GlassButton>
                     <GlassButton
                       variant="secondary"
+                      className="w-full justify-center"
                       onClick={() => navigate(`/messages?user=${expert.user_id || id}`, {
                         state: { participantName: expert.name, participantAvatar: expert.avatar_url, participantType: 'expert' },
                       })}
@@ -163,7 +164,7 @@ export function ExpertProfilePage() {
             {/* Bio */}
             <GlassCard variant="base">
               <h2 className="font-semibold text-kalkvit mb-4">About</h2>
-              <p className="text-kalkvit/70 leading-relaxed">{expert.bio}</p>
+              <div className="text-kalkvit/70 leading-relaxed prose-sm [&_p]:mb-3 [&_p:last-child]:mb-0" dangerouslySetInnerHTML={{ __html: sanitizeHtml(expert.bio) }} />
             </GlassCard>
 
             {/* Specialties */}
