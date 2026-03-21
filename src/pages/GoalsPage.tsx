@@ -11,6 +11,7 @@ import {
   GlassSelect,
   GlassTextarea,
 } from '../components/ui'
+import { SortBar, sortItems, type SortState } from '../components/ui'
 import { PILLARS, PILLAR_IDS, GOAL_STATUSES } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import { useGoals, useCreateGoal, useUpdateGoal, useMyActiveProtocols, useDashboardStats, useAchievements } from '../lib/api/hooks'
@@ -163,6 +164,7 @@ export function GoalsPage() {
     target_date: '',
   })
   const [selectedProtocolSlug, setSelectedProtocolSlug] = useState('')
+  const [sort, setSort] = useState<SortState>({ key: 'created_at', direction: 'desc' })
 
   // API hooks
   const { data: goalsData, isLoading, error } = useGoals({
@@ -174,7 +176,13 @@ export function GoalsPage() {
   const { data: dashStats } = useDashboardStats()
   const { data: achievements } = useAchievements()
 
-  const goals = Array.isArray(goalsData?.data) ? goalsData.data : []
+  const goalsRaw = Array.isArray(goalsData?.data) ? goalsData.data : []
+  const goals = sortItems(goalsRaw, sort, {
+    title: (g) => g.title,
+    status: (g) => g.status,
+    progress: (g) => g.progress ?? 0,
+    created_at: (g) => g.created_at,
+  })
 
   const handleMarkDone = async (goalId: string) => {
     try {
@@ -299,9 +307,6 @@ export function GoalsPage() {
           </div>
         )}
 
-        {/* Section heading */}
-        <h2 className="font-display text-xl font-bold text-kalkvit mb-4">My Goals</h2>
-
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-6">
           {(['all', 'active', 'completed'] as const).map((f) => (
@@ -318,6 +323,20 @@ export function GoalsPage() {
               {f}
             </button>
           ))}
+        </div>
+
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit">My Goals</h2>
+          <SortBar
+            options={[
+              { key: 'title', label: 'Title' },
+              { key: 'status', label: 'Status' },
+              { key: 'progress', label: 'Progress' },
+              { key: 'created_at', label: 'Created' },
+            ]}
+            value={sort}
+            onChange={setSort}
+          />
         </div>
 
         {/* Loading State */}

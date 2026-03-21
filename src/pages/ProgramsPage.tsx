@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
+import { SortBar, sortItems, type SortState } from '../components/ui'
 import { usePrograms, useEnrolledPrograms, useSearch } from '../lib/api/hooks'
 import type { Program, UserProgram } from '../lib/api/types'
 import { sanitizeHtml } from '../lib/sanitize'
@@ -135,6 +136,7 @@ function ProgramCard({
 export function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+  const [sort, setSort] = useState<SortState>({ key: 'title', direction: 'asc' })
   // Fetch all programs — use Meilisearch when searching, PostgREST when browsing
   const {
     data: programsData,
@@ -167,12 +169,17 @@ export function ProgramsPage() {
     ]
   }, [programs])
 
-  const filteredPrograms =
+  const filteredProgramsRaw =
     activeCategory === 'My Programs'
       ? programs.filter((p) => enrolledProgramIds.has(p.id))
       : activeCategory !== 'All'
         ? programs.filter((p) => p.category === activeCategory)
         : programs
+
+  const filteredPrograms = sortItems(filteredProgramsRaw, sort, {
+    title: (p) => p.title,
+    category: (p) => p.category || '',
+  })
 
   const myPrograms = programs.filter((p) => enrolledProgramIds.has(p.id))
   const totalProgress =
@@ -284,13 +291,23 @@ export function ProgramsPage() {
 
             {/* All Programs */}
             <div>
-              <h2 className="font-serif text-xl font-semibold text-kalkvit mb-4">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="font-serif text-xl font-semibold text-kalkvit">
                 {activeCategory === 'My Programs'
                   ? 'My Programs'
                   : activeCategory === 'All'
                     ? 'Explore Programs'
                     : categories.find((c) => c.key === activeCategory)?.label || activeCategory}
               </h2>
+              <SortBar
+                options={[
+                  { key: 'title', label: 'Title' },
+                  { key: 'category', label: 'Category' },
+                ]}
+                value={sort}
+                onChange={setSort}
+              />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPrograms.map((program) => (
                     <ProgramCard

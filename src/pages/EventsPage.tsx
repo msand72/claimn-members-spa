@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs, GlassAvatar } from '../components/ui'
+import { SortBar, sortItems, type SortState } from '../components/ui'
 import {
   useEvents,
   useMyEvents,
@@ -214,6 +215,7 @@ function EventsGrid({
 export function EventsPage() {
   const [activeTab, setActiveTab] = useState('brotherhood_call')
   const [statusFilter, setStatusFilter] = useState<'upcoming' | 'past'>('upcoming')
+  const [sort, setSort] = useState<SortState>({ key: 'date', direction: 'asc' })
 
   // API hooks — only Brotherhood Calls (GO Sessions live in the Program page)
   const {
@@ -247,16 +249,26 @@ export function EventsPage() {
     return enrolledMatch?.program_id || goProgram.id
   }, [programsData, enrolledData])
 
-  const brotherhoodEvents = Array.isArray(brotherhoodData?.data) ? brotherhoodData.data : []
-  const myEvents = Array.isArray(myEventsData?.data) ? myEventsData.data : []
+  const brotherhoodEventsRaw = Array.isArray(brotherhoodData?.data) ? brotherhoodData.data : []
+  const myEventsRaw = Array.isArray(myEventsData?.data) ? myEventsData.data : []
+
+  const eventSortGetters = {
+    date: (e: ClaimnEvent) => e.scheduled_date,
+    title: (e: ClaimnEvent) => e.title,
+    type: (e: ClaimnEvent) => e.event_type || '',
+  }
+
+  const brotherhoodEvents = sortItems(brotherhoodEventsRaw, sort, eventSortGetters)
+  const myEvents = myEventsRaw
 
   // Filter my events: only brotherhood calls, by status
-  const filteredMyEvents = myEvents.filter((event) => {
+  const filteredMyEventsRaw = myEvents.filter((event) => {
     if (event.event_type === 'session') return false // Sessions are in program page
     const eventDate = new Date(event.scheduled_date)
     const now = new Date()
     return statusFilter === 'upcoming' ? eventDate >= now : eventDate < now
   })
+  const filteredMyEvents = sortItems(filteredMyEventsRaw, sort, eventSortGetters)
 
   const error = brotherhoodError || myEventsError
 
@@ -353,6 +365,19 @@ export function EventsPage() {
           size="sm"
           className="mb-6"
         />
+
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit">Events</h2>
+          <SortBar
+            options={[
+              { key: 'date', label: 'Date' },
+              { key: 'title', label: 'Title' },
+              { key: 'type', label: 'Type' },
+            ]}
+            value={sort}
+            onChange={setSort}
+          />
+        </div>
 
         {/* Content */}
         {activeTab === 'brotherhood_call' && (

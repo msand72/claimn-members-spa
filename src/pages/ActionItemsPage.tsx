@@ -10,6 +10,7 @@ import {
   GlassSelect,
   GlassTextarea,
 } from '../components/ui'
+import { SortBar, sortItems, type SortState } from '../components/ui'
 import { PILLARS, PILLAR_IDS, ACTION_ITEM_PRIORITIES } from '../lib/constants'
 import type { PillarId, ActionItemPriority } from '../lib/constants'
 import {
@@ -199,6 +200,7 @@ export function ActionItemsPage() {
   })
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [sort, setSort] = useState<SortState>({ key: 'priority', direction: 'asc' })
 
   // API hooks
   const { data: actionItemsData, isLoading, error } = useActionItems()
@@ -294,13 +296,14 @@ export function ActionItemsPage() {
         ? items.filter((i) => i.status !== 'completed')
         : items.filter((i) => i.status === 'completed')
 
-  // Sort: completed items last, then by priority
-  const sortedItems = [...filteredItems].sort((a, b) => {
-    if (a.status === 'completed' && b.status !== 'completed') return 1
-    if (a.status !== 'completed' && b.status === 'completed') return -1
-
-    const priorityOrder = { high: 0, medium: 1, low: 2 }
-    return priorityOrder[a.priority] - priorityOrder[b.priority]
+  const sortedItems = sortItems(filteredItems, sort, {
+    title: (i) => i.title,
+    priority: (i) => {
+      const order: Record<string, number> = { high: 0, medium: 1, low: 2 }
+      return order[i.priority] ?? 1
+    },
+    status: (i) => i.status,
+    due_date: (i) => i.due_date || '',
   })
 
   const pendingCount = items.filter((i) => i.status !== 'completed').length
@@ -394,6 +397,20 @@ export function ActionItemsPage() {
               {f}
             </button>
           ))}
+        </div>
+
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 className="font-serif text-xl font-semibold text-kalkvit">Items</h2>
+          <SortBar
+            options={[
+              { key: 'title', label: 'Title' },
+              { key: 'priority', label: 'Priority' },
+              { key: 'status', label: 'Status' },
+              { key: 'due_date', label: 'Due Date' },
+            ]}
+            value={sort}
+            onChange={setSort}
+          />
         </div>
 
         {/* Action Items List */}
