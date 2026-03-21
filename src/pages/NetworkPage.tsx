@@ -21,6 +21,7 @@ import {
   useSendConnectionRequest,
   useAcceptConnection,
   useRejectConnection,
+  useSearch,
   type NetworkMember,
 } from '../lib/api'
 import { ARCHETYPES, ARCHETYPE_LABELS, PILLARS, type PillarId, type Archetype } from '../lib/constants'
@@ -228,23 +229,31 @@ export function NetworkPage() {
     ? selectedArchetype
     : undefined
 
-  // Fetch network members from API
+  // Fetch network members — use Meilisearch when searching, PostgREST when browsing
   const {
     data: networkData,
-    isLoading,
+    isLoading: isLoadingList,
     error,
   } = useNetwork({
     page: currentPage,
     limit: ITEMS_PER_PAGE,
-    search: searchQuery || undefined,
+    search: !searchQuery ? undefined : searchQuery,
     archetype: archetypeFilter,
     sort: 'display_name:asc',
   })
 
-  const members = Array.isArray(networkData?.data) ? networkData.data : []
-  const pagination = networkData?.pagination
+  const {
+    data: searchData,
+    isLoading: isLoadingSearch,
+  } = useSearch(searchQuery, { type: 'members', limit: ITEMS_PER_PAGE, enabled: !!searchQuery })
+
+  const isLoading = searchQuery ? isLoadingSearch : isLoadingList
+  const listMembers = Array.isArray(networkData?.data) ? networkData.data : []
+  const searchMembers = Array.isArray(searchData?.data) ? searchData.data as unknown as NetworkMember[] : []
+  const members = searchQuery ? searchMembers : listMembers
+  const pagination = searchQuery ? undefined : networkData?.pagination
   const totalPages = pagination?.total_pages || 1
-  const totalMembers = pagination?.total || 0
+  const totalMembers = searchQuery ? members.length : (pagination?.total || 0)
 
   // Reset to page 1 when filters change
   const handleSearchChange = (value: string) => {

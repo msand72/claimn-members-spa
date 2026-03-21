@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassAvatar, GlassBadge } from '../components/ui'
-import { useExperts } from '../lib/api/hooks'
+import { useExperts, useSearch } from '../lib/api/hooks'
 import type { Expert } from '../lib/api/types'
 import { MagnifyingGlassIcon, StarIcon, CalendarIcon, ChatBubbleLeftIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
@@ -127,15 +127,22 @@ export function ExpertsPage() {
     })
   }
 
+  // Use Meilisearch when searching, PostgREST when browsing
   const {
     data: expertsData,
-    isLoading,
+    isLoading: isLoadingList,
     error,
-  } = useExperts({
-    search: debouncedSearch || undefined,
-  })
+  } = useExperts()
 
-  const allExperts = Array.isArray(expertsData?.data) ? expertsData.data : []
+  const {
+    data: searchData,
+    isLoading: isLoadingSearch,
+  } = useSearch(debouncedSearch, { type: 'experts', limit: 50, enabled: !!debouncedSearch })
+
+  const isLoading = debouncedSearch ? isLoadingSearch : isLoadingList
+  const listExperts = Array.isArray(expertsData?.data) ? expertsData.data : []
+  const searchExperts = Array.isArray(searchData?.data) ? searchData.data as unknown as Expert[] : []
+  const allExperts = debouncedSearch ? searchExperts : listExperts
 
   // Build specialty filters from actual expert data
   const specialtyFilters = ['All', ...Array.from(

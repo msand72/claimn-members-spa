@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassInput, GlassBadge } from '../components/ui'
-import { usePrograms, useEnrolledPrograms } from '../lib/api/hooks'
+import { usePrograms, useEnrolledPrograms, useSearch } from '../lib/api/hooks'
 import type { Program, UserProgram } from '../lib/api/types'
 import { sanitizeHtml } from '../lib/sanitize'
 import {
@@ -135,18 +135,23 @@ function ProgramCard({
 export function ProgramsPage() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
-  // Fetch all programs — filtering is done client-side so we can derive category tabs
+  // Fetch all programs — use Meilisearch when searching, PostgREST when browsing
   const {
     data: programsData,
     isLoading: isLoadingPrograms,
     error: programsError,
-  } = usePrograms({
-    search: searchQuery || undefined,
-  })
+  } = usePrograms()
+
+  const {
+    data: searchData,
+    isLoading: isLoadingSearch,
+  } = useSearch(searchQuery, { type: 'programs', limit: 50, enabled: !!searchQuery })
 
   const { data: enrolledData, isLoading: isLoadingEnrolled } = useEnrolledPrograms()
 
-  const programs = Array.isArray(programsData?.data) ? programsData.data : []
+  const listPrograms = Array.isArray(programsData?.data) ? programsData.data : []
+  const searchPrograms = Array.isArray(searchData?.data) ? searchData.data as unknown as Program[] : []
+  const programs = searchQuery ? searchPrograms : listPrograms
   const enrolledPrograms = Array.isArray(enrolledData?.data) ? enrolledData.data : []
 
   const enrolledProgramIds = new Set(enrolledPrograms.map((ep) => ep.program_id))
@@ -177,7 +182,7 @@ export function ProgramsPage() {
         )
       : 0
 
-  const isLoading = isLoadingPrograms || isLoadingEnrolled
+  const isLoading = (searchQuery ? isLoadingSearch : isLoadingPrograms) || isLoadingEnrolled
   const error = programsError
 
   if (error) {
