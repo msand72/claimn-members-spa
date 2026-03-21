@@ -211,7 +211,7 @@ function StepperBar({
 
 export function SectionTopBar({ items, moreItems, mode = 'tabs' }: SectionTopBarProps) {
   const { theme } = useTheme()
-  const barBg = theme === 'light' ? 'rgba(255,255,255,0.80)' : 'rgba(28,28,30,0.80)'
+  const barBg = theme === 'light' ? 'rgba(255,255,255,0.72)' : 'rgba(28,28,30,0.80)'
   const barBorder = theme === 'light' ? 'rgba(0,0,0,0.09)' : 'rgba(255,255,255,0.10)'
 
   return (
