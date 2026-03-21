@@ -122,7 +122,7 @@ export function ExpertsPage() {
   }, [searchQuery])
 
   const handleMessage = (expert: Expert) => {
-    navigate(`/messages?user=${expert.id}`, {
+    navigate(`/messages?user=${expert.user_id}`, {
       state: { participantName: expert.name, participantAvatar: expert.avatar_url, participantType: 'expert' },
     })
   }

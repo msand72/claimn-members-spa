@@ -249,7 +249,7 @@ function SessionCard({
                   <ArrowPathIcon className={cn('w-4 h-4', uiStatus === 'reschedule_pending' && 'opacity-40')} />
                   Reschedule
                 </GlassButton>
-                <Link to={`/messages?user=${expert?.id || ''}`}>
+                <Link to={`/messages?user=${expert?.user_id || ''}`}>
                   <GlassButton variant="ghost" className="text-sm">
                     <ChatBubbleLeftIcon className="w-4 h-4" />
                     Message

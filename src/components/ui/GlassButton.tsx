@@ -16,7 +16,7 @@ export function GlassButton({
   ...props
 }: GlassButtonProps) {
   const baseStyles =
-    'inline-flex items-center gap-2 px-6 py-3 rounded-xl font-display font-semibold text-sm cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+    'inline-flex items-center gap-2 px-6 py-3 rounded-xl font-sans font-semibold text-sm cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
 
   const variantStyles = {
     primary: cn(

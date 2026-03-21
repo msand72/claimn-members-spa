@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
-import { ClockIcon, CheckCircleIcon, LockClosedIcon, ChevronRightIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { ClockIcon, CheckCircleIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useProtocols, useMyActiveProtocols, type ProtocolTemplate } from '../lib/api/hooks'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
+import { EXPERT_SESSION_PRICES } from '../config/stripe-prices'
 
 // Internal Protocol type for display - maps from API ProtocolTemplate
 interface Protocol {
@@ -16,13 +17,8 @@ interface Protocol {
   description: string
   category: string
   duration: string
-  price: number
-  originalPrice?: number
-  isPurchased: boolean
-  isNew: boolean
+  isActive: boolean
   modules: number
-  difficulty: 'beginner' | 'intermediate' | 'advanced'
-  image?: string
 }
 
 // Map ProtocolTemplate from API to internal Protocol display type
@@ -50,35 +46,25 @@ function mapProtocolTemplateToProtocol(
     description: template.description,
     category: pillarName,
     duration,
-    price: 0, // Protocols are free in the current system
-    isPurchased: isActive,
-    isNew: false, // Not available from API
+    isActive,
     modules: moduleCount || sections.length || template.weeks?.length || 0,
-    difficulty: 'beginner', // Not available from API - default to beginner
   }
 }
 
 function ProtocolCard({ protocol }: { protocol: Protocol }) {
-  const difficultyColors = {
-    beginner: 'text-skogsgron',
-    intermediate: 'text-koppar',
-    advanced: 'text-tegelrod',
-  }
+  const sessionPrice = EXPERT_SESSION_PRICES[60].amount
 
   return (
     <GlassCard variant="base" className="overflow-hidden group">
       {/* Header with category and badges */}
       <div className="flex items-center justify-between mb-3">
         <GlassBadge variant="default">{protocol.category}</GlassBadge>
-        <div className="flex gap-2">
-          {protocol.isNew && <GlassBadge variant="koppar">New</GlassBadge>}
-          {protocol.isPurchased && (
-            <GlassBadge variant="success" className="flex items-center gap-1">
-              <CheckCircleIcon className="w-3 h-3" />
-              Owned
-            </GlassBadge>
-          )}
-        </div>
+        {protocol.isActive && (
+          <GlassBadge variant="success" className="flex items-center gap-1">
+            <CheckCircleIcon className="w-3 h-3" />
+            Active
+          </GlassBadge>
+        )}
       </div>
 
       {/* Title and description */}
@@ -88,53 +74,31 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
       <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{protocol.description}</p>
 
       {/* Stats */}
-      <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-4">
+      <div className="flex items-center gap-4 text-sm text-kalkvit/50 mb-2">
         <span className="flex items-center gap-1">
           <ClockIcon className="w-4 h-4" />
           {protocol.duration}
         </span>
-      </div>
-
-      {/* Modules and difficulty */}
-      <div className="flex items-center justify-between text-sm mb-4">
-        <span className="text-kalkvit/50">{protocol.modules} modules</span>
-        <span className={cn('capitalize', difficultyColors[protocol.difficulty])}>
-          {protocol.difficulty}
-        </span>
-      </div>
-
-      {/* Price and CTA */}
-      <div className="flex items-center justify-between pt-4 border-t border-white/10">
-        {protocol.isPurchased ? (
-          <>
-            <span className="text-skogsgron font-medium">Access Granted</span>
-            <Link to={`/shop/protocols/${protocol.slug}`}>
-              <GlassButton variant="primary" className="text-sm">
-                Continue
-                <ChevronRightIcon className="w-4 h-4" />
-              </GlassButton>
-            </Link>
-          </>
-        ) : (
-          <>
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-2xl font-bold text-kalkvit">
-                ${protocol.price}
-              </span>
-              {protocol.originalPrice && (
-                <span className="text-sm text-kalkvit/40 line-through">
-                  ${protocol.originalPrice}
-                </span>
-              )}
-            </div>
-            <Link to={`/shop/protocols/${protocol.slug}`}>
-              <GlassButton variant="primary" className="text-sm">
-                <LockClosedIcon className="w-4 h-4" />
-                Get Access
-              </GlassButton>
-            </Link>
-          </>
+        {protocol.modules > 0 && (
+          <span>{protocol.modules} modules</span>
         )}
+      </div>
+
+      {/* Free for members note */}
+      <p className="text-xs text-skogsgron mb-4">Included with your membership</p>
+
+      {/* CTA */}
+      <div className="pt-4 border-t border-white/10 space-y-2">
+        <Link to={`/protocols/${protocol.slug}`} className="block">
+          <GlassButton variant="secondary" className="w-full text-sm justify-center">
+            View Protocol
+          </GlassButton>
+        </Link>
+        <Link to="/book-session" className="block">
+          <GlassButton variant="primary" className="w-full text-sm justify-center gap-2">
+            Get Expert Support — ${sessionPrice}/hr
+          </GlassButton>
+        </Link>
       </div>
     </GlassCard>
   )
@@ -173,11 +137,11 @@ export function ShopProtocolsPage() {
 
   const filteredProtocols = protocols.filter((protocol) => {
     const matchesCategory = selectedCategory === 'All' || protocol.category === selectedCategory
-    const matchesOwned = !showOwned || protocol.isPurchased
-    return matchesCategory && matchesOwned
+    const matchesActive = !showOwned || protocol.isActive
+    return matchesCategory && matchesActive
   })
 
-  const ownedCount = protocols.filter((p) => p.isPurchased).length
+  const activeCount = protocols.filter((p) => p.isActive).length
   const isLoading = isLoadingLibrary || isLoadingActive
   const error = libraryError || activeError
 
@@ -211,7 +175,7 @@ export function ShopProtocolsPage() {
           <GlassCard variant="accent" leftBorder={false} className="px-6 py-3 text-center">
             <p className="text-sm text-kalkvit/60">Your Protocols</p>
             <p className="font-display text-2xl font-bold text-kalkvit">
-              {isLoading ? '-' : ownedCount}
+              {isLoading ? '-' : activeCount}
             </p>
           </GlassCard>
         </div>
@@ -244,7 +208,7 @@ export function ShopProtocolsPage() {
             )}
           >
             <CheckCircleIcon className="w-4 h-4" />
-            Show Owned Only
+            Show Active Only
           </button>
         </div>
 

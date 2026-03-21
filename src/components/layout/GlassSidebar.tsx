@@ -60,18 +60,16 @@ export function GlassSidebar() {
 
       {/* User Card */}
       <div className="px-3 pb-3 shrink-0">
-        <Link
-          to="/profile"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.04] transition-colors group"
-        >
-          <GlassAvatar initials={initials} size="sm" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-kalkvit truncate group-hover:text-koppar transition-colors">{displayName}</p>
-            <p className="text-[11px] text-kalkvit/40 truncate">{user?.email}</p>
-          </div>
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
+          <Link to="/profile" className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity group">
+            <GlassAvatar initials={initials} size="sm" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-kalkvit truncate group-hover:text-koppar transition-colors">{displayName}</p>
+              <p className="text-[11px] text-kalkvit/40 truncate">{user?.email}</p>
+            </div>
+          </Link>
           <Link
             to="/notifications"
-            onClick={(e) => e.stopPropagation()}
             className="relative p-1.5 rounded-lg hover:bg-white/[0.08] transition-colors text-kalkvit/40 hover:text-kalkvit"
           >
             <BellIcon className="w-4 h-4" />
@@ -81,7 +79,7 @@ export function GlassSidebar() {
               </span>
             )}
           </Link>
-        </Link>
+        </div>
       </div>
 
       {/* Divider */}

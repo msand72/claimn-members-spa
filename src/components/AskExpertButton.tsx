@@ -29,9 +29,9 @@ export function AskExpertButton({ context }: AskExpertButtonProps) {
   // Only show for member and client types
   if (userType === 'guest') return null
 
-  const navigateToExpert = (expert: { id: string; name: string; avatar_url: string | null }) => {
+  const navigateToExpert = (expert: { id: string; user_id?: string; name: string; avatar_url: string | null }) => {
     const initialMessage = context ? `[Context: ${context}]\n\n` : ''
-    navigate(`/messages?user=${expert.id}`, {
+    navigate(`/messages?user=${expert.user_id || expert.id}`, {
       state: {
         participantName: expert.name,
         participantAvatar: expert.avatar_url,
@@ -89,7 +89,7 @@ function ExpertPickerModal({
 }: {
   isOpen: boolean
   onClose: () => void
-  onSelect: (expert: { id: string; name: string; avatar_url: string | null }) => void
+  onSelect: (expert: { id: string; user_id?: string; name: string; avatar_url: string | null }) => void
 }) {
   const { data: expertsData, isLoading } = useExperts({ limit: 20 })
   const experts = Array.isArray(expertsData?.data) ? expertsData.data : []
@@ -127,6 +127,7 @@ function ExpertPickerModal({
               key={expert.id}
               onClick={() => onSelect({
                 id: expert.id,
+                user_id: expert.user_id,
                 name: expert.name,
                 avatar_url: expert.avatar_url,
               })}
