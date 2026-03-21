@@ -489,19 +489,12 @@ body {
   color: #F9F7F4 !important;
 }
 
-/* Mobile drawer — always opaque dark regardless of theme */
-.mobile-drawer.glass-elevated {
-  background: rgba(28, 28, 30, 0.95) !important;
-  backdrop-filter: blur(24px) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  box-shadow: -16px 0 48px rgba(0, 0, 0, 0.4) !important;
-}
-
+/* Keep mobile drawer dark even in light theme */
 .light .mobile-drawer.glass-elevated {
   background: rgba(28, 28, 30, 0.95) !important;
   backdrop-filter: blur(24px) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
-  box-shadow: -16px 0 48px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
 }
 
 .light .mobile-drawer .hover\:bg-white\/\[0\.06\]:hover {
