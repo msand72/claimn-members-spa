@@ -61,7 +61,7 @@ function MobileDropdown({
       {open && (
         <div
           className="absolute left-0 right-0 top-full mt-1 mx-1 py-1 rounded-xl glass-dropdown shadow-2xl z-[100]"
-          style={{ background: theme === 'light' ? undefined : 'rgba(28,28,30,0.80)' }}
+          style={{ background: theme === 'light' ? undefined : 'rgba(28,28,30,0.90)' }}
         >
           {allItems.map((item) => {
             const active = isActive(item.to, pathname)
@@ -188,7 +188,7 @@ function StepperBar({
           {showMore && (
             <div
               className="absolute top-full right-0 mt-1 py-1 min-w-[160px] rounded-xl glass-dropdown shadow-2xl z-[100]"
-              style={{ background: theme === 'light' ? undefined : 'rgba(28,28,30,0.80)' }}
+              style={{ background: theme === 'light' ? undefined : 'rgba(28,28,30,0.90)' }}
             >
               {moreItems.map((item) => (
                 <NavLink
@@ -219,7 +219,7 @@ function StepperBar({
 
 export function SectionTopBar({ items, moreItems, mode = 'tabs' }: SectionTopBarProps) {
   const { theme } = useTheme()
-  const barBg = theme === 'light' ? 'rgba(255,255,255,0.72)' : 'rgba(28,28,30,0.80)'
+  const barBg = theme === 'light' ? 'rgba(255,255,255,0.72)' : 'rgba(28,28,30,0.90)'
   const barBorder = theme === 'light' ? 'rgba(0,0,0,0.09)' : 'rgba(255,255,255,0.10)'
 
   return (
