@@ -25,6 +25,7 @@ function MobileDropdown({
   moreItems?: SectionNavItem[]
 }) {
   const { pathname } = useLocation()
+  const { theme } = useTheme()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -58,7 +59,10 @@ function MobileDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full mt-1 mx-1 py-1 rounded-xl glass-dropdown shadow-2xl z-[100]">
+        <div
+          className="absolute left-0 right-0 top-full mt-1 mx-1 py-1 rounded-xl glass-dropdown shadow-2xl z-[100]"
+          style={{ background: theme === 'light' ? undefined : 'rgba(28,28,30,0.80)' }}
+        >
           {allItems.map((item) => {
             const active = isActive(item.to, pathname)
             return (
@@ -120,6 +124,7 @@ function StepperBar({
   moreItems?: SectionNavItem[]
 }) {
   const { pathname } = useLocation()
+  const { theme } = useTheme()
   const [showMore, setShowMore] = useState(false)
   const moreRef = useRef<HTMLDivElement>(null)
 
@@ -181,7 +186,10 @@ function StepperBar({
           </button>
 
           {showMore && (
-            <div className="absolute top-full right-0 mt-1 py-1 min-w-[160px] rounded-xl glass-dropdown shadow-2xl z-[100]">
+            <div
+              className="absolute top-full right-0 mt-1 py-1 min-w-[160px] rounded-xl glass-dropdown shadow-2xl z-[100]"
+              style={{ background: theme === 'light' ? undefined : 'rgba(28,28,30,0.80)' }}
+            >
               {moreItems.map((item) => (
                 <NavLink
                   key={item.to}
