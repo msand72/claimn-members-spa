@@ -282,6 +282,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
 
 export function ConnectionsPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [sort, setSort] = useState<SortState>({ key: 'name', direction: 'asc' })
@@ -348,7 +349,14 @@ export function ConnectionsPage() {
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-kalkvit mb-2">Connections</h1>
             <p className="text-kalkvit/60">Build your network within the brotherhood</p>
           </div>
-          <div className="flex gap-4 text-center">
+          <div className="flex items-center gap-4">
+            <GlassButton variant="primary" onClick={() => navigate('/network')}>
+              <UserPlusIcon className="w-4 h-4" />
+              Find Members
+            </GlassButton>
+          </div>
+        </div>
+        <div className="flex gap-4 text-center mb-8">
             <div className="px-4">
               <p className="font-display text-2xl font-bold text-kalkvit">{stats.total}</p>
               <p className="text-xs text-kalkvit/50">Connected</p>
@@ -361,7 +369,6 @@ export function ConnectionsPage() {
               <p className="font-display text-2xl font-bold text-koppar">{stats.suggestions}</p>
               <p className="text-xs text-kalkvit/50">Suggestions</p>
             </div>
-          </div>
         </div>
 
         {/* Search and Tabs */}
