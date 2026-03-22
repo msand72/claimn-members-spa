@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { safeOpenUrl } from '../lib/url-validation'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge, GlassButton, GlassModal, GlassModalFooter, GlassToast } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { MagnifyingGlassIcon, PaperAirplaneIcon, EllipsisVerticalIcon, ArrowLeftIcon, ArrowPathIcon, ChatBubbleLeftIcon, PlusIcon, PhotoIcon, XMarkIcon, FlagIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, PaperAirplaneIcon, EllipsisVerticalIcon, ArrowLeftIcon, ArrowPathIcon, ChatBubbleLeftIcon, PlusIcon, PhotoIcon, XMarkIcon, FlagIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { api } from '../lib/api/client'
 import { validateImageFile, compressMessageImage, blobToFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
@@ -12,6 +12,7 @@ import {
   useConversations,
   useConversationMessages,
   useSendMessage,
+  useDeleteMessage,
   useMarkConversationRead,
   useReportMessage,
   useConnections,
@@ -89,6 +90,7 @@ export function MessagesPage() {
   } = useConversationMessages(conversationKey, { limit: 100 })
 
   const sendMessage = useSendMessage()
+  const deleteMessage = useDeleteMessage()
   const markRead = useMarkConversationRead()
   const reportMessage = useReportMessage()
   const [reportMessageId, setReportMessageId] = useState<string | null>(null)
@@ -774,14 +776,24 @@ export function MessagesPage() {
                         {isSending && (
                           <ArrowPathIcon className="w-3.5 h-3.5 animate-spin text-kalkvit/40 flex-shrink-0 mb-2" />
                         )}
-                        {!isOwn && !msg._optimistic && (
-                          <button
-                            onClick={() => setReportMessageId(msg.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-kalkvit/60 transition-all flex-shrink-0 mb-2"
-                            title="Report message"
-                          >
-                            <FlagIcon className="w-3 h-3" />
-                          </button>
+                        {!msg._optimistic && (
+                          isOwn ? (
+                            <button
+                              onClick={() => deleteMessage.mutate(msg.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-tegelrod transition-all flex-shrink-0 mb-2"
+                              title="Delete message"
+                            >
+                              <TrashIcon className="w-3 h-3" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setReportMessageId(msg.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-kalkvit/60 transition-all flex-shrink-0 mb-2"
+                              title="Report message"
+                            >
+                              <FlagIcon className="w-3 h-3" />
+                            </button>
+                          )
                         )}
                       </div>
                     )

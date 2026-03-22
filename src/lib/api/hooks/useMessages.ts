@@ -123,14 +123,30 @@ export function useMarkConversationRead() {
   })
 }
 
-// Delete message
+// Delete message — optimistic
 export function useDeleteMessage() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (messageId: string) =>
       api.delete(`/members/messages/${messageId}`),
-    onSuccess: () => {
+    onMutate: async (messageId) => {
+      await queryClient.cancelQueries({ queryKey: messageKeys.all })
+      const previous = queryClient.getQueriesData({ queryKey: messageKeys.all })
+      // Remove message from all conversation caches
+      queryClient.setQueriesData<PaginatedResponse<Message>>(
+        { queryKey: messageKeys.all },
+        (old) => {
+          if (!old?.data) return old
+          return { ...old, data: old.data.filter((m) => m.id !== messageId) }
+        },
+      )
+      return { previous }
+    },
+    onError: (_err, _messageId, context) => {
+      context?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: messageKeys.all })
     },
   })
