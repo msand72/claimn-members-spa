@@ -1,13 +1,12 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
-import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect, GlassModal, GlassModalFooter } from '../components/ui'
-import { useExperts, useExpertAvailability, useAvailableSlots, useBookSession, useCheckout, usePlans, expertKeys } from '../lib/api/hooks'
-import { useQueryClient } from '@tanstack/react-query'
+import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassSelect } from '../components/ui'
+import { useExperts, useExpertAvailability, useAvailableSlots, usePlans } from '../lib/api/hooks'
 import type { Expert } from '../lib/api/types'
-import { CalendarIcon, ClockIcon, StarIcon, ChevronLeftIcon, ChevronRightIcon, VideoCameraIcon, ArrowPathIcon, ExclamationTriangleIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
+import { CalendarIcon, StarIcon, ChevronLeftIcon, ChevronRightIcon, ArrowPathIcon, ExclamationTriangleIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
-import { isAllowedExternalUrl, safeOpenUrl } from '../lib/url-validation'
+import { safeOpenUrl } from '../lib/url-validation'
 import { BookingModal } from '../components/BookingModal'
 
 function ExpertCardSkeleton() {
@@ -115,10 +114,7 @@ export function BookSessionPage() {
     if (isNaN(d.getTime())) { const now = new Date(); return { year: now.getFullYear(), month: now.getMonth() } }
     return { year: d.getFullYear(), month: d.getMonth() }
   })
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [mobileBookingExpert, setMobileBookingExpert] = useState<Expert | null>(null)
-  const [bookingError, setBookingError] = useState<string | null>(null)
-  const queryClient = useQueryClient()
 
   // Fetch experts
   const { data: expertsData, isLoading: isLoadingExperts, error: expertsError } = useExperts()
@@ -136,20 +132,6 @@ export function BookSessionPage() {
 
   // Compute the price for the current session, falling back to expert's hourly_rate
   const sessionDuration = parseInt(sessionType)
-
-  // Always match by duration — price_id is needed for checkout even when amount is 0
-  const sessionPrice = useMemo(() => {
-    return expertSessions.find((s) => s.duration === sessionDuration) || null
-  }, [expertSessions, sessionDuration])
-
-  // Fallback price based on expert's hourly_rate * duration
-  const fallbackPrice = useMemo(() => {
-    if (!selectedExpert) return 0
-    return Math.round(selectedExpert.hourly_rate * (sessionDuration / 60))
-  }, [selectedExpert, sessionDuration])
-
-  // The actual display price
-  const displayPrice = sessionPrice?.amount || fallbackPrice
 
   // Build session type options — use API prices when available, else expert rate
   const sessionTypes = useMemo(() => {
@@ -189,11 +171,6 @@ export function BookSessionPage() {
     selectedDate || '',
     sessionDuration,
   )
-
-  // Book session mutation (internal scheduling)
-  const bookSessionMutation = useBookSession()
-  // Stripe checkout mutation (payment)
-  const checkoutMutation = useCheckout()
 
   // Build calendar grid for the displayed month
   const today = new Date()
@@ -288,75 +265,6 @@ export function BookSessionPage() {
     }
     return slots
   }, [selectedDate, serverSlots, availability, sessionDuration])
-
-  const handleBook = async () => {
-    if (!selectedExpert || !selectedDate || !selectedTime) return
-
-    const priceId = sessionPrice?.price_id
-    if (!priceId) {
-      setBookingError('Checkout is not configured for this session type. Please contact support.')
-      return
-    }
-
-    try {
-      // Construct the scheduled_at datetime with timezone offset
-      const timeStr = convertTo24Hour(selectedTime)
-      const localDate = new Date(`${selectedDate}T${timeStr}:00`)
-      const scheduledAt = localDate.toISOString()
-
-      // First book the time slot internally
-      await bookSessionMutation.mutateAsync({
-        expert_id: selectedExpert.id,
-        scheduled_at: scheduledAt,
-        duration: parseInt(sessionType),
-        session_type: 'coaching',
-      })
-
-      // Then redirect to Stripe for payment
-      const checkoutData = await checkoutMutation.mutateAsync({
-        price_id: priceId,
-        product: 'expert_session',
-        mode: 'payment',
-        expert_id: selectedExpert.id,
-        success_url: `${window.location.origin}/shop/success`,
-        cancel_url: `${window.location.origin}/book-session?expert=${selectedExpert.id}`,
-      })
-
-      if (isAllowedExternalUrl(checkoutData.url)) {
-        window.location.href = checkoutData.url
-      } else {
-        setBookingError('Invalid checkout URL. Please try again or contact support.')
-      }
-    } catch (error: any) {
-      const code = error?.error?.code || error?.code || ''
-      const status = error?.status || error?.response?.status
-      if (status === 409 || code === 'SLOT_UNAVAILABLE') {
-        setBookingError('This time slot is no longer available. Please choose another time.')
-        // Refresh available slots so the UI reflects the current state
-        if (selectedExpertId && selectedDate) {
-          queryClient.invalidateQueries({
-            queryKey: expertKeys.availableSlots(selectedExpertId, selectedDate, sessionDuration),
-          })
-        }
-        setSelectedTime(null)
-      } else {
-        const msg = error?.error?.message || error?.message || 'Failed to book session. Please try again.'
-        setBookingError(msg)
-      }
-    }
-  }
-
-  // Helper to convert time string to 24-hour format
-  const convertTo24Hour = (time12h: string): string => {
-    const [time, modifier] = time12h.split(' ')
-    let [hours, minutes] = time.split(':')
-    if (hours === '12') {
-      hours = modifier === 'AM' ? '00' : '12'
-    } else if (modifier === 'PM') {
-      hours = String(parseInt(hours, 10) + 12)
-    }
-    return `${hours.padStart(2, '0')}:${minutes}`
-  }
 
   if (expertsError) {
     return (
@@ -548,8 +456,7 @@ export function BookSessionPage() {
                         disabled={!slot.available}
                         onClick={() => {
                           setSelectedTime(slot.time)
-                          setBookingError(null)
-                          setShowConfirmModal(true)
+                          setMobileBookingExpert(selectedExpert)
                         }}
                         className={cn(
                           'p-2 rounded-xl text-sm font-medium transition-all',
@@ -586,100 +493,18 @@ export function BookSessionPage() {
               </GlassCard>
             )}
 
-            {/* Booking Confirmation Modal */}
-            <GlassModal
-              isOpen={showConfirmModal}
-              onClose={() => { setShowConfirmModal(false); setBookingError(null) }}
-              title="Confirm Booking"
-              size="sm"
-            >
-              {selectedExpert && selectedDate && selectedTime && (
-                <>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center gap-3 text-kalkvit/80">
-                      {selectedExpert.avatar_url ? (
-                        <img
-                          src={selectedExpert.avatar_url}
-                          alt={selectedExpert.name}
-                          className="w-8 h-8 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <GlassAvatar
-                          initials={selectedExpert.name
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .toUpperCase()
-                            .slice(0, 2)}
-                          size="sm"
-                        />
-                      )}
-                      <span className="font-medium text-kalkvit">{selectedExpert.name}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-kalkvit/80">
-                      <CalendarIcon className="w-4 h-4 text-koppar" />
-                      <span>
-                        {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-kalkvit/80">
-                      <ClockIcon className="w-4 h-4 text-koppar" />
-                      <span>
-                        {selectedTime} ({sessionType} min)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-kalkvit/80">
-                      <VideoCameraIcon className="w-4 h-4 text-koppar" />
-                      <span>Video Call</span>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                      <span className="text-kalkvit/60">Total</span>
-                      <span className="font-display text-2xl font-bold text-kalkvit">
-                        €{displayPrice}
-                      </span>
-                    </div>
-                  </div>
-                  {(bookSessionMutation.isError || checkoutMutation.isError || bookingError) && (
-                    <p className="text-xs text-tegelrod mt-3 text-center">
-                      {bookingError || 'Failed to book session. Please try again.'}
-                    </p>
-                  )}
-                  <GlassModalFooter>
-                    <GlassButton variant="ghost" onClick={() => { setShowConfirmModal(false); setBookingError(null) }}>
-                      Cancel
-                    </GlassButton>
-                    <GlassButton
-                      variant="primary"
-                      onClick={handleBook}
-                      disabled={bookSessionMutation.isPending || checkoutMutation.isPending}
-                    >
-                      {bookSessionMutation.isPending || checkoutMutation.isPending ? (
-                        <>
-                          <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                          {checkoutMutation.isPending ? 'Redirecting...' : 'Booking...'}
-                        </>
-                      ) : (
-                        `Pay €${displayPrice} & Book`
-                      )}
-                    </GlassButton>
-                  </GlassModalFooter>
-                </>
-              )}
-            </GlassModal>
           </div>
         </div>
       </div>
 
-      {/* Mobile/Tablet Booking Modal */}
+      {/* Booking Modal — opens with pre-selected date/time when a slot is tapped */}
       {mobileBookingExpert && (
         <BookingModal
           expert={mobileBookingExpert}
           isOpen={!!mobileBookingExpert}
-          onClose={() => setMobileBookingExpert(null)}
+          onClose={() => { setMobileBookingExpert(null); setSelectedTime(null) }}
+          preselectedDate={selectedDate}
+          preselectedTime={selectedTime}
         />
       )}
     </MainLayout>
