@@ -123,6 +123,34 @@ export function useMarkConversationRead() {
   })
 }
 
+// Edit message — optimistic (messages use 'body' not 'content')
+export function useEditMessage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ messageId, body }: { messageId: string; body: string }) =>
+      api.put(`/members/messages/${messageId}`, { body }),
+    onMutate: async ({ messageId, body }) => {
+      await queryClient.cancelQueries({ queryKey: messageKeys.all })
+      const previous = queryClient.getQueriesData({ queryKey: messageKeys.all })
+      queryClient.setQueriesData<PaginatedResponse<Message>>(
+        { queryKey: messageKeys.all },
+        (old) => {
+          if (!old?.data) return old
+          return { ...old, data: old.data.map((m) => m.id === messageId ? { ...m, body, content: body } : m) }
+        },
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      context?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: messageKeys.all })
+    },
+  })
+}
+
 // Delete message — optimistic
 export function useDeleteMessage() {
   const queryClient = useQueryClient()

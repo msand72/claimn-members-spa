@@ -36,6 +36,8 @@ export {
   usePostComments,
   useAddComment,
   useDeleteComment,
+  useEditPost,
+  useEditComment,
   useReportPost,
 } from './useFeed'
 
@@ -47,6 +49,7 @@ export {
   useSendMessage,
   useMarkMessageRead,
   useMarkConversationRead,
+  useEditMessage,
   useDeleteMessage,
   useReportMessage,
 } from './useMessages'

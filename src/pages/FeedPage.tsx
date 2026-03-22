@@ -22,13 +22,15 @@ import {
   usePostComments,
   useAddComment,
   useDeleteComment,
+  useEditPost,
+  useEditComment,
   useReportPost,
   type FeedPost,
   type FeedComment,
 } from '../lib/api'
 import { ReportModal } from '../components/ReportModal'
 import { api } from '../lib/api/client'
-import { HeartIcon, ChatBubbleLeftIcon, ShareIcon, EllipsisHorizontalIcon, PhotoIcon, PaperAirplaneIcon, UserGroupIcon, ArrowPathIcon, CheckIcon, FlagIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { HeartIcon, ChatBubbleLeftIcon, ShareIcon, EllipsisHorizontalIcon, PhotoIcon, PaperAirplaneIcon, UserGroupIcon, ArrowPathIcon, CheckIcon, FlagIcon, XMarkIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { compressMessageImage, validateImageFile, blobToFile } from '../lib/image-utils'
 
 // Helper to format time ago
@@ -52,8 +54,10 @@ function PostCard({ post }: { post: FeedPost }) {
   const likePost = useLikePost()
   const unlikePost = useUnlikePost()
   const deletePost = useDeletePost()
+  const editPost = useEditPost()
   const addComment = useAddComment()
   const deleteComment = useDeleteComment()
+  const editComment = useEditComment()
   const reportPost = useReportPost()
 
   const [showComments, setShowComments] = useState(false)
@@ -62,6 +66,10 @@ function PostCard({ post }: { post: FeedPost }) {
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [reported, setReported] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
+  const [isEditingPost, setIsEditingPost] = useState(false)
+  const [editPostContent, setEditPostContent] = useState('')
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editCommentContent, setEditCommentContent] = useState('')
   const isOwnPost = user?.id === post.user_id
   const moreMenuRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
@@ -165,16 +173,29 @@ function PostCard({ post }: { post: FeedPost }) {
               {showMoreMenu && (
                 <div className="absolute right-0 top-10 z-20 glass-elevated rounded-lg py-1 min-w-[160px] shadow-lg border border-white/10">
                   {isOwnPost ? (
-                    <button
-                      onClick={() => {
-                        setShowMoreMenu(false)
-                        if (confirm('Delete this post?')) deletePost.mutate(post.id)
-                      }}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-tegelrod hover:bg-white/[0.06] transition-colors"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                      Delete Post
-                    </button>
+                    <>
+                      <button
+                        onClick={() => {
+                          setShowMoreMenu(false)
+                          setEditPostContent(post.content)
+                          setIsEditingPost(true)
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-kalkvit/80 hover:bg-white/[0.06] transition-colors"
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                        Edit Post
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowMoreMenu(false)
+                          if (confirm('Delete this post?')) deletePost.mutate(post.id)
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-tegelrod hover:bg-white/[0.06] transition-colors"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                        Delete Post
+                      </button>
+                    </>
                   ) : (
                     <button
                       onClick={handleReport}
@@ -197,7 +218,34 @@ function PostCard({ post }: { post: FeedPost }) {
             </div>
           )}
 
-          <p className="text-kalkvit/80 leading-relaxed mb-4">{post.content}</p>
+          {isEditingPost ? (
+            <div className="mb-4 space-y-2">
+              <textarea
+                value={editPostContent}
+                onChange={(e) => setEditPostContent(e.target.value)}
+                className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-sm text-kalkvit placeholder-kalkvit/40 focus:outline-none focus:border-koppar/50 transition-colors min-h-[80px]"
+                autoFocus
+              />
+              <div className="flex gap-2 justify-end">
+                <GlassButton variant="ghost" onClick={() => setIsEditingPost(false)} className="text-sm px-3 py-1">
+                  Cancel
+                </GlassButton>
+                <GlassButton
+                  variant="primary"
+                  className="text-sm px-3 py-1"
+                  disabled={!editPostContent.trim() || editPost.isPending}
+                  onClick={() => {
+                    editPost.mutate({ postId: post.id, content: editPostContent.trim() })
+                    setIsEditingPost(false)
+                  }}
+                >
+                  Save
+                </GlassButton>
+              </div>
+            </div>
+          ) : (
+            <p className="text-kalkvit/80 leading-relaxed mb-4">{post.content}</p>
+          )}
 
           {post.image_url && (
             <img
@@ -267,6 +315,7 @@ function PostCard({ post }: { post: FeedPost }) {
                       .slice(0, 2)
                       .toUpperCase()
                     const isOwnComment = user?.id === comment.user_id
+                    const isEditingThis = editingCommentId === comment.id
                     return (
                       <div key={comment.id} className="flex gap-3 group/comment">
                         <GlassAvatar initials={cInitials} size="sm" />
@@ -276,17 +325,55 @@ function PostCard({ post }: { post: FeedPost }) {
                             <span className="text-xs text-kalkvit/50">
                               {formatTimeAgo(comment.created_at)}
                             </span>
-                            {isOwnComment && (
-                              <button
-                                onClick={() => deleteComment.mutate({ postId: post.id, commentId: comment.id })}
-                                className="opacity-0 group-hover/comment:opacity-100 p-0.5 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-tegelrod transition-all"
-                                title="Delete comment"
-                              >
-                                <TrashIcon className="w-3.5 h-3.5" />
-                              </button>
+                            {isOwnComment && !isEditingThis && (
+                              <>
+                                <button
+                                  onClick={() => { setEditingCommentId(comment.id); setEditCommentContent(comment.content) }}
+                                  className="opacity-0 group-hover/comment:opacity-100 p-0.5 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-koppar transition-all"
+                                  title="Edit comment"
+                                >
+                                  <PencilIcon className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => deleteComment.mutate({ postId: post.id, commentId: comment.id })}
+                                  className="opacity-0 group-hover/comment:opacity-100 p-0.5 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-tegelrod transition-all"
+                                  title="Delete comment"
+                                >
+                                  <TrashIcon className="w-3.5 h-3.5" />
+                                </button>
+                              </>
                             )}
                           </div>
-                          <p className="text-sm text-kalkvit/80">{comment.content}</p>
+                          {isEditingThis ? (
+                            <div className="space-y-1.5">
+                              <input
+                                type="text"
+                                value={editCommentContent}
+                                onChange={(e) => setEditCommentContent(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    editComment.mutate({ postId: post.id, commentId: comment.id, content: editCommentContent.trim() })
+                                    setEditingCommentId(null)
+                                  }
+                                  if (e.key === 'Escape') setEditingCommentId(null)
+                                }}
+                                className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-2 py-1 text-sm text-kalkvit focus:outline-none focus:border-koppar/50 transition-colors"
+                                autoFocus
+                              />
+                              <div className="flex gap-1.5 text-xs">
+                                <button onClick={() => setEditingCommentId(null)} className="text-kalkvit/50 hover:text-kalkvit">Cancel</button>
+                                <button
+                                  onClick={() => {
+                                    editComment.mutate({ postId: post.id, commentId: comment.id, content: editCommentContent.trim() })
+                                    setEditingCommentId(null)
+                                  }}
+                                  className="text-koppar hover:text-koppar/80"
+                                >Save</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-kalkvit/80">{comment.content}</p>
+                          )}
                         </div>
                       </div>
                     )
