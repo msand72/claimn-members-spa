@@ -25,12 +25,14 @@ interface BookingModalProps {
   onClose: () => void
   /** Pre-selected date (YYYY-MM-DD). If not provided, shows a date picker. */
   preselectedDate?: string | null
+  /** Pre-selected time (e.g. "10:00 AM"). If provided, auto-selects the time slot. */
+  preselectedTime?: string | null
 }
 
-export function BookingModal({ expert, isOpen, onClose, preselectedDate }: BookingModalProps) {
+export function BookingModal({ expert, isOpen, onClose, preselectedDate, preselectedTime }: BookingModalProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(preselectedDate ?? null)
   const [sessionDuration, setSessionDuration] = useState(60)
-  const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [selectedTime, setSelectedTime] = useState<string | null>(preselectedTime ?? null)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [weekOffset, setWeekOffset] = useState(0)
   const [calendarView, setCalendarView] = useState<'week' | 'month'>('week')
@@ -180,7 +182,7 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate }: Booki
 
   const handleClose = () => {
     setBookingError(null)
-    setSelectedTime(null)
+    setSelectedTime(preselectedTime ?? null)
     setWeekOffset(0)
     setMonthOffset(0)
     setCalendarView('week')
