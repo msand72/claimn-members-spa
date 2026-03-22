@@ -13,7 +13,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const section = useCurrentSection()
 
   return (
-    <div className="min-h-screen bg-glass-dark dark:bg-glass-dark light:bg-kalkvit transition-colors duration-300 overflow-x-hidden">
+    <div className="min-h-dvh bg-glass-dark dark:bg-glass-dark light:bg-kalkvit transition-colors duration-300 overflow-x-hidden">
       <BackgroundPattern />
 
       {/* Mobile Header - visible on mobile/tablet */}
@@ -28,7 +28,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       </div>
 
       {/* Main Content - with left margin for fixed sidebar on desktop */}
-      <main className="relative z-10 min-h-screen pt-[66px] pb-20 lg:pt-0 lg:pb-0 lg:ml-[260px]">
+      <main className="relative z-10 min-h-dvh pt-[66px] pb-20 lg:pt-0 lg:pb-0 lg:ml-[260px]">
         {section && (
           <SectionTopBar
             items={section.items}
