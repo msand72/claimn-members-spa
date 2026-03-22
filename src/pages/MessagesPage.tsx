@@ -813,7 +813,7 @@ export function MessagesPage() {
                         )}
                         {!msg._optimistic && (
                           isOwn ? (
-                            <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 mb-2">
+                            <div className="flex flex-col gap-0.5 lg:opacity-0 lg:group-hover:opacity-100 transition-all flex-shrink-0 mb-2">
                               <button
                                 onClick={() => { setEditingMessageId(msg.id); setEditMessageContent(msg.content) }}
                                 className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-koppar transition-all"
@@ -832,7 +832,7 @@ export function MessagesPage() {
                           ) : (
                             <button
                               onClick={() => setReportMessageId(msg.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-kalkvit/60 transition-all flex-shrink-0 mb-2"
+                              className="lg:opacity-0 lg:group-hover:opacity-100 p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-kalkvit/60 transition-all flex-shrink-0 mb-2"
                               title="Report message"
                             >
                               <FlagIcon className="w-3 h-3" />
