@@ -28,6 +28,7 @@ import {
   useMyExpert,
   useCoachRequest,
   useSubmitCoachRequest,
+  usePendingConnections,
   safeArray,
   type FeedPost,
   type Expert,
@@ -61,6 +62,7 @@ import {
   ArrowPathIcon,
   CheckCircleIcon,
   PaperAirplaneIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline'
 
 // ── Helpers ──────────────────────────────────────────
@@ -715,6 +717,43 @@ function MyPrograms() {
   )
 }
 
+// ── Pending Connection Requests ───────────────────────
+
+function PendingConnectionRequests() {
+  const { user } = useAuth()
+  const { data: pendingData } = usePendingConnections()
+  const pendingConnections = Array.isArray(pendingData?.data) ? pendingData.data : []
+
+  // Only show incoming requests (where current user is the addressee)
+  const incomingRequests = pendingConnections.filter(
+    (c) => (c.addressee_id || c.recipient_id) === user?.id
+  )
+
+  if (incomingRequests.length === 0) return null
+
+  return (
+    <Link to="/connections?tab=Pending" className="block">
+      <GlassCard variant="accent" className="hover:border-koppar/40 transition-colors">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center">
+            <UserPlusIcon className="w-6 h-6 text-koppar" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-kalkvit">
+              {incomingRequests.length} Connection Request{incomingRequests.length !== 1 ? 's' : ''}
+            </h3>
+            <p className="text-sm text-kalkvit/60">
+              {incomingRequests.map((c) => c.requester?.display_name || 'Someone').slice(0, 3).join(', ')}
+              {incomingRequests.length > 3 ? ` and ${incomingRequests.length - 3} more` : ''} want{incomingRequests.length === 1 ? 's' : ''} to connect
+            </p>
+          </div>
+          <ArrowRightIcon className="w-5 h-5 text-koppar flex-shrink-0" />
+        </div>
+      </GlassCard>
+    </Link>
+  )
+}
+
 // ── ActivePrograms (enrolled programs list) ──────────
 
 function ActivePrograms() {
@@ -1061,6 +1100,9 @@ export function HubPage() {
           <div className="lg:col-span-2 space-y-6">
             <PageErrorBoundary section="ActivePrograms">
               <ActivePrograms />
+            </PageErrorBoundary>
+            <PageErrorBoundary section="PendingRequests">
+              <PendingConnectionRequests />
             </PageErrorBoundary>
             <PageErrorBoundary section="ExpertSpotlight">
               <ExpertSpotlight />
