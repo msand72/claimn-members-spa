@@ -8,16 +8,14 @@ import {
   GlassInput,
   GlassModal,
   GlassModalFooter,
-  GlassSelect,
   GlassMenu,
 } from '../components/ui'
-import { PILLARS, GOAL_STATUSES, KPI_TYPES, TRACKING_FREQUENCIES } from '../lib/constants'
+import { PILLARS, GOAL_STATUSES } from '../lib/constants'
 import {
   useGoal,
   useUpdateGoal,
   useDeleteGoal,
   useLogKPI,
-  useCreateKPI,
   useActionItems,
   useCreateActionItem,
   useToggleActionItem,
@@ -60,7 +58,6 @@ export function GoalDetailPage() {
   const updateGoal = useUpdateGoal()
   const deleteGoal = useDeleteGoal()
   const logKPI = useLogKPI()
-  const createKPI = useCreateKPI()
 
   // Action items (subtasks) for this goal
   const { data: actionItemsData } = useActionItems({ goal_id: id || '', status: undefined })
@@ -74,8 +71,6 @@ export function GoalDetailPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
-  const [showAddKpiModal, setShowAddKpiModal] = useState(false)
-  const [newKpi, setNewKpi] = useState({ kpiType: '', currentValue: '', targetValue: '', frequency: 'daily' })
   const [actionError, setActionError] = useState<string | null>(null)
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [isAddingSubtask, setIsAddingSubtask] = useState(false)
@@ -280,37 +275,6 @@ export function GoalDetailPage() {
       await deleteActionItem.mutateAsync(itemId)
     } catch (_err) {
       setActionError('Failed to delete subtask. Please try again.')
-    }
-  }
-
-  const handleCreateKpi = async () => {
-    if (!newKpi.kpiType || !newKpi.targetValue) return
-    setActionError(null)
-
-    const selectedKpiType = [...KPI_TYPES.biological, ...KPI_TYPES.action].find(
-      (k) => k.id === newKpi.kpiType
-    )
-
-    try {
-      const created = await createKPI.mutateAsync({
-        goalId: goal.id,
-        data: {
-          name: selectedKpiType?.name || newKpi.kpiType,
-          type: 'number',
-          target_value: parseFloat(newKpi.targetValue),
-          unit: selectedKpiType?.unit || null,
-          frequency: newKpi.frequency as 'daily' | 'weekly' | 'monthly',
-        },
-      })
-      // Log the initial current value so the KPI starts at the user's actual state
-      const initialValue = parseFloat(newKpi.currentValue)
-      if (initialValue && created?.id) {
-        await logKPI.mutateAsync({ kpiId: created.id, data: { value: initialValue } })
-      }
-      setShowAddKpiModal(false)
-      setNewKpi({ kpiType: '', currentValue: '', targetValue: '', frequency: 'daily' })
-    } catch (_err) {
-      setActionError('Failed to create KPI. Please try again.')
     }
   }
 
@@ -597,7 +561,7 @@ export function GoalDetailPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-kalkvit">Key Performance Indicators</h3>
-            <GlassButton variant="ghost" className="text-sm" onClick={() => setShowAddKpiModal(true)}>
+            <GlassButton variant="ghost" className="text-sm" onClick={() => navigate(`/kpis?goalId=${goal.id}`)}>
               <PlusIcon className="w-4 h-4" />
               Add KPI
             </GlassButton>
@@ -727,57 +691,6 @@ export function GoalDetailPage() {
           </GlassModalFooter>
         </GlassModal>
 
-        {/* Add KPI Modal */}
-        <GlassModal
-          isOpen={showAddKpiModal}
-          onClose={() => setShowAddKpiModal(false)}
-          title="Add New KPI"
-        >
-          <div className="space-y-4">
-            <GlassSelect
-              label="KPI Type"
-              options={[
-                { value: '', label: 'Select KPI type' },
-                ...KPI_TYPES.biological.map((k) => ({ value: k.id, label: `${k.name} (Bio)` })),
-                ...KPI_TYPES.action.map((k) => ({ value: k.id, label: `${k.name} (Action)` })),
-              ]}
-              value={newKpi.kpiType}
-              onChange={(e) => setNewKpi({ ...newKpi, kpiType: e.target.value })}
-            />
-            <GlassInput
-              label="Current Value"
-              type="number"
-              placeholder="Where are you now? (e.g. 82)"
-              value={newKpi.currentValue}
-              onChange={(e) => setNewKpi({ ...newKpi, currentValue: e.target.value })}
-            />
-            <GlassInput
-              label="Target Value"
-              type="number"
-              placeholder="Where do you want to be? (e.g. 78)"
-              value={newKpi.targetValue}
-              onChange={(e) => setNewKpi({ ...newKpi, targetValue: e.target.value })}
-            />
-            <GlassSelect
-              label="Tracking Frequency"
-              options={TRACKING_FREQUENCIES.map((f) => ({ value: f.id, label: f.name }))}
-              value={newKpi.frequency}
-              onChange={(e) => setNewKpi({ ...newKpi, frequency: e.target.value })}
-            />
-          </div>
-          <GlassModalFooter>
-            <GlassButton variant="ghost" onClick={() => setShowAddKpiModal(false)}>
-              Cancel
-            </GlassButton>
-            <GlassButton
-              variant="primary"
-              onClick={handleCreateKpi}
-              disabled={!newKpi.kpiType || !newKpi.targetValue || createKPI.isPending}
-            >
-              {createKPI.isPending ? 'Creating...' : 'Add KPI'}
-            </GlassButton>
-          </GlassModalFooter>
-        </GlassModal>
       </div>
     </MainLayout>
   )

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
   GlassCard,
@@ -155,6 +156,7 @@ function KPICard({
 }
 
 export function KPIsPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [showLogModal, setShowLogModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedKpi, setSelectedKpi] = useState<KPI | null>(null)
@@ -173,6 +175,17 @@ export function KPIsPage() {
 
   const [actionError, setActionError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // Auto-open create modal when navigated from GoalDetailPage with ?goalId=
+  useEffect(() => {
+    const goalIdParam = searchParams.get('goalId')
+    if (goalIdParam) {
+      setNewKpi((prev) => ({ ...prev, goalId: goalIdParam }))
+      setShowCreateModal(true)
+      // Clean up the URL param so refreshing doesn't re-open
+      setSearchParams({}, { replace: true })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // API hooks
   const { data: kpisData, isLoading, error } = useKPIs()

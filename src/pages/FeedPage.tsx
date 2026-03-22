@@ -46,6 +46,7 @@ function formatTimeAgo(dateStr: string): string {
 }
 
 function PostCard({ post }: { post: FeedPost }) {
+  const { user } = useAuth()
   const likePost = useLikePost()
   const unlikePost = useUnlikePost()
   const addComment = useAddComment()
@@ -101,10 +102,12 @@ function PostCard({ post }: { post: FeedPost }) {
 
   const handleAddComment = () => {
     if (!commentText.trim()) return
+    const authorName = user?.display_name || user?.email?.split('@')[0] || 'You'
     addComment.mutate(
-      { postId: post.id, data: { content: commentText.trim() } },
+      { postId: post.id, data: { content: commentText.trim() }, _optimistic: { authorName, userId: user?.id || '' } },
       { onSuccess: () => setCommentText('') }
     )
+    setCommentText('')
   }
 
   const handleReport = () => {
@@ -431,6 +434,7 @@ export function FeedPage() {
       content: postContent || (imageUrl ? '[Image]' : ''),
       image_url: imageUrl,
       interest_group_id: postGroupId || undefined,
+      _optimistic: { authorName: displayName, authorAvatar: user?.avatar_url, userId: user?.id || '' },
     }, {
       onSuccess: () => {
         setPostContent('')
