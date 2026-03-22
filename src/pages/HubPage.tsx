@@ -23,6 +23,7 @@ import {
   usePrograms,
   useDashboardStats,
   useGoals,
+  useKPISummary,
   useMyActiveProtocols,
   useFeaturedProtocols,
   useMyExpert,
@@ -44,7 +45,7 @@ import type { ClaimnEvent } from '../lib/api/hooks/useEvents'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import { HubHeroArt } from '../components/ui/HubHeroArt'
-import { GoalTargetVisual, StreakBarsVisual, DunbarClusterVisual, CalendarHeatmapVisual } from '../components/ui/StatCardVisuals'
+import { GoalTargetVisual, AdherenceArcVisual, DunbarClusterVisual, CalendarHeatmapVisual } from '../components/ui/StatCardVisuals'
 import { PillarIcon } from '../components/icons'
 import {
   HeartIcon,
@@ -148,34 +149,43 @@ function WelcomeBanner() {
 function StatsRow() {
   const { data: stats, isLoading } = useDashboardStats()
   const { data: goalsData } = useGoals({ status: 'active', limit: 1 })
+  const { data: kpiSummary } = useKPISummary()
 
   const goalsCount = safeArray<Goal>(goalsData).length
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <GlassStatsCard
-        label="Active Goals"
-        value={isLoading ? '...' : String(stats?.goals_active ?? goalsCount)}
-        visual={<GoalTargetVisual className="w-full h-full text-kalkvit" />}
-      />
-      <GlassStatsCard
-        label="Streak"
-        value={isLoading ? '...' : String(stats?.current_streak ?? 0)}
-        trendLabel="days"
-        visual={<StreakBarsVisual className="w-full h-full text-kalkvit" />}
-      />
-      <GlassStatsCard
-        label="Connections"
-        value={isLoading ? '...' : String(stats?.connections_count ?? 0)}
-        trendLabel="network"
-        visual={<DunbarClusterVisual className="w-full h-full text-kalkvit" />}
-      />
-      <GlassStatsCard
-        label="Days Active"
-        value={isLoading ? '...' : String(stats?.days_since_joined ?? 0)}
-        trendLabel="journey"
-        visual={<CalendarHeatmapVisual className="w-full h-full text-kalkvit" />}
-      />
+      <Link to="/goals">
+        <GlassStatsCard
+          label="Active Goals"
+          value={isLoading ? '...' : String(stats?.goals_active ?? goalsCount)}
+          visual={<GoalTargetVisual className="w-full h-full text-kalkvit" />}
+        />
+      </Link>
+      <Link to="/kpis">
+        <GlassStatsCard
+          label="KPIs Tracked"
+          value={isLoading ? '...' : String(kpiSummary?.total_kpis ?? 0)}
+          trendLabel="metrics"
+          visual={<AdherenceArcVisual className="w-full h-full text-kalkvit" />}
+        />
+      </Link>
+      <Link to="/connections">
+        <GlassStatsCard
+          label="Connections"
+          value={isLoading ? '...' : String(stats?.connections_count ?? 0)}
+          trendLabel="network"
+          visual={<DunbarClusterVisual className="w-full h-full text-kalkvit" />}
+        />
+      </Link>
+      <Link to="/profile">
+        <GlassStatsCard
+          label="Days Active"
+          value={isLoading ? '...' : String(stats?.days_since_joined ?? 0)}
+          trendLabel="journey"
+          visual={<CalendarHeatmapVisual className="w-full h-full text-kalkvit" />}
+        />
+      </Link>
     </div>
   )
 }
@@ -189,18 +199,19 @@ function ExpertSpotlight() {
   if (!isLoading && experts.length === 0) return null
 
   return (
-    <GlassCard variant="base">
+    <Link to="/experts" className="block">
+    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
           <SparklesIcon className="w-5 h-5 text-koppar" />
           Expert Spotlight
         </h2>
-        <Link to="/experts" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+        <span className="text-sm text-koppar flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </Link>
+        </span>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide py-1 -mx-1 px-1">
         {isLoading
           ? Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="flex flex-col items-center gap-2 shrink-0 w-20">
@@ -231,6 +242,7 @@ function ExpertSpotlight() {
             ))}
       </div>
     </GlassCard>
+    </Link>
   )
 }
 
@@ -241,15 +253,16 @@ function ActiveGoals() {
   const goals: Goal[] = safeArray<Goal>(data)
 
   return (
-    <GlassCard variant="base">
+    <Link to="/goals" className="block">
+    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
           <ViewfinderCircleIcon className="w-5 h-5 text-koppar" />
           Active Goals
         </h2>
-        <Link to="/goals" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+        <span className="text-sm text-koppar flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </Link>
+        </span>
       </div>
 
       {isLoading ? (
@@ -290,6 +303,7 @@ function ActiveGoals() {
         </div>
       )}
     </GlassCard>
+    </Link>
   )
 }
 
@@ -302,15 +316,16 @@ function ActiveProtocolsList() {
   if (!isLoading && protocols.length === 0) return null
 
   return (
-    <GlassCard variant="base">
+    <Link to="/my-protocols" className="block">
+    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
           <FireIcon className="w-5 h-5 text-koppar" />
           Active Protocols
         </h2>
-        <Link to="/protocols" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+        <span className="text-sm text-koppar flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </Link>
+        </span>
       </div>
 
       {isLoading ? (
@@ -347,6 +362,7 @@ function ActiveProtocolsList() {
         </div>
       )}
     </GlassCard>
+    </Link>
   )
 }
 
@@ -359,15 +375,16 @@ function FeaturedProtocols() {
   if (!isLoading && protocols.length === 0) return null
 
   return (
-    <GlassCard variant="base">
+    <Link to="/protocols" className="block">
+    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
           <SparklesIcon className="w-5 h-5 text-koppar" />
           Featured Protocols
         </h2>
-        <Link to="/protocols" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+        <span className="text-sm text-koppar flex items-center gap-1">
           Browse all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </Link>
+        </span>
       </div>
 
       {isLoading ? (
@@ -410,6 +427,7 @@ function FeaturedProtocols() {
         </div>
       )}
     </GlassCard>
+    </Link>
   )
 }
 
@@ -420,12 +438,13 @@ function RecentFeedPosts() {
   const posts: FeedPost[] = safeArray<FeedPost>(data)
 
   return (
-    <GlassCard variant="base">
+    <Link to="/feed" className="block">
+    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit">Recent Posts</h2>
-        <Link to="/feed" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+        <span className="text-sm text-koppar flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </Link>
+        </span>
       </div>
 
       {isLoading ? (
@@ -480,6 +499,7 @@ function RecentFeedPosts() {
         </div>
       )}
     </GlassCard>
+    </Link>
   )
 }
 
@@ -490,15 +510,16 @@ function UnreadMessages() {
   const conversations: Conversation[] = safeArray<Conversation>(data)
 
   return (
-    <GlassCard variant="base">
+    <Link to="/messages" className="block">
+    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
           <ChatBubbleLeftIcon className="w-4 h-4 text-koppar" />
           Messages
         </h2>
-        <Link to="/messages" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+        <span className="text-sm text-koppar flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </Link>
+        </span>
       </div>
 
       {isLoading ? (
@@ -548,6 +569,7 @@ function UnreadMessages() {
         </div>
       )}
     </GlassCard>
+    </Link>
   )
 }
 
@@ -589,15 +611,16 @@ function UpcomingSection() {
     .slice(0, 3)
 
   return (
-    <GlassCard variant="base">
+    <Link to="/events" className="block">
+    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
           <CalendarIcon className="w-4 h-4 text-koppar" />
           Upcoming
         </h2>
-        <Link to="/events" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+        <span className="text-sm text-koppar flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </Link>
+        </span>
       </div>
 
       {isLoading ? (
@@ -650,6 +673,7 @@ function UpcomingSection() {
         </div>
       )}
     </GlassCard>
+    </Link>
   )
 }
 
@@ -660,15 +684,16 @@ function MyPrograms() {
   const programs: UserProgram[] = safeArray<UserProgram>(data)
 
   return (
-    <GlassCard variant="base">
+    <Link to="/programs" className="block">
+    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
           <AcademicCapIcon className="w-4 h-4 text-koppar" />
           My Programs
         </h2>
-        <Link to="/programs" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
+        <span className="text-sm text-koppar flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </Link>
+        </span>
       </div>
 
       {isLoading ? (
@@ -714,6 +739,7 @@ function MyPrograms() {
         </div>
       )}
     </GlassCard>
+    </Link>
   )
 }
 
