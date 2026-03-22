@@ -16,17 +16,19 @@ import { useInterests, useMemberInterests } from '../hooks/useInterests'
 import {
   useFeed,
   useCreatePost,
+  useDeletePost,
   useLikePost,
   useUnlikePost,
   usePostComments,
   useAddComment,
+  useDeleteComment,
   useReportPost,
   type FeedPost,
   type FeedComment,
 } from '../lib/api'
 import { ReportModal } from '../components/ReportModal'
 import { api } from '../lib/api/client'
-import { HeartIcon, ChatBubbleLeftIcon, ShareIcon, EllipsisHorizontalIcon, PhotoIcon, PaperAirplaneIcon, UserGroupIcon, ArrowPathIcon, CheckIcon, FlagIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { HeartIcon, ChatBubbleLeftIcon, ShareIcon, EllipsisHorizontalIcon, PhotoIcon, PaperAirplaneIcon, UserGroupIcon, ArrowPathIcon, CheckIcon, FlagIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { compressMessageImage, validateImageFile, blobToFile } from '../lib/image-utils'
 
 // Helper to format time ago
@@ -49,7 +51,9 @@ function PostCard({ post }: { post: FeedPost }) {
   const { user } = useAuth()
   const likePost = useLikePost()
   const unlikePost = useUnlikePost()
+  const deletePost = useDeletePost()
   const addComment = useAddComment()
+  const deleteComment = useDeleteComment()
   const reportPost = useReportPost()
 
   const [showComments, setShowComments] = useState(false)
@@ -58,6 +62,7 @@ function PostCard({ post }: { post: FeedPost }) {
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [reported, setReported] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
+  const isOwnPost = user?.id === post.user_id
   const moreMenuRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
 
@@ -159,13 +164,26 @@ function PostCard({ post }: { post: FeedPost }) {
               </button>
               {showMoreMenu && (
                 <div className="absolute right-0 top-10 z-20 glass-elevated rounded-lg py-1 min-w-[160px] shadow-lg border border-white/10">
-                  <button
-                    onClick={handleReport}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-kalkvit/80 hover:bg-white/[0.06] transition-colors"
-                  >
-                    <FlagIcon className="w-4 h-4" />
-                    Report Post
-                  </button>
+                  {isOwnPost ? (
+                    <button
+                      onClick={() => {
+                        setShowMoreMenu(false)
+                        if (confirm('Delete this post?')) deletePost.mutate(post.id)
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-tegelrod hover:bg-white/[0.06] transition-colors"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                      Delete Post
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleReport}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-kalkvit/80 hover:bg-white/[0.06] transition-colors"
+                    >
+                      <FlagIcon className="w-4 h-4" />
+                      Report Post
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -248,8 +266,9 @@ function PostCard({ post }: { post: FeedPost }) {
                       .join('')
                       .slice(0, 2)
                       .toUpperCase()
+                    const isOwnComment = user?.id === comment.user_id
                     return (
-                      <div key={comment.id} className="flex gap-3">
+                      <div key={comment.id} className="flex gap-3 group/comment">
                         <GlassAvatar initials={cInitials} size="sm" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
@@ -257,6 +276,15 @@ function PostCard({ post }: { post: FeedPost }) {
                             <span className="text-xs text-kalkvit/50">
                               {formatTimeAgo(comment.created_at)}
                             </span>
+                            {isOwnComment && (
+                              <button
+                                onClick={() => deleteComment.mutate({ postId: post.id, commentId: comment.id })}
+                                className="opacity-0 group-hover/comment:opacity-100 p-0.5 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-tegelrod transition-all"
+                                title="Delete comment"
+                              >
+                                <TrashIcon className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                           <p className="text-sm text-kalkvit/80">{comment.content}</p>
                         </div>
