@@ -329,14 +329,14 @@ function PostCard({ post }: { post: FeedPost }) {
                               <>
                                 <button
                                   onClick={() => { setEditingCommentId(comment.id); setEditCommentContent(comment.content) }}
-                                  className="opacity-0 group-hover/comment:opacity-100 p-0.5 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-koppar transition-all"
+                                  className="lg:opacity-0 lg:group-hover/comment:opacity-100 p-0.5 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-koppar transition-all"
                                   title="Edit comment"
                                 >
                                   <PencilIcon className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => deleteComment.mutate({ postId: post.id, commentId: comment.id })}
-                                  className="opacity-0 group-hover/comment:opacity-100 p-0.5 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-tegelrod transition-all"
+                                  className="lg:opacity-0 lg:group-hover/comment:opacity-100 p-0.5 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-tegelrod transition-all"
                                   title="Delete comment"
                                 >
                                   <TrashIcon className="w-3.5 h-3.5" />
