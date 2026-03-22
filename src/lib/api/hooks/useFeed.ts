@@ -122,6 +122,56 @@ export function useDeletePost() {
   })
 }
 
+// Edit post — optimistic
+export function useEditPost() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ postId, content }: { postId: string; content: string }) =>
+      api.put(`/members/feed/${postId}`, { content }),
+    onMutate: async ({ postId, content }) => {
+      await queryClient.cancelQueries({ queryKey: feedKeys.all })
+      const previous = queryClient.getQueriesData({ queryKey: feedKeys.all })
+      updateFeedPosts(queryClient, (posts) =>
+        posts.map((p) => p.id === postId ? { ...p, content, updated_at: new Date().toISOString() } : p)
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      context?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: feedKeys.all })
+    },
+  })
+}
+
+// Edit comment — optimistic
+export function useEditComment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ postId, commentId, content }: { postId: string; commentId: string; content: string }) =>
+      api.put(`/members/feed/${postId}/comments/${commentId}`, { content }),
+    onMutate: async ({ postId, commentId, content }) => {
+      await queryClient.cancelQueries({ queryKey: feedKeys.comments(postId) })
+      const previousComments = queryClient.getQueryData<FeedComment[]>(feedKeys.comments(postId))
+      queryClient.setQueryData<FeedComment[]>(feedKeys.comments(postId), (old) =>
+        (old ?? []).map((c) => c.id === commentId ? { ...c, content } : c)
+      )
+      return { previousComments }
+    },
+    onError: (_err, { postId }, context) => {
+      if (context?.previousComments !== undefined) {
+        queryClient.setQueryData(feedKeys.comments(postId), context.previousComments)
+      }
+    },
+    onSettled: (_, __, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: feedKeys.comments(postId) })
+    },
+  })
+}
+
 // Like post — optimistic
 export function useLikePost() {
   const queryClient = useQueryClient()

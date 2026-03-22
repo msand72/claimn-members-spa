@@ -4,7 +4,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { safeOpenUrl } from '../lib/url-validation'
 import { GlassCard, GlassInput, GlassAvatar, GlassBadge, GlassButton, GlassModal, GlassModalFooter, GlassToast } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { MagnifyingGlassIcon, PaperAirplaneIcon, EllipsisVerticalIcon, ArrowLeftIcon, ArrowPathIcon, ChatBubbleLeftIcon, PlusIcon, PhotoIcon, XMarkIcon, FlagIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, PaperAirplaneIcon, EllipsisVerticalIcon, ArrowLeftIcon, ArrowPathIcon, ChatBubbleLeftIcon, PlusIcon, PhotoIcon, XMarkIcon, FlagIcon, TrashIcon, PencilIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { api } from '../lib/api/client'
 import { validateImageFile, compressMessageImage, blobToFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
@@ -13,6 +13,7 @@ import {
   useConversationMessages,
   useSendMessage,
   useDeleteMessage,
+  useEditMessage,
   useMarkConversationRead,
   useReportMessage,
   useConnections,
@@ -91,8 +92,11 @@ export function MessagesPage() {
 
   const sendMessage = useSendMessage()
   const deleteMessage = useDeleteMessage()
+  const editMessage = useEditMessage()
   const markRead = useMarkConversationRead()
   const reportMessage = useReportMessage()
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
+  const [editMessageContent, setEditMessageContent] = useState('')
   const [reportMessageId, setReportMessageId] = useState<string | null>(null)
 
   // Fetch accepted connections for "New Conversation" modal
@@ -761,7 +765,38 @@ export function MessagesPage() {
                               onClick={() => safeOpenUrl(msg.image_url!)}
                             />
                           )}
-                          {msg.content && <p className="text-sm">{msg.content}</p>}
+                          {editingMessageId === msg.id ? (
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={editMessageContent}
+                                onChange={(e) => setEditMessageContent(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    editMessage.mutate({ messageId: msg.id, body: editMessageContent.trim() })
+                                    setEditingMessageId(null)
+                                  }
+                                  if (e.key === 'Escape') setEditingMessageId(null)
+                                }}
+                                className="flex-1 bg-white/10 border border-white/20 rounded px-2 py-0.5 text-sm text-kalkvit focus:outline-none focus:border-kalkvit/50"
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => {
+                                  editMessage.mutate({ messageId: msg.id, body: editMessageContent.trim() })
+                                  setEditingMessageId(null)
+                                }}
+                                className="p-0.5 text-kalkvit/70 hover:text-kalkvit"
+                              >
+                                <CheckIcon className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => setEditingMessageId(null)} className="p-0.5 text-kalkvit/50 hover:text-kalkvit">
+                                <XMarkIcon className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            msg.content && <p className="text-sm">{msg.content}</p>
+                          )}
                           {isFailed ? (
                             <p className="text-xs text-tegelrod mt-1 italic">Failed to send</p>
                           ) : (
@@ -778,13 +813,22 @@ export function MessagesPage() {
                         )}
                         {!msg._optimistic && (
                           isOwn ? (
-                            <button
-                              onClick={() => deleteMessage.mutate(msg.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-tegelrod transition-all flex-shrink-0 mb-2"
-                              title="Delete message"
-                            >
-                              <TrashIcon className="w-3 h-3" />
-                            </button>
+                            <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 mb-2">
+                              <button
+                                onClick={() => { setEditingMessageId(msg.id); setEditMessageContent(msg.content) }}
+                                className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-koppar transition-all"
+                                title="Edit message"
+                              >
+                                <PencilIcon className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={() => deleteMessage.mutate(msg.id)}
+                                className="p-1 rounded hover:bg-white/[0.06] text-kalkvit/30 hover:text-tegelrod transition-all"
+                                title="Delete message"
+                              >
+                                <TrashIcon className="w-3 h-3" />
+                              </button>
+                            </div>
                           ) : (
                             <button
                               onClick={() => setReportMessageId(msg.id)}
