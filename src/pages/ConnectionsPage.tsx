@@ -264,12 +264,12 @@ export function ConnectionsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sort, setSort] = useState<SortState>({ key: 'name', direction: 'asc' })
 
-  // Fetch connections from API
+  // Fetch connections from API — always fetch both accepted and pending
   const {
-    data: connectionsData,
-    isLoading: connectionsLoading,
+    data: acceptedData,
+    isLoading: acceptedLoading,
     error: connectionsError,
-  } = useConnections({ status: activeTab === 'Connected' ? 'accepted' : undefined, limit: 50 })
+  } = useConnections({ status: 'accepted', limit: 50 })
 
   const {
     data: pendingData,
@@ -281,8 +281,9 @@ export function ConnectionsPage() {
     isLoading: suggestionsLoading,
   } = useNetworkSuggestions(10)
 
-  const connections = Array.isArray(connectionsData?.data) ? connectionsData.data : []
+  const acceptedConnections = Array.isArray(acceptedData?.data) ? acceptedData.data : []
   const pendingConnections = Array.isArray(pendingData?.data) ? pendingData.data : []
+  const connections = [...acceptedConnections, ...pendingConnections]
   const suggestions = Array.isArray(suggestionsData) ? suggestionsData : []
 
   // Filter based on search and tab
@@ -311,12 +312,13 @@ export function ConnectionsPage() {
   })
 
   const stats = {
-    total: connections.filter(c => c.status === 'accepted').length,
+    total: acceptedConnections.length,
     pending: pendingConnections.length,
     suggestions: suggestions.length,
   }
 
-  const isLoading = connectionsLoading || (activeTab === 'Pending' && pendingLoading) || (activeTab === 'Suggestions' && suggestionsLoading)
+  const connectionsLoading = acceptedLoading || pendingLoading
+  const isLoading = connectionsLoading || (activeTab === 'Suggestions' && suggestionsLoading)
 
   return (
     <MainLayout>
