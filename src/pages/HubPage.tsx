@@ -45,7 +45,7 @@ import type { ClaimnEvent } from '../lib/api/hooks/useEvents'
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import { HubHeroArt } from '../components/ui/HubHeroArt'
-import { GoalTargetVisual, AdherenceArcVisual, DunbarClusterVisual, CalendarHeatmapVisual } from '../components/ui/StatCardVisuals'
+import { GoalTargetVisual, StreakBarsVisual, DunbarClusterVisual, CalendarHeatmapVisual } from '../components/ui/StatCardVisuals'
 import { PillarIcon } from '../components/icons'
 import {
   HeartIcon,
@@ -167,7 +167,7 @@ function StatsRow() {
           label="KPIs Tracked"
           value={isLoading ? '...' : String(kpiSummary?.total_kpis ?? 0)}
           trendLabel="metrics"
-          visual={<AdherenceArcVisual className="w-full h-full text-kalkvit" />}
+          visual={<StreakBarsVisual className="w-full h-full text-kalkvit" />}
         />
       </Link>
       <Link to="/connections">
