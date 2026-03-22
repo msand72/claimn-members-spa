@@ -313,14 +313,16 @@ export function ShopProtocolDetailPage() {
               <GlassCard variant="base">
                 <h2 className="font-semibold text-kalkvit mb-4">Implementation Timeline</h2>
                 <div className="space-y-3">
-                  {implementationSteps.map((step: { period?: string; title: string; desc?: string }, i: number) => (
+                  {implementationSteps.map((step: { step?: number; period?: string; title: string; description?: string; desc?: string }, i: number) => (
                     <div key={i} className="flex gap-4 p-3 border border-white/10 rounded-xl">
                       <div className="w-10 h-10 rounded-full bg-koppar/20 text-koppar flex items-center justify-center text-sm font-medium flex-shrink-0">
-                        {step.period || i + 1}
+                        {step.step || step.period || i + 1}
                       </div>
                       <div>
                         <h4 className="font-medium text-kalkvit">{step.title}</h4>
-                        {step.desc && <p className="text-sm text-kalkvit/60">{step.desc}</p>}
+                        {(step.description || step.desc) && (
+                          <p className="text-sm text-kalkvit/60">{step.description || step.desc}</p>
+                        )}
                       </div>
                     </div>
                   ))}
