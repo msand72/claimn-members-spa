@@ -18,31 +18,8 @@ import {
   type NetworkMember,
 } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
-import { PILLARS, type PillarId } from '../lib/constants'
-
-/** Map pillar color tokens to Tailwind bg/text class pairs */
-const PILLAR_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  koppar:   { bg: 'bg-koppar/20',   text: 'text-koppar',   border: 'border-koppar/40' },
-  oliv:     { bg: 'bg-oliv/20',     text: 'text-oliv',     border: 'border-oliv/40' },
-  jordbrun: { bg: 'bg-jordbrun/20', text: 'text-jordbrun', border: 'border-jordbrun/40' },
-  charcoal: { bg: 'bg-charcoal/40', text: 'text-kalkvit/70', border: 'border-kalkvit/20' },
-}
-
-function PillarBadge({ pillarId }: { pillarId: string }) {
-  const pillar = PILLARS[pillarId as PillarId]
-  if (!pillar) return null
-  const style = PILLAR_STYLES[pillar.color] ?? PILLAR_STYLES.charcoal
-  return (
-    <span
-      className={cn(
-        'px-2 py-0.5 text-xs rounded-full border capitalize',
-        style.bg, style.text, style.border,
-      )}
-    >
-      {pillar.name}
-    </span>
-  )
-}
+import { PillarBadge } from '../components/icons'
+import type { PillarId } from '../lib/constants'
 
 const tabs = ['All', 'Connected', 'Pending', 'Suggestions']
 
@@ -90,7 +67,7 @@ function SuggestionCard({ member }: SuggestionCardProps) {
       {member.pillar_focus && member.pillar_focus.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {member.pillar_focus.map((pillar) => (
-            <PillarBadge key={pillar} pillarId={pillar} />
+            <PillarBadge key={pillar} pillar={pillar as PillarId} />
           ))}
         </div>
       )}
@@ -227,7 +204,7 @@ function ConnectionCard({ connection, currentUserId }: ConnectionCardProps) {
       {otherUser?.pillar_focus && otherUser.pillar_focus.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {otherUser.pillar_focus.map((pillar) => (
-            <PillarBadge key={pillar} pillarId={pillar} />
+            <PillarBadge key={pillar} pillar={pillar as PillarId} />
           ))}
         </div>
       )}
