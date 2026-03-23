@@ -128,13 +128,13 @@ export function ShopProtocolsPage() {
   const activeProtocols = Array.isArray(activeProtocolsData) ? activeProtocolsData : []
   const activeProtocolSlugs = new Set(activeProtocols.map((ap) => ap.protocol_slug))
 
-  // Map API protocols to display format
-  const protocols: Protocol[] = protocolLibrary.map((template) =>
-    mapProtocolTemplateToProtocol(template, activeProtocolSlugs.has(template.slug))
-  )
+  // Map API protocols to display format, sorted by category then title
+  const protocols: Protocol[] = protocolLibrary
+    .map((template) => mapProtocolTemplateToProtocol(template, activeProtocolSlugs.has(template.slug)))
+    .sort((a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title))
 
-  // Get unique categories from protocols
-  const uniqueCategories = ['All', ...new Set(protocols.map((p) => p.category))]
+  // Get unique categories from protocols, sorted alphabetically
+  const uniqueCategories = ['All', ...Array.from(new Set(protocols.map((p) => p.category))).sort()]
 
   const filteredProtocols = protocols.filter((protocol) => {
     const matchesCategory = selectedCategory === 'All' || protocol.category === selectedCategory

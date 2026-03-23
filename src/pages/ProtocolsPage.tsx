@@ -73,7 +73,7 @@ function ProtocolCard({
         </div>
 
         <h3 className="font-display text-lg font-semibold text-kalkvit mb-2 line-clamp-2">
-          {protocol.name}
+          {protocol.title || protocol.name}
         </h3>
 
         {headlineStat && (
@@ -119,7 +119,7 @@ export function ProtocolsPage() {
   // Defensive data handling
   const protocolsRaw = Array.isArray(protocolsData) ? protocolsData : []
   const protocols = sortItems(protocolsRaw, sort, {
-    name: (p) => p.name,
+    name: (p) => p.title || p.name || '',
     pillar: (p) => p.pillar || '',
   })
   const activeProtocols = Array.isArray(activeProtocolsData) ? activeProtocolsData : []

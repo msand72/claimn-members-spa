@@ -25,17 +25,31 @@ function formatTimeAgo(dateStr: string): string {
 
 export function InsightCard({ insight }: { insight: CoachingInsight }) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [markedRead, setMarkedRead] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
   const readInsight = useReadInsight()
   const dismissInsight = useDismissInsight()
 
   const pillarConfig = insight.pillar ? PILLAR_CONFIG[insight.pillar as PillarId] : null
-  const isUnread = !insight.read_at
+  const isUnread = !insight.read_at && !markedRead
   const bodyPreview = insight.body.length > 120 ? insight.body.slice(0, 120) + '...' : insight.body
   const hasLongBody = insight.body.length > 120
 
+  const handleMarkRead = () => {
+    setMarkedRead(true)
+    readInsight.mutate(insight.id)
+  }
+
+  const handleDismiss = () => {
+    setDismissed(true)
+    dismissInsight.mutate(insight.id)
+  }
+
+  if (dismissed) return null
+
   return (
     <div
-      className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-[16px] p-4 sm:p-5"
+      className={`relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-[16px] p-4 sm:p-5 transition-opacity duration-300 ${markedRead ? 'opacity-60' : ''}`}
       style={pillarConfig ? { borderLeftColor: pillarConfig.color, borderLeftWidth: 3 } : undefined}
     >
       <div className="flex items-start justify-between gap-3">
@@ -103,7 +117,7 @@ export function InsightCard({ insight }: { insight: CoachingInsight }) {
         <GlassButton
           variant="ghost"
           className="text-xs px-2 py-1 lg:opacity-0 lg:group-hover:opacity-100"
-          onClick={() => dismissInsight.mutate(insight.id)}
+          onClick={handleDismiss}
           disabled={dismissInsight.isPending}
         >
           <XMarkIcon className="w-3.5 h-3.5" />
@@ -113,7 +127,7 @@ export function InsightCard({ insight }: { insight: CoachingInsight }) {
           <GlassButton
             variant="ghost"
             className="text-xs px-2 py-1"
-            onClick={() => readInsight.mutate(insight.id)}
+            onClick={handleMarkRead}
             disabled={readInsight.isPending}
           >
             <CheckCircleIcon className="w-3.5 h-3.5" />

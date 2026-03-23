@@ -422,9 +422,12 @@ export interface UpdateActionItemRequest {
 // Protocols
 export interface ActiveProtocol {
   id: string
-  user_id: string
+  user_id?: string
+  member_id?: string
   protocol_slug: string
   protocol_name: string
+  pillar?: string
+  duration_weeks?: number
   status: 'active' | 'paused' | 'completed' | 'abandoned'
   started_at: string
   current_week: number
