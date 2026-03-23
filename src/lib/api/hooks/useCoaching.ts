@@ -206,7 +206,7 @@ export function useCoachingPlan() {
   return useQuery({
     queryKey: coachingKeys.plan(),
     queryFn: () => api.get<{ plan: CoachingPlan | null }>('/members/coaching/ai/plan'),
-    staleTime: 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     retry: false,
   })
 }
