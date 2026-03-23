@@ -14,7 +14,7 @@ import {
 import { SortBar, sortItems, type SortState } from '../components/ui'
 import { PILLARS, PILLAR_IDS, GOAL_STATUSES } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
-import { useGoals, useCreateGoal, useUpdateGoal, useMyActiveProtocols, useDashboardStats, useAchievements } from '../lib/api/hooks'
+import { useGoals, useCreateGoal, useUpdateGoal, useMyActiveProtocols, useDashboardStats, useAchievements, useCoachingInsights } from '../lib/api/hooks'
 import type { Goal, CreateGoalRequest } from '../lib/api/types'
 import { getProtocolSlugFromGoal, addProtocolTag, stripProtocolTag } from '../lib/protocol-plan'
 import {
@@ -30,12 +30,13 @@ import {
   ArrowPathIcon,
   ListBulletIcon,
   BookOpenIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { PillarBadge } from '../components/icons'
 import { EmptyGoals } from '../components/ui/EmptyStateIllustration'
 
-function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) => void }) {
+function GoalCard({ goal, onMarkDone, hasAiInsight }: { goal: Goal; onMarkDone?: (id: string) => void; hasAiInsight?: boolean }) {
   const pillar = goal.pillar_id ? PILLARS[goal.pillar_id] : null
   const statusInfo = GOAL_STATUSES.find((s) => s.id === goal.status)
   const hasKpis = goal.kpis && goal.kpis.length > 0
@@ -71,7 +72,12 @@ function GoalCard({ goal, onMarkDone }: { goal: Goal; onMarkDone?: (id: string) 
           </GlassBadge>
         </div>
 
-        <h3 className="font-semibold text-kalkvit mb-2">{goal.title}</h3>
+        <div className="flex items-center gap-2 mb-2">
+          <h3 className="font-semibold text-kalkvit">{goal.title}</h3>
+          {hasAiInsight && (
+            <SparklesIcon className="w-4 h-4 text-koppar flex-shrink-0" title="AI Coach has insights for this goal" />
+          )}
+        </div>
         {cleanDescription && (
           <p className="text-sm text-kalkvit/60 mb-4 line-clamp-2">{cleanDescription}</p>
         )}
@@ -175,6 +181,14 @@ export function GoalsPage() {
   const { data: activeProtocols } = useMyActiveProtocols()
   const { data: dashStats } = useDashboardStats()
   const { data: achievements } = useAchievements()
+  const { data: insightsData } = useCoachingInsights({ limit: 50 })
+
+  // Build set of goal IDs that have AI insights
+  const goalInsightIds = new Set(
+    (Array.isArray(insightsData?.data) ? insightsData.data : [])
+      .filter((i) => i.related_entity_type === 'member_goals' && i.related_entity_id)
+      .map((i) => i.related_entity_id)
+  )
 
   const goalsRaw = Array.isArray(goalsData?.data) ? goalsData.data : []
   const goals = sortItems(goalsRaw, sort, {
@@ -361,7 +375,7 @@ export function GoalsPage() {
         {!isLoading && !error && goals.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {goals.map((goal) => (
-              <GoalCard key={goal.id} goal={goal} onMarkDone={handleMarkDone} />
+              <GoalCard key={goal.id} goal={goal} onMarkDone={handleMarkDone} hasAiInsight={goalInsightIds.has(goal.id)} />
             ))}
           </div>
         )}

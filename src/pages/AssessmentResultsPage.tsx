@@ -17,6 +17,7 @@ import {
   useAssessmentQuestions,
   useAssessmentContent,
 } from '../lib/api/hooks/useAssessments'
+import { useCoachingPreferences, useCoachingPlan } from '../lib/api/hooks/useCoaching'
 import {
   ArrowRightIcon,
   ArrowDownTrayIcon,
@@ -124,6 +125,8 @@ export function AssessmentResultsPage() {
   const latestResult = useLatestAssessmentResult()
   const { data: apiQuestions } = useAssessmentQuestions('five-pillars')
   const { data: contentMap } = useAssessmentContent()
+  const { data: coachingPrefs } = useCoachingPreferences()
+  const { data: coachingPlan } = useCoachingPlan()
 
   const apiResult = requestedResultId ? specificResult.data : latestResult.data
   const apiLoading = requestedResultId ? specificResult.isLoading : latestResult.isLoading
@@ -902,6 +905,29 @@ export function AssessmentResultsPage() {
         </div>
 
         {/* Toast notification */}
+        {/* AI Coaching Plan Prompt */}
+        {coachingPrefs?.ai_coaching_enabled && !coachingPlan?.plan && (
+          <GlassCard variant="accent" className="mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-koppar/20 flex items-center justify-center flex-shrink-0">
+                <SparklesIcon className="w-6 h-6 text-koppar" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-kalkvit mb-1">AI Growth Plan</h3>
+                <p className="text-sm text-kalkvit/60">
+                  Your AI coach can create a personalized plan based on these results.
+                </p>
+              </div>
+              <Link to="/plan">
+                <GlassButton variant="primary">
+                  <SparklesIcon className="w-4 h-4" />
+                  View Plan
+                </GlassButton>
+              </Link>
+            </div>
+          </GlassCard>
+        )}
+
         {toast && (
           <div className="fixed bottom-6 right-6 z-50">
             <GlassToast

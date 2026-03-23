@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { GlassAvatar } from '../ui/GlassAvatar'
 
 import { SECTION_NAV, SECTION_KEYS, useCurrentSection } from './sectionNav'
+import { useCoachingPreferences, useCoachingUnreadCount } from '../../lib/api/hooks/useCoaching'
 import {
   UserIcon,
   CreditCardIcon,
@@ -37,6 +38,11 @@ export function GlassSidebar() {
   const { openManualReport } = useBugReport()
   const { data: notifData } = useNotifications({ limit: 50 })
   const unreadCount = safeArray<Notification>(notifData).filter((n) => !n.read_at).length
+
+  // AI coaching unread badge
+  const { data: coachingPrefs } = useCoachingPreferences()
+  const { data: coachingUnread } = useCoachingUnreadCount()
+  const aiUnreadCount = coachingPrefs?.ai_coaching_enabled ? (coachingUnread?.count ?? 0) : 0
 
   const handleSignOut = async () => {
     await signOut()
@@ -107,6 +113,11 @@ export function GlassSidebar() {
               >
                 <Icon className={cn('w-[18px] h-[18px]', isActive && 'text-koppar')} />
                 <span className="flex-1">{section.label}</span>
+                {key === 'coaching' && aiUnreadCount > 0 && (
+                  <span className="min-w-[18px] h-[18px] rounded-full bg-koppar text-kalkvit text-[10px] font-bold flex items-center justify-center px-1">
+                    {aiUnreadCount > 99 ? '99+' : aiUnreadCount}
+                  </span>
+                )}
                 {isActive && (
                   <ChevronRightIcon className="w-3.5 h-3.5 text-koppar/60" />
                 )}

@@ -400,3 +400,30 @@ export {
   type SearchResult,
   type SearchResponse,
 } from './useSearch'
+
+// AI Coaching
+export {
+  coachingKeys as aiCoachingKeys,
+  useCoachingPreferences,
+  useUpdateCoachingPreferences,
+  useCoachingInsightsLatest,
+  useCoachingInsights,
+  useCoachingUnreadCount,
+  useReadInsight,
+  useDismissInsight,
+  useCoachingPlan,
+  useGeneratePlan,
+  useAcceptPlan,
+  useUpdatePlanItem,
+  useArchivePlan,
+  useCoachingConversations,
+  useCoachingMessages,
+  useSendCoachingMessage,
+  type CoachingPreferences,
+  type CoachingInsight,
+  type CoachingInsightsParams,
+  type CoachingPlan,
+  type CoachingPlanItem,
+  type CoachingConversation,
+  type CoachingMessage,
+} from './useCoaching'

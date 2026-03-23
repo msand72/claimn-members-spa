@@ -47,6 +47,7 @@ import type { PillarId } from '../lib/constants'
 import { HubHeroArt } from '../components/ui/HubHeroArt'
 import { GoalTargetVisual, StreakBarsVisual, DunbarClusterVisual, CalendarHeatmapVisual } from '../components/ui/StatCardVisuals'
 import { PillarIcon } from '../components/icons'
+import { CoachPanel } from '../components/coaching/CoachPanel'
 import {
   HeartIcon,
   ChatBubbleLeftIcon,
@@ -203,16 +204,15 @@ function ExpertSpotlight() {
   if (!isLoading && experts.length === 0) return null
 
   return (
-    <Link to="/experts" className="block">
-    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+    <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
           <SparklesIcon className="w-5 h-5 text-koppar" />
           Expert Spotlight
         </h2>
-        <span className="text-sm text-koppar flex items-center gap-1">
+        <Link to="/experts" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </span>
+        </Link>
       </div>
 
       <div className="flex gap-4 overflow-x-auto scrollbar-hide py-1 -mx-1 px-1">
@@ -246,7 +246,6 @@ function ExpertSpotlight() {
             ))}
       </div>
     </GlassCard>
-    </Link>
   )
 }
 
@@ -257,16 +256,15 @@ function ActiveGoals() {
   const goals: Goal[] = safeArray<Goal>(data)
 
   return (
-    <Link to="/goals" className="block">
-    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+    <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
           <ViewfinderCircleIcon className="w-5 h-5 text-koppar" />
           Active Goals
         </h2>
-        <span className="text-sm text-koppar flex items-center gap-1">
+        <Link to="/goals" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </span>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -307,7 +305,6 @@ function ActiveGoals() {
         </div>
       )}
     </GlassCard>
-    </Link>
   )
 }
 
@@ -320,16 +317,15 @@ function ActiveProtocolsList() {
   if (!isLoading && protocols.length === 0) return null
 
   return (
-    <Link to="/my-protocols" className="block">
-    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+    <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
           <FireIcon className="w-5 h-5 text-koppar" />
           Active Protocols
         </h2>
-        <span className="text-sm text-koppar flex items-center gap-1">
+        <Link to="/my-protocols" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </span>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -366,7 +362,6 @@ function ActiveProtocolsList() {
         </div>
       )}
     </GlassCard>
-    </Link>
   )
 }
 
@@ -379,16 +374,15 @@ function FeaturedProtocols() {
   if (!isLoading && protocols.length === 0) return null
 
   return (
-    <Link to="/protocols" className="block">
-    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+    <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit flex items-center gap-2">
           <SparklesIcon className="w-5 h-5 text-koppar" />
           Featured Protocols
         </h2>
-        <span className="text-sm text-koppar flex items-center gap-1">
+        <Link to="/protocols" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
           Browse all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </span>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -431,7 +425,6 @@ function FeaturedProtocols() {
         </div>
       )}
     </GlassCard>
-    </Link>
   )
 }
 
@@ -442,13 +435,12 @@ function RecentFeedPosts() {
   const posts: FeedPost[] = safeArray<FeedPost>(data)
 
   return (
-    <Link to="/feed" className="block">
-    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+    <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-lg font-semibold text-kalkvit">Recent Posts</h2>
-        <span className="text-sm text-koppar flex items-center gap-1">
+        <Link to="/feed" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </span>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -503,7 +495,6 @@ function RecentFeedPosts() {
         </div>
       )}
     </GlassCard>
-    </Link>
   )
 }
 
@@ -514,16 +505,15 @@ function UnreadMessages() {
   const conversations: Conversation[] = safeArray<Conversation>(data)
 
   return (
-    <Link to="/messages" className="block">
-    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+    <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
           <ChatBubbleLeftIcon className="w-4 h-4 text-koppar" />
           Messages
         </h2>
-        <span className="text-sm text-koppar flex items-center gap-1">
+        <Link to="/messages" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </span>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -573,7 +563,6 @@ function UnreadMessages() {
         </div>
       )}
     </GlassCard>
-    </Link>
   )
 }
 
@@ -615,16 +604,15 @@ function UpcomingSection() {
     .slice(0, 3)
 
   return (
-    <Link to="/events" className="block">
-    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+    <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
           <CalendarIcon className="w-4 h-4 text-koppar" />
           Upcoming
         </h2>
-        <span className="text-sm text-koppar flex items-center gap-1">
+        <Link to="/events" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </span>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -677,7 +665,6 @@ function UpcomingSection() {
         </div>
       )}
     </GlassCard>
-    </Link>
   )
 }
 
@@ -688,16 +675,15 @@ function MyPrograms() {
   const programs: UserProgram[] = safeArray<UserProgram>(data)
 
   return (
-    <Link to="/programs" className="block">
-    <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+    <GlassCard variant="base">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-base font-semibold text-kalkvit flex items-center gap-2">
           <AcademicCapIcon className="w-4 h-4 text-koppar" />
           My Programs
         </h2>
-        <span className="text-sm text-koppar flex items-center gap-1">
+        <Link to="/programs" className="text-sm text-koppar hover:text-koppar/80 transition-colors flex items-center gap-1">
           View all <ArrowRightIcon className="w-3.5 h-3.5" />
-        </span>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -743,7 +729,6 @@ function MyPrograms() {
         </div>
       )}
     </GlassCard>
-    </Link>
   )
 }
 
@@ -1122,6 +1107,11 @@ export function HubPage() {
         {/* Stats row — full width */}
         <PageErrorBoundary section="StatsRow">
           <StatsRow />
+        </PageErrorBoundary>
+
+        {/* AI Coach Panel — full width */}
+        <PageErrorBoundary section="CoachPanel">
+          <CoachPanel />
         </PageErrorBoundary>
 
         {/* 2-column grid: main (2/3) + sidebar (1/3) */}

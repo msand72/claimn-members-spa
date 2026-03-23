@@ -22,6 +22,7 @@ import {
   CalendarIcon,
   ArrowRightIcon,
   ArrowPathIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline'
 
 // Map notification types to icons for visual differentiation
@@ -34,6 +35,7 @@ const TYPE_ICONS: Record<string, React.ElementType> = {
   message_received: ChatBubbleLeftIcon,
   session_scheduled: CalendarIcon,
   session_reminder: CalendarIcon,
+  ai_insight: SparklesIcon,
 }
 
 function getNotificationIcon(type: string): React.ElementType {

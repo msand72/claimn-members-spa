@@ -78,8 +78,11 @@ const EventsPage = lazyWithRetry(() => import('./pages/EventsPage'))
 const EventDetailPage = lazyWithRetry(() => import('./pages/EventDetailPage'))
 
 // Pages - Coaching
+const CoachingInsightsPage = lazyWithRetry(() => import('./pages/CoachingInsightsPage'))
+const CoachingChatPage = lazyWithRetry(() => import('./pages/CoachingChatPage'))
 const CoachingSessionsPage = lazyWithRetry(() => import('./pages/CoachingSessionsPage'))
 const CoachingResourcesPage = lazyWithRetry(() => import('./pages/CoachingResourcesPage'))
+const PlanPage = lazyWithRetry(() => import('./pages/PlanPage'))
 const SessionNotesPage = lazyWithRetry(() => import('./pages/SessionNotesPage'))
 
 // Pages - Onboarding
@@ -225,6 +228,8 @@ const router = createBrowserRouter([
       { path: '/events/:id', element: <Protected><EventDetailPage /></Protected> },
 
       // Protected routes - Coaching
+      { path: '/coaching/ai', element: <Protected><CoachingInsightsPage /></Protected> },
+      { path: '/coaching/ai/chat', element: <Protected><CoachingChatPage /></Protected> },
       { path: '/coaching/sessions', element: <Protected><CoachingSessionsPage /></Protected> },
       { path: '/coaching/resources', element: <Protected><CoachingResourcesPage /></Protected> },
       { path: '/coaching/session-notes', element: <Protected><SessionNotesPage /></Protected> },
@@ -239,6 +244,7 @@ const router = createBrowserRouter([
       { path: '/assessment/results', element: <Protected><AssessmentResultsPage /></Protected> },
 
       // Protected routes - Transformation Tracking (coaching tier required)
+      { path: '/plan', element: <PremiumProtected><PlanPage /></PremiumProtected> },
       { path: '/goals', element: <PremiumProtected><GoalsPage /></PremiumProtected> },
       { path: '/goals/:id', element: <PremiumProtected><GoalDetailPage /></PremiumProtected> },
       { path: '/action-items', element: <PremiumProtected><ActionItemsPage /></PremiumProtected> },

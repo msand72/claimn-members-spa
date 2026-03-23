@@ -59,6 +59,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     mode: 'stepper',
     items: [
       { to: '/goals', label: 'Goals', icon: Target },
+      { to: '/plan', label: 'Plan', icon: SparklesIcon },
       { to: '/events', label: 'Sessions', icon: CalendarIcon },
       { to: '/action-items', label: 'Actions', icon: CheckBadgeIcon },
       { to: '/milestones', label: 'Milestones', icon: FlagIcon },
@@ -69,7 +70,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
       { to: '/protocols', label: 'Protocols', icon: BookOpenIcon },
       { to: '/accountability', label: 'Accountability', icon: UserGroupIcon },
     ],
-    allPaths: ['/goals', '/kpis', '/action-items', '/protocols', '/my-protocols', '/milestones', '/accountability', '/assessment', '/assessment/results', '/assessment/take', '/events'],
+    allPaths: ['/goals', '/plan', '/kpis', '/action-items', '/protocols', '/my-protocols', '/milestones', '/accountability', '/assessment', '/assessment/results', '/assessment/take', '/events'],
   },
   community: {
     label: 'Community',
@@ -93,6 +94,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     mode: 'tabs',
     items: [
       { to: '/experts', label: 'Experts', icon: SparklesIcon },
+      { to: '/coaching/ai', label: 'AI Coach', icon: SparklesIcon },
       { to: '/book-session', label: 'Book Session', icon: CalendarIcon },
       { to: '/coaching/sessions', label: 'My Sessions', icon: StopCircleIcon },
       { to: '/coaching/session-notes', label: 'Notes', icon: DocumentTextIcon },
@@ -101,7 +103,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     moreItems: [
       { to: '/coaching/quarterly-reviews', label: 'Quarterly Reviews', icon: ClipboardDocumentCheckIcon },
     ],
-    allPaths: ['/experts', '/expert-sessions', '/book-session', '/coaching/sessions', '/coaching/session-notes', '/coaching/resources', '/coaching/quarterly-reviews'],
+    allPaths: ['/experts', '/expert-sessions', '/book-session', '/coaching/ai', '/coaching/ai/chat', '/coaching/sessions', '/coaching/session-notes', '/coaching/resources', '/coaching/quarterly-reviews'],
   },
   programs: {
     label: 'Programs',
