@@ -9,6 +9,8 @@ interface SectionTopBarProps {
   items: SectionNavItem[]
   moreItems?: SectionNavItem[]
   mode?: 'tabs' | 'stepper'
+  /** Map of badgeKey → count for live badge rendering */
+  badges?: Record<string, number>
 }
 
 function isActive(to: string, pathname: string): boolean {
@@ -20,9 +22,11 @@ function isActive(to: string, pathname: string): boolean {
 function MobileDropdown({
   items,
   moreItems,
+  badges,
 }: {
   items: SectionNavItem[]
   moreItems?: SectionNavItem[]
+  badges?: Record<string, number>
 }) {
   const { pathname } = useLocation()
   const { theme } = useTheme()
@@ -65,6 +69,7 @@ function MobileDropdown({
         >
           {allItems.map((item) => {
             const active = isActive(item.to, pathname)
+            const badgeCount = item.badgeKey ? badges?.[item.badgeKey] ?? 0 : 0
             return (
               <NavLink
                 key={item.to}
@@ -80,6 +85,11 @@ function MobileDropdown({
               >
                 <item.icon className="w-4 h-4" />
                 {item.label}
+                {badgeCount > 0 && (
+                  <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-koppar text-white text-[10px] font-bold px-1">
+                    {badgeCount}
+                  </span>
+                )}
               </NavLink>
             )
           })}
@@ -90,27 +100,35 @@ function MobileDropdown({
 }
 
 /* ── Desktop: horizontal tabs ── */
-function TabsBar({ items }: { items: SectionNavItem[] }) {
+function TabsBar({ items, badges }: { items: SectionNavItem[]; badges?: Record<string, number> }) {
   return (
     <div className="flex gap-1 p-1 overflow-x-auto scrollbar-hide">
-      {items.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          end={item.to === '/'}
-          className={({ isActive: active }) =>
-            cn(
-              'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
-              active
-                ? 'bg-koppar/15 text-koppar'
-                : 'text-kalkvit/60 hover:text-kalkvit hover:bg-white/[0.05]'
-            )
-          }
-        >
-          <item.icon className="w-4 h-4" />
-          {item.label}
-        </NavLink>
-      ))}
+      {items.map((item) => {
+        const badgeCount = item.badgeKey ? badges?.[item.badgeKey] ?? 0 : 0
+        return (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === '/'}
+            className={({ isActive: active }) =>
+              cn(
+                'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
+                active
+                  ? 'bg-koppar/15 text-koppar'
+                  : 'text-kalkvit/60 hover:text-kalkvit hover:bg-white/[0.05]'
+              )
+            }
+          >
+            <item.icon className="w-4 h-4" />
+            {item.label}
+            {badgeCount > 0 && (
+              <span className="ml-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-koppar text-white text-[10px] font-bold px-1">
+                {badgeCount}
+              </span>
+            )}
+          </NavLink>
+        )
+      })}
     </div>
   )
 }
@@ -217,7 +235,7 @@ function StepperBar({
   )
 }
 
-export function SectionTopBar({ items, moreItems, mode = 'tabs' }: SectionTopBarProps) {
+export function SectionTopBar({ items, moreItems, mode = 'tabs', badges }: SectionTopBarProps) {
   const { theme } = useTheme()
   const barBg = theme === 'light' ? 'rgba(255,255,255,0.72)' : 'rgba(28,28,30,0.90)'
   const barBorder = theme === 'light' ? 'rgba(0,0,0,0.09)' : 'rgba(255,255,255,0.10)'
@@ -229,7 +247,7 @@ export function SectionTopBar({ items, moreItems, mode = 'tabs' }: SectionTopBar
     >
       {/* Mobile: compact dropdown */}
       <div className="md:hidden">
-        <MobileDropdown items={items} moreItems={moreItems} />
+        <MobileDropdown items={items} moreItems={moreItems} badges={badges} />
       </div>
 
       {/* Desktop: full tabs/stepper */}
@@ -237,7 +255,7 @@ export function SectionTopBar({ items, moreItems, mode = 'tabs' }: SectionTopBar
         {mode === 'stepper' ? (
           <StepperBar items={items} moreItems={moreItems} />
         ) : (
-          <TabsBar items={items} />
+          <TabsBar items={items} badges={badges} />
         )}
       </div>
     </div>

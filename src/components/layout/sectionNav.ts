@@ -31,6 +31,8 @@ export interface SectionNavItem {
   to: string
   label: string
   icon: React.ComponentType<{ className?: string }>
+  /** Optional key used by SectionTopBar to look up a live badge count */
+  badgeKey?: string
 }
 
 export interface SectionConfig {
@@ -94,7 +96,7 @@ export const SECTION_NAV: Record<string, SectionConfig> = {
     mode: 'tabs',
     items: [
       { to: '/experts', label: 'Experts', icon: SparklesIcon },
-      { to: '/coaching/ai', label: 'AI Coach', icon: SparklesIcon },
+      { to: '/coaching/ai', label: 'AI Coach', icon: SparklesIcon, badgeKey: 'coachingUnread' },
       { to: '/book-session', label: 'Book Session', icon: CalendarIcon },
       { to: '/coaching/sessions', label: 'My Sessions', icon: StopCircleIcon },
       { to: '/coaching/session-notes', label: 'Notes', icon: DocumentTextIcon },
