@@ -123,7 +123,7 @@ export function InsightCard({ insight }: { insight: CoachingInsight }) {
           <XMarkIcon className="w-3.5 h-3.5" />
           Dismiss
         </GlassButton>
-        {isUnread && (
+        {isUnread ? (
           <GlassButton
             variant="ghost"
             className="text-xs px-2 py-1"
@@ -133,6 +133,11 @@ export function InsightCard({ insight }: { insight: CoachingInsight }) {
             <CheckCircleIcon className="w-3.5 h-3.5" />
             Mark read
           </GlassButton>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-xs text-kalkvit/40 px-2 py-1">
+            <CheckCircleIcon className="w-3.5 h-3.5 text-koppar/60" />
+            Read
+          </span>
         )}
       </div>
     </div>

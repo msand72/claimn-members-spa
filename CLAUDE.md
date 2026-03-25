@@ -64,6 +64,10 @@ When backend changes are needed (new endpoints, schema changes, bug fixes, missi
 
 **Why:** The frontend and backend must evolve together. Silently changing field names or removing payload fields to avoid errors creates hidden mismatches that cause worse bugs later. The backend agent needs to know about failures so it can fix them properly.
 
+## ⛔ CRITICAL: Never Push Without Permission
+
+**NEVER run `git push` unless the user explicitly tells you to push.** Vercel auto-deploys on push to master, so an unauthorized push goes straight to production. Always wait for the user to say "push" before pushing.
+
 ## General Guidelines
 
 - Always read files before editing them
