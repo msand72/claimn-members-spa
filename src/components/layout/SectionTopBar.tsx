@@ -86,7 +86,7 @@ function MobileDropdown({
                 <item.icon className="w-4 h-4" />
                 {item.label}
                 {badgeCount > 0 && (
-                  <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-koppar text-white text-[10px] font-bold px-1">
+                  <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-koppar text-kalkvit text-[10px] font-bold px-1">
                     {badgeCount}
                   </span>
                 )}
@@ -122,7 +122,7 @@ function TabsBar({ items, badges }: { items: SectionNavItem[]; badges?: Record<s
             <item.icon className="w-4 h-4" />
             {item.label}
             {badgeCount > 0 && (
-              <span className="ml-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-koppar text-white text-[10px] font-bold px-1">
+              <span className="ml-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-koppar text-kalkvit text-[10px] font-bold px-1">
                 {badgeCount}
               </span>
             )}
