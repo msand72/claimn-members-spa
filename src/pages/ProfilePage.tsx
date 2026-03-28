@@ -10,7 +10,7 @@ import {
   GlassMultiSelect,
 } from '../components/ui'
 import { useAuth } from '../contexts/AuthContext'
-import { useCurrentProfile, useUpdateProfile, useUploadAvatar, useAssessmentSharing, useUpdateAssessmentSharing } from '../lib/api/hooks'
+import { useCurrentProfile, useUpdateProfile, useUploadAvatar, useAssessmentSharing, useUpdateAssessmentSharing, useCoachingPreferences, useUpdateCoachingPreferences } from '../lib/api/hooks'
 import { useInterests, useMemberInterests, useUpdateMemberInterests } from '../hooks/useInterests'
 import { ARCHETYPES, ARCHETYPE_LABELS, PILLARS, PILLAR_IDS } from '../lib/constants'
 import type { Archetype, PillarId } from '../lib/constants'
@@ -43,6 +43,10 @@ export function ProfilePage() {
   // Assessment sharing consent (independent of profile save)
   const { data: sharingData } = useAssessmentSharing()
   const updateSharing = useUpdateAssessmentSharing()
+
+  // AI Coach email preferences
+  const { data: coachingPrefs } = useCoachingPreferences()
+  const updateCoachingPrefs = useUpdateCoachingPreferences()
 
   // Local form state
   const [formData, setFormData] = useState({
@@ -471,6 +475,51 @@ export function ProfilePage() {
                 </div>
               </div>
             </GlassCard>
+
+            {/* AI Coach Email Preferences */}
+            {coachingPrefs?.ai_coaching_enabled && (
+              <GlassCard variant="base">
+                <h3 className="font-display text-xl font-semibold text-kalkvit mb-6">AI Coach</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.04]">
+                    <div className="flex-1 mr-4">
+                      <p className="text-kalkvit font-medium">Email me daily insights</p>
+                      <p className="text-sm text-kalkvit/50">
+                        Receive a daily email with personalized coaching insights based on your goals and progress.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={coachingPrefs?.email_insights_enabled ?? false}
+                        onChange={(e) => updateCoachingPrefs.mutate({ email_insights_enabled: e.target.checked })}
+                        disabled={updateCoachingPrefs.isPending}
+                      />
+                      <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-kalkvit after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-koppar"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.04]">
+                    <div className="flex-1 mr-4">
+                      <p className="text-kalkvit font-medium">Email me weekly review</p>
+                      <p className="text-sm text-kalkvit/50">
+                        Get a weekly summary of your progress, wins, and suggested focus areas for the coming week.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={coachingPrefs?.email_weekly_review_enabled ?? false}
+                        onChange={(e) => updateCoachingPrefs.mutate({ email_weekly_review_enabled: e.target.checked })}
+                        disabled={updateCoachingPrefs.isPending}
+                      />
+                      <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-kalkvit after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-koppar"></div>
+                    </label>
+                  </div>
+                </div>
+              </GlassCard>
+            )}
           </>
         )}
       </div>

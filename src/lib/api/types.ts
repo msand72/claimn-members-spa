@@ -1155,16 +1155,19 @@ export interface ProtocolSection {
 }
 
 export interface ImplementationStep {
-  step: number
+  step?: number
+  period?: string
   title: string
-  description: string
+  description?: string
+  desc?: string
 }
 
 export interface ImplementationGuide {
-  id: string
   title: string
-  description: string
+  icon?: string
+  description?: string
   details?: string[]
+  items?: Array<{ label: string; detail: string }>
 }
 
 export interface ProtocolStat {

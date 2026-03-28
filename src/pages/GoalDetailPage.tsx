@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
   GlassCard,
@@ -46,7 +46,7 @@ import { PillarBadge } from '../components/icons'
 import type { PillarId } from '../lib/constants'
 import { AskExpertButton } from '../components/AskExpertButton'
 import { calculateKpiProgress } from '../lib/kpi-utils'
-import { KPIHistoryChart } from '../components/kpi/KPIHistoryChart'
+const KPIHistoryChart = lazy(() => import('../components/kpi/KPIHistoryChart').then(m => ({ default: m.KPIHistoryChart })))
 import { getProtocolSlugFromGoal, stripProtocolTag } from '../lib/protocol-plan'
 
 export function GoalDetailPage() {
@@ -621,7 +621,9 @@ export function GoalDetailPage() {
                     </div>
 
                     {/* History Chart */}
-                    <KPIHistoryChart kpiId={kpi.id} target={kpi.target_value} unit={kpi.unit} className="mt-1 mb-2" />
+                    <Suspense fallback={<div className="h-32 animate-pulse bg-white/5 rounded-lg mt-1 mb-2" />}>
+                      <KPIHistoryChart kpiId={kpi.id} target={kpi.target_value} unit={kpi.unit} className="mt-1 mb-2" />
+                    </Suspense>
 
                     <div className="flex justify-between text-xs text-kalkvit/40">
                       <span>Type: {kpi.type}</span>

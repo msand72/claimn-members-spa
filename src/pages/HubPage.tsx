@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { PageErrorBoundary } from '../components/PageErrorBoundary'
@@ -66,6 +66,16 @@ import {
   PaperAirplaneIcon,
   UserPlusIcon,
 } from '@heroicons/react/24/outline'
+
+// ── Deferred render — delays non-critical sections until after first paint ──
+function useDeferredRender(delay = 100) {
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const id = setTimeout(() => setReady(true), delay)
+    return () => clearTimeout(id)
+  }, [delay])
+  return ready
+}
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -1096,67 +1106,71 @@ function MyCoachCard() {
 // ── HubPage (main) ───────────────────────────────────
 
 export function HubPage() {
+  const deferred = useDeferredRender(150)
+
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Welcome Banner — full width */}
+        {/* ── Critical: renders immediately ── */}
         <PageErrorBoundary section="WelcomeBanner">
           <WelcomeBanner />
         </PageErrorBoundary>
 
-        {/* Stats row — full width */}
         <PageErrorBoundary section="StatsRow">
           <StatsRow />
         </PageErrorBoundary>
 
-        {/* AI Coach Panel — full width */}
         <PageErrorBoundary section="CoachPanel">
           <CoachPanel />
         </PageErrorBoundary>
 
-        {/* 2-column grid: main (2/3) + sidebar (1/3) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main column */}
-          <div className="lg:col-span-2 space-y-6">
-            <PageErrorBoundary section="ActivePrograms">
-              <ActivePrograms />
-            </PageErrorBoundary>
-            <PageErrorBoundary section="PendingRequests">
-              <PendingConnectionRequests />
-            </PageErrorBoundary>
-            <PageErrorBoundary section="ExpertSpotlight">
-              <ExpertSpotlight />
-            </PageErrorBoundary>
-            <PageErrorBoundary section="ActiveGoals">
-              <ActiveGoals />
-            </PageErrorBoundary>
-            <PageErrorBoundary section="ActiveProtocols">
-              <ActiveProtocolsList />
-            </PageErrorBoundary>
-            <PageErrorBoundary section="FeaturedProtocols">
-              <FeaturedProtocols />
-            </PageErrorBoundary>
-            <PageErrorBoundary section="RecentFeedPosts">
-              <RecentFeedPosts />
-            </PageErrorBoundary>
-          </div>
+        <PageErrorBoundary section="ActivePrograms">
+          <ActivePrograms />
+        </PageErrorBoundary>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <PageErrorBoundary section="MyCoach">
-              <MyCoachCard />
-            </PageErrorBoundary>
-            <PageErrorBoundary section="UnreadMessages">
-              <UnreadMessages />
-            </PageErrorBoundary>
-            <PageErrorBoundary section="UpcomingSection">
-              <UpcomingSection />
-            </PageErrorBoundary>
-            <PageErrorBoundary section="MyPrograms">
-              <MyPrograms />
-            </PageErrorBoundary>
+        <PageErrorBoundary section="PendingRequests">
+          <PendingConnectionRequests />
+        </PageErrorBoundary>
+
+        {/* ── Deferred: loads after initial paint ── */}
+        {deferred && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main column */}
+            <div className="lg:col-span-2 space-y-6">
+              <PageErrorBoundary section="ExpertSpotlight">
+                <ExpertSpotlight />
+              </PageErrorBoundary>
+              <PageErrorBoundary section="ActiveGoals">
+                <ActiveGoals />
+              </PageErrorBoundary>
+              <PageErrorBoundary section="ActiveProtocols">
+                <ActiveProtocolsList />
+              </PageErrorBoundary>
+              <PageErrorBoundary section="FeaturedProtocols">
+                <FeaturedProtocols />
+              </PageErrorBoundary>
+              <PageErrorBoundary section="RecentFeedPosts">
+                <RecentFeedPosts />
+              </PageErrorBoundary>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              <PageErrorBoundary section="MyCoach">
+                <MyCoachCard />
+              </PageErrorBoundary>
+              <PageErrorBoundary section="UnreadMessages">
+                <UnreadMessages />
+              </PageErrorBoundary>
+              <PageErrorBoundary section="UpcomingSection">
+                <UpcomingSection />
+              </PageErrorBoundary>
+              <PageErrorBoundary section="MyPrograms">
+                <MyPrograms />
+              </PageErrorBoundary>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </MainLayout>
   )

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import {
@@ -32,7 +32,7 @@ import {
 import { cn } from '../lib/utils'
 import { EmptyKPIs } from '../components/ui/EmptyStateIllustration'
 import { calculateKpiProgress, isKpiOnTarget } from '../lib/kpi-utils'
-import { KPIHistoryChart } from '../components/kpi/KPIHistoryChart'
+const KPIHistoryChart = lazy(() => import('../components/kpi/KPIHistoryChart').then(m => ({ default: m.KPIHistoryChart })))
 
 const getKpiIcon = (kpi: KPI) => {
   // Biomarker KPIs get specific icons
@@ -120,7 +120,9 @@ function KPICard({
       </div>
 
       {/* History Chart */}
-      <KPIHistoryChart kpiId={kpi.id} target={kpi.target_value} unit={kpi.unit} className="mt-1 mb-2" />
+      <Suspense fallback={<div className="h-32 animate-pulse bg-white/5 rounded-lg mt-1 mb-2" />}>
+        <KPIHistoryChart kpiId={kpi.id} target={kpi.target_value} unit={kpi.unit} className="mt-1 mb-2" />
+      </Suspense>
 
       {/* Actions */}
       <div className="flex items-center justify-between pt-3 border-t border-white/10">

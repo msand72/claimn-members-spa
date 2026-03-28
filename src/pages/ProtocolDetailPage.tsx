@@ -198,24 +198,28 @@ function ImplementationTimeline({ steps }: { steps: ImplementationStep[] }) {
         </h2>
       </div>
       <div className="relative">
-        {steps.map((step, index) => (
-          <div key={step.step} className="flex gap-4 pb-6 last:pb-0">
-            {/* Timeline line */}
-            <div className="flex flex-col items-center">
-              <div className="w-8 h-8 rounded-full bg-koppar/20 flex items-center justify-center text-koppar font-medium text-sm">
-                {step.step}
+        {steps.map((step, index) => {
+          const label = step.period || String(step.step ?? index + 1)
+          const desc = step.description || step.desc || ''
+          return (
+            <div key={label + index} className="flex gap-4 pb-6 last:pb-0">
+              {/* Timeline line */}
+              <div className="flex flex-col items-center">
+                <div className="w-8 h-8 rounded-full bg-koppar/20 flex items-center justify-center text-koppar font-medium text-sm shrink-0">
+                  {step.period ? `W${label}` : label}
+                </div>
+                {index < steps.length - 1 && (
+                  <div className="w-0.5 flex-1 bg-white/10 mt-2" />
+                )}
               </div>
-              {index < steps.length - 1 && (
-                <div className="w-0.5 flex-1 bg-white/10 mt-2" />
-              )}
+              {/* Content */}
+              <div className="flex-1 pb-4">
+                <h4 className="font-medium text-kalkvit mb-1">{step.title}</h4>
+                {desc && <p className="text-sm text-kalkvit/60">{desc}</p>}
+              </div>
             </div>
-            {/* Content */}
-            <div className="flex-1 pb-4">
-              <h4 className="font-medium text-kalkvit mb-1">{step.title}</h4>
-              <p className="text-sm text-kalkvit/60">{step.description}</p>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </GlassCard>
   )
@@ -232,42 +236,51 @@ function ImplementationGuides({ guides }: { guides: ImplementationGuide[] }) {
         Implementation Guides
       </h2>
       <div className="space-y-4">
-        {guides.map((guide) => (
-          <GlassCard key={guide.id} variant="base">
-            <button
-              onClick={() => setExpandedId(expandedId === guide.id ? null : guide.id)}
-              className="w-full flex items-center justify-between text-left"
-            >
-              <div>
-                <h3 className="font-medium text-kalkvit">{guide.title}</h3>
-                <p className="text-sm text-kalkvit/60 mt-1">{guide.description}</p>
-              </div>
-              {guide.details && guide.details.length > 0 && (
-                <ChevronDownIcon
-                  className={cn(
-                    'w-5 h-5 text-kalkvit/50 transition-transform flex-shrink-0 ml-4',
-                    expandedId === guide.id && 'rotate-180'
+        {guides.map((guide, idx) => {
+          const guideId = `guide-${idx}`
+          const detailItems = guide.items
+            ? guide.items.map(item => `${item.label}: ${item.detail}`)
+            : guide.details || []
+
+          return (
+            <GlassCard key={guideId} variant="base">
+              <button
+                onClick={() => setExpandedId(expandedId === guideId ? null : guideId)}
+                className="w-full flex items-center justify-between text-left"
+              >
+                <div>
+                  <h3 className="font-medium text-kalkvit">{guide.title}</h3>
+                  {guide.description && (
+                    <p className="text-sm text-kalkvit/60 mt-1">{guide.description}</p>
                   )}
-                />
+                </div>
+                {detailItems.length > 0 && (
+                  <ChevronDownIcon
+                    className={cn(
+                      'w-5 h-5 text-kalkvit/50 transition-transform flex-shrink-0 ml-4',
+                      expandedId === guideId && 'rotate-180'
+                    )}
+                  />
+                )}
+              </button>
+              {expandedId === guideId && detailItems.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <ul className="space-y-2">
+                    {detailItems.map((detail, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-2 text-sm text-kalkvit/70"
+                      >
+                        <LightBulbIcon className="w-4 h-4 text-koppar flex-shrink-0 mt-0.5" />
+                        {detail}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
-            </button>
-            {expandedId === guide.id && guide.details && guide.details.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-white/10">
-                <ul className="space-y-2">
-                  {guide.details.map((detail, index) => (
-                    <li
-                      key={index}
-                      className="flex items-start gap-2 text-sm text-kalkvit/70"
-                    >
-                      <LightBulbIcon className="w-4 h-4 text-koppar flex-shrink-0 mt-0.5" />
-                      {detail}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </GlassCard>
-        ))}
+            </GlassCard>
+          )
+        })}
       </div>
     </div>
   )

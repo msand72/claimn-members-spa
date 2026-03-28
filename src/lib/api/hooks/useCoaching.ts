@@ -12,6 +12,8 @@ export interface CoachingPreferences {
   daily_insight_enabled: boolean
   weekly_review_enabled: boolean
   plan_suggestions_enabled: boolean
+  email_insights_enabled: boolean
+  email_weekly_review_enabled: boolean
 }
 
 export interface CoachingInsight {
