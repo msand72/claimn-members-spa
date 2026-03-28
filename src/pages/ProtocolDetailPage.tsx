@@ -205,7 +205,7 @@ function ImplementationTimeline({ steps }: { steps: ImplementationStep[] }) {
             <div key={label + index} className="flex gap-4 pb-6 last:pb-0">
               {/* Timeline line */}
               <div className="flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-koppar/20 flex items-center justify-center text-koppar font-medium text-sm shrink-0">
+                <div className={`${step.period ? 'px-3 py-1.5 rounded-xl' : 'w-9 h-9 rounded-full'} bg-koppar/20 flex items-center justify-center text-koppar font-medium text-xs shrink-0 whitespace-nowrap`}>
                   {step.period ? `W${label}` : label}
                 </div>
                 {index < steps.length - 1 && (
