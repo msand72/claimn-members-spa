@@ -198,8 +198,7 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate, presele
       size="sm"
     >
       <div className="space-y-4">
-        {/* Date picker — shown when no pre-selected date */}
-        {!preselectedDate && (
+        {/* Date picker — always shown, pre-selects date if provided */}
           <div>
             {/* Week / Month toggle */}
             <div className="flex items-center justify-center gap-1 mb-3 bg-white/[0.06] rounded-lg p-0.5">
@@ -330,15 +329,6 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate, presele
               </div>
             )}
           </div>
-        )}
-
-        {/* Date display — shown when pre-selected */}
-        {preselectedDate && selectedDate && (
-          <div className="flex items-center gap-2 text-sm text-kalkvit/70">
-            <CalendarIcon className="w-4 h-4 text-koppar" />
-            {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </div>
-        )}
 
         {/* Session duration */}
         {selectedDate && (

@@ -32,7 +32,7 @@ export function MobileBottomNav() {
   const { pathname } = useLocation()
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-elevated border-t border-white/10 safe-area-bottom">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass-elevated border-t border-white/10 safe-area-bottom [transform:translate3d(0,0,0)]">
       <div className="flex items-center justify-around px-2 py-2">
         {bottomNavItems.map(({ to, icon: Icon, label, sectionKey }) => {
           if (sectionKey) {
