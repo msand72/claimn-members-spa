@@ -144,13 +144,25 @@ export function useAvailableSlots(expertId: string, date: string, duration: numb
 // Coaching Session Hooks
 // =====================================================
 
+/**
+ * Single source of truth for the member-side coaching/coach session endpoint.
+ *
+ * The backend's WS2 work consolidates `coaching_sessions` + `expert_sessions`
+ * into a unified `coach_sessions` table over the next 4–6 weeks. When that
+ * cutover lands, the path here changes to e.g. `/members/coach-sessions` and
+ * every hook in this file follows automatically. Old path will alias for
+ * one release cycle. Don't reference this string anywhere else in the app —
+ * always go through the hooks below.
+ */
+const COACHING_SESSIONS_BASE = '/members/coaching/sessions'
+
 // Get all coaching sessions
 // Polls every 60s to pick up status changes (reschedule responses, cancellations)
 export function useCoachingSessions(params?: SessionsParams) {
   return useQuery({
     queryKey: coachingKeys.sessions(params),
     queryFn: () =>
-      api.get<PaginatedResponse<CoachingSession>>('/members/coaching/sessions', {
+      api.get<PaginatedResponse<CoachingSession>>(COACHING_SESSIONS_BASE, {
         page: params?.page,
         limit: params?.limit,
         sort: params?.sort,
@@ -164,7 +176,7 @@ export function useCoachingSessions(params?: SessionsParams) {
 export function useCoachingSession(id: string) {
   return useQuery({
     queryKey: coachingKeys.session(id),
-    queryFn: () => api.get<CoachingSession>(`/members/coaching/sessions/${id}`),
+    queryFn: () => api.get<CoachingSession>(`${COACHING_SESSIONS_BASE}/${id}`),
     enabled: !!id,
   })
 }
@@ -175,7 +187,7 @@ export function useBookSession() {
 
   return useMutation({
     mutationFn: (data: BookSessionRequest) =>
-      api.post<CoachingSession>('/members/coaching/sessions', data),
+      api.post<CoachingSession>(COACHING_SESSIONS_BASE, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: coachingKeys.all })
     },
@@ -188,7 +200,7 @@ export function useCancelSession() {
 
   return useMutation({
     mutationFn: ({ sessionId, reason }: { sessionId: string; reason?: string }) =>
-      api.patch<CoachingSession>(`/members/coaching/sessions/${sessionId}/cancel`, {
+      api.patch<CoachingSession>(`${COACHING_SESSIONS_BASE}/${sessionId}/cancel`, {
         reason: reason || 'Cancelled by member',
       }),
     onSuccess: (_, { sessionId }) => {
@@ -206,7 +218,7 @@ export function useRescheduleSession() {
     mutationFn: ({ sessionId, data }: {
       sessionId: string
       data: { proposed_datetime: string; reason?: string }
-    }) => api.patch<CoachingSession>(`/members/coaching/sessions/${sessionId}/reschedule`, data),
+    }) => api.patch<CoachingSession>(`${COACHING_SESSIONS_BASE}/${sessionId}/reschedule`, data),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: coachingKeys.all })
       queryClient.invalidateQueries({ queryKey: coachingKeys.session(sessionId) })
@@ -237,7 +249,7 @@ export function useScheduleCoachingSession() {
     mutationFn: ({ sessionId, data }: {
       sessionId: string
       data: { session_date: string; duration_minutes?: number }
-    }) => api.post<CoachingSession>(`/members/coaching/sessions/${sessionId}/schedule`, data),
+    }) => api.post<CoachingSession>(`${COACHING_SESSIONS_BASE}/${sessionId}/schedule`, data),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: coachingKeys.all })
       queryClient.invalidateQueries({ queryKey: coachingKeys.session(sessionId) })
@@ -259,7 +271,7 @@ export function useSessionNotes(sessionId: string) {
     queryKey: coachingKeys.notes(sessionId),
     queryFn: async () => {
       try {
-        return await api.get<SessionNote>(`/members/coaching/sessions/${sessionId}/notes`)
+        return await api.get<SessionNote>(`${COACHING_SESSIONS_BASE}/${sessionId}/notes`)
       } catch (err) {
         // 404 means notes haven't been created yet — not an error
         if (is404Error(err)) return null
@@ -282,7 +294,7 @@ export function useUpdateSessionNotes() {
     }: {
       sessionId: string
       data: UpdateSessionNoteRequest
-    }) => api.put<SessionNote>(`/members/coaching/sessions/${sessionId}/notes`, data),
+    }) => api.put<SessionNote>(`${COACHING_SESSIONS_BASE}/${sessionId}/notes`, data),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: coachingKeys.notes(sessionId) })
     },
@@ -299,7 +311,7 @@ export function useSessionReview(sessionId: string) {
     queryKey: coachingKeys.review(sessionId),
     queryFn: async () => {
       try {
-        return await api.get<SessionReview>(`/members/coaching/sessions/${sessionId}/review`)
+        return await api.get<SessionReview>(`${COACHING_SESSIONS_BASE}/${sessionId}/review`)
       } catch (err) {
         if (is404Error(err)) return null
         throw err
@@ -316,7 +328,7 @@ export function useSubmitReview() {
 
   return useMutation({
     mutationFn: ({ sessionId, data }: { sessionId: string; data: SubmitReviewRequest }) =>
-      api.post<SessionReview>(`/members/coaching/sessions/${sessionId}/review`, data),
+      api.post<SessionReview>(`${COACHING_SESSIONS_BASE}/${sessionId}/review`, data),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: coachingKeys.review(sessionId) })
       queryClient.invalidateQueries({ queryKey: coachingKeys.all })
