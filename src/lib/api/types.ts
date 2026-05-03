@@ -623,6 +623,19 @@ export interface CoachingResource extends Resource {
 // Programs
 // =====================================================
 
+/**
+ * Program component identifiers — drive which features/tabs are active.
+ * See `lib/program-components.ts` for the helpers that read this.
+ */
+export type ProgramComponent =
+  | 'group_sessions'
+  | 'vitality_check'
+  | 'assessments'
+  | 'sprints'
+  | 'community'
+  | 'coach_calls'
+  | 'claim_assessment'
+
 export interface Program {
   id: string
   title: string
@@ -640,6 +653,8 @@ export interface Program {
   objectives?: string[]
   prerequisites?: string[]
   tier?: string
+  /** Active components for this program (drives tab visibility, dashboard tiles, etc). */
+  components?: ProgramComponent[]
   created_by?: string
   created_at: string
   updated_at: string
@@ -746,7 +761,7 @@ export interface SubmitPeerReviewRequest {
 // Program Assessments (distinct from onboarding assessments)
 // =====================================================
 
-export type ProgramAssessmentType = 'baseline' | 'midline' | 'final' | 'custom'
+export type ProgramAssessmentType = 'baseline' | 'midline' | 'final' | 'custom' | 'claim_assessment'
 
 export interface ProgramAssessment {
   id: string
@@ -830,6 +845,7 @@ export interface CVCCategoryScores {
 }
 
 export interface CVCAssessmentStatus {
+  /** Real UUID for CVC entries, literal 'claim_assessment' for the virtual claim entry. */
   assessment_id: string
   name: string
   type: ProgramAssessmentType
@@ -837,6 +853,10 @@ export interface CVCAssessmentStatus {
   week_number: number
   is_completed: boolean
   completed_at: string | null
+  /** Absolute deadline date (YYYY-MM-DD). Optional — present for new pilot CVC entries. */
+  deadline_date?: string | null
+  /** Frontend-routable path. Present on virtual entries (e.g. claim_assessment → '/assessment'). */
+  deep_link?: string
   scores: {
     total_score: number
     percentage_score: number

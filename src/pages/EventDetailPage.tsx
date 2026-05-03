@@ -11,6 +11,7 @@ import {
   useProgramCVCStatus,
 } from '../lib/api/hooks'
 import type { CVCAssessmentStatus } from '../lib/api/types'
+import { hasComponent } from '../lib/program-components'
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -67,20 +68,15 @@ export function EventDetailPage() {
   const { data: enrolledData } = useEnrolledPrograms()
 
   const { goProgramId, isEnrolled } = useMemo(() => {
-    // Find GO program from programs list (has full slug/tier fields)
+    // Find a program that hosts group sessions (GO Sessions S1, GO Pilot 2026, etc.)
     const programs = Array.isArray(programsData?.data) ? programsData.data : []
-    const goProgram = programs.find(
-      (p) => p.slug === 'go-sessions-s1' || p.tier === 'go_sessions'
-    )
+    const goProgram = programs.find((p) => hasComponent(p, 'group_sessions'))
     const programId = goProgram?.id || ''
 
-    // Check if user is enrolled
+    // Check if user is enrolled in any group-sessions program
     const enrolled = Array.isArray(enrolledData?.data) ? enrolledData.data : []
     const enrolledMatch = enrolled.find(
-      (ep) =>
-        ep.program_id === programId ||
-        ep.program?.slug === 'go-sessions-s1' ||
-        ep.program?.tier === 'go_sessions'
+      (ep) => ep.program_id === programId || hasComponent(ep.program, 'group_sessions')
     )
 
     return {

@@ -24,6 +24,7 @@ import {
   ArrowRightIcon,
 } from '@heroicons/react/24/outline'
 import { EmptyEvents } from '../components/ui/EmptyStateIllustration'
+import { hasComponent } from '../lib/program-components'
 
 function formatEventDate(iso: string): string {
   const date = new Date(iso)
@@ -235,16 +236,11 @@ export function EventsPage() {
   const { data: enrolledData } = useEnrolledPrograms()
   const goProgramId = useMemo(() => {
     const programs = Array.isArray(programsData?.data) ? programsData.data : []
-    const goProgram = programs.find(
-      (p) => p.slug === 'go-sessions-s1' || p.tier === 'go_sessions'
-    )
+    const goProgram = programs.find((p) => hasComponent(p, 'group_sessions'))
     if (!goProgram) return ''
     const enrolled = Array.isArray(enrolledData?.data) ? enrolledData.data : []
     const enrolledMatch = enrolled.find(
-      (ep) =>
-        ep.program_id === goProgram.id ||
-        ep.program?.slug === 'go-sessions-s1' ||
-        ep.program?.tier === 'go_sessions'
+      (ep) => ep.program_id === goProgram.id || hasComponent(ep.program, 'group_sessions')
     )
     return enrolledMatch?.program_id || goProgram.id
   }, [programsData, enrolledData])

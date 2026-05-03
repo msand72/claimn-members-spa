@@ -40,11 +40,12 @@ interface VitalityTabProps {
 
 export function VitalityTab({
   programId,
-  assessments,
   cvcAssessments,
-  completedAssessments,
   isLoadingAssessments,
 }: VitalityTabProps) {
+  // Note: `assessments` and `completedAssessments` props remain on the interface
+  // for caller compatibility, but the rendering now derives counts directly from
+  // cvcAssessments (which includes the virtual claim_assessment entry).
   return (
     <div className="space-y-6">
       {/* Vitality Checks progress */}
@@ -55,77 +56,97 @@ export function VitalityTab({
       ) : (
         <>
           <GlassCard variant="base">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-kalkvit flex items-center gap-2">
-                <ClipboardDocumentCheckIcon className="w-5 h-5 text-koppar" />
-                Vitality Checks
-              </h3>
-              <span className="text-sm text-kalkvit/50">
-                {completedAssessments} of {assessments.length} completed
-              </span>
-            </div>
-            <div className="h-2 bg-white/[0.1] rounded-full overflow-hidden mb-4">
-              <div
-                className={cn(
-                  'h-full rounded-full transition-all',
-                  completedAssessments === assessments.length
-                    ? 'bg-skogsgron'
-                    : 'bg-gradient-to-r from-koppar to-brand-amber'
-                )}
-                style={{
-                  width: `${assessments.length > 0 ? Math.round((completedAssessments / assessments.length) * 100) : 0}%`,
-                }}
-              />
-            </div>
-
-            <div className="space-y-3">
-              {assessments.map((assessment) => {
-                const cvcData = cvcAssessments.find(
-                  (c: CVCAssessmentStatus) => c.assessment_id === assessment.id
-                )
-                const typeLabels: Record<string, string> = {
-                  baseline: 'Pre-Season',
-                  midline: 'Mid-Season',
-                  final: 'Post-Season',
-                }
-                return (
-                  <div
-                    key={assessment.id}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.04]"
-                  >
-                    {assessment.is_completed ? (
-                      <CheckCircleIcon className="w-5 h-5 text-skogsgron shrink-0" />
-                    ) : (
-                      <MinusIcon className="w-5 h-5 text-kalkvit/30 shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-kalkvit">
-                        {typeLabels[assessment.type] || assessment.name}
-                      </p>
-                      {cvcData?.scores ? (
-                        <p className="text-xs text-skogsgron">
-                          {Math.round(cvcData.scores.percentage_score)}% vitality
-                        </p>
-                      ) : (
-                        <p className="text-xs text-kalkvit/40">
-                          {assessment.question_count} questions
-                        </p>
-                      )}
-                    </div>
-                    {!assessment.is_completed ? (
-                      <Link to={`/programs/${programId}/assessment/${assessment.id}`}>
-                        <GlassButton variant="primary" className="text-xs">
-                          Take now
-                          <ArrowRightIcon className="w-3 h-3" />
-                        </GlassButton>
-                      </Link>
-                    ) : (
-                      <GlassBadge variant="success" className="text-xs">Done</GlassBadge>
-                    )}
+            {(() => {
+              // Source of truth is cvcAssessments — it contains both CVC entries
+              // (baseline/midline/final) and the virtual claim_assessment entry
+              // when the program declares the claim_assessment component.
+              const totalCount = cvcAssessments.length
+              const completedCount = cvcAssessments.filter((c) => c.is_completed).length
+              const typeLabels: Record<string, string> = {
+                baseline: 'Pre-Season',
+                midline: 'Mid-Season',
+                final: 'Post-Season',
+                claim_assessment: 'Claim Assessment',
+              }
+              return (
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-kalkvit flex items-center gap-2">
+                      <ClipboardDocumentCheckIcon className="w-5 h-5 text-koppar" />
+                      Assessments
+                    </h3>
+                    <span className="text-sm text-kalkvit/50">
+                      {completedCount} of {totalCount} completed
+                    </span>
                   </div>
-                )
-              })}
-            </div>
+                  <div className="h-2 bg-white/[0.1] rounded-full overflow-hidden mb-4">
+                    <div
+                      className={cn(
+                        'h-full rounded-full transition-all',
+                        completedCount === totalCount && totalCount > 0
+                          ? 'bg-skogsgron'
+                          : 'bg-gradient-to-r from-koppar to-brand-amber'
+                      )}
+                      style={{
+                        width: `${totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    {cvcAssessments.map((entry: CVCAssessmentStatus) => {
+                      const isClaim = entry.type === 'claim_assessment'
+                      // Claim Assessment uses an external deep_link (typically /assessment).
+                      // CVC entries route to the program-assessment flow.
+                      const targetPath = isClaim
+                        ? entry.deep_link || '/assessment'
+                        : `/programs/${programId}/assessment/${entry.assessment_id}`
+                      const label = typeLabels[entry.type] || entry.name
+                      return (
+                        <div
+                          key={entry.assessment_id}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.04]"
+                        >
+                          {entry.is_completed ? (
+                            <CheckCircleIcon className="w-5 h-5 text-skogsgron shrink-0" />
+                          ) : (
+                            <MinusIcon className="w-5 h-5 text-kalkvit/30 shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-kalkvit">
+                              {label}
+                            </p>
+                            {entry.scores ? (
+                              <p className="text-xs text-skogsgron">
+                                {Math.round(entry.scores.percentage_score)}% vitality
+                              </p>
+                            ) : isClaim ? (
+                              <p className="text-xs text-kalkvit/40">
+                                Din arketyp och din profil över de fem pelarna
+                              </p>
+                            ) : entry.deadline_date ? (
+                              <p className="text-xs text-kalkvit/40">
+                                Senast {new Date(entry.deadline_date).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}
+                              </p>
+                            ) : null}
+                          </div>
+                          {!entry.is_completed ? (
+                            <Link to={targetPath}>
+                              <GlassButton variant="primary" className="text-xs">
+                                Take now
+                                <ArrowRightIcon className="w-3 h-3" />
+                              </GlassButton>
+                            </Link>
+                          ) : (
+                            <GlassBadge variant="success" className="text-xs">Done</GlassBadge>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )
+            })()}
           </GlassCard>
 
           {/* ===== Inline Vitality Report ===== */}

@@ -31,6 +31,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CVCPrintReport } from '../components/cvc/CVCPrintReport'
 import type { CVCAssessmentStatus } from '../lib/api/types'
+import { hasComponent } from '../lib/program-components'
 import {
   OverviewTab,
   SprintsTab,
@@ -75,15 +76,19 @@ export function ProgramDetailPage() {
   const { data: sprintsData, isLoading: isLoadingSprints } = useSprints(id)
   const enrollMutation = useEnrollProgram()
 
-  // Detect if this is the GO Sessions program
-  const isGoProgram = program?.slug === 'go-sessions-s1' || program?.tier === 'go_sessions'
+  // Component-driven feature gates (replaces hardcoded tier/slug checks).
+  // Programs declare their active features via `components: ProgramComponent[]`;
+  // legacy programs without a components array fall back to tier/slug detection.
+  const hasGroupSessions = hasComponent(program, 'group_sessions')
+  const hasVitalityCheck = hasComponent(program, 'vitality_check')
+  const hasAssessmentsComponent = hasComponent(program, 'assessments')
 
-  // GO Session events — only fetch for GO program
+  // Group session events — only fetch for programs that declare group_sessions
   const [sessionStatusFilter, setSessionStatusFilter] = useState<'upcoming' | 'past'>('upcoming')
   const { data: goSessionData, isLoading: isLoadingGoSessions } = useEvents(
-    isGoProgram ? { type: 'session', status: sessionStatusFilter } : undefined
+    hasGroupSessions ? { type: 'session', status: sessionStatusFilter } : undefined
   )
-  const goSessions: ClaimnEvent[] = isGoProgram && Array.isArray(goSessionData?.data) ? goSessionData.data : []
+  const goSessions: ClaimnEvent[] = hasGroupSessions && Array.isArray(goSessionData?.data) ? goSessionData.data : []
   const registerMutation = useRegisterForEvent()
   const unregisterMutation = useUnregisterFromEvent()
 
@@ -209,18 +214,24 @@ export function ProgramDetailPage() {
 
   const hasSprints = sprints.length > 0
 
+  // Tab list is composed from the program's active components.
+  // Order: Dashboard → Sessions → Sprints → Vitality/Assessments → Community → Overview.
+  // Vitality and Assessments are mutually exclusive — Vitality wins when both are declared
+  // (CVC is the richer surface and both shouldn't typically coexist).
   const tabs = isEnrolled
     ? [
         { value: 'dashboard', label: 'Dashboard', icon: <Squares2X2Icon className="w-4 h-4" /> },
-        ...(isGoProgram
+        ...(hasGroupSessions
           ? [{ value: 'sessions', label: 'Sessions', icon: <CalendarIcon className="w-4 h-4" /> }]
           : []),
         ...(hasSprints
           ? [{ value: 'sprints', label: 'Sprints', icon: <BoltIcon className="w-4 h-4" />, badge: sprints.length }]
           : []),
-        ...(isGoProgram
+        ...(hasVitalityCheck
           ? [{ value: 'vitality', label: 'Vitality', icon: <HeartIcon className="w-4 h-4" /> }]
-          : [{ value: 'assessments', label: 'Assessments', icon: <ClipboardDocumentCheckIcon className="w-4 h-4" />, badge: assessments.length || undefined }]),
+          : hasAssessmentsComponent || assessments.length > 0
+          ? [{ value: 'assessments', label: 'Assessments', icon: <ClipboardDocumentCheckIcon className="w-4 h-4" />, badge: assessments.length || undefined }]
+          : []),
         ...(hasCommunityContent
           ? [{ value: 'community', label: 'Community', icon: <UserGroupIcon className="w-4 h-4" /> }]
           : []),
@@ -228,7 +239,7 @@ export function ProgramDetailPage() {
       ]
     : [
         { value: 'overview', label: 'Overview', icon: <BookOpenIcon className="w-4 h-4" /> },
-        ...(isGoProgram
+        ...(hasGroupSessions
           ? [{ value: 'sessions', label: 'Sessions', icon: <CalendarIcon className="w-4 h-4" /> }]
           : []),
         ...(hasSprints
@@ -579,7 +590,7 @@ export function ProgramDetailPage() {
           <SprintsTab sprints={sprints} isLoading={isLoadingSprints} />
         </GlassTabPanel>
 
-        {isGoProgram && (
+        {hasGroupSessions && (
           <GlassTabPanel value="sessions" activeValue={activeTab}>
             <SessionsTab
               goSessions={goSessions}
@@ -613,7 +624,7 @@ export function ProgramDetailPage() {
           </GlassTabPanel>
         )}
 
-        {isEnrolled && !isGoProgram && (
+        {isEnrolled && !hasVitalityCheck && (hasAssessmentsComponent || assessments.length > 0) && (
           <GlassTabPanel value="assessments" activeValue={activeTab}>
             <AssessmentsTab
               programId={id || ''}
@@ -626,7 +637,7 @@ export function ProgramDetailPage() {
           </GlassTabPanel>
         )}
 
-        {isEnrolled && isGoProgram && (
+        {isEnrolled && hasVitalityCheck && (
           <GlassTabPanel value="vitality" activeValue={activeTab}>
             <VitalityTab
               programId={id || ''}
