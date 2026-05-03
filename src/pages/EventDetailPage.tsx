@@ -8,7 +8,7 @@ import {
   useUnregisterFromEvent,
   useEnrolledPrograms,
   usePrograms,
-  useProgramCVCStatus,
+  useProgramAssessmentsStatus,
 } from '../lib/api/hooks'
 import type { CVCAssessmentStatus } from '../lib/api/types'
 import { hasComponent } from '../lib/program-components'
@@ -85,7 +85,7 @@ export function EventDetailPage() {
     }
   }, [programsData, enrolledData])
 
-  const { data: cvcStatus } = useProgramCVCStatus(
+  const { data: cvcStatus } = useProgramAssessmentsStatus(
     isGoSession && event?.is_registered && isEnrolled ? goProgramId : ''
   )
   const cvcAssessments = cvcStatus?.assessments || []

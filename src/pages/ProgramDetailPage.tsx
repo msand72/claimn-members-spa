@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useLocation } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs, GlassTabPanel } from '../components/ui'
-import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramCVCStatus, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn, useEvents, useRegisterForEvent, useUnregisterFromEvent } from '../lib/api/hooks'
+import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramAssessmentsStatus, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn, useEvents, useRegisterForEvent, useUnregisterFromEvent } from '../lib/api/hooks'
 import type { ClaimnEvent } from '../lib/api/types'
 import { sanitizeHtml } from '../lib/sanitize'
 import { useAuth } from '../contexts/AuthContext'
@@ -83,10 +83,12 @@ export function ProgramDetailPage() {
   const hasVitalityCheck = hasComponent(program, 'vitality_check')
   const hasAssessmentsComponent = hasComponent(program, 'assessments')
 
-  // Group session events — only fetch for programs that declare group_sessions
+  // Group session events — only fetch for programs that declare group_sessions.
+  // Scope to this program's id so we don't pull in sessions from other programs
+  // (e.g. GO Pilot 2026 must not show GO Sessions Season 1 sessions).
   const [sessionStatusFilter, setSessionStatusFilter] = useState<'upcoming' | 'past'>('upcoming')
   const { data: goSessionData, isLoading: isLoadingGoSessions } = useEvents(
-    hasGroupSessions ? { type: 'session', status: sessionStatusFilter } : undefined
+    hasGroupSessions && id ? { type: 'session', status: sessionStatusFilter, program_id: id } : undefined
   )
   const goSessions: ClaimnEvent[] = hasGroupSessions && Array.isArray(goSessionData?.data) ? goSessionData.data : []
   const registerMutation = useRegisterForEvent()
@@ -112,7 +114,7 @@ export function ProgramDetailPage() {
   const completedAssessments = assessments.filter((a) => a.is_completed).length
 
   // CVC status — fetch for enrolled users (provides category score breakdowns)
-  const { data: cvcStatus } = useProgramCVCStatus(
+  const { data: cvcStatus } = useProgramAssessmentsStatus(
     isEnrolled ? (id || '') : ''
   )
   const cvcAssessments = cvcStatus?.assessments || []

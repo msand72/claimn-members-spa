@@ -66,7 +66,8 @@ export function VitalityTab({
                 baseline: 'Pre-Season',
                 midline: 'Mid-Season',
                 final: 'Post-Season',
-                claim_assessment: 'Claim Assessment',
+                claim_assessment_baseline: 'Claim Assessment (start)',
+                claim_assessment_final: 'Claim Assessment (end)',
               }
               return (
                 <>
@@ -95,7 +96,7 @@ export function VitalityTab({
 
                   <div className="space-y-3">
                     {cvcAssessments.map((entry: CVCAssessmentStatus) => {
-                      const isClaim = entry.type === 'claim_assessment'
+                      const isClaim = entry.type === 'claim_assessment_baseline' || entry.type === 'claim_assessment_final'
                       // Claim Assessment uses an external deep_link (typically /assessment).
                       // CVC entries route to the program-assessment flow.
                       const targetPath = isClaim

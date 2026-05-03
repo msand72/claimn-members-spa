@@ -634,7 +634,8 @@ export type ProgramComponent =
   | 'sprints'
   | 'community'
   | 'coach_calls'
-  | 'claim_assessment'
+  | 'claim_assessment_baseline'
+  | 'claim_assessment_final'
 
 export interface Program {
   id: string
@@ -761,7 +762,13 @@ export interface SubmitPeerReviewRequest {
 // Program Assessments (distinct from onboarding assessments)
 // =====================================================
 
-export type ProgramAssessmentType = 'baseline' | 'midline' | 'final' | 'custom' | 'claim_assessment'
+export type ProgramAssessmentType =
+  | 'baseline'
+  | 'midline'
+  | 'final'
+  | 'custom'
+  | 'claim_assessment_baseline'
+  | 'claim_assessment_final'
 
 export interface ProgramAssessment {
   id: string

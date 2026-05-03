@@ -7,6 +7,8 @@ export type { ClaimnEvent }
 export interface EventsParams {
   type?: 'brotherhood_call' | 'session'
   status?: 'upcoming' | 'past'
+  /** Scope events to a specific program. Without this, the endpoint returns all events globally. */
+  program_id?: string
   page?: number
   limit?: number
 }
@@ -25,6 +27,7 @@ export function useEvents(params?: EventsParams) {
       api.get<PaginatedResponse<ClaimnEvent>>('/members/events', {
         type: params?.type,
         status: params?.status,
+        program_id: params?.program_id,
         page: params?.page,
         limit: params?.limit,
       }),

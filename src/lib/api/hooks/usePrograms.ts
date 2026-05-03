@@ -299,15 +299,23 @@ export function useProgramAssessmentResults(programId: string) {
   })
 }
 
-// Get CVC (Claimn Vitality Check) status for a program
-export function useProgramCVCStatus(programId: string) {
+// Get the unified assessment status for a program — includes CVC entries,
+// virtual claim_assessment_baseline / _final entries, and standard
+// program_assessments rows, all driven by the program's `components` array.
+// Backend assembles based on which components are active (server-infra 945b5ed).
+export function useProgramAssessmentsStatus(programId: string) {
   return useQuery({
     queryKey: programKeys.cvcStatus(programId),
-    queryFn: () => api.get<CVCStatus>(`/members/programs/${programId}/cvc-status`),
+    queryFn: () => api.get<CVCStatus>(`/members/programs/${programId}/assessments-status`),
     enabled: !!programId,
     retry: false,
   })
 }
+
+/** @deprecated Use `useProgramAssessmentsStatus` instead. Backend now serves
+ *  both `/cvc-status` and `/assessments-status` from the same handler — this
+ *  alias remains for any in-flight callers and will be removed once they migrate. */
+export const useProgramCVCStatus = useProgramAssessmentsStatus
 
 // =====================================================
 // Cohort Hooks

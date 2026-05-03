@@ -199,6 +199,7 @@ export {
   useProgramAssessment,
   useSubmitProgramAssessment,
   useProgramAssessmentResults,
+  useProgramAssessmentsStatus,
   useProgramCVCStatus,
   useProgramCohort,
   useProgramCompletion,
