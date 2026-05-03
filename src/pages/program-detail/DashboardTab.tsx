@@ -11,12 +11,12 @@ import {
 import { cn } from '../../lib/utils'
 import type {
   Sprint,
-  ProgramAssessment,
   ProgramCohort,
   ProgramCohortMember,
   AccountabilityGroup,
   AccountabilityMember,
   CheckIn,
+  CVCAssessmentStatus,
 } from '../../lib/api/types'
 
 interface DashboardTabProps {
@@ -25,8 +25,15 @@ interface DashboardTabProps {
   activeSprint: Sprint | undefined
   completedSprints: number
   hasSprints: boolean
-  assessments: ProgramAssessment[]
-  completedAssessments: number
+  /**
+   * Unified assessment list from /assessments-status — includes CVC entries,
+   * standard program_assessments rows (when the `assessments` component is
+   * declared), and virtual claim_assessment_baseline / _final entries.
+   * This is the single source of truth for the assessment counter and the
+   * Next Assessment card. Empty array if the program has no assessment
+   * components.
+   */
+  assessmentEntries: CVCAssessmentStatus[]
   progress: number
   cohort: ProgramCohort | null
   programGroup: AccountabilityGroup | null
@@ -42,8 +49,7 @@ export function DashboardTab({
   activeSprint,
   completedSprints,
   hasSprints,
-  assessments,
-  completedAssessments,
+  assessmentEntries,
   progress,
   cohort,
   programGroup,
@@ -52,6 +58,27 @@ export function DashboardTab({
   recentCheckIns,
   onNavigateToTab,
 }: DashboardTabProps) {
+  const totalAssessments = assessmentEntries.length
+  const completedAssessments = assessmentEntries.filter((e) => e.is_completed).length
+
+  // Display labels per assessment type. CVC types use season language;
+  // claim variants get pre/post labels.
+  const typeLabels: Record<string, string> = {
+    baseline: 'Pre-Season Vitality Check',
+    midline: 'Mid-Season Vitality Check',
+    final: 'Post-Season Vitality Check',
+    claim_assessment_baseline: 'Claim Assessment (start)',
+    claim_assessment_final: 'Claim Assessment (end)',
+  }
+
+  function isClaimEntry(type: string): boolean {
+    return type === 'claim_assessment_baseline' || type === 'claim_assessment_final'
+  }
+
+  function targetForEntry(entry: CVCAssessmentStatus): string {
+    if (isClaimEntry(entry.type)) return entry.deep_link || '/assessment'
+    return `/programs/${programId}/assessment/${entry.assessment_id}`
+  }
   return (
     <div className="space-y-6">
       {/* Sprint Timeline (only if program has sprints) */}
@@ -170,7 +197,7 @@ export function DashboardTab({
           </>
         )}
         <GlassCard variant="base" className="text-center !py-4">
-          <p className="font-display text-2xl font-bold text-kalkvit">{completedAssessments}/{assessments.length}</p>
+          <p className="font-display text-2xl font-bold text-kalkvit">{completedAssessments}/{totalAssessments}</p>
           <p className="text-xs text-kalkvit/50">Assessments</p>
         </GlassCard>
         <GlassCard variant="base" className="text-center !py-4">
@@ -179,10 +206,21 @@ export function DashboardTab({
         </GlassCard>
       </div>
 
-      {/* Next Assessment */}
-      {assessments.length > 0 && (() => {
-        const nextAssessment = assessments.find((a) => !a.is_completed)
-        if (!nextAssessment) return null
+      {/* Next Assessment — earliest incomplete entry by deadline_date.
+          Entries without a deadline sort to the end. */}
+      {totalAssessments > 0 && (() => {
+        const incomplete = assessmentEntries.filter((e) => !e.is_completed)
+        if (incomplete.length === 0) return null
+        const sorted = [...incomplete].sort((a, b) => {
+          if (a.deadline_date && b.deadline_date) {
+            return new Date(a.deadline_date).getTime() - new Date(b.deadline_date).getTime()
+          }
+          if (a.deadline_date) return -1
+          if (b.deadline_date) return 1
+          return 0
+        })
+        const nextEntry = sorted[0]
+        const displayName = typeLabels[nextEntry.type] || nextEntry.name
         return (
           <GlassCard variant="base">
             <div className="flex items-start gap-4">
@@ -191,13 +229,14 @@ export function DashboardTab({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-koppar font-medium uppercase tracking-wider mb-0.5">Next Assessment</p>
-                <h4 className="font-semibold text-kalkvit">{nextAssessment.name}</h4>
+                <h4 className="font-semibold text-kalkvit">{displayName}</h4>
                 <p className="text-xs text-kalkvit/50 mt-1">
-                  {nextAssessment.question_count} questions
-                  {nextAssessment.is_required && ' · Required'}
+                  {nextEntry.deadline_date && (
+                    <>By {new Date(nextEntry.deadline_date).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}</>
+                  )}
                 </p>
               </div>
-              <Link to={`/programs/${programId}/assessment/${nextAssessment.id}`}>
+              <Link to={targetForEntry(nextEntry)}>
                 <GlassButton variant="primary" className="text-sm">
                   Start
                   <ArrowRightIcon className="w-4 h-4" />

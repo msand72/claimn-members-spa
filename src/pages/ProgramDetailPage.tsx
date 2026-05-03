@@ -613,8 +613,7 @@ export function ProgramDetailPage() {
               activeSprint={activeSprint}
               completedSprints={completedSprints}
               hasSprints={hasSprints}
-              assessments={assessments}
-              completedAssessments={completedAssessments}
+              assessmentEntries={cvcAssessments}
               progress={progress}
               cohort={cohort}
               programGroup={programGroup}
