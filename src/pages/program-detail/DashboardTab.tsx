@@ -206,10 +206,18 @@ export function DashboardTab({
         </GlassCard>
       </div>
 
-      {/* Next Assessment — earliest incomplete entry by deadline_date.
-          Entries without a deadline sort to the end. */}
+      {/* Next Assessment — earliest incomplete entry by deadline_date that's
+          currently visible. visible_from_date controls when in-program /
+          post-program assessments appear; pre-program entries (visible_from_date
+          null) are always visible. The full counter above still reflects total
+          program scope so participants see what's coming. */}
       {totalAssessments > 0 && (() => {
-        const incomplete = assessmentEntries.filter((e) => !e.is_completed)
+        const todayISO = new Date().toISOString().slice(0, 10)
+        const incomplete = assessmentEntries.filter((e) => {
+          if (e.is_completed) return false
+          if (e.visible_from_date == null) return true
+          return e.visible_from_date <= todayISO
+        })
         if (incomplete.length === 0) return null
         const sorted = [...incomplete].sort((a, b) => {
           if (a.deadline_date && b.deadline_date) {

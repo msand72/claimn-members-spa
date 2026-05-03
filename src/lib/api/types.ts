@@ -862,6 +862,13 @@ export interface CVCAssessmentStatus {
   completed_at: string | null
   /** Absolute deadline date (YYYY-MM-DD). Optional — present for new pilot CVC entries. */
   deadline_date?: string | null
+  /**
+   * ISO date from which this entry should be visible on the participant's
+   * Dashboard. `null` means always visible (pre-program assessments).
+   * Computed by backend as `deadline_date - program.assessment_lead_days`
+   * for non-pre-program entries.
+   */
+  visible_from_date?: string | null
   /** Frontend-routable path. Present on virtual entries (e.g. claim_assessment → '/assessment'). */
   deep_link?: string
   scores: {
