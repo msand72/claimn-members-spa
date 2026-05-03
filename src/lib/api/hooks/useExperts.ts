@@ -214,6 +214,41 @@ export function useRescheduleSession() {
   })
 }
 
+// In-place schedule / reschedule for pre-allocated (program quota) sessions.
+//
+// Hits POST /members/coaching/sessions/{id}/schedule which UPDATEs the
+// existing row rather than inserting a new one — preserves program quota
+// counts and preserves the Teams meeting URL across reschedules.
+//
+// Allowed transitions (server-enforced):
+//   awaiting_schedule  → scheduled (initial book — provisions Teams meeting)
+//   scheduled          → scheduled (reschedule — moves Teams meeting, same joinUrl)
+//   reschedule_requested → scheduled (accept coach's proposed time)
+//
+// Returns 400 INVALID_STATUS for cancelled/completed/no_show/rejected,
+// 409 SLOT_UNAVAILABLE on overlap, 404 if not owned by member.
+//
+// meeting_url may be null in the immediate response — Teams meeting is
+// provisioned async. Refetch ~2-3s later to surface the joinUrl.
+export function useScheduleCoachingSession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ sessionId, data }: {
+      sessionId: string
+      data: { session_date: string; duration_minutes?: number }
+    }) => api.post<CoachingSession>(`/members/coaching/sessions/${sessionId}/schedule`, data),
+    onSuccess: (_, { sessionId }) => {
+      queryClient.invalidateQueries({ queryKey: coachingKeys.all })
+      queryClient.invalidateQueries({ queryKey: coachingKeys.session(sessionId) })
+      // Refetch ~2.5s later so the Teams meeting_url has time to provision
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: coachingKeys.session(sessionId) })
+      }, 2500)
+    },
+  })
+}
+
 // =====================================================
 // Session Notes Hooks
 // =====================================================

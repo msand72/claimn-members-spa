@@ -163,6 +163,7 @@ export {
   useBookSession,
   useCancelSession,
   useRescheduleSession,
+  useScheduleCoachingSession,
   useSessionNotes,
   useUpdateSessionNotes,
   useSessionReview,

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassAvatar, GlassBadge, GlassInput, GlassTextarea, GlassModal, GlassModalFooter } from '../components/ui'
-import { useCoachingSessions, useRescheduleSession, useSubmitReview } from '../lib/api/hooks'
+import { useCoachingSessions, useRescheduleSession, useScheduleCoachingSession, useSubmitReview } from '../lib/api/hooks'
 import { safeOpenUrl } from '../lib/url-validation'
 import type { CoachingSession } from '../lib/api/types'
 import {
@@ -49,10 +49,12 @@ function formatSessionTime(scheduledAt: string): string {
   })
 }
 
-type UIStatus = 'upcoming' | 'reschedule_pending' | 'completed' | 'cancelled'
+type UIStatus = 'awaiting' | 'upcoming' | 'reschedule_pending' | 'completed' | 'cancelled'
 
 function getUIStatus(status: CoachingSession['status']): UIStatus {
   switch (status) {
+    case 'awaiting_schedule':
+      return 'awaiting'
     case 'scheduled':
     case 'confirmed':
     case 'in_progress':
@@ -63,10 +65,20 @@ function getUIStatus(status: CoachingSession['status']): UIStatus {
       return 'completed'
     case 'cancelled':
     case 'cancelled_by_member':
+    case 'rejected':
       return 'cancelled'
     default:
       return 'upcoming'
   }
+}
+
+/**
+ * Program-quota sessions (pre-allocated coach calls tied to a program
+ * enrollment) use the in-place schedule endpoint. Ad-hoc sessions go
+ * through the propose/approve reschedule flow.
+ */
+function isProgramQuotaSession(session: CoachingSession): boolean {
+  return !!session.program_enrollment_id
 }
 
 // ── Skeleton ─────────────────────────────────────────
@@ -95,15 +107,24 @@ function SessionCardSkeleton() {
 function SessionCard({
   session,
   onReschedule,
+  onSchedule,
   onReview,
 }: {
   session: CoachingSession
+  /** Open the propose/approve reschedule modal — used for ad-hoc sessions. */
   onReschedule?: (sessionId: string) => void
+  /**
+   * Open the in-place schedule modal — used for both initial booking
+   * (status `awaiting_schedule`) and direct reschedule of program-quota
+   * sessions (status `scheduled` with a `program_enrollment_id`).
+   */
+  onSchedule?: (sessionId: string) => void
   onReview?: (sessionId: string) => void
 }) {
   const uiStatus = getUIStatus(session.status)
 
   const statusConfig = {
+    awaiting: { variant: 'koppar' as const, label: 'Not yet booked' },
     upcoming: { variant: 'success' as const, label: 'Upcoming' },
     reschedule_pending: { variant: 'warning' as const, label: 'Reschedule Pending' },
     completed: { variant: 'default' as const, label: 'Completed' },
@@ -149,18 +170,38 @@ function SessionCard({
 
           {/* Date / time / type */}
           <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-kalkvit/60">
-            <span className="flex items-center gap-1">
-              <CalendarIcon className="w-4 h-4" />
-              {formatSessionDate(session.scheduled_at)}
-            </span>
-            <span className="flex items-center gap-1">
-              <ClockIcon className="w-4 h-4" />
-              {formatSessionTime(session.scheduled_at)} ({session.duration} min)
-            </span>
-            <span className="flex items-center gap-1">
-              <VideoCameraIcon className="w-4 h-4" />
-              Video Call
-            </span>
+            {uiStatus === 'awaiting' ? (
+              <>
+                <span className="flex items-center gap-1">
+                  <CalendarIcon className="w-4 h-4" />
+                  Time not chosen yet
+                </span>
+                <span className="flex items-center gap-1">
+                  <ClockIcon className="w-4 h-4" />
+                  {session.duration} min
+                </span>
+                {session.session_type && (
+                  <span className="flex items-center gap-1 capitalize">
+                    {session.session_type === 'utcheckning' ? 'Utcheckning' : 'Coaching call'}
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                <span className="flex items-center gap-1">
+                  <CalendarIcon className="w-4 h-4" />
+                  {formatSessionDate(session.scheduled_at)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <ClockIcon className="w-4 h-4" />
+                  {formatSessionTime(session.scheduled_at)} ({session.duration} min)
+                </span>
+                <span className="flex items-center gap-1">
+                  <VideoCameraIcon className="w-4 h-4" />
+                  Video Call
+                </span>
+              </>
+            )}
           </div>
 
           {/* Goals */}
@@ -226,6 +267,13 @@ function SessionCard({
 
           {/* Actions */}
           <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-white/10">
+            {uiStatus === 'awaiting' && (
+              <GlassButton variant="primary" className="text-sm" onClick={() => onSchedule?.(session.id)}>
+                <CalendarIcon className="w-4 h-4" />
+                Book a time
+                <ChevronRightIcon className="w-4 h-4" />
+              </GlassButton>
+            )}
             {(uiStatus === 'upcoming' || uiStatus === 'reschedule_pending') && (
               <>
                 {session.meeting_url ? (
@@ -243,10 +291,18 @@ function SessionCard({
                 <GlassButton
                   variant="ghost"
                   className="text-sm"
-                  onClick={() => onReschedule?.(session.id)}
-                  disabled={uiStatus === 'reschedule_pending'}
+                  onClick={() => {
+                    // Program-quota sessions: in-place reschedule via /schedule.
+                    // Ad-hoc sessions: propose/approve flow via /reschedule.
+                    if (isProgramQuotaSession(session)) {
+                      onSchedule?.(session.id)
+                    } else {
+                      onReschedule?.(session.id)
+                    }
+                  }}
+                  disabled={uiStatus === 'reschedule_pending' && !isProgramQuotaSession(session)}
                 >
-                  <ArrowPathIcon className={cn('w-4 h-4', uiStatus === 'reschedule_pending' && 'opacity-40')} />
+                  <ArrowPathIcon className={cn('w-4 h-4', uiStatus === 'reschedule_pending' && !isProgramQuotaSession(session) && 'opacity-40')} />
                   Reschedule
                 </GlassButton>
                 <Link to={`/messages?user=${expert?.user_id || ''}`}>
@@ -302,6 +358,14 @@ export function CoachingSessionsPage() {
   const [rescheduleSuccess, setRescheduleSuccess] = useState(false)
   const rescheduleSession = useRescheduleSession()
 
+  // In-place schedule modal — used for program-quota tiles (initial booking
+  // of an awaiting_schedule slot, or direct reschedule of an already-scheduled
+  // program-quota session). Hits POST /schedule, no coach approval needed.
+  const [scheduleSessionId, setScheduleSessionId] = useState<string | null>(null)
+  const [scheduleDatetime, setScheduleDatetime] = useState('')
+  const [scheduleSuccess, setScheduleSuccess] = useState(false)
+  const scheduleSession = useScheduleCoachingSession()
+
   const [reviewSessionId, setReviewSessionId] = useState<string | null>(null)
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewComment, setReviewComment] = useState('')
@@ -322,7 +386,7 @@ export function CoachingSessionsPage() {
     if (filter === 'all') return sessions
     if (filter === 'upcoming') return sessions.filter((s) => {
       const ui = getUIStatus(s.status)
-      return ui === 'upcoming' || ui === 'reschedule_pending'
+      return ui === 'awaiting' || ui === 'upcoming' || ui === 'reschedule_pending'
     })
     return sessions.filter((s) => {
       const ui = getUIStatus(s.status)
@@ -330,9 +394,10 @@ export function CoachingSessionsPage() {
     })
   }, [sessions, filter])
 
-  // Stats
+  // Stats — `awaiting` counts toward Upcoming since it's a tile the user
+  // still has to act on
   const upcomingCount = useMemo(
-    () => sessions.filter((s) => { const ui = getUIStatus(s.status); return ui === 'upcoming' || ui === 'reschedule_pending' }).length,
+    () => sessions.filter((s) => { const ui = getUIStatus(s.status); return ui === 'awaiting' || ui === 'upcoming' || ui === 'reschedule_pending' }).length,
     [sessions]
   )
   const completedCount = useMemo(
@@ -442,6 +507,15 @@ export function CoachingSessionsPage() {
               key={session.id}
               session={session}
               onReschedule={setRescheduleSessionId}
+              onSchedule={(id) => {
+                // Pre-fill with current scheduled_at if rescheduling, blank if first booking
+                const target = sessions.find((s) => s.id === id)
+                const initial = target?.scheduled_at
+                  ? new Date(target.scheduled_at).toISOString().slice(0, 16)
+                  : ''
+                setScheduleDatetime(initial)
+                setScheduleSessionId(id)
+              }}
               onReview={setReviewSessionId}
             />
           ))
@@ -457,6 +531,102 @@ export function CoachingSessionsPage() {
           </GlassCard>
         )}
       </div>
+
+      {/* Schedule Modal — in-place schedule/reschedule for program-quota tiles */}
+      <GlassModal
+        isOpen={!!scheduleSessionId}
+        onClose={() => {
+          setScheduleSessionId(null)
+          setScheduleDatetime('')
+          setScheduleSuccess(false)
+        }}
+        title={(() => {
+          const target = scheduleSessionId
+            ? sessions.find((s) => s.id === scheduleSessionId)
+            : null
+          if (!target) return 'Book a time'
+          return target.status === 'awaiting_schedule' ? 'Book a time' : 'Reschedule session'
+        })()}
+        size="sm"
+      >
+        {scheduleSuccess ? (
+          <div className="text-center py-4">
+            <CalendarIcon className="w-8 h-8 text-skogsgron mx-auto mb-3" />
+            <p className="text-kalkvit font-medium mb-1">All set</p>
+            <p className="text-sm text-kalkvit/60">
+              Your meeting link will appear here in a few seconds.
+            </p>
+            <GlassButton
+              variant="primary"
+              className="mt-4"
+              onClick={() => {
+                setScheduleSessionId(null)
+                setScheduleDatetime('')
+                setScheduleSuccess(false)
+              }}
+            >
+              Done
+            </GlassButton>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              <GlassInput
+                label="Date & Time"
+                type="datetime-local"
+                value={scheduleDatetime}
+                onChange={(e) => setScheduleDatetime(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+              <p className="text-xs text-kalkvit/50">
+                You can reschedule later if something comes up.
+              </p>
+            </div>
+            <GlassModalFooter>
+              <GlassButton
+                variant="ghost"
+                onClick={() => {
+                  setScheduleSessionId(null)
+                  setScheduleDatetime('')
+                }}
+                disabled={scheduleSession.isPending}
+              >
+                Cancel
+              </GlassButton>
+              <GlassButton
+                variant="primary"
+                disabled={!scheduleDatetime || scheduleSession.isPending}
+                onClick={() => {
+                  if (!scheduleSessionId || !scheduleDatetime) return
+                  scheduleSession.mutate(
+                    {
+                      sessionId: scheduleSessionId,
+                      data: {
+                        session_date: new Date(scheduleDatetime).toISOString(),
+                      },
+                    },
+                    {
+                      onSuccess: () => setScheduleSuccess(true),
+                    }
+                  )
+                }}
+              >
+                {scheduleSession.isPending ? 'Saving...' : 'Confirm'}
+              </GlassButton>
+            </GlassModalFooter>
+            {scheduleSession.isError && (
+              <p className="text-xs text-tegelrod mt-3 text-center">
+                {(() => {
+                  const err = scheduleSession.error as { error?: { code?: string; message?: string } }
+                  if (err?.error?.code === 'SLOT_UNAVAILABLE') return 'That time conflicts with another session. Pick another slot.'
+                  if (err?.error?.code === 'INVALID_STATUS') return 'This session can’t be rescheduled.'
+                  return err?.error?.message || 'Failed to save. Please try again.'
+                })()}
+              </p>
+            )}
+          </>
+        )}
+      </GlassModal>
 
       {/* Reschedule Modal */}
       <GlassModal
