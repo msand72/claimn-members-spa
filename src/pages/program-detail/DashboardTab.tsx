@@ -219,13 +219,23 @@ export function DashboardTab({
           return e.visible_from_date <= todayISO
         })
         if (incomplete.length === 0) return null
+        // Sort priority: deadline_date ASC, then by type (claim_assessment
+        // variants before CVC variants when deadlines tie — Claim is the
+        // broader self-knowledge piece and makes a better onboarding moment).
+        const typePriority: Record<string, number> = {
+          claim_assessment_baseline: 0,
+          baseline: 1,
+          midline: 2,
+          claim_assessment_final: 3,
+          final: 4,
+        }
         const sorted = [...incomplete].sort((a, b) => {
           if (a.deadline_date && b.deadline_date) {
-            return new Date(a.deadline_date).getTime() - new Date(b.deadline_date).getTime()
-          }
-          if (a.deadline_date) return -1
-          if (b.deadline_date) return 1
-          return 0
+            const dateDiff = new Date(a.deadline_date).getTime() - new Date(b.deadline_date).getTime()
+            if (dateDiff !== 0) return dateDiff
+          } else if (a.deadline_date) return -1
+          else if (b.deadline_date) return 1
+          return (typePriority[a.type] ?? 99) - (typePriority[b.type] ?? 99)
         })
         const nextEntry = sorted[0]
         const displayName = typeLabels[nextEntry.type] || nextEntry.name
