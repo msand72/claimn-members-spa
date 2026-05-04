@@ -206,11 +206,11 @@ export function DashboardTab({
         </GlassCard>
       </div>
 
-      {/* Next Assessment — earliest incomplete entry by deadline_date that's
-          currently visible. visible_from_date controls when in-program /
-          post-program assessments appear; pre-program entries (visible_from_date
-          null) are always visible. The full counter above still reflects total
-          program scope so participants see what's coming. */}
+      {/* Open assessments — every incomplete entry that's currently visible.
+          visible_from_date controls when in-program / post-program assessments
+          appear; pre-program entries (visible_from_date null) are always visible.
+          The full counter above still reflects total program scope so
+          participants see what's coming. */}
       {totalAssessments > 0 && (() => {
         const todayISO = new Date().toISOString().slice(0, 10)
         const incomplete = assessmentEntries.filter((e) => {
@@ -237,31 +237,39 @@ export function DashboardTab({
           else if (b.deadline_date) return 1
           return (typePriority[a.type] ?? 99) - (typePriority[b.type] ?? 99)
         })
-        const nextEntry = sorted[0]
-        const displayName = typeLabels[nextEntry.type] || nextEntry.name
+        const headingLabel = sorted.length === 1 ? 'Next Assessment' : 'Open Assessments'
         return (
-          <GlassCard variant="base">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-koppar/20 text-koppar flex items-center justify-center">
-                <ClipboardDocumentCheckIcon className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-koppar font-medium uppercase tracking-wider mb-0.5">Next Assessment</p>
-                <h4 className="font-semibold text-kalkvit">{displayName}</h4>
-                <p className="text-xs text-kalkvit/50 mt-1">
-                  {nextEntry.deadline_date && (
-                    <>By {new Date(nextEntry.deadline_date).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}</>
-                  )}
-                </p>
-              </div>
-              <Link to={targetForEntry(nextEntry)}>
-                <GlassButton variant="primary" className="text-sm">
-                  Start
-                  <ArrowRightIcon className="w-4 h-4" />
-                </GlassButton>
-              </Link>
-            </div>
-          </GlassCard>
+          <div className="space-y-2">
+            <p className="text-xs text-koppar font-medium uppercase tracking-wider px-1">
+              {headingLabel}
+            </p>
+            {sorted.map((entry) => {
+              const displayName = typeLabels[entry.type] || entry.name
+              return (
+                <GlassCard key={entry.assessment_id} variant="base">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-koppar/20 text-koppar flex items-center justify-center">
+                      <ClipboardDocumentCheckIcon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-kalkvit">{displayName}</h4>
+                      <p className="text-xs text-kalkvit/50 mt-1">
+                        {entry.deadline_date && (
+                          <>By {new Date(entry.deadline_date).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}</>
+                        )}
+                      </p>
+                    </div>
+                    <Link to={targetForEntry(entry)}>
+                      <GlassButton variant="primary" className="text-sm">
+                        Start
+                        <ArrowRightIcon className="w-4 h-4" />
+                      </GlassButton>
+                    </Link>
+                  </div>
+                </GlassCard>
+              )
+            })}
+          </div>
         )
       })()}
 
