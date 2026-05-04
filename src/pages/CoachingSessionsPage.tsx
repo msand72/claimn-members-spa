@@ -190,11 +190,11 @@ function SessionCard({
               <>
                 <span className="flex items-center gap-1">
                   <CalendarIcon className="w-4 h-4" />
-                  {formatSessionDate(session.scheduled_at)}
+                  {formatSessionDate(session.session_date)}
                 </span>
                 <span className="flex items-center gap-1">
                   <ClockIcon className="w-4 h-4" />
-                  {formatSessionTime(session.scheduled_at)} ({session.duration} min)
+                  {formatSessionTime(session.session_date)} ({session.duration} min)
                 </span>
                 <span className="flex items-center gap-1">
                   <VideoCameraIcon className="w-4 h-4" />
@@ -508,10 +508,10 @@ export function CoachingSessionsPage() {
               session={session}
               onReschedule={setRescheduleSessionId}
               onSchedule={(id) => {
-                // Pre-fill with current scheduled_at if rescheduling, blank if first booking
+                // Pre-fill with current session_date if rescheduling, blank if first booking
                 const target = sessions.find((s) => s.id === id)
-                const initial = target?.scheduled_at
-                  ? new Date(target.scheduled_at).toISOString().slice(0, 16)
+                const initial = target?.session_date
+                  ? new Date(target.session_date).toISOString().slice(0, 16)
                   : ''
                 setScheduleDatetime(initial)
                 setScheduleSessionId(id)

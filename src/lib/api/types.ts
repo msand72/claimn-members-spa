@@ -533,11 +533,16 @@ export interface CoachingSession {
   user_id: string
   expert_id: string
   title: string
-  scheduled_at: string
+  /**
+   * Session start time. Backend serves both `session_date` (canonical) and
+   * `scheduled_at` (legacy alias) populated with the same value, until
+   * frontend migration is complete and the alias is dropped.
+   */
+  session_date: string
   duration: number
   /**
    * `awaiting_schedule` is a pre-allocated session (e.g. program quota
-   * coach calls) that the member hasn't booked yet — `scheduled_at` is
+   * coach calls) that the member hasn't booked yet — `session_date` is
    * unset until they pick a time via the schedule endpoint.
    */
   status: 'awaiting_schedule' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'reschedule_requested' | 'cancelled_by_member' | 'rejected'

@@ -171,7 +171,7 @@ export function SessionNotesPage() {
     .toUpperCase()
     .slice(0, 2)
 
-  const formattedDate = new Date(session.scheduled_at).toLocaleDateString('en-US', {
+  const formattedDate = new Date(session.session_date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

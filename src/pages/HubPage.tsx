@@ -601,10 +601,10 @@ function UpcomingSection() {
         avatarUrl: e.facilitator?.avatar_url ?? undefined,
       })),
     ...sessions
-      .filter((s) => s.status === 'scheduled' && new Date(s.scheduled_at) >= now)
+      .filter((s) => s.status === 'scheduled' && new Date(s.session_date) >= now)
       .map((s): UpcomingItem => ({
         kind: 'session',
-        date: s.scheduled_at,
+        date: s.session_date,
         title: s.title || 'Coaching Session',
         subtitle: s.expert?.name || 'Expert',
         avatarUrl: s.expert?.avatar_url ?? undefined,
