@@ -178,7 +178,26 @@ export function VitalityTab({
                       </GlassButton>
                     </Link>
                   ) : (
-                    <GlassBadge variant="success" className="text-xs">Done</GlassBadge>
+                    <div className="flex items-center gap-2">
+                      <GlassBadge variant="success" className="text-xs">Done</GlassBadge>
+                      {isClaim ? (
+                        <Link to={`/assessment/results?returnTo=${encodeURIComponent(`/programs/${programId}#vitality`)}`}>
+                          <GlassButton variant="ghost" className="text-xs">
+                            See result
+                            <ArrowRightIcon className="w-3 h-3" />
+                          </GlassButton>
+                        </Link>
+                      ) : (
+                        <GlassButton
+                          variant="ghost"
+                          className="text-xs"
+                          onClick={() => setActiveSubTab('results')}
+                        >
+                          See result
+                          <ArrowRightIcon className="w-3 h-3" />
+                        </GlassButton>
+                      )}
+                    </div>
                   )}
                 </div>
               )

@@ -55,7 +55,8 @@ export function SessionsTab({
 
   const expertById = (id: string): Expert | undefined => experts.find((e) => e.id === id)
 
-  // Sort awaiting first, then upcoming scheduled by date asc, then past
+  // Sort awaiting first, then upcoming scheduled by date asc, then past.
+  // session_date is "" for awaiting_schedule rows, populated otherwise.
   const sortedCoachSessions = [...coachSessions].sort((a, b) => {
     const aAwaiting = a.status === 'awaiting_schedule' ? 0 : 1
     const bAwaiting = b.status === 'awaiting_schedule' ? 0 : 1
@@ -112,6 +113,7 @@ export function SessionsTab({
                   dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
                   timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
                 }
+                const meetingUrl = session.meeting_url
 
                 return (
                   <GlassCard key={session.id} variant="base" className="hover:border-koppar/30 transition-colors">
@@ -183,9 +185,9 @@ export function SessionsTab({
                               Book this session
                             </GlassButton>
                           )}
-                          {isScheduled && session.meeting_url && (
+                          {isScheduled && meetingUrl && (
                             <a
-                              href={session.meeting_url}
+                              href={meetingUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
