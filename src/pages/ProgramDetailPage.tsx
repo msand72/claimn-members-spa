@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useLocation } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge, GlassTabs, GlassTabPanel } from '../components/ui'
-import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramAssessmentsStatus, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn, useEvents, useRegisterForEvent, useUnregisterFromEvent } from '../lib/api/hooks'
-import type { ClaimnEvent } from '../lib/api/types'
+import { useProgram, useEnrolledPrograms, useEnrollProgram, useSprints, useProgramAssessments, useProgramAssessmentResults, useProgramAssessmentsStatus, useProgramCohort, useProgramCompletion, useProgramApplication, useSubmitApplication, useMyAccountabilityGroups, useAccountabilityGroupDetail, useGroupCheckIns, useCreateCheckIn, useEvents, useRegisterForEvent, useUnregisterFromEvent, useCoachingSessions, useExperts } from '../lib/api/hooks'
+import type { ClaimnEvent, CoachingSession, Expert } from '../lib/api/types'
 import { sanitizeHtml } from '../lib/sanitize'
 import { useAuth } from '../contexts/AuthContext'
 import {
@@ -27,7 +27,6 @@ import {
   XCircleIcon,
   ListBulletIcon,
   Squares2X2Icon,
-  HeartIcon,
 } from '@heroicons/react/24/outline'
 import { CVCPrintReport } from '../components/cvc/CVCPrintReport'
 import type { CVCAssessmentStatus } from '../lib/api/types'
@@ -82,6 +81,7 @@ export function ProgramDetailPage() {
   const hasGroupSessions = hasComponent(program, 'group_sessions')
   const hasVitalityCheck = hasComponent(program, 'vitality_check')
   const hasAssessmentsComponent = hasComponent(program, 'assessments')
+  const hasCoachCalls = hasComponent(program, 'coach_calls')
 
   // Group session events — only fetch for programs that declare group_sessions.
   // Scope to this program's id so we don't pull in sessions from other programs
@@ -98,6 +98,19 @@ export function ProgramDetailPage() {
   const userEnrollment = enrolledPrograms.find((ep) => ep.program_id === id)
   const isEnrolled = !!userEnrollment
   const progress = userEnrollment?.progress || 0
+
+  // Coach sessions tied to THIS program enrollment. Backend exposes
+  // `program_enrollment_id` on each row (post-B1). Filter client-side
+  // — same hook as /coaching/sessions, shared cache, no extra request.
+  const { data: coachingData } = useCoachingSessions()
+  const allCoachSessions: CoachingSession[] = Array.isArray(coachingData?.data) ? coachingData.data : []
+  const programCoachSessions: CoachingSession[] = userEnrollment
+    ? allCoachSessions.filter((s) => s.program_enrollment_id === userEnrollment.id)
+    : []
+
+  // Experts lookup — used by SessionsTab to render coach name per row.
+  const { data: expertsData } = useExperts()
+  const experts: Expert[] = Array.isArray(expertsData?.data) ? expertsData.data : []
 
   const rawSprints = Array.isArray(sprintsData?.data) ? sprintsData.data : []
   const sprints = rawSprints.map((s) => ({ ...s, status: computeSprintStatus(s) }))
@@ -223,14 +236,14 @@ export function ProgramDetailPage() {
   const tabs = isEnrolled
     ? [
         { value: 'dashboard', label: 'Dashboard', icon: <Squares2X2Icon className="w-4 h-4" /> },
-        ...(hasGroupSessions
+        ...(hasGroupSessions || hasCoachCalls
           ? [{ value: 'sessions', label: 'Sessions', icon: <CalendarIcon className="w-4 h-4" /> }]
           : []),
         ...(hasSprints
           ? [{ value: 'sprints', label: 'Sprints', icon: <BoltIcon className="w-4 h-4" />, badge: sprints.length }]
           : []),
         ...(hasVitalityCheck
-          ? [{ value: 'vitality', label: 'Vitality', icon: <HeartIcon className="w-4 h-4" /> }]
+          ? [{ value: 'vitality', label: 'Assessments', icon: <ClipboardDocumentCheckIcon className="w-4 h-4" /> }]
           : hasAssessmentsComponent || assessments.length > 0
           ? [{ value: 'assessments', label: 'Assessments', icon: <ClipboardDocumentCheckIcon className="w-4 h-4" />, badge: assessments.length || undefined }]
           : []),
@@ -592,7 +605,7 @@ export function ProgramDetailPage() {
           <SprintsTab sprints={sprints} isLoading={isLoadingSprints} />
         </GlassTabPanel>
 
-        {hasGroupSessions && (
+        {(hasGroupSessions || hasCoachCalls) && (
           <GlassTabPanel value="sessions" activeValue={activeTab}>
             <SessionsTab
               goSessions={goSessions}
@@ -601,6 +614,10 @@ export function ProgramDetailPage() {
               onSessionStatusFilterChange={setSessionStatusFilter}
               registerMutation={registerMutation}
               unregisterMutation={unregisterMutation}
+              hasGroupSessions={hasGroupSessions}
+              hasCoachCalls={hasCoachCalls}
+              coachSessions={programCoachSessions}
+              experts={experts}
             />
           </GlassTabPanel>
         )}

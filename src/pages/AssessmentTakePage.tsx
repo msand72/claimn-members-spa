@@ -12,6 +12,7 @@ import type {
 import { CheckIcon, ArrowPathIcon, ExclamationCircleIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../contexts/AuthContext'
 import { PILLARS, PILLAR_TEXT_COLORS } from '../lib/constants'
 
 const PROGRESS_KEY = 'claimn_assessment_progress'
@@ -171,6 +172,7 @@ export function AssessmentTakePage() {
   const navigate = useNavigate()
   const { theme } = useTheme()
   const isLight = theme === 'light'
+  const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const assessmentId = searchParams.get('assessmentId') ?? 'five-pillars'
   const returnTo = sanitizeRedirect(searchParams.get('returnTo'), '/assessment/results')
@@ -272,6 +274,22 @@ export function AssessmentTakePage() {
       // Storage full — ignore
     }
   }, [answers, textAnswers, assessmentId, restoredFromStorage])
+
+  // Prefill any text-input background question matching /e-?mail/i with the
+  // logged-in user's email. No-op when no such question is seeded — saves the
+  // cohort from re-typing an email the platform already knows. Only fills when
+  // the field is empty so it never clobbers a manual entry or restored value.
+  useEffect(() => {
+    if (!user?.email || !restoredFromStorage) return
+    for (const q of backgroundQuestions) {
+      if (q._isTextInput && /e-?mail/i.test(q.question) && !textAnswers[q.id]) {
+        handleTextAnswer(q.id, user.email)
+      }
+    }
+    // handleTextAnswer is stable enough — re-running on its identity change
+    // would just re-fire the same idempotent prefill.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email, backgroundQuestions, restoredFromStorage])
 
   // Progress calculation
   const totalQuestions = questions.length

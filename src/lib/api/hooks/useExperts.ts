@@ -41,7 +41,7 @@ export interface ExpertsParams extends PaginationParams {
 
 // Extended params for sessions
 export interface SessionsParams extends PaginationParams {
-  status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
+  status?: 'awaiting_schedule' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'reschedule_requested'
 }
 
 // =====================================================

@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { GlassButton, GlassModal, GlassModalFooter } from './ui'
-import { CalendarIcon, ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { CalendarIcon, ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { cn } from '../lib/utils'
-import { useAvailableSlots, useBookSession, useExpertAvailability } from '../lib/api/hooks/useExperts'
+import { useAvailableSlots, useBookSession, useExpertAvailability, useCoachingSessions, useScheduleCoachingSession } from '../lib/api/hooks/useExperts'
 import { useCheckout } from '../lib/api/hooks'
 import { EXPERT_SESSION_PRICES } from '../config/stripe-prices'
 import { isAllowedExternalUrl } from '../lib/url-validation'
@@ -27,9 +27,16 @@ interface BookingModalProps {
   preselectedDate?: string | null
   /** Pre-selected time (e.g. "10:00 AM"). If provided, auto-selects the time slot. */
   preselectedTime?: string | null
+  /**
+   * When provided, redeem this specific awaiting_schedule coach_session row
+   * (e.g. clicking "Book this slot" on a program-allocated tile in the Sessions tab).
+   * When omitted but the user has any awaiting_schedule rows for this coach,
+   * the oldest one is redeemed automatically (no Stripe charge).
+   */
+  redeemSessionId?: string
 }
 
-export function BookingModal({ expert, isOpen, onClose, preselectedDate, preselectedTime }: BookingModalProps) {
+export function BookingModal({ expert, isOpen, onClose, preselectedDate, preselectedTime, redeemSessionId }: BookingModalProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(preselectedDate ?? null)
   const [sessionDuration, setSessionDuration] = useState(60)
   const [selectedTime, setSelectedTime] = useState<string | null>(preselectedTime ?? null)
@@ -101,6 +108,31 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate, presele
   )
   const bookSessionMutation = useBookSession()
   const checkoutMutation = useCheckout()
+  const scheduleMutation = useScheduleCoachingSession()
+
+  // Retainer detection: program-allocated coaching sessions (price=0) the user
+  // can redeem instead of paying. The /schedule endpoint UPDATEs the existing
+  // awaiting_schedule row in place — no new row, no Stripe.
+  const { data: awaitingData } = useCoachingSessions({ status: 'awaiting_schedule' })
+  const awaitingForThisCoach = useMemo(() => {
+    const rows = (awaitingData?.data ?? []).filter((s) => s.expert_id === expert.id)
+    if (rows.length === 0) return null
+    if (redeemSessionId) {
+      return rows.find((s) => s.id === redeemSessionId) ?? null
+    }
+    // Default: pick oldest by created_at — matches backend's redemption order
+    return [...rows].sort((a, b) => a.created_at.localeCompare(b.created_at))[0] ?? null
+  }, [awaitingData, expert.id, redeemSessionId])
+
+  const isRedeeming = !!awaitingForThisCoach
+
+  // Lock session duration to the awaiting row's duration when redeeming —
+  // the row's duration is fixed (60min coaching vs 45min utcheckning).
+  useEffect(() => {
+    if (awaitingForThisCoach?.duration) {
+      setSessionDuration(awaitingForThisCoach.duration)
+    }
+  }, [awaitingForThisCoach?.duration])
 
   const sessionPrice = useMemo(() => {
     const dur = sessionDuration as 45 | 60 | 90
@@ -141,14 +173,43 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate, presele
 
   const handleBook = async () => {
     if (!selectedDate || !selectedTime) return
+    setBookingError(null)
+    const timeStr = convertTo24Hour(selectedTime)
+    const scheduledAt = new Date(`${selectedDate}T${timeStr}:00`).toISOString()
+
+    // Retainer redemption path — UPDATE the awaiting_schedule row in place,
+    // no new coach_sessions row, no Stripe. Backend's POST /schedule handles
+    // the calendar event provisioning + notifications.
+    if (awaitingForThisCoach) {
+      try {
+        await scheduleMutation.mutateAsync({
+          sessionId: awaitingForThisCoach.id,
+          data: {
+            session_date: scheduledAt,
+            duration_minutes: awaitingForThisCoach.duration ?? sessionDuration,
+          },
+        })
+        handleClose()
+      } catch (error: any) {
+        const status = error?.status || error?.response?.status
+        const code = error?.error?.code || error?.code || ''
+        if (status === 409 || code === 'SLOT_UNAVAILABLE') {
+          setBookingError('This time slot is no longer available. Please choose another.')
+          setSelectedTime(null)
+        } else {
+          setBookingError(error?.error?.message || error?.message || 'Failed to schedule session.')
+        }
+      }
+      return
+    }
+
+    // Paid path — generic ad-hoc session, charges via Stripe.
     const priceId = sessionPrice?.priceId
     if (!priceId) {
       setBookingError('Checkout is not configured for this session type. Please contact support.')
       return
     }
     try {
-      const timeStr = convertTo24Hour(selectedTime)
-      const scheduledAt = new Date(`${selectedDate}T${timeStr}:00`).toISOString()
       await bookSessionMutation.mutateAsync({
         expert_id: expert.id,
         scheduled_at: scheduledAt,
@@ -330,8 +391,27 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate, presele
             )}
           </div>
 
-        {/* Session duration */}
-        {selectedDate && (
+        {/* Redemption notice — shown instead of price-based duration picker */}
+        {isRedeeming && awaitingForThisCoach && (
+          <div className="p-3 rounded-xl bg-skogsgron/10 border border-skogsgron/20">
+            <div className="flex items-start gap-2">
+              <CheckCircleIcon className="w-5 h-5 text-skogsgron flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-kalkvit">
+                  Included in your program
+                </p>
+                <p className="text-xs text-kalkvit/60 mt-0.5">
+                  Using your {awaitingForThisCoach.duration}-min{' '}
+                  {awaitingForThisCoach.session_type === 'utcheckning' ? 'utcheckning' : 'coaching'}{' '}
+                  session with {expert.name} — no payment required.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Session duration — hidden when redeeming (locked to the awaiting row's duration) */}
+        {selectedDate && !isRedeeming && (
           <div>
             <p className="text-xs text-kalkvit/50 mb-2 font-medium uppercase tracking-wider">Session Length</p>
             <div className="flex gap-2">
@@ -402,14 +482,22 @@ export function BookingModal({ expert, isOpen, onClose, preselectedDate, presele
         <GlassButton
           variant="primary"
           onClick={handleBook}
-          disabled={!selectedDate || !selectedTime || bookSessionMutation.isPending || checkoutMutation.isPending}
+          disabled={
+            !selectedDate ||
+            !selectedTime ||
+            bookSessionMutation.isPending ||
+            checkoutMutation.isPending ||
+            scheduleMutation.isPending
+          }
         >
-          {bookSessionMutation.isPending || checkoutMutation.isPending ? (
+          {bookSessionMutation.isPending || checkoutMutation.isPending || scheduleMutation.isPending ? (
             <ArrowPathIcon className="w-4 h-4 animate-spin" />
           ) : (
             <CalendarIcon className="w-4 h-4" />
           )}
-          Confirm & Pay — ${sessionPrice?.amount || 0}
+          {isRedeeming
+            ? 'Confirm Booking — Included'
+            : `Confirm & Pay — $${sessionPrice?.amount || 0}`}
         </GlassButton>
       </GlassModalFooter>
     </GlassModal>

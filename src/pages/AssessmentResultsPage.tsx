@@ -5,6 +5,7 @@ import { GlassCard, GlassButton, GlassBadge, GlassToast } from '../components/ui
 import { PILLARS } from '../lib/constants'
 import type { PillarId } from '../lib/constants'
 import type { PillarScore, AssessmentInsight, RiskBehaviorScores } from '../lib/api/types'
+import { sanitizeRedirect } from '../lib/url-validation'
 import {
   calculatePillarScores,
   determineArchetypesFromAnswers,
@@ -19,6 +20,7 @@ import {
 } from '../lib/api/hooks/useAssessments'
 import { useCoachingPreferences, useCoachingPlan } from '../lib/api/hooks/useCoaching'
 import {
+  ArrowLeftIcon,
   ArrowRightIcon,
   ArrowDownTrayIcon,
   ShareIcon,
@@ -117,8 +119,11 @@ export function AssessmentResultsPage() {
   useEffect(() => () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current) }, [])
 
   // Read ?id= query param (passed from OnboardingResultsPage)
+  // Read ?returnTo= so a Back button can route the user to wherever they came
+  // from (e.g. a program's Assessments tab) — sanitized to same-origin only.
   const [searchParams] = useSearchParams()
   const requestedResultId = searchParams.get('id')
+  const returnTo = sanitizeRedirect(searchParams.get('returnTo'), '')
 
   // Fetch by specific ID if provided, otherwise fetch latest
   const specificResult = useAssessmentResultById(requestedResultId ?? '')
@@ -290,6 +295,17 @@ export function AssessmentResultsPage() {
     <MainLayout>
       <PrintReport results={results} contentMap={contentMap} />
       <div className="max-w-4xl mx-auto print:hidden">
+        {/* Back link — only when arrived via returnTo (e.g. from a program tab) */}
+        {returnTo && (
+          <Link
+            to={returnTo}
+            className="inline-flex items-center gap-2 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            Back to program
+          </Link>
+        )}
+
         {/* ============================================= */}
         {/* Section 1: Header */}
         {/* ============================================= */}
