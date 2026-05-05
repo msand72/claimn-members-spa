@@ -23,6 +23,7 @@ import type {
   ClaimnEvent,
   CoachingSession,
 } from '../../lib/api/types'
+import { CVCTrendCard } from './CVCTrendCard'
 
 interface DashboardTabProps {
   programId: string
@@ -258,6 +259,12 @@ export function DashboardTab({
         </GlassCard>
       </div>
 
+      {/* CVC trend rendered inline once 2+ CVCs are completed — same component
+          used in the Assessments tab Results sub-tab. */}
+      {completedCVCs.length >= 2 && (
+        <CVCTrendCard completedCVCs={completedCVCs} heading="Vitality utveckling" />
+      )}
+
       {/* Results — entry points to the existing result/trend visualizations.
           Hidden until at least one CVC or CA is completed (no point linking to
           empty result pages). */}
@@ -267,7 +274,10 @@ export function DashboardTab({
             Resultat
           </p>
           {completedCVCs.length > 0 && (
-            <Link to="/kpis" className="block">
+            <Link
+              to={`/programs/${programId}?sub=results#vitality`}
+              className="block"
+            >
               <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-koppar/20 text-koppar flex items-center justify-center">
