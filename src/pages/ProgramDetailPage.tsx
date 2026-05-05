@@ -638,6 +638,10 @@ export function ProgramDetailPage() {
               groupMembers={groupMembers}
               recentCheckIns={recentCheckIns}
               onNavigateToTab={(tab: string) => { setActiveTab(tab); window.history.replaceState(null, '', `#${tab}`) }}
+              goSessions={goSessions}
+              coachSessions={programCoachSessions}
+              hasGroupSessions={hasGroupSessions}
+              hasCoachCalls={hasCoachCalls}
             />
           </GlassTabPanel>
         )}

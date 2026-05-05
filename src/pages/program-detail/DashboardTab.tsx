@@ -7,6 +7,9 @@ import {
   ClipboardDocumentCheckIcon,
   ArrowRightIcon,
   CalendarIcon,
+  HeartIcon,
+  SparklesIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline'
 import { cn } from '../../lib/utils'
 import type {
@@ -17,6 +20,8 @@ import type {
   AccountabilityMember,
   CheckIn,
   CVCAssessmentStatus,
+  ClaimnEvent,
+  CoachingSession,
 } from '../../lib/api/types'
 
 interface DashboardTabProps {
@@ -41,6 +46,12 @@ interface DashboardTabProps {
   groupMembers: AccountabilityMember[]
   recentCheckIns: CheckIn[]
   onNavigateToTab: (tab: string) => void
+  /** Group sessions (GO Energy / Connection / Presence) — used for "Done X/N" stats. */
+  goSessions: ClaimnEvent[]
+  /** Coach sessions allocated to this enrollment — used for coach-call status. */
+  coachSessions: CoachingSession[]
+  hasGroupSessions: boolean
+  hasCoachCalls: boolean
 }
 
 export function DashboardTab({
@@ -57,9 +68,36 @@ export function DashboardTab({
   groupMembers,
   recentCheckIns,
   onNavigateToTab,
+  goSessions,
+  coachSessions,
+  hasGroupSessions,
+  hasCoachCalls,
 }: DashboardTabProps) {
   const totalAssessments = assessmentEntries.length
   const completedAssessments = assessmentEntries.filter((e) => e.is_completed).length
+
+  // Group sessions: "done" = the user was registered AND the session is in the past.
+  const now = new Date()
+  const totalGroupSessions = goSessions.length
+  const completedGroupSessions = goSessions.filter(
+    (s) => s.is_registered && new Date(s.scheduled_date) < now
+  ).length
+
+  // Coach calls: "done" = explicit completed status. Booked = scheduled but not yet past.
+  const totalCoachSessions = coachSessions.length
+  const completedCoachSessions = coachSessions.filter((s) => s.status === 'completed').length
+
+  // Result-link cards: only render when at least one CVC OR CA result exists.
+  const completedCVCs = assessmentEntries.filter(
+    (e) => e.scores?.category_scores && (e.type === 'baseline' || e.type === 'midline' || e.type === 'final')
+  )
+  const latestCVCScore = completedCVCs.length > 0
+    ? Math.round(completedCVCs[completedCVCs.length - 1].scores!.percentage_score ?? 0)
+    : null
+  const completedCA = assessmentEntries.find(
+    (e) => (e.type === 'claim_assessment_baseline' || e.type === 'claim_assessment_final') && e.is_completed
+  )
+  const hasAnyResults = completedCVCs.length > 0 || !!completedCA
 
   // Display labels per assessment type. CVC types use season language;
   // claim variants get pre/post labels.
@@ -182,8 +220,8 @@ export function DashboardTab({
         </GlassCard>
       )}
 
-      {/* Quick Stats Row */}
-      <div className={cn('grid gap-3', hasSprints ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2')}>
+      {/* Quick Stats Row — auto-flows to whatever cards apply for this program. */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
         {hasSprints && (
           <>
             <GlassCard variant="base" className="text-center !py-4">
@@ -196,15 +234,83 @@ export function DashboardTab({
             </GlassCard>
           </>
         )}
-        <GlassCard variant="base" className="text-center !py-4">
-          <p className="font-display text-2xl font-bold text-kalkvit">{completedAssessments}/{totalAssessments}</p>
-          <p className="text-xs text-kalkvit/50">Assessments</p>
-        </GlassCard>
+        {hasGroupSessions && totalGroupSessions > 0 && (
+          <GlassCard variant="base" className="text-center !py-4">
+            <p className="font-display text-2xl font-bold text-kalkvit">{completedGroupSessions}/{totalGroupSessions}</p>
+            <p className="text-xs text-kalkvit/50">Group Sessions</p>
+          </GlassCard>
+        )}
+        {hasCoachCalls && totalCoachSessions > 0 && (
+          <GlassCard variant="base" className="text-center !py-4">
+            <p className="font-display text-2xl font-bold text-kalkvit">{completedCoachSessions}/{totalCoachSessions}</p>
+            <p className="text-xs text-kalkvit/50">Coach Calls</p>
+          </GlassCard>
+        )}
+        {totalAssessments > 0 && (
+          <GlassCard variant="base" className="text-center !py-4">
+            <p className="font-display text-2xl font-bold text-kalkvit">{completedAssessments}/{totalAssessments}</p>
+            <p className="text-xs text-kalkvit/50">Assessments</p>
+          </GlassCard>
+        )}
         <GlassCard variant="base" className="text-center !py-4">
           <p className="font-display text-2xl font-bold text-kalkvit">{progress}%</p>
           <p className="text-xs text-kalkvit/50">Overall</p>
         </GlassCard>
       </div>
+
+      {/* Results — entry points to the existing result/trend visualizations.
+          Hidden until at least one CVC or CA is completed (no point linking to
+          empty result pages). */}
+      {hasAnyResults && (
+        <div className="space-y-2">
+          <p className="text-xs text-koppar font-medium uppercase tracking-wider px-1">
+            Resultat
+          </p>
+          {completedCVCs.length > 0 && (
+            <Link to="/kpis" className="block">
+              <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-koppar/20 text-koppar flex items-center justify-center">
+                    <HeartIcon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-kalkvit">Vitality (CVC)</h4>
+                    <p className="text-xs text-kalkvit/50 mt-0.5">
+                      {latestCVCScore !== null && <>Senaste: {latestCVCScore}% · </>}
+                      {completedCVCs.length}/3 mätningar genomförda · Se utveckling över tid
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-koppar">
+                    <ChartBarIcon className="w-4 h-4" />
+                    <ArrowRightIcon className="w-4 h-4" />
+                  </div>
+                </div>
+              </GlassCard>
+            </Link>
+          )}
+          {completedCA && (
+            <Link
+              to={`/assessment/results?returnTo=${encodeURIComponent(`/programs/${programId}#dashboard`)}`}
+              className="block"
+            >
+              <GlassCard variant="base" className="hover:border-koppar/30 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-koppar/20 text-koppar flex items-center justify-center">
+                    <SparklesIcon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-kalkvit">Claim Assessment</h4>
+                    <p className="text-xs text-kalkvit/50 mt-0.5">
+                      Din arketyp och din profil över de fem pelarna
+                    </p>
+                  </div>
+                  <ArrowRightIcon className="w-4 h-4 text-koppar" />
+                </div>
+              </GlassCard>
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Open assessments — every incomplete entry that's currently visible.
           visible_from_date controls when in-program / post-program assessments
