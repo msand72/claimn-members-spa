@@ -409,7 +409,7 @@ export function VitalityTab({
                                   })}
                                   className="mt-2 text-xs text-koppar hover:text-koppar/80 inline-flex items-center gap-1 transition-colors"
                                 >
-                                  Se dina svar
+                                  View your self-assessment
                                   <ArrowRightIcon className="w-3 h-3" />
                                 </button>
                               )}

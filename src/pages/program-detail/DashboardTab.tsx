@@ -262,7 +262,7 @@ export function DashboardTab({
       {/* CVC trend rendered inline once 2+ CVCs are completed — same component
           used in the Assessments tab Results sub-tab. */}
       {completedCVCs.length >= 2 && (
-        <CVCTrendCard completedCVCs={completedCVCs} heading="Vitality utveckling" />
+        <CVCTrendCard completedCVCs={completedCVCs} heading="Vitality trend" />
       )}
 
       {/* Results — entry points to the existing result/trend visualizations.
@@ -271,7 +271,7 @@ export function DashboardTab({
       {hasAnyResults && (
         <div className="space-y-2">
           <p className="text-xs text-koppar font-medium uppercase tracking-wider px-1">
-            Resultat
+            Results
           </p>
           {completedCVCs.length > 0 && (
             <Link
@@ -286,8 +286,8 @@ export function DashboardTab({
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-kalkvit">Vitality (CVC)</h4>
                     <p className="text-xs text-kalkvit/50 mt-0.5">
-                      {latestCVCScore !== null && <>Senaste: {latestCVCScore}% · </>}
-                      {completedCVCs.length}/3 mätningar genomförda · Se utveckling över tid
+                      {latestCVCScore !== null && <>Latest: {latestCVCScore}% · </>}
+                      {completedCVCs.length}/3 measurements completed · See trend over time
                     </p>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-koppar">
@@ -311,7 +311,7 @@ export function DashboardTab({
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-kalkvit">Claim Assessment</h4>
                     <p className="text-xs text-kalkvit/50 mt-0.5">
-                      Din arketyp och din profil över de fem pelarna
+                      Your archetype and your profile across the five pillars
                     </p>
                   </div>
                   <ArrowRightIcon className="w-4 h-4 text-koppar" />

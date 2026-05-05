@@ -38,7 +38,7 @@ export function CVCAnswersModal({
     <GlassModal
       isOpen={isOpen}
       onClose={onClose}
-      title={`${categoryLabel} – dina svar`}
+      title={`${categoryLabel} – Your self-assessment`}
       size="md"
     >
       <div className="space-y-3">
@@ -51,13 +51,13 @@ export function CVCAnswersModal({
         {isError && (
           <div className="p-4 rounded-xl bg-tegelrod/10 border border-tegelrod/20 text-sm text-tegelrod flex items-start gap-2">
             <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <p>Kunde inte hämta dina svar. Försök igen om en stund.</p>
+            <p>Could not load your self-assessment. Try again in a moment.</p>
           </div>
         )}
 
         {!isLoading && !isError && filteredResponses.length === 0 && (
           <p className="text-sm text-kalkvit/50 text-center py-6">
-            Inga svar hittades för det här området.
+            No self-assessment recorded for this area.
           </p>
         )}
 
@@ -72,7 +72,7 @@ export function CVCAnswersModal({
                   className="p-3 rounded-xl bg-white/[0.04] border border-white/10"
                 >
                   <p className="text-sm text-kalkvit mb-2">
-                    {r.question_text || '(ingen frågetext)'}
+                    {r.question_text || '(no question text)'}
                   </p>
 
                   {hasNumeric && (
@@ -100,7 +100,7 @@ export function CVCAnswersModal({
                   )}
 
                   {!hasNumeric && !hasText && (
-                    <p className="text-xs text-kalkvit/40 italic">Inget svar</p>
+                    <p className="text-xs text-kalkvit/40 italic">No response</p>
                   )}
                 </div>
               )
@@ -111,7 +111,7 @@ export function CVCAnswersModal({
 
       <GlassModalFooter>
         <GlassButton variant="ghost" onClick={onClose}>
-          Stäng
+          Close
         </GlassButton>
       </GlassModalFooter>
     </GlassModal>
