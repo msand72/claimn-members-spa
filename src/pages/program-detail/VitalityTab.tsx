@@ -28,6 +28,7 @@ import {
 } from '../../lib/cvc/interpretation'
 import type { ProgramAssessment, CVCAssessmentStatus } from '../../lib/api/types'
 import { CVCTrendCard } from './CVCTrendCard'
+import { CVCAnswersModal } from '../../components/CVCAnswersModal'
 
 interface VitalityTabProps {
   programId: string
@@ -50,6 +51,16 @@ export function VitalityTab({
   const [activeSubTab, setActiveSubTab] = useState<'take' | 'results'>(
     searchParams.get('sub') === 'results' ? 'results' : 'take'
   )
+
+  // Selected CVC submission to render in Results — set by Take's "See result"
+  // button (B8 fix for the wrong-CVC bug). Falls back to latest when nothing
+  // explicitly selected (e.g. arriving via Dashboard CVC card with no `sid`).
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null)
+
+  // Per-area answers modal — opens from a biomarker breakdown card. Carries
+  // the submission_id at click-time so the modal renders the answers for the
+  // CVC the user was viewing (not whatever's "current" by the time it opens).
+  const [modalCategory, setModalCategory] = useState<{ key: string; label: string; submissionId: string } | null>(null)
 
   // Source of truth is cvcAssessments — it contains both CVC entries
   // (baseline/midline/final) and the virtual claim_assessment entries
@@ -183,7 +194,13 @@ export function VitalityTab({
                     <div className="flex items-center gap-2">
                       <GlassBadge variant="success" className="text-xs">Done</GlassBadge>
                       {isClaim ? (
-                        <Link to={`/assessment/results?returnTo=${encodeURIComponent(`/programs/${programId}#vitality`)}`}>
+                        <Link
+                          to={
+                            entry.result_id
+                              ? `/assessment/results?id=${entry.result_id}&returnTo=${encodeURIComponent(`/programs/${programId}#vitality`)}`
+                              : `/assessment/results?returnTo=${encodeURIComponent(`/programs/${programId}#vitality`)}`
+                          }
+                        >
                           <GlassButton variant="ghost" className="text-xs">
                             See result
                             <ArrowRightIcon className="w-3 h-3" />
@@ -193,7 +210,12 @@ export function VitalityTab({
                         <GlassButton
                           variant="ghost"
                           className="text-xs"
-                          onClick={() => setActiveSubTab('results')}
+                          onClick={() => {
+                            // Scope the Results sub-tab to THIS specific submission
+                            // so the user sees the report they clicked, not "latest" (B8 fix).
+                            setSelectedSubmissionId(entry.submission_id ?? null)
+                            setActiveSubTab('results')
+                          }}
                         >
                           See result
                           <ArrowRightIcon className="w-3 h-3" />
@@ -243,11 +265,16 @@ export function VitalityTab({
                 </Link>
               )}
 
-              {/* Inline CVC vitality report — only when at least one CVC is completed */}
+              {/* Inline CVC vitality report — renders the SELECTED CVC if Take's
+                  See result was clicked, otherwise the latest. B8 fix for the
+                  wrong-CVC bug (clicking Pre-Season would show Mid-Season). */}
               {completedCVCs.length > 0 && (() => {
-                const latest = completedCVCs[completedCVCs.length - 1]
-                const latestScores = latest.scores!
-                const vitalityIndex = latestScores.percentage_score ?? 0
+                const displayed =
+                  (selectedSubmissionId
+                    ? completedCVCs.find((c) => c.submission_id === selectedSubmissionId)
+                    : null) ?? completedCVCs[completedCVCs.length - 1]
+                const displayedScores = displayed.scores!
+                const vitalityIndex = displayedScores.percentage_score ?? 0
                 const vitalityInterp = interpretVitalityIndex(vitalityIndex)
 
                 const biomarkerIcons: Record<CVCBiomarker, React.ReactNode> = {
@@ -298,7 +325,7 @@ export function VitalityTab({
                       <div className="grid grid-cols-3 gap-2">
                         {BIOMARKER_ORDER.map((key) => {
                           const config = BIOMARKER_CONFIGS[key]
-                          const raw = latestScores.category_scores?.[key] ?? 0
+                          const raw = displayedScores.category_scores?.[key] ?? 0
                           const interp = interpretBiomarker(key, raw)
                           return (
                             <div
@@ -370,6 +397,22 @@ export function VitalityTab({
                               </div>
 
                               <p className="text-xs text-kalkvit/50">{interp.description}</p>
+
+                              {/* Per-area answers modal trigger (B8) — only when
+                                  the displayed CVC has a submission_id. */}
+                              {displayed.submission_id && (
+                                <button
+                                  onClick={() => setModalCategory({
+                                    key,
+                                    label: config.label,
+                                    submissionId: displayed.submission_id!,
+                                  })}
+                                  className="mt-2 text-xs text-koppar hover:text-koppar/80 inline-flex items-center gap-1 transition-colors"
+                                >
+                                  Se dina svar
+                                  <ArrowRightIcon className="w-3 h-3" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         </GlassCard>
@@ -401,6 +444,15 @@ export function VitalityTab({
           )}
         </>
       )}
+
+      {/* Per-area answers modal (B8) */}
+      <CVCAnswersModal
+        isOpen={modalCategory !== null}
+        onClose={() => setModalCategory(null)}
+        submissionId={modalCategory?.submissionId ?? null}
+        category={modalCategory?.key ?? ''}
+        categoryLabel={modalCategory?.label ?? ''}
+      />
     </div>
   )
 }

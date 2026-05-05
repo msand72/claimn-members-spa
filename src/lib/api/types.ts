@@ -902,6 +902,43 @@ export interface CVCAssessmentStatus {
     percentage_score: number
     category_scores: CVCCategoryScores
   } | null
+  /**
+   * Backend B8 (server-infra commit 7a22e96): scoping IDs that let the frontend
+   * render a SPECIFIC past attempt instead of always falling back to "latest."
+   * Both omitted (undefined) when not completed.
+   */
+  /** CVC entries (baseline/midline/final) only — id of this user's submission for this assessment. */
+  submission_id?: string | null
+  /** CA virtual entries (claim_assessment_baseline/_final) only — id of the user's AssessmentResult. */
+  result_id?: string | null
+}
+
+/**
+ * Per-question answers for a single submission, returned by
+ * GET /members/programs/assessments/submissions/{id}/responses (B8).
+ * Powers the per-area answers modal on the CVC report.
+ */
+export interface SubmissionResponse {
+  question_id: string
+  question_text?: string
+  /** Top-level biomarker grouping: vital_energy | stress_load | sleep_quality | risk_behavior | context. */
+  biomarker_category?: string
+  /** Sub-instrument label like svs / pss / psqi. */
+  biomarker_subcategory?: string
+  /** User's numeric answer. Null when only response_text was set. */
+  value?: number | null
+  max_value?: number
+  min_value?: number
+  /** Anchor labels for the low/high ends of the scale (per-value labels not stored in schema). */
+  scale_min_label?: string
+  scale_max_label?: string
+  /** Free-text answer when present. */
+  response_text?: string
+}
+
+export interface SubmissionResponses {
+  submission_id: string
+  responses: SubmissionResponse[]
 }
 
 export interface CVCStatus {

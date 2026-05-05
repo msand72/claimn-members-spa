@@ -201,6 +201,7 @@ export {
   useSubmitProgramAssessment,
   useProgramAssessmentResults,
   useProgramAssessmentsStatus,
+  useSubmissionResponses,
   useProgramCVCStatus,
   useProgramCohort,
   useProgramCompletion,

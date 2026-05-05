@@ -18,6 +18,7 @@ import type {
   JoinSprintRequest,
   SubmitPeerReviewRequest,
   CVCStatus,
+  SubmissionResponses,
 } from '../types'
 
 // Query keys
@@ -319,6 +320,20 @@ export function useProgramAssessmentsStatus(programId: string) {
     queryKey: programKeys.cvcStatus(programId),
     queryFn: () => api.get<CVCStatus>(`/members/programs/${programId}/assessments-status`),
     enabled: !!programId,
+    retry: false,
+  })
+}
+
+// Get per-question answers for a specific submission (B8 — server-infra 7a22e96).
+// Powers the per-area answers modal on the CVC report.
+export function useSubmissionResponses(submissionId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['programs', 'submission-responses', submissionId],
+    queryFn: () =>
+      api.get<SubmissionResponses>(
+        `/members/programs/assessments/submissions/${submissionId}/responses`
+      ),
+    enabled: !!submissionId,
     retry: false,
   })
 }
