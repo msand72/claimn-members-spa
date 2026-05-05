@@ -9,6 +9,7 @@ import {
   ChartBarIcon,
   ArrowPathIcon,
   ArrowRightIcon,
+  ArrowTopRightOnSquareIcon,
   ClipboardDocumentCheckIcon,
   CheckCircleIcon,
   BoltIcon,
@@ -385,11 +386,11 @@ export function VitalityTab({
                         <ArrowDownTrayIcon className="w-4 h-4" />
                         Save PDF
                       </GlassButton>
-                      <Link to="/kpis">
+                      <Link to="/kpis" title="Leaves this program — opens your platform-wide KPI dashboard">
                         <GlassButton variant="ghost" className="text-sm">
                           <ChartBarIcon className="w-4 h-4" />
-                          View KPI Dashboard
-                          <ArrowRightIcon className="w-4 h-4" />
+                          All my KPIs (across programs)
+                          <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                         </GlassButton>
                       </Link>
                     </div>
