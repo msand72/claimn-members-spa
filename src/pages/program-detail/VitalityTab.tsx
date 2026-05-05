@@ -346,7 +346,7 @@ export function VitalityTab({
                     {/* Biomarker Breakdown */}
                     {BIOMARKER_ORDER.map((key) => {
                       const config = BIOMARKER_CONFIGS[key]
-                      const raw = latestScores.category_scores?.[key] ?? 0
+                      const raw = displayedScores.category_scores?.[key] ?? 0
                       const interp = interpretBiomarker(key, raw)
                       const barPct = normalizeScore(key, raw)
 

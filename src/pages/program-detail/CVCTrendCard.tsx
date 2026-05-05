@@ -7,7 +7,7 @@ import {
   ArrowTrendingDownIcon,
   MinusIcon,
 } from '@heroicons/react/24/outline'
-import { GlassCard, GlassBadge } from '../../components/ui'
+import { GlassCard } from '../../components/ui'
 import { cn } from '../../lib/utils'
 import {
   BIOMARKER_CONFIGS,
