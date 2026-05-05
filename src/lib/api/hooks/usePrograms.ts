@@ -107,8 +107,19 @@ export function useEnrollProgram() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: EnrollProgramRequest) =>
-      api.post<UserProgram>('/members/programs/enroll', data),
+    mutationFn: async (data: EnrollProgramRequest) => {
+      try {
+        return await api.post<UserProgram>('/members/programs/enroll', data)
+      } catch (err: any) {
+        // 409 ALREADY_ENROLLED — user already in the desired state. The
+        // invalidation below refetches the actual UserProgram from cache.
+        // Backend audit sweep 2026-05-05 (commit 9932170).
+        if (err?.status === 409 && err?.error?.code === 'ALREADY_ENROLLED') {
+          return null as unknown as UserProgram
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: programKeys.all })
     },

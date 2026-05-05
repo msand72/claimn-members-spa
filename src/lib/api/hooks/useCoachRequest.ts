@@ -27,8 +27,19 @@ export function useCoachRequest() {
 export function useSubmitCoachRequest() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: ExpertMatchRequest) =>
-      api.post<ExpertMatchRequestResponse>('/members/expert-match-request', data),
+    mutationFn: async (data: ExpertMatchRequest) => {
+      try {
+        return await api.post<ExpertMatchRequestResponse>('/members/expert-match-request', data)
+      } catch (err: any) {
+        // 409 ALREADY_PENDING — user already has an in-flight match request.
+        // Cache invalidation below refetches the existing pending request.
+        // Backend audit sweep 2026-05-05 (commit 9932170).
+        if (err?.status === 409 && err?.error?.code === 'ALREADY_PENDING') {
+          return null as unknown as ExpertMatchRequestResponse
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: coachRequestKeys.all })
       queryClient.invalidateQueries({ queryKey: myExpertKeys.all })

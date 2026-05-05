@@ -108,8 +108,18 @@ export function useJoinAccountabilityGroup() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (groupId: string) =>
-      api.post<{ success: boolean }>(`/members/accountability/${groupId}/join`),
+    mutationFn: async (groupId: string) => {
+      try {
+        return await api.post<{ success: boolean }>(`/members/accountability/${groupId}/join`)
+      } catch (err: any) {
+        // 409 ALREADY_MEMBER — user already in the desired state. Backend audit
+        // sweep 2026-05-05 (commit 9932170).
+        if (err?.status === 409 && err?.error?.code === 'ALREADY_MEMBER') {
+          return { success: true }
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: accountabilityKeys.all })
     },

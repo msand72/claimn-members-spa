@@ -327,8 +327,19 @@ export function useSubmitReview() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ sessionId, data }: { sessionId: string; data: SubmitReviewRequest }) =>
-      api.post<SessionReview>(`${COACHING_SESSIONS_BASE}/${sessionId}/review`, data),
+    mutationFn: async ({ sessionId, data }: { sessionId: string; data: SubmitReviewRequest }) => {
+      try {
+        return await api.post<SessionReview>(`${COACHING_SESSIONS_BASE}/${sessionId}/review`, data)
+      } catch (err: any) {
+        // 409 ALREADY_REVIEWED — member already submitted a review for this
+        // session. Cache invalidation below refetches the existing one.
+        // Backend audit sweep 2026-05-05 (commit 9932170).
+        if (err?.status === 409 && err?.error?.code === 'ALREADY_REVIEWED') {
+          return null as unknown as SessionReview
+        }
+        throw err
+      }
+    },
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: coachingKeys.review(sessionId) })
       queryClient.invalidateQueries({ queryKey: coachingKeys.all })

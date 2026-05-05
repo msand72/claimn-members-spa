@@ -177,8 +177,19 @@ export function useLikePost() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (postId: string) =>
-      api.post(`/members/feed/${postId}/like`),
+    mutationFn: async (postId: string) => {
+      try {
+        return await api.post(`/members/feed/${postId}/like`)
+      } catch (err: any) {
+        // 409 ALREADY_LIKED — defensive race fallback if a parallel double-tap
+        // inserted the like first. Optimistic is_liked=true is correct, no
+        // rollback needed. Backend audit sweep 2026-05-05 (commit 9932170).
+        if (err?.status === 409 && err?.error?.code === 'ALREADY_LIKED') {
+          return { success: true }
+        }
+        throw err
+      }
+    },
     onMutate: async (postId) => {
       await queryClient.cancelQueries({ queryKey: feedKeys.all })
       const previous = queryClient.getQueriesData({ queryKey: feedKeys.all })

@@ -79,8 +79,19 @@ export function useJoinCircle() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (circleId: string) =>
-      api.post(`/members/circles/${circleId}/join`),
+    mutationFn: async (circleId: string) => {
+      try {
+        return await api.post(`/members/circles/${circleId}/join`)
+      } catch (err: any) {
+        // 409 ALREADY_MEMBER — user already in the circle. Treat as success.
+        // Note: 409 FULL (capacity overflow) is a real failure and still
+        // propagates as an error. Backend audit sweep 2026-05-05 (commit 9932170).
+        if (err?.status === 409 && err?.error?.code === 'ALREADY_MEMBER') {
+          return { success: true }
+        }
+        throw err
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: circleKeys.all })
     },
