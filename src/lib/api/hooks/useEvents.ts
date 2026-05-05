@@ -89,8 +89,19 @@ export function useRegisterForEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (eventId: string) =>
-      api.post<{ success: boolean }>(`/members/events/${eventId}/register`),
+    mutationFn: async (eventId: string) => {
+      try {
+        return await api.post<{ success: boolean }>(`/members/events/${eventId}/register`)
+      } catch (err: any) {
+        // 409 ALREADY_REGISTERED isn't a failure — the user is already in the
+        // desired state. Return success so the optimistic is_registered=true
+        // sticks and no rollback flicker fires. (Backend B6, 2026-05-05.)
+        if (err?.status === 409 && err?.error?.code === 'ALREADY_REGISTERED') {
+          return { success: true }
+        }
+        throw err
+      }
+    },
     onMutate: async (eventId) => {
       await queryClient.cancelQueries({ queryKey: eventKeys.all })
       const previousDetail = queryClient.getQueryData<ClaimnEvent>(eventKeys.detail(eventId))
@@ -168,8 +179,17 @@ export function useRegisterForSession() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (sessionId: string) =>
-      api.post<{ success: boolean }>(`/members/events/sessions/${sessionId}/register`),
+    mutationFn: async (sessionId: string) => {
+      try {
+        return await api.post<{ success: boolean }>(`/members/events/sessions/${sessionId}/register`)
+      } catch (err: any) {
+        // 409 ALREADY_REGISTERED — see useRegisterForEvent for rationale.
+        if (err?.status === 409 && err?.error?.code === 'ALREADY_REGISTERED') {
+          return { success: true }
+        }
+        throw err
+      }
+    },
     onMutate: async (sessionId) => {
       await queryClient.cancelQueries({ queryKey: sessionKeys.all })
       await queryClient.cancelQueries({ queryKey: eventKeys.all })
