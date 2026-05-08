@@ -2,12 +2,20 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassInput } from '../components/ui'
 import { BackgroundPattern } from '../components/ui/BackgroundPattern'
-import { LockClosedIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { LockClosedIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
 import { resetPassword } from '../lib/auth'
+import { mapAuthError } from '../lib/auth-errors'
+
+/** Structural JWT check (header.payload.signature, all non-empty). */
+function looksLikeJwt(token: string): boolean {
+  const parts = token.split('.')
+  return parts.length === 3 && parts.every((p) => p.length > 0)
+}
 
 export function ActivateAccountPage() {
   const navigate = useNavigate()
   const token = sessionStorage.getItem('invite_token') || ''
+  const tokenIsValid = looksLikeJwt(token)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -16,9 +24,9 @@ export function ActivateAccountPage() {
   const [error, setError] = useState('')
 
   const validatePassword = (pwd: string) => {
-    if (pwd.length < 8) return 'Password must be at least 8 characters'
-    if (!/[A-Z]/.test(pwd)) return 'Password must contain an uppercase letter'
-    if (!/[0-9]/.test(pwd)) return 'Password must contain a number'
+    if (pwd.length < 8) return 'Lösenordet måste vara minst 8 tecken'
+    if (!/[A-Z]/.test(pwd)) return 'Lösenordet måste innehålla en versal'
+    if (!/[0-9]/.test(pwd)) return 'Lösenordet måste innehålla en siffra'
     return ''
   }
 
@@ -26,8 +34,8 @@ export function ActivateAccountPage() {
     e.preventDefault()
     setError('')
 
-    if (!token) {
-      setError('Invalid or expired activation link. Please contact support@claimn.co.')
+    if (!tokenIsValid) {
+      setError('Inbjudningslänken är ogiltig eller har gått ut. Kontakta support@claimn.co.')
       return
     }
 
@@ -38,18 +46,21 @@ export function ActivateAccountPage() {
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError('Lösenorden matchar inte')
       return
     }
 
     setIsLoading(true)
+    console.log('[auth/invite] submitting initial password')
 
     try {
       await resetPassword(token, password)
+      console.log('[auth/invite] account activation succeeded')
       sessionStorage.removeItem('invite_token')
       setIsSubmitted(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to set password. The link may have expired.')
+      console.warn('[auth/invite] account activation failed:', err)
+      setError(mapAuthError(err))
     } finally {
       setIsLoading(false)
     }
@@ -69,7 +80,17 @@ export function ActivateAccountPage() {
         </div>
 
         <GlassCard variant="elevated">
-          {isSubmitted ? (
+          {!tokenIsValid && !isSubmitted ? (
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-tegelrod/20 mb-4">
+                <ExclamationCircleIcon className="w-8 h-8 text-tegelrod" />
+              </div>
+              <h2 className="font-serif text-xl font-bold text-kalkvit mb-2">Länken är ogiltig</h2>
+              <p className="text-kalkvit/60 mb-6">
+                Inbjudningslänken är ogiltig eller har gått ut. Kontakta <a href="mailto:support@claimn.co" className="text-koppar hover:underline">support@claimn.co</a> så hjälper vi dig.
+              </p>
+            </div>
+          ) : isSubmitted ? (
             <div className="text-center py-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-skogsgron/20 mb-4">
                 <CheckCircleIcon className="w-8 h-8 text-skogsgron" />

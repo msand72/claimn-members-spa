@@ -1,8 +1,25 @@
 // Auth module - manages tokens and auth API calls
 
+import { STALE_TOKEN_CODES } from './auth-errors'
+
 const TOKEN_KEY = 'claimn_access_token'
 const REFRESH_TOKEN_KEY = 'claimn_refresh_token'
 const EXPIRES_AT_KEY = 'claimn_expires_at'
+
+// Circuit breaker for /auth/me — when the SPA holds a bad token, GoTrue logs
+// flooded with bad_jwt 403s during the 2026-05-07 cohort send. After 3
+// consecutive 4xx, force log-out regardless of error_code (defense in depth).
+const ME_FAILURE_LIMIT = 3
+let consecutiveMeFailures = 0
+
+/** Surface flag for LoginPage: shows "Din session har gått ut" copy on next render. */
+export function flagSessionExpired() {
+  try {
+    sessionStorage.setItem('auth_session_expired', '1')
+  } catch {
+    // sessionStorage can throw in privacy modes — non-fatal
+  }
+}
 
 // API URL resolution:
 // 1. VITE_API_URL env var (set in .env for local dev, Vercel env vars for deploys)
@@ -140,7 +157,12 @@ export async function login(email: string, password: string): Promise<AuthTokens
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ error: 'Login failed' }))
-    throw new Error(errorData.error?.message || errorData.error || 'Login failed')
+    const message = errorData.error?.message || errorData.error || 'Login failed'
+    const code = errorData.error?.code || errorData.code || ''
+    const err = new Error(message) as Error & { code: string; status: number }
+    err.code = code
+    err.status = res.status
+    throw err
   }
 
   const data = await res.json()
@@ -172,8 +194,44 @@ export async function fetchCurrentUser(token: string): Promise<AuthUserResponse>
   })
 
   if (!res.ok) {
-    throw new Error('Failed to fetch user')
+    // Circuit breaker + stale-token kill switch. If the API tells us the
+    // token is bad (bad_jwt / user_not_found / invalid_jwt / jwt_expired)
+    // OR we hit 3 consecutive 4xx, log out hard so the SPA stops polling
+    // and the user sees a "session expired" message instead of an opaque
+    // "Failed to fetch user". Backend brief 2026-05-08.
+    let errorCode = ''
+    try {
+      const body = await res.clone().json()
+      errorCode = body?.error?.code || body?.code || body?.error_code || ''
+    } catch {
+      // body might not be JSON — leave code empty
+    }
+
+    if (res.status >= 400 && res.status < 500) {
+      consecutiveMeFailures += 1
+    }
+
+    const isStaleToken = STALE_TOKEN_CODES.has(errorCode)
+    const tripped = consecutiveMeFailures >= ME_FAILURE_LIMIT
+
+    if (isStaleToken || tripped) {
+      consecutiveMeFailures = 0
+      clearTokens()
+      flagSessionExpired()
+      const err = new Error('Session expired') as Error & { code: string; status: number }
+      err.code = errorCode || 'session_expired'
+      err.status = res.status
+      throw err
+    }
+
+    const err = new Error('Failed to fetch user') as Error & { code: string; status: number }
+    err.code = errorCode
+    err.status = res.status
+    throw err
   }
+
+  // Reset breaker on success
+  consecutiveMeFailures = 0
 
   const data = await res.json()
   // /auth/me returns user at top level (not nested under .user)
@@ -211,7 +269,12 @@ export async function resetPassword(token: string, password: string): Promise<vo
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ error: 'Request failed' }))
-    throw new Error(errorData.error?.message || errorData.error || 'Failed to reset password')
+    const message = errorData.error?.message || errorData.error || 'Failed to reset password'
+    const code = errorData.error?.code || errorData.code || ''
+    const err = new Error(message) as Error & { code: string; status: number }
+    err.code = code
+    err.status = res.status
+    throw err
   }
 }
 
