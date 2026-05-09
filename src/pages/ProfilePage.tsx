@@ -486,7 +486,7 @@ export function ProfilePage() {
                     placeholder="new@example.com"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    autoComplete="email"
+                    autoComplete="off"
                     required
                   />
                   {emailError && (
@@ -559,6 +559,7 @@ export function ProfilePage() {
                       placeholder="46707081234"
                       value={newPhone}
                       onChange={(e) => setNewPhone(e.target.value)}
+                      autoComplete="off"
                       required
                     />
                     <p className="text-xs text-kalkvit/40 mt-1">
