@@ -18,7 +18,7 @@ import type { UpdateProfileRequest } from '../lib/api/types'
 import { CameraIcon, ArrowDownOnSquareIcon, ArrowPathIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { validateImageFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
-import { changeEmail, changePhone, flagSessionExpired } from '../lib/auth'
+import { changeEmail, changePhone, flagSessionExpired, refreshToken } from '../lib/auth'
 
 /** Display formatter — Swedish mobile (46 + 9 digits) → "+46 XXX XXX XXX".
  *  Other formats fall back to "+<digits>". Storage stays raw E.164-no-+. */
@@ -63,6 +63,22 @@ export function ProfilePage() {
     setEmailError('')
   }
 
+  /** After mutating an identity claim (email/phone), the existing Go JWT has
+   *  stale claims. Refresh tokens via /auth/refresh (which returns fresh
+   *  Supabase tokens carrying current auth.users state), then re-fetch /me.
+   *  Returns true on success — the page can then update inline without a
+   *  forced logout. Returns false if refresh fails; caller should fall back
+   *  to a forced re-login as a last resort. */
+  const refreshSessionInPlace = async (): Promise<boolean> => {
+    try {
+      await refreshToken()
+      await refreshUser()
+      return true
+    } catch {
+      return false
+    }
+  }
+
   const handleChangeEmail = async (e: React.FormEvent) => {
     e.preventDefault()
     setEmailError('')
@@ -85,25 +101,36 @@ export function ProfilePage() {
     setEmailSubmitting(true)
     try {
       await changeEmail(emailCurrentPw, trimmed)
-      // The Go JWT issued at login has the OLD email baked into its claims.
-      // /auth/me falls back to claims.Email when the token isn't a Supabase
-      // token (auth_handlers.go:215), and change-phone / repeat change-email
-      // do SignIn(user.Email_from_JWT, password) — both will see the stale
-      // email and 401 against a now-non-existent auth.users row. Cleanest
-      // fix from the SPA: force a clean re-login so the next JWT carries
-      // the correct email claim. (Backend brief queued separately to read
-      // canonical email from auth.users by user_id, which would let us drop
-      // this workaround.)
-      sessionStorage.setItem('email_change_pending_relogin', trimmed)
-      await signOut()
-      window.location.replace('/login')
-      return
+      // Refresh tokens in place so the user stays logged in with a session
+      // that reflects the new email. If refresh fails (rare), fall back to
+      // forced re-login as a last resort.
+      const refreshed = await refreshSessionInPlace()
+      if (!refreshed) {
+        sessionStorage.setItem('email_change_pending_relogin', trimmed)
+        await signOut()
+        window.location.replace('/login')
+        return
+      }
+      setEmailSuccess(true)
+      setShowEmailForm(false)
+      setEmailCurrentPw('')
+      setNewEmail('')
     } catch (err) {
       const e = err as Error & { code?: string; status?: number }
       // 401 here is almost always JWT-staleness from a prior email change —
       // backend SignIn against user.Email-from-JWT-claims fails when that
-      // email no longer exists in auth.users. Force a clean re-login.
+      // email no longer exists in auth.users. Refresh tokens to sync with
+      // canonical state, then ask the user to retry.
       if (e.status === 401) {
+        const refreshed = await refreshSessionInPlace()
+        if (refreshed) {
+          setEmailCurrentPw('')
+          setEmailError(
+            'Your session was out of sync from a prior change. We refreshed it — please re-enter your current password and try again.'
+          )
+          return
+        }
+        // Refresh failed — last-resort forced logout
         flagSessionExpired()
         await signOut()
         window.location.replace('/login')
@@ -140,15 +167,32 @@ export function ProfilePage() {
     setPhoneSubmitting(true)
     try {
       await changePhone(phoneCurrentPw, digits)
-      await refreshUser()
+      // Refresh tokens for symmetry with change-email. Phone alone doesn't
+      // make the JWT stale, but if email was changed earlier in the session
+      // this resyncs the cached user data without a logout.
+      const refreshed = await refreshSessionInPlace()
+      if (!refreshed) {
+        // Refresh failed — fall back to a fresh-state read via /me alone
+        await refreshUser()
+      }
       setPhoneSuccess(true)
       setShowPhoneForm(false)
       setPhoneCurrentPw('')
       setNewPhone('')
     } catch (err) {
       const e = err as Error & { code?: string; status?: number }
-      // Same JWT-staleness 401 pattern as change-email above.
+      // 401 from JWT-staleness after a prior email change — refresh and
+      // ask the user to retry instead of forcing them out.
       if (e.status === 401) {
+        const refreshed = await refreshSessionInPlace()
+        if (refreshed) {
+          setPhoneCurrentPw('')
+          setPhoneError(
+            'Your session was out of sync from a prior email change. We refreshed it — please re-enter your current password and try again.'
+          )
+          return
+        }
+        // Refresh failed — last-resort forced logout
         flagSessionExpired()
         await signOut()
         window.location.replace('/login')
@@ -480,7 +524,7 @@ export function ProfilePage() {
                       <span className="text-kalkvit/50">Not set</span>
                     )}</p>
                     {emailSuccess && (
-                      <p className="text-sm text-skogsgron mt-1">Email updated. Use the new address to log in next time.</p>
+                      <p className="text-sm text-skogsgron mt-1">Email updated. Your session has been refreshed — use the new address next time you log in.</p>
                     )}
                   </div>
                   <GlassButton
