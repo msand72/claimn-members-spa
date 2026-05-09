@@ -28,6 +28,7 @@ interface AuthContextType {
   hasAccess: (...types: UserType[]) => boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -229,6 +230,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const refreshUser = async () => {
+    const token = await getAccessToken()
+    if (!token) return
+    const userData = await fetchCurrentUser(token)
+    setUser((prev) => ({
+      ...userData,
+      user_type: prev?.user_type || userData.user_type,
+    } as AuthUser))
+  }
+
   const userType: UserType = user?.user_type || 'guest'
 
   const hasAccess = (...types: UserType[]) => {
@@ -237,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, userType, hasAccess, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, userType, hasAccess, signIn, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

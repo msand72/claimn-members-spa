@@ -56,6 +56,8 @@ export interface AuthUserResponse {
   user_type: UserType
   display_name: string
   avatar_url: string
+  phone: string
+  phone_confirmed_at: string | null
 }
 
 export function storeTokens(tokens: AuthTokens) {
@@ -244,6 +246,8 @@ export async function fetchCurrentUser(token: string): Promise<AuthUserResponse>
     user_type: user.user_type || user.profile?.user_type || 'member',
     display_name: user.profile?.display_name || user.display_name || user.email?.split('@')[0] || '',
     avatar_url: user.profile?.avatar_url || user.avatar_url || '',
+    phone: user.phone || '',
+    phone_confirmed_at: user.phone_confirmed_at || null,
   }
 }
 
@@ -258,6 +262,37 @@ export async function forgotPassword(email: string): Promise<void> {
     const errorData = await res.json().catch(() => ({ error: 'Request failed' }))
     throw new Error(errorData.error?.message || errorData.error || 'Failed to send reset email')
   }
+}
+
+export async function changePhone(currentPassword: string, newPhone: string): Promise<{ new_phone: string }> {
+  const token = await getAccessToken()
+  if (!token) {
+    const err = new Error('Not authenticated') as Error & { code: string; status: number }
+    err.code = 'NOT_AUTHENTICATED'
+    err.status = 401
+    throw err
+  }
+
+  const res = await authFetch(`${AUTH_BASE()}/change-phone`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ current_password: currentPassword, new_phone: newPhone }),
+  })
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}))
+    const message = errorData.error?.message || errorData.error || 'Failed to change phone'
+    const code = errorData.error?.code || errorData.code || ''
+    const err = new Error(message) as Error & { code: string; status: number }
+    err.code = code
+    err.status = res.status
+    throw err
+  }
+
+  return res.json()
 }
 
 export async function resetPassword(token: string, password: string): Promise<void> {

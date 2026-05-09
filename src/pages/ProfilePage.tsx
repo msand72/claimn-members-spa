@@ -18,12 +18,72 @@ import type { UpdateProfileRequest } from '../lib/api/types'
 import { CameraIcon, ArrowDownOnSquareIcon, ArrowPathIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { validateImageFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
+import { changePhone } from '../lib/auth'
+
+/** Display formatter — Swedish mobile (46 + 9 digits) → "+46 XXX XXX XXX".
+ *  Other formats fall back to "+<digits>". Storage stays raw E.164-no-+. */
+function formatPhone(raw: string): string {
+  const digits = (raw || '').replace(/\D/g, '')
+  if (!digits) return ''
+  if (digits.startsWith('46') && digits.length === 11) {
+    const rest = digits.slice(2)
+    return `+46 ${rest.slice(0, 3)} ${rest.slice(3, 6)} ${rest.slice(6)}`
+  }
+  return `+${digits}`
+}
 
 export function ProfilePage() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle'|'success'|'error'>('idle')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Phone change flow — separate from profile save because it goes to the
+  // /auth/change-phone endpoint and requires the user's current password.
+  const [showPhoneForm, setShowPhoneForm] = useState(false)
+  const [phoneCurrentPw, setPhoneCurrentPw] = useState('')
+  const [newPhone, setNewPhone] = useState('')
+  const [phoneSubmitting, setPhoneSubmitting] = useState(false)
+  const [phoneError, setPhoneError] = useState('')
+  const [phoneSuccess, setPhoneSuccess] = useState(false)
+
+  const cancelPhoneChange = () => {
+    setShowPhoneForm(false)
+    setPhoneCurrentPw('')
+    setNewPhone('')
+    setPhoneError('')
+  }
+
+  const handleChangePhone = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPhoneError('')
+    setPhoneSuccess(false)
+
+    const digits = newPhone.replace(/\D/g, '')
+    if (!digits) {
+      setPhoneError('Enter a phone number (digits only, with country code)')
+      return
+    }
+    if (!phoneCurrentPw) {
+      setPhoneError('Current password is required')
+      return
+    }
+
+    setPhoneSubmitting(true)
+    try {
+      await changePhone(phoneCurrentPw, digits)
+      await refreshUser()
+      setPhoneSuccess(true)
+      setShowPhoneForm(false)
+      setPhoneCurrentPw('')
+      setNewPhone('')
+    } catch (err) {
+      const e = err as Error & { code?: string }
+      setPhoneError(e.message || 'Failed to change phone number. Please try again.')
+    } finally {
+      setPhoneSubmitting(false)
+    }
+  }
 
   // Fetch profile data - handle both direct shape and { data: ... } wrapper
   const { data: profileRaw, isLoading: profileLoading, isError: profileError, refetch: refetchProfile } = useCurrentProfile()
@@ -340,6 +400,82 @@ export function ProfilePage() {
                   )}
                 </div>
               </div>
+            </GlassCard>
+
+            {/* Phone Number — separate card because change-flow goes to /auth/change-phone
+                and requires the user's current password (auth-table data, not profile). */}
+            <GlassCard variant="base" className="mb-6">
+              <h3 className="font-display text-xl font-semibold text-kalkvit mb-6">
+                Phone Number
+              </h3>
+              {!showPhoneForm ? (
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-kalkvit">
+                      {user?.phone ? formatPhone(user.phone) : (
+                        <span className="text-kalkvit/50">Not set</span>
+                      )}
+                    </p>
+                    {phoneSuccess && (
+                      <p className="text-sm text-skogsgron mt-1">Phone number updated.</p>
+                    )}
+                  </div>
+                  <GlassButton
+                    variant="secondary"
+                    onClick={() => {
+                      setPhoneSuccess(false)
+                      setShowPhoneForm(true)
+                    }}
+                  >
+                    Change phone number
+                  </GlassButton>
+                </div>
+              ) : (
+                <form onSubmit={handleChangePhone} className="space-y-4">
+                  <GlassInput
+                    label="Current Password"
+                    type="password"
+                    placeholder="Enter your current password"
+                    value={phoneCurrentPw}
+                    onChange={(e) => setPhoneCurrentPw(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                  />
+                  <div>
+                    <GlassInput
+                      label="New Phone Number"
+                      type="tel"
+                      placeholder="46707081234"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      required
+                    />
+                    <p className="text-xs text-kalkvit/40 mt-1">
+                      Include country code without the + sign. Example: 46707081234
+                    </p>
+                  </div>
+                  {phoneError && (
+                    <p className="text-sm text-tegelrod">{phoneError}</p>
+                  )}
+                  <div className="flex gap-3">
+                    <GlassButton
+                      type="submit"
+                      variant="primary"
+                      disabled={phoneSubmitting}
+                    >
+                      {phoneSubmitting ? 'Updating...' : 'Save'}
+                    </GlassButton>
+                    <GlassButton
+                      type="button"
+                      variant="secondary"
+                      onClick={cancelPhoneChange}
+                      disabled={phoneSubmitting}
+                    >
+                      Cancel
+                    </GlassButton>
+                  </div>
+                </form>
+              )}
             </GlassCard>
 
             {/* CLAIM'N Profile */}
