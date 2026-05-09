@@ -2,28 +2,55 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { sanitizeRedirect } from '../lib/url-validation'
+import { mapAuthError } from '../lib/auth-errors'
 import { GlassCard, GlassButton, BackgroundPattern } from '../components/ui'
-import { ArrowRightEndOnRectangleIcon, ExclamationCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { ArrowRightEndOnRectangleIcon, ExclamationCircleIcon, ArrowLeftIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
+
+/** Heuristic: a value pasted into a password field that looks like a token rather than a password. */
+function looksLikeToken(value: string): boolean {
+  if (value.length > 40) return true
+  if (/^[a-f0-9-]{20,}/i.test(value)) return true
+  if (/^eyJ[A-Za-z0-9_-]+\./.test(value)) return true // JWT prefix
+  return false
+}
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [pasteHint, setPasteHint] = useState<string | null>(null)
 
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirect = sanitizeRedirect(searchParams.get('redirect'), '/')
 
-  // Show error from failed OAuth login
+  // Surface session-expired / OAuth errors with Swedish copy.
   useEffect(() => {
+    const sessionExpired = sessionStorage.getItem('auth_session_expired')
+    if (sessionExpired) {
+      setError('Din session har gått ut. Logga in igen.')
+      sessionStorage.removeItem('auth_session_expired')
+      return
+    }
     const oauthError = sessionStorage.getItem('oauth_error')
     if (oauthError) {
-      setError(oauthError)
+      setError(mapAuthError({ message: oauthError }))
       sessionStorage.removeItem('oauth_error')
     }
   }, [])
+
+  const handlePasswordPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = e.clipboardData.getData('text')
+    if (looksLikeToken(pasted)) {
+      setPasteHint(
+        'Det ser ut som du klistrade in en länk eller en kod. Klicka istället på länken i mejlet — den loggar in dig direkt.'
+      )
+    } else {
+      setPasteHint(null)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +60,7 @@ export function LoginPage() {
     const { error } = await signIn(email, password)
 
     if (error) {
-      setError(error.message)
+      setError(mapAuthError(error))
       setLoading(false)
     } else {
       navigate(redirect)
@@ -85,11 +112,18 @@ export function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onPaste={handlePasswordPaste}
                 required
                 autoComplete="current-password"
                 className="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.15] rounded-xl text-kalkvit placeholder-kalkvit/40 focus:outline-none focus:border-koppar/50 focus:ring-1 focus:ring-koppar/50 transition-colors"
                 placeholder="••••••••"
               />
+              {pasteHint && (
+                <div className="flex items-start gap-2 mt-2 p-2 rounded-lg bg-koppar/10 border border-koppar/20 text-koppar text-xs">
+                  <InformationCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{pasteHint}</span>
+                </div>
+              )}
             </div>
 
             {error && (
