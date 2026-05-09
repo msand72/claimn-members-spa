@@ -18,7 +18,7 @@ import type { UpdateProfileRequest } from '../lib/api/types'
 import { CameraIcon, ArrowDownOnSquareIcon, ArrowPathIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { validateImageFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
-import { changePhone } from '../lib/auth'
+import { changeEmail, changePhone } from '../lib/auth'
 
 /** Display formatter — Swedish mobile (46 + 9 digits) → "+46 XXX XXX XXX".
  *  Other formats fall back to "+<digits>". Storage stays raw E.164-no-+. */
@@ -38,6 +38,15 @@ export function ProfilePage() {
   const [saveStatus, setSaveStatus] = useState<'idle'|'success'|'error'>('idle')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Email change flow — separate from profile save because it goes to the
+  // /auth/change-email endpoint and requires the user's current password.
+  const [showEmailForm, setShowEmailForm] = useState(false)
+  const [emailCurrentPw, setEmailCurrentPw] = useState('')
+  const [newEmail, setNewEmail] = useState('')
+  const [emailSubmitting, setEmailSubmitting] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [emailSuccess, setEmailSuccess] = useState(false)
+
   // Phone change flow — separate from profile save because it goes to the
   // /auth/change-phone endpoint and requires the user's current password.
   const [showPhoneForm, setShowPhoneForm] = useState(false)
@@ -46,6 +55,48 @@ export function ProfilePage() {
   const [phoneSubmitting, setPhoneSubmitting] = useState(false)
   const [phoneError, setPhoneError] = useState('')
   const [phoneSuccess, setPhoneSuccess] = useState(false)
+
+  const cancelEmailChange = () => {
+    setShowEmailForm(false)
+    setEmailCurrentPw('')
+    setNewEmail('')
+    setEmailError('')
+  }
+
+  const handleChangeEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setEmailError('')
+    setEmailSuccess(false)
+
+    const trimmed = newEmail.trim()
+    if (!trimmed || !trimmed.includes('@')) {
+      setEmailError('Enter a valid email address')
+      return
+    }
+    if (trimmed.toLowerCase() === (user?.email || '').toLowerCase()) {
+      setEmailError('New email must differ from your current email')
+      return
+    }
+    if (!emailCurrentPw) {
+      setEmailError('Current password is required')
+      return
+    }
+
+    setEmailSubmitting(true)
+    try {
+      await changeEmail(emailCurrentPw, trimmed)
+      await refreshUser()
+      setEmailSuccess(true)
+      setShowEmailForm(false)
+      setEmailCurrentPw('')
+      setNewEmail('')
+    } catch (err) {
+      const e = err as Error & { code?: string }
+      setEmailError(e.message || 'Failed to change email. Please try again.')
+    } finally {
+      setEmailSubmitting(false)
+    }
+  }
 
   const cancelPhoneChange = () => {
     setShowPhoneForm(false)
@@ -348,16 +399,6 @@ export function ProfilePage() {
                   onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
                   disabled={!isEditing}
                 />
-                <div>
-                  <GlassInput
-                    label="Email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={user?.email || ''}
-                    disabled
-                  />
-                  <p className="text-xs text-kalkvit/40 mt-1">Contact support to change your email</p>
-                </div>
                 <GlassInput
                   label="City"
                   placeholder="Your city"
@@ -400,6 +441,76 @@ export function ProfilePage() {
                   )}
                 </div>
               </div>
+            </GlassCard>
+
+            {/* Email — separate card because change-flow goes to /auth/change-email
+                and requires the user's current password (auth-table data, not profile). */}
+            <GlassCard variant="base" className="mb-6">
+              <h3 className="font-display text-xl font-semibold text-kalkvit mb-6">
+                Email
+              </h3>
+              {!showEmailForm ? (
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-kalkvit">{user?.email || (
+                      <span className="text-kalkvit/50">Not set</span>
+                    )}</p>
+                    {emailSuccess && (
+                      <p className="text-sm text-skogsgron mt-1">Email updated. Use the new address to log in next time.</p>
+                    )}
+                  </div>
+                  <GlassButton
+                    variant="secondary"
+                    onClick={() => {
+                      setEmailSuccess(false)
+                      setShowEmailForm(true)
+                    }}
+                  >
+                    Change email
+                  </GlassButton>
+                </div>
+              ) : (
+                <form onSubmit={handleChangeEmail} className="space-y-4">
+                  <GlassInput
+                    label="Current Password"
+                    type="password"
+                    placeholder="Enter your current password"
+                    value={emailCurrentPw}
+                    onChange={(e) => setEmailCurrentPw(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                  />
+                  <GlassInput
+                    label="New Email Address"
+                    type="email"
+                    placeholder="new@example.com"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    autoComplete="email"
+                    required
+                  />
+                  {emailError && (
+                    <p className="text-sm text-tegelrod">{emailError}</p>
+                  )}
+                  <div className="flex gap-3">
+                    <GlassButton
+                      type="submit"
+                      variant="primary"
+                      disabled={emailSubmitting}
+                    >
+                      {emailSubmitting ? 'Updating...' : 'Save'}
+                    </GlassButton>
+                    <GlassButton
+                      type="button"
+                      variant="secondary"
+                      onClick={cancelEmailChange}
+                      disabled={emailSubmitting}
+                    >
+                      Cancel
+                    </GlassButton>
+                  </div>
+                </form>
+              )}
             </GlassCard>
 
             {/* Phone Number — separate card because change-flow goes to /auth/change-phone

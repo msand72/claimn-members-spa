@@ -264,6 +264,37 @@ export async function forgotPassword(email: string): Promise<void> {
   }
 }
 
+export async function changeEmail(currentPassword: string, newEmail: string): Promise<{ new_email: string }> {
+  const token = await getAccessToken()
+  if (!token) {
+    const err = new Error('Not authenticated') as Error & { code: string; status: number }
+    err.code = 'NOT_AUTHENTICATED'
+    err.status = 401
+    throw err
+  }
+
+  const res = await authFetch(`${AUTH_BASE()}/change-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ current_password: currentPassword, new_email: newEmail }),
+  })
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}))
+    const message = errorData.error?.message || errorData.error || 'Failed to change email'
+    const code = errorData.error?.code || errorData.code || ''
+    const err = new Error(message) as Error & { code: string; status: number }
+    err.code = code
+    err.status = res.status
+    throw err
+  }
+
+  return res.json()
+}
+
 export async function changePhone(currentPassword: string, newPhone: string): Promise<{ new_phone: string }> {
   const token = await getAccessToken()
   if (!token) {
