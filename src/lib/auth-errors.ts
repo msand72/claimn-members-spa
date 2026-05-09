@@ -86,5 +86,26 @@ export function mapAuthError(err: unknown): string {
     return 'Inget konto hittades för den här e-postadressen. Kontakta support@claimn.co.'
   }
 
+  // OTP-fallback flow error codes from POST /auth/verify-otp.
+  if (code === 'INVALID_OTP' || lower.includes('invalid otp')) {
+    return 'Fel kod eller koden har gått ut. Försök igen eller be om en ny kod.'
+  }
+
+  if (code === 'INVALID_OTP_FORMAT' || lower.includes('invalid otp format')) {
+    return 'Koden ska vara 6 siffror.'
+  }
+
+  if (code === 'TOO_MANY_ATTEMPTS' || lower.includes('too many attempts')) {
+    return 'För många felaktiga försök. Be om en ny kod.'
+  }
+
+  if (code === 'OTP_EXPIRED' || lower.includes('otp expired')) {
+    return 'Koden har gått ut. Be om en ny kod.'
+  }
+
+  if (code === 'RATE_LIMIT_EXCEEDED' || lower.includes('rate limit')) {
+    return 'Vi har skickat för många mejl till denna adress. Försök igen om några minuter.'
+  }
+
   return 'Något gick fel. Kontakta support@claimn.co om problemet kvarstår.'
 }

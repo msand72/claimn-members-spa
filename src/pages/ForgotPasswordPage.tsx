@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassInput } from '../components/ui'
 import { BackgroundPattern } from '../components/ui/BackgroundPattern'
-import { ArrowLeftIcon, EnvelopeIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
-import { forgotPassword } from '../lib/auth'
+import { ArrowLeftIcon, EnvelopeIcon, CheckCircleIcon, KeyIcon } from '@heroicons/react/24/outline'
+import { forgotPassword, requestOtp } from '../lib/auth'
 
 export function ForgotPasswordPage() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -25,6 +26,26 @@ export function ForgotPasswordPage() {
       void err
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  /** Code-fallback path: send the URL+OTP email and route the user to the
+   *  /verify-otp page where they type the 6-digit code. Use this if the user
+   *  knows their email security mangles links (corporate Outlook etc.). */
+  const handleSendCode = async () => {
+    if (!email) {
+      setError('Ange din e-postadress först.')
+      return
+    }
+    setIsLoading(true)
+    setError('')
+    try {
+      await requestOtp(email, 'recovery')
+    } catch {
+      // Per OWASP enumeration prevention, treat as success regardless.
+    } finally {
+      setIsLoading(false)
+      navigate(`/verify-otp?email=${encodeURIComponent(email)}&type=recovery`)
     }
   }
 
@@ -112,6 +133,23 @@ export function ForgotPasswordPage() {
                   )}
                 </GlassButton>
               </form>
+
+              {/* Code-fallback path for users whose corporate email security
+                  (Outlook/Defender SafeLinks etc.) mangles the URL link. */}
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={handleSendCode}
+                  disabled={isLoading || !email}
+                  className="text-sm text-koppar hover:text-koppar/80 transition-colors inline-flex items-center gap-2 disabled:opacity-50"
+                >
+                  <KeyIcon className="w-4 h-4" />
+                  Send a 6-digit code instead
+                </button>
+                <p className="text-xs text-kalkvit/40 mt-2">
+                  Use this if your work email blocks the reset link.
+                </p>
+              </div>
 
               <div className="mt-6 text-center">
                 <Link

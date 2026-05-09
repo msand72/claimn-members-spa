@@ -40,6 +40,7 @@ const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'))
 const ForgotPasswordPage = lazyWithRetry(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazyWithRetry(() => import('./pages/ResetPasswordPage'))
 const ActivateAccountPage = lazyWithRetry(() => import('./pages/ActivateAccountPage'))
+const VerifyOtpPage = lazyWithRetry(() => import('./pages/VerifyOtpPage'))
 
 // Pages - Core
 const HubPage = lazyWithRetry(() => import('./pages/HubPage'))
@@ -186,6 +187,7 @@ const router = createBrowserRouter([
       { path: '/forgot-password', element: <ForgotPasswordPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
       { path: '/activate', element: <ActivateAccountPage /> },
+      { path: '/verify-otp', element: <VerifyOtpPage /> },
 
       // Protected routes - Onboarding (no sidebar layout)
       { path: '/onboarding', element: <Protected><OnboardingWelcomePage /></Protected> },

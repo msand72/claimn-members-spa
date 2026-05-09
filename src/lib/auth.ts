@@ -264,6 +264,68 @@ export async function forgotPassword(email: string): Promise<void> {
   }
 }
 
+export type OtpType = 'recovery' | 'invite'
+
+/**
+ * Request a 6-digit OTP code via email. Always 200; backend returns generic
+ * message regardless of whether the email exists (enumeration prevention).
+ * Email contains BOTH the existing URL link AND the new 6-digit code.
+ */
+export async function requestOtp(email: string, type: OtpType, redirectTo?: string): Promise<void> {
+  const res = await authFetch(`${AUTH_BASE()}/request-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, type, redirect_to: redirectTo }),
+  })
+
+  if (!res.ok) {
+    // Per OWASP: do NOT leak validation failures here. Surface generic.
+    const errorData = await res.json().catch(() => ({}))
+    const message = errorData.error?.message || errorData.error || 'Failed to request code'
+    const code = errorData.error?.code || errorData.code || ''
+    const err = new Error(message) as Error & { code: string; status: number }
+    err.code = code
+    err.status = res.status
+    throw err
+  }
+}
+
+/**
+ * Verify the user's 6-digit OTP. On success returns a Supabase access_token
+ * (same shape as login) which the caller stashes in sessionStorage as
+ * `recovery_token` / `invite_token` so the existing reset/activate pages
+ * can run their password-set flow unchanged.
+ */
+export async function verifyOtp(
+  email: string,
+  otpCode: string,
+  type: OtpType,
+): Promise<AuthTokens & { user?: AuthUserResponse }> {
+  const res = await authFetch(`${AUTH_BASE()}/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp_code: otpCode, type }),
+  })
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}))
+    const message = errorData.error?.message || errorData.error || 'Invalid code'
+    const code = errorData.error?.code || errorData.code || ''
+    const err = new Error(message) as Error & { code: string; status: number }
+    err.code = code
+    err.status = res.status
+    throw err
+  }
+
+  const data = await res.json()
+  return {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: data.expires_at,
+    user: data.user,
+  }
+}
+
 export async function changeEmail(currentPassword: string, newEmail: string): Promise<{ new_email: string }> {
   const token = await getAccessToken()
   if (!token) {

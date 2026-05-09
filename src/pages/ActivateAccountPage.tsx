@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassInput } from '../components/ui'
 import { BackgroundPattern } from '../components/ui/BackgroundPattern'
 import { LockClosedIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
@@ -87,7 +87,15 @@ export function ActivateAccountPage() {
               </div>
               <h2 className="font-serif text-xl font-bold text-kalkvit mb-2">Länken är ogiltig</h2>
               <p className="text-kalkvit/60 mb-6">
-                Inbjudningslänken är ogiltig eller har gått ut. Kontakta <a href="mailto:support@claimn.co" className="text-koppar hover:underline">support@claimn.co</a> så hjälper vi dig.
+                Inbjudningslänken är ogiltig eller har gått ut. Många företagsmail blockerar länkar — du kan istället ange den 6-siffriga koden från ditt välkomstmejl.
+              </p>
+              <Link to="/verify-otp?type=invite">
+                <GlassButton variant="primary" className="w-full">
+                  Ange kod från mejlet
+                </GlassButton>
+              </Link>
+              <p className="text-xs text-kalkvit/40 mt-4">
+                Behöver du hjälp? Kontakta <a href="mailto:support@claimn.co" className="text-koppar hover:underline">support@claimn.co</a>.
               </p>
             </div>
           ) : isSubmitted ? (

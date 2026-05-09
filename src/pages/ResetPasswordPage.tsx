@@ -92,13 +92,20 @@ export function ResetPasswordPage() {
               </div>
               <h2 className="font-serif text-xl font-bold text-kalkvit mb-2">Länken är ogiltig</h2>
               <p className="text-kalkvit/60 mb-6">
-                Återställningslänken är ogiltig eller har gått ut. Be om en ny så skickar vi ett nytt mejl.
+                Återställningslänken är ogiltig eller har gått ut. Många företagsmail blockerar länkar — du kan istället ange den 6-siffriga koden från ditt mejl.
               </p>
-              <Link to="/forgot-password">
-                <GlassButton variant="primary" className="w-full">
-                  Begär ny återställningslänk
-                </GlassButton>
-              </Link>
+              <div className="flex flex-col gap-3">
+                <Link to="/verify-otp?type=recovery">
+                  <GlassButton variant="primary" className="w-full">
+                    Ange kod från mejlet
+                  </GlassButton>
+                </Link>
+                <Link to="/forgot-password">
+                  <GlassButton variant="secondary" className="w-full">
+                    Begär ny återställningslänk
+                  </GlassButton>
+                </Link>
+              </div>
             </div>
           ) : isSubmitted ? (
             <div className="text-center py-8">
