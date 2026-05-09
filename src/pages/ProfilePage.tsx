@@ -18,7 +18,7 @@ import type { UpdateProfileRequest } from '../lib/api/types'
 import { CameraIcon, ArrowDownOnSquareIcon, ArrowPathIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { validateImageFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
-import { changeEmail, changePhone } from '../lib/auth'
+import { changeEmail, changePhone, flagSessionExpired } from '../lib/auth'
 
 /** Display formatter — Swedish mobile (46 + 9 digits) → "+46 XXX XXX XXX".
  *  Other formats fall back to "+<digits>". Storage stays raw E.164-no-+. */
@@ -99,7 +99,16 @@ export function ProfilePage() {
       window.location.replace('/login')
       return
     } catch (err) {
-      const e = err as Error & { code?: string }
+      const e = err as Error & { code?: string; status?: number }
+      // 401 here is almost always JWT-staleness from a prior email change —
+      // backend SignIn against user.Email-from-JWT-claims fails when that
+      // email no longer exists in auth.users. Force a clean re-login.
+      if (e.status === 401) {
+        flagSessionExpired()
+        await signOut()
+        window.location.replace('/login')
+        return
+      }
       setEmailError(e.message || 'Failed to change email. Please try again.')
     } finally {
       setEmailSubmitting(false)
@@ -137,7 +146,14 @@ export function ProfilePage() {
       setPhoneCurrentPw('')
       setNewPhone('')
     } catch (err) {
-      const e = err as Error & { code?: string }
+      const e = err as Error & { code?: string; status?: number }
+      // Same JWT-staleness 401 pattern as change-email above.
+      if (e.status === 401) {
+        flagSessionExpired()
+        await signOut()
+        window.location.replace('/login')
+        return
+      }
       setPhoneError(e.message || 'Failed to change phone number. Please try again.')
     } finally {
       setPhoneSubmitting(false)
