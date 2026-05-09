@@ -55,6 +55,7 @@ export function ProfilePage() {
     city: '',
     country: '',
     bio: '',
+    linkedin: '',
     archetype: '' as Archetype | '',
     pillar_focus: [] as PillarId[],
     email_notifications: true,
@@ -71,6 +72,7 @@ export function ProfilePage() {
         city: profile.city || '',
         country: profile.country || '',
         bio: profile.bio || '',
+        linkedin: profile.links?.linkedin || '',
         archetype: (profile.archetype as Archetype) || '',
         pillar_focus: (profile.pillar_focus as PillarId[]) || [],
         email_notifications: profile.notification_preferences?.email_notifications ?? true,
@@ -121,12 +123,23 @@ export function ProfilePage() {
 
     // Update profile — don't let a failure block interests save
     try {
+      // Merge linkedin into existing links so sibling social keys aren't wiped
+      // (backend does whole-object replace on the links jsonb column).
+      const mergedLinks: Record<string, string> = { ...(profile?.links ?? {}) }
+      const linkedinHandle = formData.linkedin.trim()
+      if (linkedinHandle) {
+        mergedLinks.linkedin = linkedinHandle
+      } else {
+        delete mergedLinks.linkedin
+      }
+
       const profileData: UpdateProfileRequest = {
         display_name: formData.display_name || undefined,
         whatsapp_number: formData.whatsapp_number || undefined,
         city: formData.city || undefined,
         country: formData.country || undefined,
         bio: formData.bio || undefined,
+        links: Object.keys(mergedLinks).length > 0 ? mergedLinks : undefined,
         archetype: formData.archetype || undefined,
         pillar_focus: formData.pillar_focus.length > 0 ? formData.pillar_focus : undefined,
         notification_preferences: {
@@ -307,6 +320,25 @@ export function ProfilePage() {
                   onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
                   disabled={!isEditing}
                 />
+                <div>
+                  <GlassInput
+                    label="LinkedIn"
+                    placeholder="your-linkedin-handle"
+                    value={formData.linkedin}
+                    onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                    disabled={!isEditing}
+                  />
+                  {!isEditing && formData.linkedin && (
+                    <a
+                      href={`https://www.linkedin.com/in/${formData.linkedin}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-koppar hover:underline mt-1 inline-block"
+                    >
+                      View on LinkedIn ↗
+                    </a>
+                  )}
+                </div>
               </div>
             </GlassCard>
 
