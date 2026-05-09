@@ -2,21 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { GlassCard, GlassButton, GlassInput } from '../components/ui'
 import { BackgroundPattern } from '../components/ui/BackgroundPattern'
-import { LockClosedIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
+import { LockClosedIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import { resetPassword } from '../lib/auth'
-import { mapAuthError } from '../lib/auth-errors'
-
-/** Structural JWT check (header.payload.signature, all non-empty). Cheap but
- *  catches the "token never arrived" / "user pasted garbage" cases. */
-function looksLikeJwt(token: string): boolean {
-  const parts = token.split('.')
-  return parts.length === 3 && parts.every((p) => p.length > 0)
-}
 
 export function ResetPasswordPage() {
   const navigate = useNavigate()
   const token = sessionStorage.getItem('recovery_token') || ''
-  const tokenIsValid = looksLikeJwt(token)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -25,9 +16,9 @@ export function ResetPasswordPage() {
   const [error, setError] = useState('')
 
   const validatePassword = (pwd: string) => {
-    if (pwd.length < 8) return 'Lösenordet måste vara minst 8 tecken'
-    if (!/[A-Z]/.test(pwd)) return 'Lösenordet måste innehålla en versal'
-    if (!/[0-9]/.test(pwd)) return 'Lösenordet måste innehålla en siffra'
+    if (pwd.length < 8) return 'Password must be at least 8 characters'
+    if (!/[A-Z]/.test(pwd)) return 'Password must contain an uppercase letter'
+    if (!/[0-9]/.test(pwd)) return 'Password must contain a number'
     return ''
   }
 
@@ -35,8 +26,8 @@ export function ResetPasswordPage() {
     e.preventDefault()
     setError('')
 
-    if (!tokenIsValid) {
-      setError('Återställningslänken är ogiltig eller har gått ut. Be om en ny.')
+    if (!token) {
+      setError('Invalid or missing reset token. Please request a new reset link.')
       return
     }
 
@@ -47,21 +38,18 @@ export function ResetPasswordPage() {
     }
 
     if (password !== confirmPassword) {
-      setError('Lösenorden matchar inte')
+      setError('Passwords do not match')
       return
     }
 
     setIsLoading(true)
-    console.log('[auth/recovery] submitting new password')
 
     try {
       await resetPassword(token, password)
-      console.log('[auth/recovery] password reset succeeded')
       sessionStorage.removeItem('recovery_token')
       setIsSubmitted(true)
     } catch (err) {
-      console.warn('[auth/recovery] password reset failed:', err)
-      setError(mapAuthError(err))
+      setError(err instanceof Error ? err.message : 'Failed to reset password. The link may have expired.')
     } finally {
       setIsLoading(false)
     }
@@ -85,22 +73,7 @@ export function ResetPasswordPage() {
         </div>
 
         <GlassCard variant="elevated">
-          {!tokenIsValid && !isSubmitted ? (
-            <div className="text-center py-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-tegelrod/20 mb-4">
-                <ExclamationCircleIcon className="w-8 h-8 text-tegelrod" />
-              </div>
-              <h2 className="font-serif text-xl font-bold text-kalkvit mb-2">Länken är ogiltig</h2>
-              <p className="text-kalkvit/60 mb-6">
-                Återställningslänken är ogiltig eller har gått ut. Be om en ny så skickar vi ett nytt mejl.
-              </p>
-              <Link to="/forgot-password">
-                <GlassButton variant="primary" className="w-full">
-                  Begär ny återställningslänk
-                </GlassButton>
-              </Link>
-            </div>
-          ) : isSubmitted ? (
+          {isSubmitted ? (
             <div className="text-center py-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-skogsgron/20 mb-4">
                 <CheckCircleIcon className="w-8 h-8 text-skogsgron" />
