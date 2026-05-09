@@ -33,7 +33,7 @@ function formatPhone(raw: string): string {
 }
 
 export function ProfilePage() {
-  const { user, refreshUser } = useAuth()
+  const { user, refreshUser, signOut } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle'|'success'|'error'>('idle')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -85,11 +85,19 @@ export function ProfilePage() {
     setEmailSubmitting(true)
     try {
       await changeEmail(emailCurrentPw, trimmed)
-      await refreshUser()
-      setEmailSuccess(true)
-      setShowEmailForm(false)
-      setEmailCurrentPw('')
-      setNewEmail('')
+      // The Go JWT issued at login has the OLD email baked into its claims.
+      // /auth/me falls back to claims.Email when the token isn't a Supabase
+      // token (auth_handlers.go:215), and change-phone / repeat change-email
+      // do SignIn(user.Email_from_JWT, password) — both will see the stale
+      // email and 401 against a now-non-existent auth.users row. Cleanest
+      // fix from the SPA: force a clean re-login so the next JWT carries
+      // the correct email claim. (Backend brief queued separately to read
+      // canonical email from auth.users by user_id, which would let us drop
+      // this workaround.)
+      sessionStorage.setItem('email_change_pending_relogin', trimmed)
+      await signOut()
+      window.location.replace('/login')
+      return
     } catch (err) {
       const e = err as Error & { code?: string }
       setEmailError(e.message || 'Failed to change email. Please try again.')

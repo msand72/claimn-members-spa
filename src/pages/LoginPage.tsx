@@ -18,6 +18,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [pasteHint, setPasteHint] = useState<string | null>(null)
 
@@ -38,6 +39,16 @@ export function LoginPage() {
     if (oauthError) {
       setError(mapAuthError({ message: oauthError }))
       sessionStorage.removeItem('oauth_error')
+      return
+    }
+    // Email-change relogin: ProfilePage signs the user out after a successful
+    // /auth/change-email so the next JWT carries the new email as its claim.
+    // Pre-fill the email field and tell the user what to do.
+    const newEmail = sessionStorage.getItem('email_change_pending_relogin')
+    if (newEmail) {
+      setEmail(newEmail)
+      setInfo(`Din e-postadress är uppdaterad. Logga in med ${newEmail} för att fortsätta.`)
+      sessionStorage.removeItem('email_change_pending_relogin')
     }
   }, [])
 
@@ -125,6 +136,13 @@ export function LoginPage() {
                 </div>
               )}
             </div>
+
+            {info && !error && (
+              <div className="flex items-start gap-2 p-3 bg-skogsgron/20 border border-skogsgron/30 rounded-xl text-skogsgron">
+                <InformationCircleIcon className="w-[18px] h-[18px] flex-shrink-0 mt-0.5" />
+                <span className="text-sm">{info}</span>
+              </div>
+            )}
 
             {error && (
               <div className="flex items-center gap-2 p-3 bg-tegelrod/20 border border-tegelrod/30 rounded-xl text-tegelrod">
