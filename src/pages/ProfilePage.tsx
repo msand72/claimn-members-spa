@@ -270,6 +270,7 @@ export function ProfilePage() {
     setSelectedInterests(memberInterestIds)
   }, [memberInterestIds])
 
+  console.log('[SSO debug] app_metadata:', user?.app_metadata, 'identities:', user?.identities)
   const authProvider =
     (user?.app_metadata as Record<string, string> | undefined)?.provider ||
     (user?.identities as Array<{ provider?: string }> | undefined)?.[0]?.provider ||
