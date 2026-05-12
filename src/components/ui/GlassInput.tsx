@@ -24,6 +24,7 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
             'text-kalkvit placeholder:text-kalkvit/40',
             'focus:outline-none focus:border-koppar/50 focus:ring-1 focus:ring-koppar/30',
             'transition-all duration-200',
+            'disabled:text-kalkvit/40 disabled:cursor-default',
             error && 'border-tegelrod/50 focus:border-tegelrod focus:ring-tegelrod/30',
             className
           )}
