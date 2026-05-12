@@ -270,7 +270,10 @@ export function ProfilePage() {
     setSelectedInterests(memberInterestIds)
   }, [memberInterestIds])
 
-  const authProvider = user?.app_metadata?.provider || user?.identities?.[0]?.provider || 'email'
+  const authProvider =
+    (user?.app_metadata as Record<string, string> | undefined)?.provider ||
+    (user?.identities as Array<{ provider?: string }> | undefined)?.[0]?.provider ||
+    'email'
   const isSSOUser = authProvider !== 'email'
   const providerLabel =
     authProvider === 'azure' || authProvider === 'microsoft' || authProvider === 'azure_ad'
