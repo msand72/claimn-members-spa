@@ -270,6 +270,17 @@ export function ProfilePage() {
     setSelectedInterests(memberInterestIds)
   }, [memberInterestIds])
 
+  const authProvider = user?.app_metadata?.provider || user?.identities?.[0]?.provider || 'email'
+  const isSSOUser = authProvider !== 'email'
+  const providerLabel =
+    authProvider === 'azure' || authProvider === 'microsoft' || authProvider === 'azure_ad'
+      ? 'Microsoft'
+      : authProvider === 'google'
+        ? 'Google'
+        : authProvider === 'github'
+          ? 'GitHub'
+          : authProvider.charAt(0).toUpperCase() + authProvider.slice(1)
+
   const displayName = formData.display_name || user?.email?.split('@')[0] || 'Member'
   const initials = displayName
     .split(' ')
@@ -517,7 +528,14 @@ export function ProfilePage() {
               <h3 className="font-display text-xl font-semibold text-kalkvit mb-6">
                 Email
               </h3>
-              {!showEmailForm ? (
+              {isSSOUser ? (
+                <div className="flex items-center gap-3">
+                  <p className="text-kalkvit">{user?.email || <span className="text-kalkvit/50">Not set</span>}</p>
+                  <p className="text-sm text-kalkvit/50">
+                    Your account is managed by {providerLabel}. Credential changes must be made through your {providerLabel} account.
+                  </p>
+                </div>
+              ) : !showEmailForm ? (
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-kalkvit">{user?.email || (
@@ -587,7 +605,11 @@ export function ProfilePage() {
               <h3 className="font-display text-xl font-semibold text-kalkvit mb-6">
                 Phone Number
               </h3>
-              {!showPhoneForm ? (
+              {isSSOUser ? (
+                <p className="text-sm text-kalkvit/50">
+                  Your account is managed by {providerLabel}. Credential changes must be made through your {providerLabel} account.
+                </p>
+              ) : !showPhoneForm ? (
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-kalkvit">
