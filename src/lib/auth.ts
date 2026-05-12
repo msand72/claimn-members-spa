@@ -56,6 +56,7 @@ export interface AuthUserResponse {
   user_type: UserType
   display_name: string
   avatar_url: string
+  provider: string
   phone: string
   phone_confirmed_at: string | null
 }
@@ -246,6 +247,7 @@ export async function fetchCurrentUser(token: string): Promise<AuthUserResponse>
     user_type: user.user_type || user.profile?.user_type || 'member',
     display_name: user.profile?.display_name || user.display_name || user.email?.split('@')[0] || '',
     avatar_url: user.profile?.avatar_url || user.avatar_url || '',
+    provider: user.provider || 'email',
     phone: user.phone || '',
     phone_confirmed_at: user.phone_confirmed_at || null,
   }
