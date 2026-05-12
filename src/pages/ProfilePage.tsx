@@ -532,8 +532,13 @@ export function ProfilePage() {
                 Email
               </h3>
               {isSSOUser ? (
-                <div className="flex items-center gap-3">
-                  <p className="text-kalkvit">{user?.email || <span className="text-kalkvit/50">Not set</span>}</p>
+                <div className="space-y-2">
+                  <GlassInput
+                    label="Email Address"
+                    type="email"
+                    value={user?.email || ''}
+                    disabled
+                  />
                   <p className="text-sm text-kalkvit/50">
                     Your account is managed by {providerLabel}. Credential changes must be made through your {providerLabel} account.
                   </p>
