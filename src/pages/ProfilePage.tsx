@@ -33,7 +33,7 @@ function formatPhone(raw: string): string {
 }
 
 export function ProfilePage() {
-  const { user, refreshUser, signOut } = useAuth()
+  const { user, refreshUser, signOut, loginMethod } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle'|'success'|'error'>('idle')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -270,7 +270,7 @@ export function ProfilePage() {
     setSelectedInterests(memberInterestIds)
   }, [memberInterestIds])
 
-  const isSSOUser = user?.has_password === false
+  const isSSOUser = loginMethod === 'oauth'
   const authProvider = user?.provider || 'email'
   const providerLabel =
     authProvider === 'azure' || authProvider === 'microsoft' || authProvider === 'azure_ad'

@@ -8,8 +8,12 @@ import {
   storeTokens,
   refreshToken,
   exchangeToken,
+  storeLoginMethod,
+  getLoginMethod,
+  clearLoginMethod,
   type AuthUserResponse,
   type UserType,
+  type LoginMethod,
 } from '../lib/auth'
 
 export type AuthUser = AuthUserResponse & Record<string, unknown>
@@ -25,6 +29,7 @@ interface AuthContextType {
   session: AuthSession | null
   loading: boolean
   userType: UserType
+  loginMethod: LoginMethod
   hasAccess: (...types: UserType[]) => boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
@@ -37,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<AuthSession | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>(getLoginMethod)
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function scheduleRefresh() {
@@ -116,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               refresh_token: oauthRefresh,
               expires_at: expiresAt,
             })
+            storeLoginMethod('oauth')
+            setLoginMethod('oauth')
             setUser(mergedUser)
             setSession({
               access_token: accessToken,
@@ -208,6 +216,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await fetchCurrentUser(accessToken)
       // Merge user_type from exchange response if available
       const mergedUser = { ...userData, user_type: userType || userData.user_type } as AuthUser
+      storeLoginMethod('email')
+      setLoginMethod('email')
       setUser(mergedUser)
       setSession({
         access_token: accessToken,
@@ -223,6 +233,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await authLogout()
+    clearLoginMethod()
+    setLoginMethod('email')
     setUser(null)
     setSession(null)
     if (refreshTimerRef.current) {
@@ -248,7 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, userType, hasAccess, signIn, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, session, loading, userType, loginMethod, hasAccess, signIn, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

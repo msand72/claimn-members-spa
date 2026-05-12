@@ -5,6 +5,21 @@ import { STALE_TOKEN_CODES } from './auth-errors'
 const TOKEN_KEY = 'claimn_access_token'
 const REFRESH_TOKEN_KEY = 'claimn_refresh_token'
 const EXPIRES_AT_KEY = 'claimn_expires_at'
+const LOGIN_METHOD_KEY = 'claimn_login_method'
+
+export type LoginMethod = 'email' | 'oauth'
+
+export function storeLoginMethod(method: LoginMethod) {
+  localStorage.setItem(LOGIN_METHOD_KEY, method)
+}
+
+export function getLoginMethod(): LoginMethod {
+  return (localStorage.getItem(LOGIN_METHOD_KEY) as LoginMethod) || 'email'
+}
+
+export function clearLoginMethod() {
+  localStorage.removeItem(LOGIN_METHOD_KEY)
+}
 
 // Circuit breaker for /auth/me — when the SPA holds a bad token, GoTrue logs
 // flooded with bad_jwt 403s during the 2026-05-07 cohort send. After 3
