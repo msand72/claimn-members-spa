@@ -270,8 +270,8 @@ export function ProfilePage() {
     setSelectedInterests(memberInterestIds)
   }, [memberInterestIds])
 
+  const isSSOUser = user?.has_password === false
   const authProvider = user?.provider || 'email'
-  const isSSOUser = authProvider !== 'email'
   const providerLabel =
     authProvider === 'azure' || authProvider === 'microsoft' || authProvider === 'azure_ad'
       ? 'Microsoft'
