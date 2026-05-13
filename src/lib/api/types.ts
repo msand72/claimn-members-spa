@@ -1718,6 +1718,15 @@ export interface ClaimnEvent {
   zoom_url?: string
   agenda?: SessionAgendaBlock[]
   research_citations?: SessionCitation[]
+  protocols?: SessionProtocol[]
+}
+
+export interface SessionProtocol {
+  slug: string
+  title: string
+  pillar: 'physical' | 'emotional' | 'connection' | 'identity' | 'mission'
+  duration_weeks: number | null
+  is_primary: boolean
 }
 
 export interface SessionAgendaBlock {

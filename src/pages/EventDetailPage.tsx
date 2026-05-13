@@ -10,8 +10,10 @@ import {
   usePrograms,
   useProgramAssessmentsStatus,
 } from '../lib/api/hooks'
-import type { CVCAssessmentStatus } from '../lib/api/types'
+import type { CVCAssessmentStatus, SessionProtocol } from '../lib/api/types'
 import { hasComponent } from '../lib/program-components'
+import { PILLARS } from '../lib/constants'
+import type { PillarId } from '../lib/constants'
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -180,14 +182,87 @@ export function EventDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Protocol name for GO sessions */}
-            {event.event_type === 'session' && event.protocol_name && (
-              <GlassCard variant="base">
-                <p className="font-serif text-lg text-koppar italic">
-                  {event.protocol_name}
-                </p>
-              </GlassCard>
-            )}
+            {/* Protocols this session draws on (GO sessions) */}
+            {event.event_type === 'session' && (() => {
+              const protocols = event.protocols && event.protocols.length > 0 ? event.protocols : null
+              if (!protocols) {
+                // Legacy fallback: single protocol_name string with no link
+                return event.protocol_name ? (
+                  <GlassCard variant="base">
+                    <p className="font-serif text-lg text-koppar italic">
+                      {event.protocol_name}
+                    </p>
+                  </GlassCard>
+                ) : null
+              }
+              const primary = protocols.find((p) => p.is_primary) || protocols[0]
+              const supporting = protocols.filter((p) => p !== primary)
+              const linkState = { from: 'program' as const, programId: goProgramId, eventId: event.id }
+              const renderPillarBadge = (p: SessionProtocol) => {
+                const pillarId = (p.pillar || 'identity') as PillarId
+                const pillar = PILLARS[pillarId] || PILLARS.identity
+                return (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-kalkvit/60">
+                    <span
+                      className="inline-block w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: pillar.hex }}
+                    />
+                    {pillar.name}
+                  </span>
+                )
+              }
+              return (
+                <GlassCard variant="base">
+                  <h2 className="font-display text-lg font-semibold text-kalkvit mb-4">
+                    Protocols this session draws on
+                  </h2>
+                  <Link
+                    to={`/protocols/${primary.slug}`}
+                    state={linkState}
+                    className="block group"
+                  >
+                    <p className="font-serif text-lg text-koppar italic group-hover:underline">
+                      {primary.title}
+                    </p>
+                    <div className="mt-1.5 flex items-center gap-3">
+                      {renderPillarBadge(primary)}
+                      {primary.duration_weeks != null && (
+                        <span className="text-xs text-kalkvit/50">
+                          {primary.duration_weeks} weeks
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                  {supporting.length > 0 && (
+                    <div className="mt-5 pt-5 border-t border-white/[0.08] space-y-3">
+                      {supporting.map((p) => (
+                        <Link
+                          key={p.slug}
+                          to={`/protocols/${p.slug}`}
+                          state={linkState}
+                          className="flex items-center justify-between gap-4 group"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-kalkvit group-hover:text-koppar transition-colors truncate">
+                              {p.title}
+                            </p>
+                            <div className="mt-0.5 flex items-center gap-3">
+                              {renderPillarBadge(p)}
+                              {p.duration_weeks != null && (
+                                <span className="text-xs text-kalkvit/50">
+                                  {p.duration_weeks} weeks
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <ArrowRightIcon className="w-4 h-4 text-kalkvit/40 group-hover:text-koppar transition-colors shrink-0" />
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </GlassCard>
+              )
+            })()}
 
             {/* Description */}
             <GlassCard variant="base">

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { sanitizeHtml } from '../lib/sanitize'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import { MainLayout } from '../components/layout/MainLayout'
 import { GlassCard, GlassButton, GlassBadge } from '../components/ui'
 import { PILLARS } from '../lib/constants'
@@ -622,6 +622,14 @@ function ProgressTracker({
 
 export function ProtocolDetailPage() {
   const { slug } = useParams<{ slug: string }>()
+  const location = useLocation()
+  const navState = location.state as { from?: string; programId?: string } | null
+  const backToProgram =
+    navState?.from === 'program' && typeof navState.programId === 'string' && navState.programId.length > 0
+      ? navState.programId
+      : null
+  const backTo = backToProgram ? `/programs/${backToProgram}` : '/protocols'
+  const backLabel = backToProgram ? 'Back to Program' : 'Back to Protocols'
   const [actionError, setActionError] = useState<string | null>(null)
   const [justStarted, setJustStarted] = useState(false)
   const [showPlanBuilder, setShowPlanBuilder] = useState(false)
@@ -810,10 +818,10 @@ export function ProtocolDetailPage() {
           <h1 className="font-display text-2xl font-bold text-kalkvit mb-4">
             Protocol not found
           </h1>
-          <Link to="/protocols">
+          <Link to={backTo}>
             <GlassButton variant="secondary">
               <ChevronLeftIcon className="w-4 h-4" />
-              Back to Protocols
+              {backLabel}
             </GlassButton>
           </Link>
         </div>
@@ -854,11 +862,11 @@ export function ProtocolDetailPage() {
       <div className="max-w-4xl mx-auto">
         {/* Breadcrumb */}
         <Link
-          to="/protocols"
+          to={backTo}
           className="inline-flex items-center gap-1 text-kalkvit/60 hover:text-kalkvit mb-6 transition-colors"
         >
           <ChevronLeftIcon className="w-4 h-4" />
-          Back to Protocols
+          {backLabel}
         </Link>
 
         {/* Action error banner */}
