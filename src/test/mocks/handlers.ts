@@ -15,7 +15,7 @@ const mockProfile = {
 const mockSession = {
   id: 'session-1',
   expert_id: 'expert-1',
-  scheduled_at: new Date(Date.now() + 86400000).toISOString(),
+  session_date: new Date(Date.now() + 86400000).toISOString(),
   duration: 60,
   status: 'scheduled',
   session_type: 'coaching',

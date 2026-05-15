@@ -253,7 +253,7 @@ describe('2.4 — Meeting URL', () => {
             {
               id: 'session-no-url',
               expert_id: 'expert-1',
-              scheduled_at: new Date(Date.now() + 86400000).toISOString(),
+              session_date: new Date(Date.now() + 86400000).toISOString(),
               duration: 60,
               status: 'scheduled',
               session_type: 'coaching',
