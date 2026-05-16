@@ -15,11 +15,13 @@ const mockProfile = {
 const mockSession = {
   id: 'session-1',
   expert_id: 'expert-1',
+  session_date: new Date(Date.now() + 86400000).toISOString(),
   scheduled_at: new Date(Date.now() + 86400000).toISOString(),
   duration: 60,
   status: 'scheduled',
   session_type: 'coaching',
   meeting_url: 'https://meet.example.com/123',
+  meeting_link: 'https://meet.example.com/123',
   has_notes: false,
   progress: 0,
   expert: {
