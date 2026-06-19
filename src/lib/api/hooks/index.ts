@@ -404,6 +404,11 @@ export {
   type SearchResponse,
 } from './useSearch'
 
+// Account
+export {
+  useDeleteAccount,
+} from './useAccount'
+
 // AI Coaching
 export {
   coachingKeys as aiCoachingKeys,

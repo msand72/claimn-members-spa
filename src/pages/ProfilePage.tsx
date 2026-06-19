@@ -18,7 +18,9 @@ import type { UpdateProfileRequest } from '../lib/api/types'
 import { CameraIcon, ArrowDownOnSquareIcon, ArrowPathIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { validateImageFile } from '../lib/image-utils'
 import { cn } from '../lib/utils'
-import { changeEmail, changePhone, flagSessionExpired, refreshToken } from '../lib/auth'
+import { changeEmail, changePhone, clearTokens, flagSessionExpired, refreshToken } from '../lib/auth'
+import { useDeleteAccount } from '../lib/api/hooks'
+import { GlassModal, GlassModalFooter } from '../components/ui'
 
 /** Display formatter — Swedish mobile (46 + 9 digits) → "+46 XXX XXX XXX".
  *  Other formats fall back to "+<digits>". Storage stays raw E.164-no-+. */
@@ -46,6 +48,9 @@ export function ProfilePage() {
   const [emailSubmitting, setEmailSubmitting] = useState(false)
   const [emailError, setEmailError] = useState('')
   const [emailSuccess, setEmailSuccess] = useState(false)
+
+  // Delete account confirm modal
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Phone change flow — separate from profile save because it goes to the
   // /auth/change-phone endpoint and requires the user's current password.
@@ -226,6 +231,26 @@ export function ProfilePage() {
   // AI Coach email preferences
   const { data: coachingPrefs } = useCoachingPreferences()
   const updateCoachingPrefs = useUpdateCoachingPreferences()
+
+  // Delete account
+  const deleteAccount = useDeleteAccount()
+
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount.mutateAsync()
+      // Account + GoTrue user are gone — a server-side logout call would fail.
+      // Clear tokens locally so the app treats the session as ended, then
+      // redirect to /login. clearTokens() is synchronous and cannot fail.
+      clearTokens()
+      window.location.replace('/login')
+    } catch {
+      // mutateAsync threw (500 ERASE_FAILED or INTERNAL_ERROR).
+      // The global MutationErrorToast surfaces the error; keep the modal open
+      // so the user can retry or cancel. No re-throw needed here — the error
+      // is already propagated by React Query to any error boundary / toast.
+      // (deleteAccount.isPending resets to false automatically after the throw.)
+    }
+  }
 
   // Local form state
   const [formData, setFormData] = useState({
@@ -895,6 +920,53 @@ export function ProfilePage() {
                 </div>
               </GlassCard>
             )}
+
+            {/* Danger Zone */}
+            <GlassCard variant="base" className="mb-6 border-l-tegelrod">
+              <h3 className="font-display text-xl font-semibold text-kalkvit mb-2">Danger Zone</h3>
+              <p className="text-sm text-kalkvit/60 mb-4">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-4 py-2 rounded-lg bg-tegelrod text-kalkvit text-sm font-medium hover:bg-tegelrod/80 transition-colors"
+              >
+                Delete account
+              </button>
+            </GlassCard>
+
+            {/* Delete Account Confirm Modal */}
+            <GlassModal
+              isOpen={showDeleteConfirm}
+              onClose={() => setShowDeleteConfirm(false)}
+              title="Delete account"
+              description="This is permanent and cannot be undone."
+              size="sm"
+              closeOnOverlayClick={false}
+            >
+              <p className="text-sm text-kalkvit/70 mb-2">
+                All your data — including your profile, goals, KPIs, coaching sessions, and community
+                activity — will be permanently erased. You will not be able to recover your account.
+              </p>
+              <GlassModalFooter>
+                <GlassButton
+                  variant="secondary"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleteAccount.isPending}
+                >
+                  Cancel
+                </GlassButton>
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={deleteAccount.isPending}
+                  className="px-4 py-2 rounded-lg bg-tegelrod text-kalkvit text-sm font-medium hover:bg-tegelrod/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deleteAccount.isPending ? 'Deleting…' : 'Delete my account'}
+                </button>
+              </GlassModalFooter>
+            </GlassModal>
           </>
         )}
       </div>
