@@ -939,11 +939,12 @@ export function ProfilePage() {
             {/* Delete Account Confirm Modal */}
             <GlassModal
               isOpen={showDeleteConfirm}
-              onClose={() => setShowDeleteConfirm(false)}
+              onClose={() => { if (!deleteAccount.isPending) setShowDeleteConfirm(false) }}
               title="Delete account"
               description="This is permanent and cannot be undone."
               size="sm"
               closeOnOverlayClick={false}
+              showCloseButton={!deleteAccount.isPending}
             >
               <p className="text-sm text-kalkvit/70 mb-2">
                 All your data — including your profile, goals, KPIs, coaching sessions, and community
