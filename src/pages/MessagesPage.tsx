@@ -548,7 +548,11 @@ export function MessagesPage() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col h-[calc(100vh-13rem)] lg:h-[calc(100vh-8.5rem)]">
+      {/* dvh (dynamic viewport height) shrinks when the mobile soft keyboard
+          opens, so the bottom composer + send button stay on-screen. With vh
+          the container kept full height and the send button slid behind the
+          keyboard — the cause of "can't send on mobile" (no POST ever fired). */}
+      <div className="flex flex-col h-[calc(100dvh-13rem)] lg:h-[calc(100vh-8.5rem)]">
         <div className="mb-3 lg:mb-4 flex-shrink-0">
           <h1 className="font-display text-2xl lg:text-3xl font-bold text-kalkvit mb-1">Messages</h1>
           <p className="text-sm lg:text-base text-kalkvit/60">Connect with community members</p>
@@ -886,10 +890,17 @@ export function MessagesPage() {
                         placeholder="Type a message..."
                         className="w-full pr-12 py-3 text-base"
                         value={messageInput}
+                        enterKeyHint="send"
                         onChange={(e) => setMessageInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault()
+                            handleSendMessage()
+                          }
+                        }}
                       />
                       <button
+                        type="button"
                         onClick={handleSendMessage}
                         disabled={(!messageInput.trim() && !pendingImage) || isUploading || sendMessage.isPending}
                         className={cn(
