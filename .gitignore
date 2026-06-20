@@ -29,3 +29,19 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# ── Platform secrets hygiene (gold-standard, 2026-06-20) — untrack-only, NO history scrub ──
+supabase/.temp/
+*.bak
+*.bak.*
+*.backup
+*.backup.*
+*.dump
+db_cluster*
+*.key
+*.pem
+*.p12
+*.wsb-bak
+credentials.json
+serviceAccountKey.json
+.claude/settings.local.json
