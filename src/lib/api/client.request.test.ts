@@ -2,32 +2,30 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../test/mocks/server'
 
-// Mock auth module before importing client
+// Mock auth module before importing client. Note the session module is NOT
+// mocked — the dead-session latch under test is real.
 vi.mock('../auth', () => ({
   getAccessToken: vi.fn(() => 'test-token-123'),
   getApiBaseUrl: vi.fn(() => 'http://localhost:3001'),
   clearTokens: vi.fn(),
 }))
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type ClientModule = typeof import('./client')
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type AuthModule = typeof import('../auth')
-
-let api: ClientModule['api']
-let clearTokens: AuthModule['clearTokens']
+type SessionModule = typeof import('../session')
 
 // Use top-level await to import after mocking
 const clientMod = await import('./client')
-const authMod = await import('../auth')
-api = clientMod.api
-clearTokens = authMod.clearTokens
+const sessionMod = await import('../session')
+const api: ClientModule['api'] = clientMod.api
+const isSessionDead: SessionModule['isSessionDead'] = sessionMod.isSessionDead
+const resetSessionState: SessionModule['resetSessionState'] = sessionMod.resetSessionState
 
 const API_BASE = 'http://localhost:3001/api/v2'
 
 describe('ApiClient', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    resetSessionState()
   })
 
   describe('GET', () => {
@@ -173,16 +171,75 @@ describe('ApiClient', () => {
     })
   })
 
-  describe('401 handling', () => {
-    it('clears tokens and redirects on 401', async () => {
+  describe('dead session handling', () => {
+    it('kills the session on 401', async () => {
       server.use(
         http.get(`${API_BASE}/members/profile`, () =>
           HttpResponse.json({ error: { code: 'UNAUTHORIZED', message: 'Expired' } }, { status: 401 })
         )
       )
 
+      expect(isSessionDead()).toBe(false)
       await expect(api.get('/members/profile')).rejects.toThrow('Session expired')
-      expect(clearTokens).toHaveBeenCalled()
+      expect(isSessionDead()).toBe(true)
+    })
+
+    it('tags the thrown error with status 401 so react-query will not retry it', async () => {
+      server.use(
+        http.get(`${API_BASE}/members/profile`, () =>
+          HttpResponse.json({ error: { code: 'bad_jwt', message: 'token signature is invalid' } }, { status: 401 })
+        )
+      )
+
+      try {
+        await api.get('/members/profile')
+        expect.fail('Should have thrown')
+      } catch (err: unknown) {
+        expect((err as { status: number }).status).toBe(401)
+        expect((err as { code: string }).code).toBe('bad_jwt')
+      }
+    })
+
+    it('kills the session on a 403 that names a JWT problem', async () => {
+      server.use(
+        http.get(`${API_BASE}/members/profile`, () =>
+          HttpResponse.json({ error: { code: 'bad_jwt', message: 'token signature is invalid' } }, { status: 403 })
+        )
+      )
+
+      await expect(api.get('/members/profile')).rejects.toThrow('Session expired')
+      expect(isSessionDead()).toBe(true)
+    })
+
+    it('does NOT kill the session on a 403 from tier gating', async () => {
+      server.use(
+        http.get(`${API_BASE}/members/profile`, () =>
+          HttpResponse.json(
+            { error: { code: 'INSUFFICIENT_TIER', message: 'Coaching tier required' } },
+            { status: 403 }
+          )
+        )
+      )
+
+      await expect(api.get('/members/profile')).rejects.toBeTruthy()
+      expect(isSessionDead()).toBe(false)
+    })
+
+    it('stops hitting the network once the session is dead', async () => {
+      let hits = 0
+      server.use(
+        http.get(`${API_BASE}/members/profile`, () => {
+          hits++
+          return HttpResponse.json({ error: { code: 'bad_jwt', message: 'bad jwt' } }, { status: 401 })
+        })
+      )
+
+      await expect(api.get('/members/profile')).rejects.toThrow('Session expired')
+      expect(hits).toBe(1)
+
+      // A polling hook firing again must not re-send the rejected token.
+      await expect(api.get('/members/profile')).rejects.toThrow('Session expired')
+      expect(hits).toBe(1)
     })
   })
 

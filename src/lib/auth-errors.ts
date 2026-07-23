@@ -14,11 +14,53 @@ export const STALE_TOKEN_CODES = new Set([
   'jwt_expired',
 ])
 
+/**
+ * Raw GoTrue/Go-API message fragments that mean the same thing as the codes
+ * above. The JWT-secret drift on 2026-07-22 surfaced as
+ * "token signature is invalid" with no machine-readable code attached, so
+ * matching on message text is the difference between a clean bounce to login
+ * and a browser that polls a dead token forever.
+ */
+const STALE_TOKEN_MESSAGES = [
+  'token signature is invalid',
+  'signature is invalid',
+  'invalid jwt',
+  'bad_jwt',
+  'jwt expired',
+  'token is expired',
+  'invalid claim',
+  'missing sub claim',
+  'session not found',
+  'session expired',
+]
+
 export interface AuthErrorShape {
   status?: number
   code?: string
   message?: string
   error?: { code?: string; message?: string } | string
+}
+
+/**
+ * Does this error mean "the token we hold is dead, stop using it"?
+ *
+ * A 401 always counts — the API only issues one when it rejected our bearer
+ * token. A 403 counts only when the code or message names a JWT problem,
+ * because 403 is also how tier gating (`RequireTier`) says "not your plan",
+ * and logging someone out for browsing a premium page would be a worse bug.
+ */
+export function isStaleTokenError(err: unknown): boolean {
+  if (!err) return false
+
+  const e = err as AuthErrorShape
+  const status = typeof e.status === 'number' ? e.status : 0
+  if (status === 401) return true
+
+  const { code, message } = extractAuthError(err)
+  if (STALE_TOKEN_CODES.has(code)) return true
+
+  const lower = (message || '').toLowerCase()
+  return STALE_TOKEN_MESSAGES.some((fragment) => lower.includes(fragment))
 }
 
 /**

@@ -7,9 +7,13 @@ import { server } from './mocks/server'
 beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }))
 
 // Reset handlers and cleanup DOM after each test
-afterEach(() => {
+afterEach(async () => {
   server.resetHandlers()
   cleanup()
+  // The dead-session latch is module state — clear it so a test that
+  // exercises a 401 can't make every later test fail fast.
+  const { resetSessionState } = await import('../lib/session')
+  resetSessionState()
 })
 
 // Stop MSW server after all tests

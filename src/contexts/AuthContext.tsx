@@ -15,6 +15,7 @@ import {
   type UserType,
   type LoginMethod,
 } from '../lib/auth'
+import { killSession, SESSION_EXPIRED_EVENT } from '../lib/session'
 
 export type AuthUser = AuthUserResponse & Record<string, unknown>
 
@@ -67,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         scheduleRefresh()
       } catch {
+        // Refresh failed — refreshToken() has already killed the session.
+        // Don't reschedule; retrying a rejected refresh token never recovers.
         setUser(null)
         setSession(null)
       }
@@ -143,19 +146,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return
         }
 
+        // Boot with a stored session. getAccessToken() refreshes if needed and
+        // returns null when that fails, so a token we can't validate never
+        // makes it past here — the user lands on login instead of a spinner.
         const token = await getAccessToken()
-        if (token) {
-          const userData = await fetchCurrentUser(token)
-          setUser(userData as AuthUser)
-          const expiresAt = getStoredExpiresAt()
-          setSession({
-            access_token: token,
-            refresh_token: localStorage.getItem('claimn_refresh_token') || '',
-            expires_at: expiresAt || 0,
-          })
-          scheduleRefresh()
+        if (!token) {
+          setUser(null)
+          setSession(null)
+          setLoading(false)
+          return
         }
-      } catch {
+
+        const userData = await fetchCurrentUser(token)
+        setUser(userData as AuthUser)
+        const expiresAt = getStoredExpiresAt()
+        setSession({
+          access_token: token,
+          refresh_token: localStorage.getItem('claimn_refresh_token') || '',
+          expires_at: expiresAt || 0,
+        })
+        scheduleRefresh()
+      } catch (err) {
+        // A stored token that fails to validate is a dead session, not a
+        // transient error — drop it rather than letting the app boot into a
+        // half-authenticated state that re-polls the same rejected token.
+        // fetchCurrentUser already kills on stale-token responses; this covers
+        // everything else (network failure, timeout, unparseable response).
+        killSession({ redirect: false, reason: `boot validation failed: ${(err as Error)?.message || err}` })
         setUser(null)
         setSession(null)
       } finally {
@@ -164,6 +181,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     init()
+
+    // Any layer can declare the session dead (API 401, failed refresh).
+    // Mirror that into React state so guarded routes re-render to login.
+    function onSessionExpired() {
+      setUser(null)
+      setSession(null)
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current)
+      }
+      setLoading(false)
+    }
+    window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired)
 
     // Cross-tab session sync: detect logout from another tab
     function onStorageChange(e: StorageEvent) {
@@ -182,6 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearTimeout(refreshTimerRef.current)
       }
       window.removeEventListener('storage', onStorageChange)
+      window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

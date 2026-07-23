@@ -1,4 +1,8 @@
-import { getAccessToken, getApiBaseUrl, clearTokens } from '../auth'
+import { getAccessToken, getApiBaseUrl } from '../auth'
+import { isStaleTokenError } from '../auth-errors'
+// From '../session', not '../auth': the auth module is stubbed out in many
+// hook tests, and the kill switch must not be mockable-away by accident.
+import { killSession, isSessionDead, sessionExpiredError } from '../session'
 
 const API_BASE_URL = getApiBaseUrl()
 const API_PREFIX = '/api/v2'
@@ -144,6 +148,13 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    // Once the session is known dead, fail without touching the network. The
+    // polling hooks (messages 10s, notifications 60s) would otherwise keep
+    // re-sending a token the backend has already rejected.
+    if (isSessionDead()) {
+      throw sessionExpiredError()
+    }
+
     const token = await getAuthToken()
 
     if (!token) {
@@ -170,18 +181,21 @@ class ApiClient {
       })
 
       if (!response.ok) {
-        // 401 — session expired, clear tokens and redirect to login
-        if (response.status === 401) {
-          clearTokens()
-          const redirect = encodeURIComponent(window.location.pathname + window.location.search)
-          window.location.href = `/login?redirect=${redirect}`
-          throw new Error('Session expired')
-        }
-
         const errorData = await response.json().catch(() => ({
           error: { code: 'UNKNOWN', message: 'An unknown error occurred' }
         }))
         errorData.status = response.status
+
+        // Dead token — clear local auth state and bounce to login. Throws an
+        // error carrying status 401 so react-query's retry predicate drops it
+        // instead of re-sending the same rejected token.
+        if (isStaleTokenError(errorData)) {
+          killSession({
+            reason: `${method} ${cleanEndpoint} → ${response.status} ${errorData.error?.code || ''} ${errorData.error?.message || ''}`.trim(),
+          })
+          throw sessionExpiredError(errorData.error?.code || 'session_expired', response.status)
+        }
+
         throw errorData
       }
 
@@ -246,6 +260,10 @@ class ApiClient {
   }
 
   async uploadFile(endpoint: string, file: File, fieldName = 'file'): Promise<{ url: string }> {
+    if (isSessionDead()) {
+      throw sessionExpiredError()
+    }
+
     const token = await getAuthToken()
 
     if (!token) {
@@ -269,17 +287,16 @@ class ApiClient {
       })
 
       if (!response.ok) {
-        if (response.status === 401) {
-          clearTokens()
-          const redirect = encodeURIComponent(window.location.pathname + window.location.search)
-          window.location.href = `/login?redirect=${redirect}`
-          throw new Error('Session expired')
-        }
-
         const errorData = await response.json().catch(() => ({
           error: { code: 'UPLOAD_FAILED', message: 'File upload failed' }
         }))
         errorData.status = response.status
+
+        if (isStaleTokenError(errorData)) {
+          killSession()
+          throw sessionExpiredError(errorData.error?.code || 'session_expired', response.status)
+        }
+
         throw errorData
       }
 

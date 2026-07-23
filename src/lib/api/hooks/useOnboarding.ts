@@ -9,10 +9,11 @@ export const onboardingKeys = {
   state: () => [...onboardingKeys.all, 'state'] as const,
 }
 
-export function useOnboardingState() {
+export function useOnboardingState(enabled = true) {
   return useQuery({
     queryKey: onboardingKeys.state(),
     queryFn: () => api.get<OnboardingState>('/members/onboarding'),
+    enabled,
     // Don't retry on 404 — means onboarding not started yet
     retry: (failureCount, error) => !is404Error(error) && failureCount < 1,
   })

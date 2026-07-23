@@ -1,11 +1,20 @@
 // Auth module - manages tokens and auth API calls
 
-import { STALE_TOKEN_CODES } from './auth-errors'
+import { isStaleTokenError } from './auth-errors'
+import {
+  TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  EXPIRES_AT_KEY,
+  LOGIN_METHOD_KEY,
+  clearStoredSession,
+  isSessionDead,
+  killSession,
+  markSessionAlive,
+  sessionExpiredError,
+} from './session'
 
-const TOKEN_KEY = 'claimn_access_token'
-const REFRESH_TOKEN_KEY = 'claimn_refresh_token'
-const EXPIRES_AT_KEY = 'claimn_expires_at'
-const LOGIN_METHOD_KEY = 'claimn_login_method'
+// Re-exported so existing importers of '../auth' keep working.
+export { isSessionDead, killSession, sessionExpiredError, flagSessionExpired, SESSION_EXPIRED_EVENT } from './session'
 
 export type LoginMethod = 'email' | 'oauth'
 
@@ -26,15 +35,6 @@ export function clearLoginMethod() {
 // consecutive 4xx, force log-out regardless of error_code (defense in depth).
 const ME_FAILURE_LIMIT = 3
 let consecutiveMeFailures = 0
-
-/** Surface flag for LoginPage: shows "Din session har gått ut" copy on next render. */
-export function flagSessionExpired() {
-  try {
-    sessionStorage.setItem('auth_session_expired', '1')
-  } catch {
-    // sessionStorage can throw in privacy modes — non-fatal
-  }
-}
 
 // API URL resolution:
 // 1. VITE_API_URL env var (set in .env for local dev, Vercel env vars for deploys)
@@ -81,12 +81,14 @@ export function storeTokens(tokens: AuthTokens) {
   localStorage.setItem(TOKEN_KEY, tokens.access_token)
   localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token)
   localStorage.setItem(EXPIRES_AT_KEY, String(tokens.expires_at))
+  // Fresh tokens revive the session — otherwise a login right after a kill
+  // would be blocked by the latch for the rest of the page's life.
+  markSessionAlive()
+  consecutiveMeFailures = 0
 }
 
 export function clearTokens() {
-  localStorage.removeItem(TOKEN_KEY)
-  localStorage.removeItem(REFRESH_TOKEN_KEY)
-  localStorage.removeItem(EXPIRES_AT_KEY)
+  clearStoredSession()
 }
 
 function getStoredTokens(): AuthTokens | null {
@@ -115,6 +117,8 @@ export async function refreshToken(): Promise<AuthTokens> {
 
   refreshPromise = (async () => {
     try {
+      if (isSessionDead()) throw sessionExpiredError()
+
       const tokens = getStoredTokens()
       if (!tokens?.refresh_token) {
         throw new Error('No refresh token available')
@@ -127,8 +131,10 @@ export async function refreshToken(): Promise<AuthTokens> {
       })
 
       if (!res.ok) {
-        clearTokens()
-        throw new Error('Token refresh failed')
+        // The refresh token is the last thing that could have saved this
+        // session. It didn't — stop here rather than looping on it.
+        killSession({ reason: `POST /auth/refresh → ${res.status}` })
+        throw sessionExpiredError('refresh_failed', res.status)
       }
 
       const data = await res.json()
@@ -148,6 +154,8 @@ export async function refreshToken(): Promise<AuthTokens> {
 }
 
 export async function getAccessToken(): Promise<string | null> {
+  if (isSessionDead()) return null
+
   const tokens = getStoredTokens()
   if (!tokens) return null
 
@@ -206,6 +214,8 @@ export async function logout(): Promise<void> {
 }
 
 export async function fetchCurrentUser(token: string): Promise<AuthUserResponse> {
+  if (isSessionDead()) throw sessionExpiredError()
+
   const url = `${AUTH_BASE()}/me`
 
   const res = await authFetch(url, {
@@ -214,33 +224,39 @@ export async function fetchCurrentUser(token: string): Promise<AuthUserResponse>
 
   if (!res.ok) {
     // Circuit breaker + stale-token kill switch. If the API tells us the
-    // token is bad (bad_jwt / user_not_found / invalid_jwt / jwt_expired)
-    // OR we hit 3 consecutive 4xx, log out hard so the SPA stops polling
-    // and the user sees a "session expired" message instead of an opaque
-    // "Failed to fetch user". Backend brief 2026-05-08.
+    // token is bad (401, a stale-token code, or a raw GoTrue signature
+    // complaint) OR we hit 3 consecutive 4xx, log out hard so the SPA stops
+    // polling and the user sees a "session expired" message instead of an
+    // opaque "Failed to fetch user". Backend briefs 2026-05-08, 2026-07-22.
     let errorCode = ''
+    let errorMessage = ''
     try {
       const body = await res.clone().json()
       errorCode = body?.error?.code || body?.code || body?.error_code || ''
+      errorMessage = body?.error?.message || body?.message || body?.msg || ''
     } catch {
-      // body might not be JSON — leave code empty
+      // body might not be JSON — leave code/message empty
     }
 
     if (res.status >= 400 && res.status < 500) {
       consecutiveMeFailures += 1
     }
 
-    const isStaleToken = STALE_TOKEN_CODES.has(errorCode)
+    const isStaleToken = isStaleTokenError({
+      status: res.status,
+      code: errorCode,
+      message: errorMessage,
+    })
     const tripped = consecutiveMeFailures >= ME_FAILURE_LIMIT
 
     if (isStaleToken || tripped) {
       consecutiveMeFailures = 0
-      clearTokens()
-      flagSessionExpired()
-      const err = new Error('Session expired') as Error & { code: string; status: number }
-      err.code = errorCode || 'session_expired'
-      err.status = res.status
-      throw err
+      killSession({
+        reason: tripped && !isStaleToken
+          ? `GET /auth/me failed ${ME_FAILURE_LIMIT}x consecutively (last: ${res.status})`
+          : `GET /auth/me → ${res.status} ${errorCode} ${errorMessage}`.trim(),
+      })
+      throw sessionExpiredError(errorCode || 'session_expired', res.status)
     }
 
     const err = new Error('Failed to fetch user') as Error & { code: string; status: number }
@@ -452,8 +468,16 @@ export async function exchangeToken(supabaseToken: string): Promise<ExchangeToke
   })
 
   if (!res.ok) {
+    // Don't kill the session here — exchange also runs moments after a fresh
+    // login, where the right answer is a login error, not a redirect loop.
+    // Callers that exchange a *stored* token decide that (see AuthContext).
     const errorData = await res.json().catch(() => ({ error: 'Token exchange failed' }))
-    throw new Error(errorData.error?.message || errorData.error || 'Token exchange failed')
+    const message = errorData.error?.message || errorData.error || 'Token exchange failed'
+    const code = errorData.error?.code || errorData.code || ''
+    const err = new Error(message) as Error & { code: string; status: number }
+    err.code = code
+    err.status = res.status
+    throw err
   }
 
   const data: ExchangeTokenResponse = await res.json()

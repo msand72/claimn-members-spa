@@ -14,6 +14,7 @@ import { PageErrorBoundary } from './components/PageErrorBoundary'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { MutationErrorToast } from './components/MutationErrorToast'
 import { isChunkLoadError } from './lib/isChunkLoadError'
+import { isSessionDead } from './lib/session'
 import { STALE_TIME } from './lib/constants'
 
 // Auto-reload on stale chunk errors after deploy
@@ -120,6 +121,9 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: STALE_TIME.DEFAULT,
       retry: (failureCount, error) => {
+        // Session is dead — every request would re-send the same rejected
+        // token. Fail fast so the app settles on login instead of retrying.
+        if (isSessionDead()) return false
         // Don't retry on 4xx client errors (404, 403, 401, etc.)
         if (error && typeof error === 'object' && 'status' in error) {
           const status = (error as { status: number }).status
