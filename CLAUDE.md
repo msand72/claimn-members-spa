@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **A gate you have not seen fail is not a gate.** Before listing a command as verification, run it against known-broken input and confirm it exits non-zero. Adopted across all CLAIM'N repos on 2026-08-14 after six instances of the same failure: a `/health` check that proved a process was answering but not which binary, static gates that passed six real defects, an `.exe` build command that could not run on the target host, a `lint` script with no config that hung on an interactive prompt, a `validate` script that printed a finding and then exited 0, and a `tsc --noEmit` that exited 2 regardless of the code. In every case the exit code did not track the finding, so every session that reported success was reporting a hang, a skip, or a tautology.
+
 ## ⚠️ READ START_HERE.md FIRST!
 
 **Before making any changes, read `START_HERE.md` for critical rules about this Member Portal SPA.**
