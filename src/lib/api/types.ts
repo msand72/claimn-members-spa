@@ -533,12 +533,7 @@ export interface CoachingSession {
   user_id: string
   expert_id: string
   title: string
-  /**
-   * Session start time. Backend serves both `session_date` (canonical) and
-   * `scheduled_at` (legacy alias) populated with the same value, until the
-   * legacy alias is dropped post-migration. Empty string for awaiting_schedule
-   * rows. New code should use `session_date`.
-   */
+  /** Session start time. Empty string for `awaiting_schedule` rows. */
   session_date: string
   duration: number
   /**
@@ -561,8 +556,7 @@ export interface CoachingSession {
   /**
    * Teams/calendar meeting URL. Populated when the coach has a calendar
    * provider connected and the event provisions successfully; null otherwise
-   * (e.g. coach calendar disconnected). Backend also serves `meeting_link`
-   * as a legacy alias with the same value.
+   * (e.g. coach calendar disconnected).
    */
   meeting_url: string | null
   has_notes: boolean
