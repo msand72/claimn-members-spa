@@ -1542,7 +1542,17 @@ export interface JournalEntriesParams {
 // Subscription & Billing
 // =====================================================
 
-export type SubscriptionTier = 'brotherhood' | 'coaching' | 'programs' | 'none'
+/**
+ * Subscription tiers.
+ *
+ * 'membership' and 'brotherhood' are THE SAME TIER under two spellings, and both
+ * are listed on purpose. The platform is mid-rename (ruled 2026-09-17) and the
+ * backend accepts both while it writes the legacy word; during the transition
+ * either can legitimately arrive on the wire and this app must not care which.
+ * Do NOT "tidy" this by deleting 'brotherhood' — existing subscriptions still
+ * carry it, and removing it walls every one of them.
+ */
+export type SubscriptionTier = 'membership' | 'brotherhood' | 'coaching' | 'programs' | 'none'
 
 export interface SubscriptionInfo {
   tier: SubscriptionTier

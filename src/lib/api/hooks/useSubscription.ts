@@ -75,13 +75,45 @@ export function hasPremiumAccess(tier: SubscriptionTier): boolean {
 const TIER_LEVELS: Record<SubscriptionTier, number> = {
   none: 0,
   brotherhood: 1,
+  membership: 1,
   coaching: 2,
   programs: 3,
+}
+
+/**
+ * Resolve a tier to its rank, failing LOUDLY on a word we do not know.
+ *
+ * THIS IS THE HALF THAT MATTERS MORE THAN ADDING 'membership'. The bare index
+ * `TIER_LEVELS[tier]` yields `undefined` for an unrecognised tier, and
+ * `undefined >= n` is FALSE FOR EVERY n INCLUDING 0 — so one unknown word made
+ * meetsTierRequirement fail EVERY check, not only the premium ones, and a paying
+ * member was shown a wall telling them to buy what they had already bought.
+ * No error, no log, no 403: the comparison quietly answered "no".
+ *
+ * TypeScript cannot prevent it. The value arrives from the API at runtime and the
+ * union is only a compile-time promise about our own code.
+ *
+ * So an unknown tier is treated as rank 0 — the access an authenticated
+ * non-subscriber has — and REPORTED. Free content keeps working, premium stays
+ * withheld because entitlement genuinely cannot be verified, and the console names
+ * the word we did not understand instead of leaving a silent wall.
+ */
+function tierRank(tier: SubscriptionTier): number {
+  const rank = TIER_LEVELS[tier]
+  if (rank === undefined) {
+    console.error(
+      `[useSubscription] unknown subscription tier ${JSON.stringify(tier)} — treating it as no ` +
+      `subscription. This is a VOCABULARY MISMATCH with the backend, not a customer problem: ` +
+      `add it to SubscriptionTier and TIER_LEVELS. Known tiers: ${Object.keys(TIER_LEVELS).join(', ')}.`
+    )
+    return 0
+  }
+  return rank
 }
 
 /**
  * Check if userTier meets the minimum required tier.
  */
 export function meetsTierRequirement(userTier: SubscriptionTier, requiredTier: SubscriptionTier): boolean {
-  return TIER_LEVELS[userTier] >= TIER_LEVELS[requiredTier]
+  return tierRank(userTier) >= tierRank(requiredTier)
 }
