@@ -857,6 +857,12 @@ export function ProtocolDetailPage() {
     ? protocol.implementation_guides
     : []
 
+  // Headline stats are usually full sentences ("50% better odds of survival
+  // among people with stronger social relationships"), only occasionally a
+  // bare figure. Reserve the big display-number treatment for the short ones.
+  const headlineStat = protocol.headline_stat || protocol.stat
+  const isStatSentence = (headlineStat?.length ?? 0) > 24
+
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto">
@@ -921,8 +927,8 @@ export function ProtocolDetailPage() {
 
         {/* Hero Header */}
         <div className="mb-8">
-          <div className="flex items-start justify-between mb-4 flex-wrap gap-4">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-koppar/10 flex items-center justify-center">
                   <PillarIcon pillar={pillarId} size={32} className="text-koppar" />
@@ -949,12 +955,19 @@ export function ProtocolDetailPage() {
               )}
               <p className="text-kalkvit/60" dangerouslySetInnerHTML={{ __html: sanitizeHtml(protocol.description) }} />
             </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-koppar">
-                {protocol.headline_stat || protocol.stat}
-              </p>
-              <p className="text-xs text-kalkvit/50">Expected Result</p>
-            </div>
+            {headlineStat && (
+              <div className="w-full sm:w-56 sm:shrink-0 sm:text-right">
+                <p
+                  className={cn(
+                    'font-bold text-koppar',
+                    isStatSentence ? 'text-base leading-snug' : 'text-3xl',
+                  )}
+                >
+                  {headlineStat}
+                </p>
+                <p className="text-xs text-kalkvit/50 mt-1">Expected Result</p>
+              </div>
+            )}
           </div>
 
           {/* Meta info */}
