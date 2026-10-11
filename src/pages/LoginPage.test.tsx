@@ -100,8 +100,24 @@ describe('LoginPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/goals')
   })
 
-  it('displays error message on failed login', async () => {
-    mockSignIn.mockResolvedValue({ error: { message: 'Invalid credentials' } })
+  /* ⚠ THE PAGE NEVER SHOWS THE RAW BACKEND STRING, AND THAT IS DELIBERATE.
+   *
+   * This test asserted that 'Invalid credentials' appeared on screen and had
+   * been failing ever since LoginPage started routing errors through
+   * mapAuthError. The mapping exists because non-technical cohort members
+   * tried to PASTE raw GoTrue strings as passwords on 2026-05-07; the copy is
+   * Swedish because the cohort is. So the assertion was testing for the exact
+   * thing the product decided to stop doing.
+   *
+   * The fixture was also unreal: 'Invalid credentials' is not a string GoTrue
+   * sends. The real one is 'Invalid login credentials', with code
+   * 'invalid_credentials' — which is why the test fell through to the generic
+   * fallback rather than the bad-password copy it was reaching for.
+   */
+  it('shows the bad-password copy on a rejected login, not the raw backend string', async () => {
+    mockSignIn.mockResolvedValue({
+      error: { code: 'invalid_credentials', message: 'Invalid login credentials' },
+    })
     const user = userEvent.setup()
     renderLogin()
 
@@ -109,7 +125,40 @@ describe('LoginPage', () => {
     await user.type(screen.getByLabelText('Password'), 'wrong')
     await user.click(screen.getByRole('button', { name: /sign in/i }))
 
-    expect(await screen.findByText('Invalid credentials')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Fel e-post eller lösenord. Glömt ditt lösenord? Klicka på länken nedan.')
+    ).toBeInTheDocument()
+    // The raw string must not reach the screen — that is the whole point.
+    expect(screen.queryByText(/Invalid login credentials/)).not.toBeInTheDocument()
+  })
+
+  it('falls back to the generic message for an error it does not recognise', async () => {
+    // The safety net: an unmapped error must still say something useful and
+    // still must not leak the raw string.
+    mockSignIn.mockResolvedValue({ error: { message: 'kaboom from some new backend path' } })
+    const user = userEvent.setup()
+    renderLogin()
+
+    await user.type(screen.getByLabelText('Email'), 'a@b.com')
+    await user.type(screen.getByLabelText('Password'), 'wrong')
+    await user.click(screen.getByRole('button', { name: /sign in/i }))
+
+    expect(
+      await screen.findByText('Något gick fel. Kontakta support@claimn.co om problemet kvarstår.')
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/kaboom/)).not.toBeInTheDocument()
+  })
+
+  it('shows the session-expired copy when the token is already dead', async () => {
+    mockSignIn.mockResolvedValue({ error: { code: 'jwt_expired', message: 'JWT expired' } })
+    const user = userEvent.setup()
+    renderLogin()
+
+    await user.type(screen.getByLabelText('Email'), 'a@b.com')
+    await user.type(screen.getByLabelText('Password'), 'pass')
+    await user.click(screen.getByRole('button', { name: /sign in/i }))
+
+    expect(await screen.findByText('Din session har gått ut. Logga in igen.')).toBeInTheDocument()
   })
 
   it('disables button while loading', async () => {

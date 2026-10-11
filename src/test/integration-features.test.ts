@@ -179,7 +179,19 @@ describe('2.3.6 — Coach Match Request', () => {
     expect(capturedBody!.notes).toBe('Prefer someone with corporate experience')
   })
 
-  it('useSubmitCoachRequest handles duplicate request (409)', async () => {
+  /* ⚠ A 409 ALREADY_PENDING IS A SUCCESS, NOT AN ERROR.
+   *
+   * This test used to assert the opposite, and had been failing since May.
+   * f6cb89e (2026-05-05) flipped seven mutation hooks to treat the backend's
+   * new 409 ALREADY_X codes as success — "catch the specific 409, treat as
+   * success, let the existing onSuccess invalidation refetch the truth" — and
+   * touched seven hook files and zero test files.
+   *
+   * It is the right product behaviour: a man who submits a coach request twice
+   * has not made a mistake, he already has one in flight. Showing him an error
+   * for that is worse than showing him the request he already made.
+   */
+  it('useSubmitCoachRequest treats a duplicate (409 ALREADY_PENDING) as success', async () => {
     server.use(
       http.post(`${API_BASE}/members/expert-match-request`, () =>
         HttpResponse.json(
@@ -199,9 +211,42 @@ describe('2.3.6 — Coach Match Request', () => {
       availability_preferences: '',
     })
 
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.isError).toBe(false)
+    // onSuccess invalidation is what then refetches the pending request the
+    // member already has, so the UI shows it rather than an error.
+    expect(result.current.data).toBeNull()
+  })
+
+  /* The complement, and the more valuable of the two: the swallow is NARROW.
+   * It is gated on `status === 409 && error.code === 'ALREADY_PENDING'`, so a
+   * 409 carrying any other code must still reach the member. Without this test
+   * someone could widen the catch to `status === 409` and silently turn real
+   * refusals into successes — f6cb89e explicitly kept CIRCLE FULL throwing for
+   * exactly that reason. */
+  it('useSubmitCoachRequest still surfaces a 409 that is NOT ALREADY_PENDING', async () => {
+    server.use(
+      http.post(`${API_BASE}/members/expert-match-request`, () =>
+        HttpResponse.json(
+          { error: { code: 'MATCHING_CLOSED', message: 'Coach matching is closed this cycle' } },
+          { status: 409 },
+        ),
+      ),
+    )
+
+    const { useSubmitCoachRequest } = await import('../lib/api/hooks/useCoachRequest')
+    const wrapper = createHookWrapper()
+    const { result } = renderHook(() => useSubmitCoachRequest(), { wrapper })
+
+    result.current.mutate({
+      preferred_specialties: [],
+      goals: ['Test'],
+      availability_preferences: '',
+    })
+
     await waitFor(() => expect(result.current.isError).toBe(true))
-    const err = result.current.error as any
-    expect(err?.error?.code).toBe('ALREADY_PENDING')
+    const err = result.current.error as { error?: { code?: string } } | null
+    expect(err?.error?.code).toBe('MATCHING_CLOSED')
   })
 })
 
@@ -270,8 +315,11 @@ describe('2.4 — Meeting URL', () => {
     const { result } = renderHook(() => useCoachingSessions(), { wrapper })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    const sessions = result.current.data as any
-    const session = (sessions?.data || sessions)?.[0]
+    const sessions = result.current.data as
+      | { data?: Array<{ meeting_url?: string | null }> }
+      | Array<{ meeting_url?: string | null }>
+      | undefined
+    const session = (Array.isArray(sessions) ? sessions : sessions?.data)?.[0]
     expect(session?.meeting_url).toBeNull()
   })
 })
