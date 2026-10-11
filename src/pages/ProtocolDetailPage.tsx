@@ -49,6 +49,7 @@ import {
   DocumentTextIcon,
   ArrowTrendingUpIcon,
 } from '@heroicons/react/24/outline'
+import { protocolFootnotes } from '../lib/protocol-footnotes'
 import { cn } from '../lib/utils'
 import { AskExpertButton } from '../components/AskExpertButton'
 import { PlanBuilder } from '../components/PlanBuilder'
@@ -97,13 +98,28 @@ function StatsCardsRow({ stats }: { stats: ProtocolStat[] }) {
   )
 }
 
+/** A start date, or an em dash when the row carries none. */
+function formatStartedAt(startedAt?: string | null): string {
+  if (!startedAt) return '\u2014'
+  const d = new Date(startedAt)
+  if (Number.isNaN(d.getTime())) return '\u2014'
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 function ScientificFoundation({ content, citations }: { content: string; citations?: string[] }) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  /* ⚠ FULL TEXT BY DEFAULT. This was `useState(false)` against a 300-character
+     slice, so the member read a fragment ending in "..." and had to click to see
+     the rest. Every scientific_foundation block in the 2026-10 corpus is several
+     times that length, and on the 25 members-only protocols this page is the
+     only place the block exists at all — so the default hid most of the evidence
+     on most of the corpus. Collapsing is still offered; it is just no longer
+     what a first-time reader gets. */
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   if (!content) return null
 
   const isLong = content.length > 300
-  const displayContent = isLong && !isExpanded ? content.slice(0, 300) + '...' : content
+  const displayContent = isLong && isCollapsed ? content.slice(0, 300) + '...' : content
 
   return (
     <GlassCard variant="base" className="mb-8">
@@ -118,16 +134,16 @@ function ScientificFoundation({ content, citations }: { content: string; citatio
       </p>
       {isLong && (
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => setIsCollapsed(!isCollapsed)}
           className="mt-3 text-koppar text-sm flex items-center gap-1 hover:text-koppar/80 transition-colors"
         >
-          {isExpanded ? (
+          {isCollapsed ? (
             <>
-              Show less <ChevronUpIcon className="w-4 h-4" />
+              Read more <ChevronDownIcon className="w-4 h-4" />
             </>
           ) : (
             <>
-              Read more <ChevronDownIcon className="w-4 h-4" />
+              Show less <ChevronUpIcon className="w-4 h-4" />
             </>
           )}
         </button>
@@ -226,7 +242,19 @@ function ImplementationTimeline({ steps }: { steps: ImplementationStep[] }) {
 }
 
 function ImplementationGuides({ guides }: { guides: ImplementationGuide[] }) {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  /* ⚠ OPEN BY DEFAULT, AND INDEPENDENTLY. This was `useState<string | null>(null)`
+     with a toggle of `expandedId === guideId ? null : guideId`, which did two
+     things: every guide started CLOSED, and opening one CLOSED the other. A
+     member arriving at a protocol saw a stack of headings and no method at all,
+     and could never see two guides at once.
+
+     25 of the 30 protocols are members-only, so for most of the corpus this was
+     the only surface — and the steps behind these accordions are the protocol.
+     Max, 2026-10-11: "I cant read the full protocols in the member-spa ... I am
+     quite sure not all content is shown". He was right. A Set of collapsed ids
+     inverts the default: everything open, each one closable on its own. */
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const fn = protocolFootnotes(guides)
 
   if (!guides || guides.length === 0) return null
 
@@ -238,14 +266,26 @@ function ImplementationGuides({ guides }: { guides: ImplementationGuide[] }) {
       <div className="space-y-4">
         {guides.map((guide, idx) => {
           const guideId = `guide-${idx}`
-          const detailItems = guide.items
-            ? guide.items.map(item => `${item.label}: ${item.detail}`)
-            : guide.details || []
+          /* Kept as objects rather than flattened to `label: detail` strings —
+             the old flatten discarded `note`, so every footnote in the corpus
+             was invisible here while rendering correctly on claimn.co. */
+          const detailItems = guide.items?.length
+            ? guide.items
+            : (guide.details || []).map((d) => ({ label: '', detail: d }))
+          const guideNotes = fn.forGuide(idx)
+          const isOpen = !collapsed.has(guideId)
 
           return (
             <GlassCard key={guideId} variant="base">
               <button
-                onClick={() => setExpandedId(expandedId === guideId ? null : guideId)}
+                onClick={() =>
+                  setCollapsed((prev) => {
+                    const next = new Set(prev)
+                    if (next.has(guideId)) next.delete(guideId)
+                    else next.add(guideId)
+                    return next
+                  })
+                }
                 className="w-full flex items-center justify-between text-left"
               >
                 <div>
@@ -258,24 +298,44 @@ function ImplementationGuides({ guides }: { guides: ImplementationGuide[] }) {
                   <ChevronDownIcon
                     className={cn(
                       'w-5 h-5 text-kalkvit/50 transition-transform flex-shrink-0 ml-4',
-                      expandedId === guideId && 'rotate-180'
+                      isOpen && 'rotate-180'
                     )}
                   />
                 )}
               </button>
-              {expandedId === guideId && detailItems.length > 0 && (
+              {isOpen && detailItems.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-white/10">
                   <ul className="space-y-2">
-                    {detailItems.map((detail, index) => (
+                    {detailItems.map((item, index) => (
                       <li
                         key={index}
                         className="flex items-start gap-2 text-sm text-kalkvit/70"
                       >
                         <LightBulbIcon className="w-4 h-4 text-koppar flex-shrink-0 mt-0.5" />
-                        {detail}
+                        <span>
+                          {item.label ? (
+                            <span className="font-medium text-kalkvit">{item.label}: </span>
+                          ) : null}
+                          {item.detail}
+                          {fn.markerFor(idx, index) ? (
+                            <sup className="ml-0.5 font-medium text-koppar">
+                              {fn.markerFor(idx, index)}
+                            </sup>
+                          ) : null}
+                        </span>
                       </li>
                     ))}
                   </ul>
+                  {guideNotes.length > 0 && (
+                    <div className="mt-4 border-t border-white/10 pt-3">
+                      {guideNotes.map((note) => (
+                        <p key={note.marker} className="mb-1 text-xs italic leading-snug text-kalkvit/50">
+                          <span className="not-italic font-medium text-koppar">{note.marker}</span>{' '}
+                          {note.note}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </GlassCard>
@@ -334,6 +394,23 @@ function SuccessMetricsSection({ metrics }: { metrics: SuccessMetric[] }) {
             <p className="text-sm font-medium text-kalkvit">{metric.title}</p>
             {metric.target && (
               <p className="text-lg font-bold text-koppar mt-1">{metric.target}</p>
+            )}
+            {/* `counts` and `cadence` are written on every measure in the corpus
+                and were not in this type, so the portal showed a name and a
+                number and nothing about what reaching it means or when it is
+                recorded — half of each measure, on every members-only protocol.
+                `description` is kept below for older rows that still carry it. */}
+            {metric.counts && (
+              <p className="text-xs text-kalkvit/70 mt-2">
+                <span className="text-kalkvit/40">Counts as </span>
+                {metric.counts}
+              </p>
+            )}
+            {metric.cadence && (
+              <p className="text-xs text-kalkvit/70 mt-1">
+                <span className="text-kalkvit/40">Recorded </span>
+                {metric.cadence}
+              </p>
             )}
             {metric.description && (
               <p className="text-xs text-kalkvit/60 mt-1">{metric.description}</p>
@@ -414,7 +491,12 @@ function WeekCard({
   onToggleTask: (taskId: string, completed: boolean) => void
   isUpdating: string | null
 }) {
-  const [isExpanded, setIsExpanded] = useState(week.week === currentWeek)
+  /* ⚠ OPEN BY DEFAULT. This was `useState(week.week === currentWeek)`, and
+     `currentWeek` falls back to 1 on a protocol nobody has started — so a member
+     browsing a protocol saw week 1's tasks and nothing of weeks 2..N. The whole
+     week-by-week plan is protocol content; it is what a man reads to decide
+     whether to start. Each week is still closable on its own. */
+  const [isExpanded, setIsExpanded] = useState(true)
   const isCurrentWeek = week.week === currentWeek
   const isPastWeek = week.week < currentWeek
   const tasks = Array.isArray(week.tasks) ? week.tasks : []
@@ -608,10 +690,10 @@ function ProgressTracker({
         </div>
         <div>
           <p className="font-display text-xl font-bold text-kalkvit">
-            {new Date(activeProtocol.started_at).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-            })}
+            {/* ⚠ An empty started_at makes `new Date('')` an Invalid Date, which
+                toLocaleDateString renders as the literal string "Invalid Date" —
+                shown to members on protocols whose row carries no start date. */}
+            {formatStartedAt(activeProtocol.started_at)}
           </p>
           <p className="text-xs text-kalkvit/50">Started</p>
         </div>
@@ -934,6 +1016,11 @@ export function ProtocolDetailPage() {
                   <PillarIcon pillar={pillarId} size={32} className="text-koppar" />
                 </div>
                 <GlassBadge variant="koppar">{pillar.name}</GlassBadge>
+                {/* The sub-pillar, e.g. "Bio & Peptides". One of the 16 translatable
+                    columns; it reached the client and was dropped here. */}
+                {protocol.sub_category && (
+                  <GlassBadge variant="default">{protocol.sub_category}</GlassBadge>
+                )}
                 {isActive && (
                   <GlassBadge variant="success">
                     <PlayIcon className="w-3 h-3" />
@@ -972,14 +1059,20 @@ export function ProtocolDetailPage() {
 
           {/* Meta info */}
           <div className="flex items-center gap-6 text-sm text-kalkvit/50">
+            {/* ONE duration, not two. Both spans read duration_weeks, so every
+                protocol said "8 weeks · 8 weeks". The second now reports how many
+                weeks the plan actually contains, which is a different fact and is
+                only worth a line when it disagrees with the stated duration. */}
             <span className="flex items-center gap-2">
               <ClockIcon className="w-4 h-4" />
               {protocol.duration_weeks ? `${protocol.duration_weeks} weeks` : 'Multi-week program'}
             </span>
-            <span className="flex items-center gap-2">
-              <ViewfinderCircleIcon className="w-4 h-4" />
-              {protocol.duration_weeks || weeks.length} weeks
-            </span>
+            {weeks.length > 0 && weeks.length !== protocol.duration_weeks && (
+              <span className="flex items-center gap-2">
+                <ViewfinderCircleIcon className="w-4 h-4" />
+                {weeks.length} weeks planned
+              </span>
+            )}
             <span className="flex items-center gap-2">
               <CalendarIcon className="w-4 h-4" />
               {totalTasks} tasks

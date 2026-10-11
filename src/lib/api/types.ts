@@ -1185,6 +1185,10 @@ export interface ProtocolTemplate {
   title: string
   pillar: string
   category?: string
+  /** The sub-pillar. Populated on the five peptide education tracks
+   *  ("Bio & Peptides") and null on the rest; all five are members-only, so this
+   *  page is the only surface where the label can appear at all. */
+  sub_category?: string | null
   description: string
   headline_stat?: string
   subtitle?: string
@@ -1223,6 +1227,17 @@ export interface TrackingMethod {
 export interface SuccessMetric {
   title: string
   target?: string
+  /** What counts as reaching the target. Written on every protocol since the
+   *  2026-10 rewrite; this type did not carry it, so the portal rendered half
+   *  of every measure. */
+  counts?: string
+  /** When it is recorded — "Varje vecka, från vecka 3", "Vecka 1, 4 och 8". */
+  cadence?: string
+  /** 'leading' or 'outcome'. Read but not displayed: the standard is explicit
+   *  that the taxonomy is how a measure is CHOSEN, not something a man needs to
+   *  read in order to write down how he slept. */
+  kind?: string
+  /** ⚠ Never written by the corpus. Kept because older rows may carry it. */
   description?: string
 }
 
@@ -1264,7 +1279,14 @@ export interface ImplementationGuide {
   icon?: string
   description?: string
   details?: string[]
-  items?: Array<{ label: string; detail: string }>
+  items?: Array<{
+    label: string
+    detail: string
+    /** An external reference for this step — a source or a named framework.
+     *  The marker is NOT stored: it is derived from the order of noted items
+     *  so the stored text stays clean prose. At most two per protocol. */
+    note?: string | null
+  }>
 }
 
 export interface ProtocolStat {
